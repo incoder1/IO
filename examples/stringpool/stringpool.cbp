@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes" ?>
+<CodeBlocks_project_file>
+	<FileVersion major="1" minor="6" />
+	<Project>
+		<Option title="stringpool" />
+		<Option pch_mode="2" />
+		<Option compiler="gcc" />
+		<Build>
+			<Target title="debug-win-gcc-x64">
+				<Option output="bin/debug-win-gcc-x64/stringpool" prefix_auto="1" extension_auto="1" />
+				<Option object_output="obj/debug-win-gcc-x64/" />
+				<Option type="1" />
+				<Option compiler="gcc" />
+				<Compiler>
+					<Add option="-std=c++11" />
+					<Add option="-g" />
+					<Add option="-fexceptions" />
+					<Add option="-DIO_SHARED_LIB" />
+					<Add directory="include/win" />
+				</Compiler>
+				<Linker>
+					<Add directory="../../bin/debug-win-gcc-dll-x64" />
+				</Linker>
+			</Target>
+			<Target title="release-win-gcc-x64">
+				<Option output="bin/release-win-gcc-x64/stringpool" prefix_auto="1" extension_auto="1" />
+				<Option object_output="obj/release-win-gcc-x64/" />
+				<Option type="1" />
+				<Option compiler="gcc" />
+				<Compiler>
+					<Add option="-O3" />
+					<Add option="-std=c++14" />
+					<Add option="-fno-exceptions" />
+					<Add option="-fno-rtti" />
+					<Add directory="include/win" />
+				</Compiler>
+				<Linker>
+					<Add option="-s" />
+					<Add directory="../../bin/release-win-gcc-static-x64" />
+				</Linker>
+			</Target>
+		</Build>
+		<Compiler>
+			<Add option="-Wall" />
+			<Add directory="../../include" />
+			<Add directory="../../deps/include" />
+		</Compiler>
+		<Linker>
+			<Add library="iconv.dll" />
+			<Add library="io" />
+			<Add directory="../../deps/lib" />
+		</Linker>
+		<Unit filename="main.cpp" />
+		<Extensions>
+			<code_completion />
+			<envvars />
+			<debugger />
+			<lib_finder disable_auto="1" />
+		</Extensions>
+	</Project>
+</CodeBlocks_project_file>

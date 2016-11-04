@@ -1,0 +1,280 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes" ?>
+<CodeBlocks_project_file>
+	<FileVersion major="1" minor="6" />
+	<Project>
+		<Option title="io" />
+		<Option compiler="gcc" />
+		<Build>
+			<Target title="debug-win-gcc-static-x64">
+				<Option platforms="Windows;" />
+				<Option output="bin/debug-win-gcc-static-x64/io" prefix_auto="1" extension_auto="1" />
+				<Option working_dir="" />
+				<Option object_output="obj/debug-win-gcc-static-x64/" />
+				<Option type="2" />
+				<Option compiler="gcc" />
+				<Compiler>
+					<Add option="-Wnon-virtual-dtor" />
+					<Add option="-Winline" />
+					<Add option="-pedantic" />
+					<Add option="-std=c++11" />
+					<Add option="-pg" />
+					<Add option="-g" />
+					<Add option="-Og" />
+					<Add option="-fexceptions" />
+					<Add option="-DIO_HAS_BOOST" />
+					<Add option="-DBOOST_SYSTEM_NO_DEPRECATED" />
+					<Add directory="include" />
+					<Add directory="deps/include" />
+					<Add directory="../boost_1_60_0" />
+					<Add directory="include/win" />
+				</Compiler>
+				<Linker>
+					<Add option="-pg -lgmon" />
+					<Add library="iconv.dll" />
+					<Add directory="deps/lib" />
+				</Linker>
+			</Target>
+			<Target title="release-win-gcc-static-x64">
+				<Option platforms="Windows;" />
+				<Option output="bin/release-win-gcc-static-x64/io" prefix_auto="1" extension_auto="1" />
+				<Option working_dir="" />
+				<Option object_output="obj/release-win-gcc-static-x64/" />
+				<Option type="2" />
+				<Option compiler="gcc" />
+				<Compiler>
+					<Add option="-Weffc++" />
+					<Add option="-pedantic" />
+					<Add option="-Wall" />
+					<Add option="-std=c++14" />
+					<Add option="-fno-exceptions" />
+					<Add option="-fno-rtti" />
+					<Add option="-minline-stringops-dynamically" />
+					<Add option="-fdeclone-ctor-dtor" />
+					<Add option="-fdevirtualize-at-ltrans" />
+					<Add option="-mtune=generic" />
+					<Add option="-Ofast" />
+					<Add option="-DNDEBUG" />
+					<Add directory="include" />
+					<Add directory="deps/include" />
+					<Add directory="include/win" />
+				</Compiler>
+				<Linker>
+					<Add option="-s" />
+					<Add library="iconv.dll" />
+					<Add directory="deps/lib" />
+				</Linker>
+			</Target>
+			<Target title="debug-win-gcc-dll-x64">
+				<Option platforms="Windows;" />
+				<Option output="bin/debug-win-gcc-dll-x64/io" prefix_auto="1" extension_auto="1" />
+				<Option working_dir="bin/debug-win-gcc-dll-x64" />
+				<Option object_output="obj/debug-win-gcc-dll-x64/" />
+				<Option type="3" />
+				<Option compiler="gcc" />
+				<Option createDefFile="1" />
+				<Option createStaticLib="1" />
+				<Compiler>
+					<Add option="-Wnon-virtual-dtor" />
+					<Add option="-Winline" />
+					<Add option="-pedantic" />
+					<Add option="-std=c++11" />
+					<Add option="-g" />
+					<Add option="-fexceptions" />
+					<Add option="-Og" />
+					<Add option="-DIO_SHARED_LIB" />
+					<Add option="-DIO_BUILD_SHARED_LIB" />
+					<Add option="-DIO_HAS_BOOST" />
+					<Add option="-DBOOST_SYSTEM_NO_DEPRECATED" />
+					<Add directory="include" />
+					<Add directory="deps/include" />
+					<Add directory="../boost_1_60_0" />
+					<Add directory="include/win" />
+				</Compiler>
+				<Linker>
+					<Add option="-shared-libgcc" />
+					<Add library="iconv.dll" />
+					<Add directory="deps/lib" />
+					<Add directory="../boost_1_60_0/stage/gcc64/lib" />
+				</Linker>
+			</Target>
+			<Target title="release-win-gcc-dll-x64">
+				<Option platforms="Windows;" />
+				<Option output="bin/release-win-gcc-dll-x64/io" prefix_auto="1" extension_auto="1" />
+				<Option working_dir="bin/release-win-gcc-dll-x64" />
+				<Option object_output="obj/release-win-gcc-dll-x64/" />
+				<Option type="3" />
+				<Option compiler="gcc" />
+				<Option createDefFile="1" />
+				<Option createStaticLib="1" />
+				<Compiler>
+					<Add option="-Weffc++" />
+					<Add option="-pedantic" />
+					<Add option="-Wall" />
+					<Add option="-std=c++14" />
+					<Add option="-fno-exceptions" />
+					<Add option="-fno-rtti" />
+					<Add option="-minline-stringops-dynamically" />
+					<Add option="-fdeclone-ctor-dtor" />
+					<Add option="-fdevirtualize-at-ltrans" />
+					<Add option="-mtune=generic" />
+					<Add option="-Ofast" />
+					<Add option="-fvisibility=hidden" />
+					<Add option="-DNDEBUG" />
+					<Add option="-DIO_SHARED_LIB" />
+					<Add option="-DIO_BUILD_SHARED_LIB" />
+					<Add directory="include" />
+					<Add directory="deps/include" />
+					<Add directory="include/win" />
+				</Compiler>
+				<Linker>
+					<Add option="-s" />
+					<Add library="iconv.dll" />
+					<Add directory="deps/lib" />
+				</Linker>
+			</Target>
+			<Target title="debug-unix-gcc-so-x64">
+				<Option platforms="Unix;Mac;" />
+				<Option output="bin/debug-win-gcc-dll-x64/io" prefix_auto="1" extension_auto="1" />
+				<Option working_dir="bin/debug-win-gcc-dll-x64" />
+				<Option object_output="obj/debug-win-gcc-dll-x64/" />
+				<Option type="3" />
+				<Option compiler="gcc" />
+				<Option createDefFile="1" />
+				<Option createStaticLib="1" />
+				<Compiler>
+					<Add option="-Wnon-virtual-dtor" />
+					<Add option="-Winline" />
+					<Add option="-pedantic" />
+					<Add option="-g" />
+					<Add option="-Og" />
+					<Add option="-fexceptions" />
+					<Add directory="include" />
+					<Add directory="include/win" />
+					<Add directory="deps/include" />
+					<Add directory="../boost_1_60_0" />
+					<Add directory="include/config/libs" />
+					<Add directory="include/posix" />
+				</Compiler>
+				<Linker>
+					<Add library="iconv.dll" />
+					<Add directory="deps/lib" />
+				</Linker>
+			</Target>
+		</Build>
+		<Compiler>
+			<Add option="-Wall" />
+			<Add directory="include" />
+		</Compiler>
+		<Unit filename="include/buffer.hpp" />
+		<Unit filename="include/channels.hpp" />
+		<Unit filename="include/charsetcvt.hpp" />
+		<Unit filename="include/charsets.hpp" />
+		<Unit filename="include/codedetect.hpp" />
+		<Unit filename="include/config.hpp" />
+		<Unit filename="include/config/compiller/gcc.hpp" />
+		<Unit filename="include/config/libs/exceptions.hpp" />
+		<Unit filename="include/config/libs/h_allocator.hpp" />
+		<Unit filename="include/config/libs/intrusive_ptr.hpp" />
+		<Unit filename="include/console.hpp" />
+		<Unit filename="include/conststring.hpp" />
+		<Unit filename="include/files.hpp" />
+		<Unit filename="include/hashing.hpp" />
+		<Unit filename="include/network.hpp" />
+		<Unit filename="include/object.hpp" />
+		<Unit filename="include/posix/files.hpp">
+			<Option target="debug-unix-gcc-so-x64" />
+		</Unit>
+		<Unit filename="include/posix/posixconf.hpp">
+			<Option target="debug-unix-gcc-so-x64" />
+		</Unit>
+		<Unit filename="include/stream.hpp" />
+		<Unit filename="include/stringpool.hpp" />
+		<Unit filename="include/text.hpp" />
+		<Unit filename="include/tuple_meta_reflect.hpp" />
+		<Unit filename="include/win/console.hpp">
+			<Option target="debug-win-gcc-static-x64" />
+			<Option target="release-win-gcc-static-x64" />
+			<Option target="debug-win-gcc-dll-x64" />
+			<Option target="release-win-gcc-dll-x64" />
+		</Unit>
+		<Unit filename="include/win/criticalsection.hpp">
+			<Option target="debug-win-gcc-static-x64" />
+			<Option target="release-win-gcc-static-x64" />
+			<Option target="debug-win-gcc-dll-x64" />
+			<Option target="release-win-gcc-dll-x64" />
+		</Unit>
+		<Unit filename="include/win/files.hpp">
+			<Option target="debug-win-gcc-static-x64" />
+			<Option target="release-win-gcc-static-x64" />
+			<Option target="debug-win-gcc-dll-x64" />
+			<Option target="release-win-gcc-dll-x64" />
+		</Unit>
+		<Unit filename="include/win/handlechannel.hpp">
+			<Option target="debug-win-gcc-static-x64" />
+			<Option target="release-win-gcc-static-x64" />
+			<Option target="debug-win-gcc-dll-x64" />
+			<Option target="release-win-gcc-dll-x64" />
+		</Unit>
+		<Unit filename="include/win/hmalloc.hpp">
+			<Option target="debug-win-gcc-static-x64" />
+			<Option target="release-win-gcc-static-x64" />
+			<Option target="debug-win-gcc-dll-x64" />
+			<Option target="release-win-gcc-dll-x64" />
+		</Unit>
+		<Unit filename="include/win/winconf.hpp">
+			<Option target="debug-win-gcc-static-x64" />
+			<Option target="release-win-gcc-static-x64" />
+			<Option target="debug-win-gcc-dll-x64" />
+			<Option target="release-win-gcc-dll-x64" />
+		</Unit>
+		<Unit filename="include/xml_binding.hpp" />
+		<Unit filename="include/xml_error.hpp" />
+		<Unit filename="include/xml_event.hpp" />
+		<Unit filename="include/xml_lexcast.hpp" />
+		<Unit filename="include/xml_parse.hpp" />
+		<Unit filename="include/xml_source.hpp" />
+		<Unit filename="include/xml_types.hpp" />
+		<Unit filename="src/buffer.cpp" />
+		<Unit filename="src/channels.cpp" />
+		<Unit filename="src/charsetcvt.cpp" />
+		<Unit filename="src/charsets.cpp" />
+		<Unit filename="src/codedetect.cpp" />
+		<Unit filename="src/posix/files.cpp">
+			<Option target="debug-unix-gcc-so-x64" />
+		</Unit>
+		<Unit filename="src/shared_library.cpp" />
+		<Unit filename="src/stdafx.cpp">
+			<Option link="0" />
+			<Option weight="0" />
+		</Unit>
+		<Unit filename="src/stdafx.hpp">
+			<Option compile="1" />
+			<Option weight="0" />
+		</Unit>
+		<Unit filename="src/stringpool.cpp" />
+		<Unit filename="src/strings.hpp" />
+		<Unit filename="src/text.cpp" />
+		<Unit filename="src/win/console.cpp">
+			<Option target="debug-win-gcc-static-x64" />
+			<Option target="release-win-gcc-static-x64" />
+			<Option target="debug-win-gcc-dll-x64" />
+			<Option target="release-win-gcc-dll-x64" />
+		</Unit>
+		<Unit filename="src/win/files.cpp">
+			<Option target="debug-win-gcc-static-x64" />
+			<Option target="release-win-gcc-static-x64" />
+			<Option target="debug-win-gcc-dll-x64" />
+			<Option target="release-win-gcc-dll-x64" />
+		</Unit>
+		<Unit filename="src/xml_error.cpp" />
+		<Unit filename="src/xml_event.cpp" />
+		<Unit filename="src/xml_parse.cpp" />
+		<Unit filename="src/xml_source.cpp" />
+		<Extensions>
+			<code_completion />
+			<envvars />
+			<debugger />
+			<lib_finder disable_auto="1" />
+		</Extensions>
+	</Project>
+</CodeBlocks_project_file>

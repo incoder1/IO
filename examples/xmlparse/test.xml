@@ -1,0 +1,41 @@
+﻿<?xml	
+		version="1.0"	
+			encoding="UTF-8" 
+standalone="no"?>
+		
+<?xml-stylesheet type="text/xsl" href="style.xsl" ?>
+<!DOCTYPE test [
+		<!ELEMENT test (msg,msg,βήτα)>
+		<!ELEMENT msg (#PCDATA)>
+		<!ELEMENT άλφα (#PCDATA)>
+		<!ELEMENT βήτα (άλφα,άλφα,άλφα,msg)>
+		<!ATTLIST msg attr0 CDATA "">
+		<!ATTLIST msg attr1 CDATA "">
+	]>
+<!-- << ! Comment
+	lorem ipsum - dolor <>!$#$ --> 
+<test>
+	<msg 
+		attr0="ключь" 
+			attr1="второй
+	ключь" >
+	</msg> 
+	<!-- internal comentary --> <msg attr0="άλφα" attr1="βήτα" />
+	<βήτα>
+		<άλφα/>
+		<άλφα /><άλφα></άλφα>
+		<msg attr0="άλφα" attr1="βήτα">
+			Latine scriptum
+			English inscription
+			Русская надпись
+			Ελληνική επιγραφή
+			<![CDATA[<sender>John Smith</sender> <recipient name="Тарас Шевченко"/>]]>
+			Et quidam text
+			Some more text
+			Еще немного текста
+			Κάποιοι περισσότερο κείμενο
+		</msg>
+	</βήτα>
+	<!-- <end-coment> ! - foo ? : ! </end-coment> -->
+</test>
+

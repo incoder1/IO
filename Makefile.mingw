@@ -1,0 +1,51 @@
+CC=gcc
+CXX=g++
+AS=g++
+LD=g++
+
+TARGET = lib
+OBJ = obj
+
+LIB_NAME=libio
+SHARED_EXT=dll
+
+PLATFORM_SHARED_LINK_OPTIONS?=-shared -Wl,--dll -Wl,--output-def=$(TARGET)/libio.def -Wl,--out-implib=$(TARGET)/libio.a
+
+LIBS?=-L./deps/lib -liconv.dll
+INCLUEDS?=-Iinclude -Ideps/include -Isrc
+
+OPTIMIZE?=-mtune=generic -Ofast -fno-exceptions -fno-rtti -minline-stringops-dynamically -fdeclone-ctor-dtor -fdevirtualize-at-ltrans
+SHARED-DEFINES?=-DNDEBUG -DIO_SHARED_LIB -DIO_BUILD_SHARED_LIB
+CPPFLAGS?= -std=gnu++14 -fno-exceptions -fno-rtti -Winline -pedantic $(OPTIMIZE) $(INCLUEDS)
+LDFLAGS?= $(LIBS) -s
+
+
+MODULES=. win
+
+SRC_DIR := $(addprefix src/,$(MODULES))
+SOURCE_FILES := $(foreach sdir,$(SRC_DIR),$(wildcard $(sdir)/*.cpp))
+OBJ_FILES := $(addprefix $(OBJ)/, $(notdir $(SOURCE_FILES:.cpp=.o)) )
+ 
+DESTDIR?=target
+ 
+shared: link-shared
+
+link-shared: compile-shared
+	$(LD) $(PLATFORM_SHARED_LINK_OPTIONS) $(OBJ_FILES) -o $(TARGET)/$(LIB_NAME).$(SHARED_EXT) $(LDFLAGS)
+		
+compile-shared:shared-$(OBJ)/stdafx.hpp.gch shared-$(OBJ_FILES) 
+
+shared-$(OBJ)/stdafx.hpp.gch: src/stdafx.hpp
+	$(CXX) $(CPPFLAGS) $(SHARED-DEFINES) -c src/stdafx.hpp -o $(OBJ)/stdafx.hpp.gch
+	
+shared-$(OBJ)/%.o: src/%.cpp
+	$(CXX) $(CPPFLAGS) $(SHARED-DEFINES) -iquoteobj$(OBJ)/stdafx.hpp.gch -c $< -o $@
+	
+shared-$(OBJ)/%.o: src/win/%.cpp
+	$(CXX) $(CPPFLAGS) $(SHARED-DEFINES) -iquoteobj$(OBJ)/stdafx.hpp.gch  -c $< -o $@
+	
+clean:
+	rm -rf $(OBJ)
+	rm -rf $(TARGET)
+	mkdir $(OBJ)
+	mkdir $(TARGET)

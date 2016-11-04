@@ -1,0 +1,72 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes" ?>
+<CodeBlocks_project_file>
+	<FileVersion major="1" minor="6" />
+	<Project>
+		<Option title="chconv" />
+		<Option pch_mode="2" />
+		<Option compiler="gcc" />
+		<Build>
+			<Target title="debug-win-gcc-x64">
+				<Option output="bin/debug-win-gcc-x64/chconv" prefix_auto="1" extension_auto="1" />
+				<Option object_output="obj/debug-win-gcc-x64/" />
+				<Option type="1" />
+				<Option compiler="gcc" />
+				<Compiler>
+					<Add option="-Weffc++" />
+					<Add option="-pedantic" />
+					<Add option="-Wextra" />
+					<Add option="-Wall" />
+					<Add option="-std=c++11" />
+					<Add option="-pg" />
+					<Add option="-g" />
+					<Add option="-Og" />
+					<Add option="-fexceptions" />
+					<Add directory="../../deps/include" />
+				</Compiler>
+				<Linker>
+					<Add option="-pg -lgmon" />
+					<Add library="iconv.dll" />
+					<Add directory="../../deps/lib" />
+					<Add directory="../../bin/debug-win-gcc-dll-x64" />
+				</Linker>
+			</Target>
+			<Target title="release-win-gcc-x64">
+				<Option output="bin/release-win-gcc-x64/chconv" prefix_auto="1" extension_auto="1" />
+				<Option object_output="obj/release-win-gcc-x64/" />
+				<Option type="1" />
+				<Option compiler="gcc" />
+				<Compiler>
+					<Add option="-O3" />
+					<Add option="-Weffc++" />
+					<Add option="-pedantic" />
+					<Add option="-Wextra" />
+					<Add option="-Wall" />
+					<Add option="-std=c++14" />
+					<Add option="-fno-exceptions" />
+					<Add option="-fno-rtti" />
+					<Add directory="../../deps/include" />
+				</Compiler>
+				<Linker>
+					<Add option="-s" />
+					<Add library="iconv.dll" />
+					<Add directory="../../deps/lib" />
+					<Add directory="../../bin/release-win-gcc-static-x64" />
+				</Linker>
+			</Target>
+		</Build>
+		<Compiler>
+			<Add option="-Wall" />
+			<Add directory="../../include" />
+		</Compiler>
+		<Linker>
+			<Add library="io" />
+		</Linker>
+		<Unit filename="main.cpp" />
+		<Extensions>
+			<code_completion />
+			<envvars />
+			<debugger />
+			<lib_finder disable_auto="1" />
+		</Extensions>
+	</Project>
+</CodeBlocks_project_file>
