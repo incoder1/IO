@@ -71,11 +71,15 @@
 
 #define io_zerro_mem(__p,__bytes) __builtin_memset( (__p), 0, (__bytes) )
 
-#define io_strstr(__s1,__s2) __builtin_strstr( (__s1), (__s2) )
-
 #define io_memchr(__s,__c,__n) __builtin_memchr( (__s), (__c), (__n) )
 
+#define io_strstr(__s1,__s2) __builtin_strstr( (__s1), (__s2) )
+
+#define io_strchr(__s,__c) __builtin_strchr( (__s), (__c) )
+
 #define io_strlen(__s) __builtin_strlen( (__s) )
+
+#define io_strcpy(__s1,__s2) __builtin_strcpy( (__s1), (__s2) )
 
 #define io_strcmp(__lsh,__rhs) __builtin_strcmp( (__lsh), (__rhs) )
 

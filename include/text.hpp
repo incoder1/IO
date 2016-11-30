@@ -24,9 +24,9 @@
 #endif // HAS_PRAGMA_ONCE
 
 #ifdef __IO_WINDOWS_BACKEND__
-#	define IO_U_TEXT(S) u##S;
+#	define IO_U_TEXT(S) L##S;
 #	define IO_UCHARSET io::code_pages::UTF_16LE
-typedef char16_t unicode_char;
+typedef wchar_t unicode_char;
 #define IO_UCONV_RATE  io::charset_conv_rate::twice_less
 #endif // __IO_WINDOWS_BACKEND__
 
@@ -133,45 +133,62 @@ private:
 };
 
 namespace detail {
-#ifndef IO_NO_EXCEPTIONS
-	static inline void check_error(const std::error_code& ec) {
-		if(ec)
-			throw std::system_error(ec);
-	}
-#else
-	static inline void check_error(const std::error_code& ec) {
-		if(ec)
-			std::unexpected();
-	}
-#endif // IO_NO_EXCEPTIONS
-	template<typename T>
-	struct scoped_arr
-	{
-		scoped_arr(const scoped_arr&)  = delete;
-		scoped_arr& operator=(const scoped_arr&) = delete;
-		constexpr scoped_arr(std::size_t len):
-			len_(len),
-			mem_ ( new T[len_] )
-		{}
-		~scoped_arr() noexcept {
-			delete mem_;
-		}
-		inline T* get() const noexcept
-		{
-			return mem_;
-		}
-		inline std::size_t len() const noexcept {
-			return len_;
-		}
-	private:
-		const std::size_t len_;
-		T* mem_;
-	};
 
-	template<typename T>
-	static constexpr uint8_t* address_of(const T* p) noexcept {
-		return const_cast<uint8_t*>( reinterpret_cast<const uint8_t*>(p) );
+#ifndef IO_NO_EXCEPTIONS
+static inline void check_error(const std::error_code& ec)
+{
+	if(ec)
+		throw std::system_error(ec);
+}
+#else
+static inline void check_error(const std::error_code& ec)
+{
+	if(ec)
+		std::unexpected();
+}
+#endif // IO_NO_EXCEPTIONS
+
+template<typename T>
+class scoped_arr {
+private:
+	static void dispoce(T* const px) noexcept {
+		 std::return_temporary_buffer<T>(px);
 	}
+public:
+	typedef void (*release_function)(T* const);
+	scoped_arr(const scoped_arr&)  = delete;
+	scoped_arr& operator=(const scoped_arr&) = delete;
+	constexpr scoped_arr(std::size_t len, T* arr, release_function rf) noexcept:
+		len_(len),
+		mem_(arr),
+		rf_(rf)
+	{}
+	scoped_arr(std::size_t len) noexcept:
+		scoped_arr(len, std::get_temporary_buffer<T>(len).first, &scoped_arr::dispoce)
+	{}
+	~scoped_arr() noexcept
+	{
+		rf_(mem_);
+	}
+	inline T* get() const noexcept
+	{
+		return mem_;
+	}
+	inline std::size_t len() const noexcept
+	{
+		return len_;
+	}
+private:
+	const std::size_t len_;
+	T* mem_;
+	release_function rf_;
+};
+
+template<typename T>
+static constexpr uint8_t* address_of(const T* p) noexcept
+{
+	return const_cast<uint8_t*>( reinterpret_cast<const uint8_t*>(p) );
+}
 } // namesapace detail
 
 
@@ -216,7 +233,8 @@ inline std::u32string transcode_to_u32(const char* u8_str)
 }
 
 /// Convert a system UCS-2 character array to UTF-8 encoded STL string
-inline std::string transcode(const char16_t* u16_str, std::size_t len) {
+inline std::string transcode(const char16_t* u16_str, std::size_t len)
+{
 	detail::scoped_arr<char> arr( len*sizeof(char16_t) );
 	std::error_code ec;
 	std::size_t conv = transcode(ec, u16_str, len, detail::address_of(arr.get()), arr.len() );
@@ -225,7 +243,8 @@ inline std::string transcode(const char16_t* u16_str, std::size_t len) {
 }
 
 /// Convert a system UCS-4 character array to UTF-8 encoded STL string
-inline std::string transcode(const char32_t* u32_str, std::size_t len) {
+inline std::string transcode(const char32_t* u32_str, std::size_t len)
+{
 	detail::scoped_arr<char> arr( len*sizeof(char32_t) );
 	std::error_code ec;
 	std::size_t conv = transcode(ec, u32_str, len,detail::address_of(arr.get()), arr.len() );
@@ -245,7 +264,8 @@ inline std::string transcode(const char32_t* u32_str)
 
 /// Convert UTF-8 encoded character array to
 /// system UCS (UTF-(16|32)(LE|BE) ) character string
-inline std::wstring transcode_to_ucs(const char* u8_str, std::size_t bytes) {
+inline std::wstring transcode_to_ucs(const char* u8_str, std::size_t bytes)
+{
 #ifdef __IO_WINDOWS_BACKEND__
 	detail::scoped_arr<char16_t> arr( bytes*sizeof(char16_t) );
 #else
@@ -257,11 +277,13 @@ inline std::wstring transcode_to_ucs(const char* u8_str, std::size_t bytes) {
 	return std::wstring(reinterpret_cast<const wchar_t*>(arr.get()), conv );
 }
 
-inline std::wstring transcode_to_ucs(const char* u8_str) {
+inline std::wstring transcode_to_ucs(const char* u8_str)
+{
 	return transcode_to_ucs(u8_str, std::char_traits<char>::length(u8_str) );
 }
 
-inline std::string transcode(const wchar_t* ucs_str, std::size_t len) {
+inline std::string transcode(const wchar_t* ucs_str, std::size_t len)
+{
 #ifdef __IO_WINDOWS_BACKEND__
 	const char16_t* ucs = reinterpret_cast<const char16_t*>(ucs_str);
 	detail::scoped_arr<char> arr( len*2 );
@@ -275,9 +297,11 @@ inline std::string transcode(const wchar_t* ucs_str, std::size_t len) {
 	return std::string(arr.get(), conv);
 }
 
-inline std::string transcode(const wchar_t* ucs_str) {
+inline std::string transcode(const wchar_t* ucs_str)
+{
 	return transcode(ucs_str, std::char_traits<wchar_t>::length(ucs_str) );
 }
+
 
 } // namespace
 

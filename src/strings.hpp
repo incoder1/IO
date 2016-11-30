@@ -267,37 +267,37 @@ inline __char_t* find_first_symbol(const __char_t* s)
 }
 
 // UTF-8 char mask helper
-static constexpr inline bool check_mask(uint8_t mask, uint8_t value)
+static constexpr __forceinline bool check_mask(const uint8_t mask,const uint8_t value)
 {
 	return mask == (value & mask);
 }
 
 // UTF-8 double byte character
-static constexpr inline bool is_u8_2(const char ch)
+static constexpr __forceinline bool is_u8_2(const char ch)
 {
 	return check_mask(0xC0,static_cast<uint8_t>(ch));
 }
 
 // UTF-8 triple byte character
-static constexpr inline bool is_u8_3(const char ch)
+static constexpr __forceinline bool is_u8_3(const char ch)
 {
 	return check_mask(0xE0,static_cast<uint8_t>(ch));
 }
 
 // UTF-8 quadruple byte character
-static constexpr inline bool is_u8_4(const char ch)
+static constexpr __forceinline bool is_u8_4(const char ch)
 {
 	return check_mask(0xF0,static_cast<uint8_t>(ch));
 }
 
 // UTF-8 non UNICODE space character
-static constexpr inline bool is_u8_5_or_6(const char ch)
+static constexpr __forceinline bool is_u8_5_or_6(const char ch)
 {
 	return check_mask(0xF8,static_cast<uint8_t>(ch)) || check_mask(0xFC,static_cast<uint8_t>(ch));
 }
 
 // Gest UTF-8 character size
-constexpr inline uint8_t u8_char_size(const char ch)
+constexpr __forceinline uint8_t u8_char_size(const char ch)
 {
 	return  (ch > 0) ? 1
 	        :  is_u8_2(ch) ? 2

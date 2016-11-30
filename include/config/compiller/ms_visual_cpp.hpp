@@ -36,13 +36,21 @@
 #	define IO_CPU_BITS_64
 #endif
 
+#ifdef IO_CPU_BITS_64
+#define io_size_t_abs(__x) llabs( (__x) )
+#else
+#define io_size_t_abs(__x) labs( (__x) )
+#endif
 
-#define IO_BSWAP32 _byteswap_ulong
-#define IO_BSWAP64 _byteswap_uint64
+
+#define io_bswap32 _byteswap_ulong
+#define io_bswap64 _byteswap_uint64
 
 #define io_alloca(x) _alloca((x))
 
 #define io_memmove(__dst, __src, __bytes) memmove( (__dst), (__src), (__bytes) )
+
+#define io_memchr(__s,__c,__n) memchr( (__s), (__c), (__n) )
 
 #define io_memset(__p,__v,__bytes) memset( (__p), (__v), (__bytes) )
 
@@ -50,11 +58,13 @@
 
 #define io_strstr(__s1,__s2) strstr( (__s1), (__s2) )
 
-#define io_memchr(__s,__c,__n) memchr( (__s), (__c), (__n) )
+#define io_strchr(__s,__c) strchr( (__s), (__c) )
 
 #define io_strlen(__s) strlen( (__s) )
 
 #define io_strcmp(__lsh,__rsh) strcmp( (__lsh), (__rhs) )
+
+#define io_strcpy(__s1,__s2 ) strcpy( (__s1), (__s2) )
 
 #ifndef _DEBUG
 #define NDEBUG

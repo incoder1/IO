@@ -27,7 +27,10 @@ private:
 	static constexpr uint32_t M = 5;
 	static constexpr uint32_t N = 0xE6546B64;
 
-	static constexpr inline uint32_t rotl(uint32_t val, uint8_t shift) {
+	static constexpr uint32_t MIX_MAGIC_0 = 0x85EBCA6B;
+	static constexpr uint32_t MIX_MAGIC_1 = 0xC2B2AE35;
+
+	static __forceinline uint32_t rotl(uint32_t val, uint8_t shift) {
 		return shift == 0 ? val : (val << shift) | ( val >> (32 - shift) ) ;
 	}
 
@@ -63,9 +66,9 @@ public:
 
 	static inline uint32_t final_mix(uint32_t h) {
 		h ^= (h >> 16);
-		h *= 0x85EBCA6B;
+		h *= MIX_MAGIC_0;
 		h ^= (h >> 13);
-		h *= 0xC2B2AE35;
+		h *= MIX_MAGIC_1;
 		h ^= (h >> 16);
 		return h;
 	}
@@ -97,13 +100,14 @@ class cityhash
 {
 private:
 
-	static constexpr const uint64_t k0 = 0xc3a5c85c97cb3127ULL;
-	static constexpr const uint64_t k1 = 0xb492b66fbe98f273ULL;
-	static constexpr const uint64_t k2 = 0x9ae16a3b2f90404fULL;
+	static constexpr uint64_t k0 = 0xc3a5c85c97cb3127ULL;
+	static constexpr uint64_t k1 = 0xb492b66fbe98f273ULL;
+	static constexpr uint64_t k2 = 0x9ae16a3b2f90404fULL;
 
-	typedef std::char_traits<uint8_t> utrais;
-	typedef std::pair<uint64_t, uint64_t> ullpair;
-
+	struct ullpair {
+		uint64_t first;
+		uint64_t second;
+	};
 
 	static inline uint64_t unaligned_load64(const uint8_t *p) {
 		uint64_t result;
@@ -211,7 +215,7 @@ private:
 		a += x;
 		a += y;
 		b += rotate(a, 44);
-		return std::make_pair(a + z, b + c);
+		return { a + z, b + c};
 	}
 
 	static inline ullpair weak_hash_len32_with_seeds(const uint8_t* s, uint64_t a, uint64_t b) {
@@ -223,7 +227,7 @@ private:
 								a,b);
 	}
 
-	static uint64_t hash_len33_to_64(const uint8_t *s, size_t len) IO_NO_INLINE {
+	static IO_NO_INLINE uint64_t hash_len33_to_64(const uint8_t *s, size_t len) IO_NO_INLINE {
 	  uint64_t mul = k2 + len * 2;
 	  uint64_t a = fetch_64(s) * k2;
 	  uint64_t b = fetch_64(s + 8);
@@ -244,7 +248,7 @@ private:
 	  return b + x;
 	}
 
-	static uint64_t hash_over_64(const uint8_t* s, std::size_t count) noexcept IO_NO_INLINE {
+	static IO_NO_INLINE uint64_t hash_over_64(const uint8_t* s, std::size_t count) noexcept IO_NO_INLINE {
 		// For arrays over 64 bytes we hash the end first, and then as we
 		// loop we keep 56 bytes of state: v, w, x, y, and z.
 		uint64_t x = fetch_64(s + count - 40);
@@ -271,6 +275,7 @@ private:
 	}
 
 public:
+
 	static uint64_t hash(const uint8_t* s, std::size_t count) noexcept {
 		if (count <= 16) {
 			return hash_len0_to16(s, count);
@@ -278,8 +283,9 @@ public:
 			return hash_len17_to32(s, count);
 		} else if (count <= 64) {
 			return hash_len33_to_64(s, count);
+		} else {
+			return hash_over_64(s, count);
 		}
-		return hash_over_64(s, count);
 	}
 };
 

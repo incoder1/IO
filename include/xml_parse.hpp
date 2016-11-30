@@ -70,6 +70,7 @@ DECLARE_IPTR(event_stream_parser);
 class IO_PUBLIC_SYMBOL event_stream_parser:public object
 {
 private:
+	static constexpr std::size_t MAX_SCAN_BUFF_SIZE = 16; // 9 but for 16 for better allign;
 	typedef std::unordered_set<
 			std::size_t,
 			std::hash<std::size_t>,
@@ -218,44 +219,43 @@ private:
 		return result;
 	}
 
-	static inline bool is_eof(char ch) noexcept {
+	static __forceinline bool is_eof(char ch) noexcept {
 		return !std::char_traits<char>::not_eof(ch);
 	}
 
-	static inline bool sb_check(const char* sb) noexcept {
-		return nullptr == std::char_traits<char>::find(sb, 9, std::char_traits<char>::eof() );
+	static __forceinline bool sb_check(const char* sb) noexcept {
+		return nullptr == io_strchr(sb, EOF);
 	}
 
-	static inline void sb_clear(const char* sb) noexcept {
-		std::char_traits<char>::assign(const_cast<char*>(sb),9,'\0');
+	static __forceinline void sb_clear(const char* sb) noexcept {
+		io_memset(const_cast<char*>(sb),'\0',MAX_SCAN_BUFF_SIZE);
 	}
 
-	static inline std::size_t sb_len(const char *sb) noexcept {
+	static __forceinline std::size_t sb_len(const char *sb) noexcept {
 		return io_strlen(sb);
 	}
 
-	static inline bool sb_empty(const char *sb) noexcept {
+	static __forceinline bool sb_empty(const char *sb) noexcept {
 		return '\0' == *sb;
 	}
 
-	static inline void sb_append(const char* sb,char c) noexcept {
-		char *i = const_cast<char*>( sb + sb_len(sb) );
-		*i = c;
+	static __forceinline void sb_append(const char* sb,const char c) noexcept {
+		const_cast<char*>(sb)[ io_strlen(sb) ] = c;
 	}
 
-	static inline void sb_append(const char* sb,const char* str) noexcept {
-		char *i = const_cast<char*>( sb + sb_len(sb) );
-		std::strcpy( i, str);
+	static __forceinline void sb_append(const char* sb,const char* str) noexcept {
+		char *i = const_cast<char*>( sb + io_strlen(sb) );
+		io_strcpy( i, str);
 	}
 
 private:
 	s_source src_;
 	state state_;
 	event_type current_;
-	char scan_buf_[9];
 	s_string_pool pool_;
 	validated_set validated_;
 	std::size_t nesting_;
+	char scan_buf_[MAX_SCAN_BUFF_SIZE];
 };
 
 } } // namesapce xml, namesapce io
