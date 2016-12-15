@@ -51,32 +51,33 @@ public:
 	{
 		return address_of<const_pointer>(__x);
 	}
-
 #ifndef IO_NO_EXCEPTIONS
 	pointer allocate(size_type __n, const void* = 0)
 	{
 		void * result = io::h_malloc(__n * sizeof(value_type));
-		if(NULL == result) {
+		if(NULL == result)
 			throw std::bad_alloc();
-		}
 		return static_cast<pointer>(result);
 	}
 #else
 	pointer allocate(size_type __n, const void* = 0) noexcept
 	{
-		pointer result = nullptr;
-		for(;;) {
-			result = static_cast<pointer>( io::h_malloc(__n * sizeof(value_type)) );
-			if(nullptr != result)
-				break;
-			std::new_handler new_hnd = std::get_new_handler();
-			if(nullptr != new_hnd) {
-				new_hnd();
-			} else {
-				std::unexpected();
+		void *result = nullptr;
+		const std::size_t size = __n * sizeof(value_type);
+#ifdef __GNUC__
+		while ( __builtin_expect( (result = io::h_malloc(size) ) == nullptr, false) ) {
+#else
+		result = io::h_malloc(size);
+		for(; nullptr == result; result = io::h_malloc(size) ) { ;
+#endif // __GNUC__
+			if(nullptr != result) {
+				std::new_handler handler = std::get_new_handler();
+				if(nullptr == handler)
+					return nullptr;
+				handler();
 			}
 		}
-		return result;
+		return static_cast<pointer>(result);
 	}
 #endif // IO_NO_EXCEPTIONS
 
@@ -89,14 +90,14 @@ public:
 
 	// addon to std::allocator make this noexcept(true) if constructing type is also noexcept
 	template<typename _Up, typename... _Args>
-	void construct(_Up* __p, _Args&&... __args) noexcept( noexcept( _Up(std::forward<_Args>(__args)...) ) )
+	__forceinline void construct(_Up* __p, _Args&&... __args) noexcept( noexcept( _Up(std::forward<_Args>(__args)...) ) )
 	{
 		assert(nullptr != __p);
 		::new( static_cast<void *>(__p) ) _Up(std::forward<_Args>(__args)...);
 	}
 
 	template<typename _Up>
-	void  destroy(_Up* __p) noexcept( noexcept( __p->~_Up() ) )
+	__forceinline void  destroy(_Up* __p) noexcept( noexcept( __p->~_Up() ) )
 	{
 		__p->~_Up();
 	}
@@ -105,7 +106,6 @@ public:
 	{
 		return SIZE_MAX / sizeof(value_type);
 	}
-
 };
 
 template<typename _Tp>

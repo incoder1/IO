@@ -51,8 +51,8 @@ s_source source::create(std::error_code& ec, s_read_channel&& src, byte_buffer&&
 			ec = make_error_code(converrc::not_supported);
 			return result;
 		}
-		code_cnvtr cnv = code_cnvtr::open(ec, ch, code_pages::UTF_8);
-		src = conv_read_channel::open(ec, std::move(src), std::move(cnv), rate);
+		s_code_cnvtr cnv = code_cnvtr::open(ec, ch, code_pages::UTF_8);
+		src = conv_read_channel::open(ec, src, cnv, rate);
 		if(ec) {
 			return result;
 		}

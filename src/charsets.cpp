@@ -55,6 +55,18 @@ DECLARE_CHARSET(CP_1256,1256,"CP1256",1,false)
 DECLARE_CHARSET(CP_1257,1257,"CP1257",1,false)
 DECLARE_CHARSET(CP_1258,1258,"CP1258",1,false)
 
+
+bool charset::operator==(const charset& rhs) const noexcept
+{
+	return code_ == rhs.code_;
+}
+
+bool charset::operator!=(const charset& rhs) const noexcept
+{
+	return code_ != rhs.code_;
+}
+
+
 const charset& code_pages::platform_default() noexcept {
 	#ifndef __IO_WINDOWS_BACKEND__
 		return UTF_16LE;

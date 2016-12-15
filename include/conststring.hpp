@@ -70,7 +70,7 @@ public:
 			std::size_t len = rhs.length();
 			data_ = static_cast<char*>( io::h_malloc( len+1 ) );
 			if(nullptr != data_) {
-				traits_type::move(data_, (rhs.data_), len);
+				io_strcpy(data_, rhs.data_);
 			}
 		}
 	}

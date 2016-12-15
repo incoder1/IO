@@ -19,7 +19,9 @@
 #endif // HAS_PRAGMA_ONCE
 
 #ifdef __IO_WINDOWS_BACKEND__
-#include "win/console.hpp"
+#	include "win/console.hpp"
+#elif defined(__IO_POSIZE_BACKED__)
+#	include "posix/console.hpp"
 #endif // __IO_WINDOWS_BACKEND__
 
 #endif // __IO_CONSOLE_HPP_INCLUDED__

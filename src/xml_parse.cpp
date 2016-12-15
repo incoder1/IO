@@ -60,45 +60,39 @@ static inline bool is_doc_type(const char *s) noexcept
 static std::size_t extract_prefix(std::size_t& start,const char* str) noexcept {
 	start = 0;
 	char *s = const_cast<char*>(str);
-	if( cheq(LEFTB,*s) ) {
-		++start;
+	if( cheq(LEFTB,*s) )
+		return 0;
+	++start;
+	++s;
+	if(cheq(SOLIDUS,*s)) {
 		++s;
-		if(cheq(SOLIDUS,*s)) {
-			++s;
-			++start;
-		}
-		while( !cheq(COLON,*s) ) {
-			++s;
-			if( is_one_of(*s, RIGHTB, ENDL)  ) {
-				start = 0;
-				return 0;
-			}
-		}
-		return detail::distance(str,s-1) - (start-1);
+		++start;
 	}
-	return 0;
+	s += io_strcspn(s,"\t\n\v\f\r :/>");
+	if( !cheq(*s,COLON)  ) {
+		start = 0;
+		return 0;
+	}
+	return detail::distance(str,s-1) - (start-1);
 }
 
 static std::size_t extract_local_name(std::size_t& start,const char* str) noexcept {
 	start = 0;
 	char *s = const_cast<char*>(str);
-	if( is_one_of(*s, LEFTB,COLON,QM) ) {
-		++start;
+	if( !is_one_of(*s, LEFTB,COLON,QM) )
+		return 0;
+	++start;
+	++s;
+	if(cheq(SOLIDUS,*s)) {
 		++s;
-		if(cheq(SOLIDUS,*s)) {
-			++s;
-			++start;
-		}
-		do {
-			++s;
-			if(cheq(ENDL,*s) ) {
-				start = 0;
-				return 0;
-			}
-		} while( !is_whitespace(*s) && !is_one_of(*s, SOLIDUS, RIGHTB) );
-		return detail::distance(str,s-1) - (start-1);
+		++start;
 	}
-	return 0;
+	s +=  xmlname_strspn(s);
+	if( cheq(ENDL, *s) ) {
+		start = 0;
+		return 0;
+	}
+	return detail::distance(str,s-1) - (start-1);
 }
 
 

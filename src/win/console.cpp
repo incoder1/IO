@@ -150,4 +150,37 @@ void console::reset_colors(text_color in, text_color out, text_color err) noexce
 	p->change_color( static_cast<::DWORD>(err) );
 }
 
+static s_write_channel conv_channel(const s_write_channel& ch) {
+	std::error_code ec;
+	s_code_cnvtr conv = code_cnvtr::open(ec, code_pages::UTF_8,code_pages::UTF_16LE);
+	check_error(ec);
+	s_write_channel result = new_text_conv(ec, ch, conv);
+	check_error(ec);
+	return result;
+}
+
+costream& IO_PUBLIC_SYMBOL out_stream()
+{
+	static costream _result( conv_channel( console::out() ) );
+	return _result;
+}
+
+costream& IO_PUBLIC_SYMBOL err_stream()
+{
+	static costream _result( conv_channel( console::err() ) );
+	return _result;
+}
+
+wcostream& IO_PUBLIC_SYMBOL wout_stream()
+{
+	static wcostream _result( console::out() );
+	return _result;
+}
+
+wcostream& IO_PUBLIC_SYMBOL werr_stream()
+{
+	static wcostream _result( console::err() );
+	return _result;
+}
+
 } // namespace io

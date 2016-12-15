@@ -266,6 +266,13 @@ inline __char_t* find_first_symbol(const __char_t* s)
 	return const_cast<__char_t*>(s);
 }
 
+
+inline size_t xmlname_strspn(const char *s)
+{
+	static const char* pattern = "\t\n\v\f\r />";
+	return io_strcspn( s, pattern);
+}
+
 // UTF-8 char mask helper
 static constexpr __forceinline bool check_mask(const uint8_t mask,const uint8_t value)
 {

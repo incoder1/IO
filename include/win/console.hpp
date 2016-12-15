@@ -7,11 +7,19 @@
 #include <wincon.h>
 #include <tchar.h>
 
+#include <text.hpp>
+#include <stream.hpp>
+
 #include "criticalsection.hpp"
 
 #ifdef HAS_PRAGMA_ONCE
 #pragma once
 #endif // HAS_PRAGMA_ONCE
+
+#ifndef _CU
+#	define _CU(quote) L##quote
+#endif // __LOCALE_TEXT
+
 
 namespace io {
 
@@ -59,6 +67,8 @@ enum class text_color: uint8_t {
     yellow       = 0x0E,
     bright_white = 0x0F
 };
+
+
 
 /// \brief System console (terminal window) low level access API.
 /// Windows based implementation
@@ -116,6 +126,16 @@ public:
 	 s_write_channel cerr_;
 };
 
+typedef channel_ostream<char> costream;
+typedef channel_istream<char> cistream;
+typedef channel_ostream<wchar_t> wcostream;
+typedef channel_istream<wchar_t> wcistream;
+
+costream& IO_PUBLIC_SYMBOL out_stream();
+costream& IO_PUBLIC_SYMBOL err_stream();
+
+wcostream& IO_PUBLIC_SYMBOL wout_stream();
+wcostream& IO_PUBLIC_SYMBOL werr_stream();
 
 } // namesapce io
 

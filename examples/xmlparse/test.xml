@@ -6,15 +6,17 @@ standalone="no"?>
 <?xml-stylesheet type="text/xsl" href="style.xsl" ?>
 <!DOCTYPE test [
 		<!ELEMENT test (msg,msg,βήτα)>
-		<!ELEMENT msg (#PCDATA)>
+		<!ELEMENT msg (#PCDATA|άλφα)*>
+		<!ATTLIST msg
+			attr0  CDATA    #REQUIRED
+			attr1  CDATA    #REQUIRED
+		>
 		<!ELEMENT άλφα (#PCDATA)>
 		<!ELEMENT βήτα (άλφα,άλφα,άλφα,msg)>
-		<!ATTLIST msg attr0 CDATA "">
-		<!ATTLIST msg attr1 CDATA "">
 	]>
 <!-- << ! Comment
 	lorem ipsum - dolor <>!$#$ --> 
-<test>
+<test xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
 	<msg 
 		attr0="ключь" 
 			attr1="второй
@@ -22,6 +24,7 @@ standalone="no"?>
 	</msg> 
 	<!-- internal comentary --> <msg attr0="άλφα" attr1="βήτα" />
 	<βήτα>
+		AAA
 		<άλφα/>
 		<άλφα /><άλφα></άλφα>
 		<msg attr0="άλφα" attr1="βήτα">
@@ -34,8 +37,9 @@ standalone="no"?>
 			Some more text
 			Еще немного текста
 			Κάποιοι περισσότερο κείμενο
+			<άλφα/>
 		</msg>
 	</βήτα>
-	<!-- <end-coment> ! - foo ? : ! </end-coment> -->
+	<!-- <end-coment> ! - foo ? : ! </end-coment>  -->
 </test>
 

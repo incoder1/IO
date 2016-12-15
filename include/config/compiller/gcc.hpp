@@ -83,6 +83,7 @@
 
 #define io_strcmp(__lsh,__rhs) __builtin_strcmp( (__lsh), (__rhs) )
 
+#define io_strcspn(__s, __p) __builtin_strcspn( (__s), (__p) )
 
 #ifndef IO_IS_MINGW
 

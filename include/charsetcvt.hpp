@@ -13,10 +13,8 @@
 
 #include <cerrno>
 #include <functional>
-#include <locale>
 #include <system_error>
 
-#include <iconv.h>
 
 #include "buffer.hpp"
 #include "charsets.hpp"
@@ -25,6 +23,11 @@
 #ifdef HAS_PRAGMA_ONCE
 #pragma once
 #endif // HAS_PRAGMA_ONCE
+
+#ifndef iconv_t
+#define iconv_t libiconv_t
+typedef void* iconv_t;
+#endif // iconv_t
 
 namespace io {
 
@@ -87,26 +90,34 @@ std::error_condition  IO_PUBLIC_SYMBOL make_error_condition(io::converrc err) no
 
 namespace detail {
 
-class engine:public object {
+class engine {
 public:
+	constexpr engine() noexcept:
+		iconv_( (iconv_t)(-1) )
+	{}
 	engine(const engine&) = delete;
 	engine& operator=(const engine&) = delete;
+	engine(engine&& other) noexcept;
+	engine& operator=(engine&& rhs);
+	~engine() noexcept;
+	operator bool() const {
+		return (iconv_t)(-1) != iconv_;
+	}
+	void swap(engine& other);
 	engine(const char* from,const char* to);
-	inline ~engine() noexcept;
-	converrc convert( const uint8_t* src,const std::size_t size, uint8_t* dst, std::size_t& avail) const noexcept;
 	converrc convert(uint8_t** src,std::size_t& size, uint8_t** dst, std::size_t& avail) const noexcept;
 private:
-	::iconv_t iconv_;
+	iconv_t iconv_;
 };
-
-DECLARE_IPTR(engine);
 
 } // namespace detail
 
+class IO_PUBLIC_SYMBOL code_cnvtr;
+DECLARE_IPTR(code_cnvtr);
+
 /// \brief character set conversation (transcoding) interface
-class IO_PUBLIC_SYMBOL code_cnvtr final {
+class IO_PUBLIC_SYMBOL code_cnvtr final: public object {
 public:
-	~code_cnvtr() noexcept;
 	/// Cursor character transcoding API, direct access to conversation engine
 	/// \param ec
 	///    operation error code
@@ -115,19 +126,15 @@ public:
 	/// \param in_bytes_left
 	///
 	/// \param out
-	void convert(std::error_code& ec, const uint8_t* in,std::size_t& in_bytes_left,uint8_t* const out, std::size_t& out_bytes_left) const noexcept;
+	void convert(std::error_code& ec, uint8_t** in,std::size_t& in_bytes_left,uint8_t** const out, std::size_t& out_bytes_left) const noexcept;
 	void convert(std::error_code& ec, const uint8_t* src,const std::size_t src_size, byte_buffer& dst) const noexcept;
 private:
-	code_cnvtr() noexcept:
-		eng_()
-	{}
-	code_cnvtr(detail::s_engine&& eng) noexcept;
+	code_cnvtr(detail::engine&& eng) noexcept;
 public:
-	static code_cnvtr open(std::error_code& ec, const charset& from,const charset& to) noexcept;
-	static code_cnvtr open(std::error_code& ec, const char* from,const char* to) noexcept;
+	static s_code_cnvtr open(std::error_code& ec, const charset& from,const charset& to) noexcept;
 	static std::error_condition _ok;
 private:
-	detail::s_engine eng_; // converting engine
+	detail::engine eng_; // converting engine
 };
 
 /// Convert a character array UTF-8 encoded to platform current USC-2 (UTF-16LE or UTF-16BE) character array

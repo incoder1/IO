@@ -27,7 +27,7 @@ class source;
 
 DECLARE_IPTR(source);
 
-class IO_PUBLIC_SYMBOL source:public object
+class IO_PUBLIC_SYMBOL source final:public object
 {
 	source(const source&) = delete;
 	source& operator=(const source&) = delete;
@@ -49,10 +49,10 @@ class IO_PUBLIC_SYMBOL source:public object
 		static const std::size_t READ_BUFF_MAXIMAL_SIZE;
 		static s_source create(std::error_code& ec, s_read_channel&& src, byte_buffer&& rb, const charset& ch) noexcept;
 		source(s_read_channel&& src, byte_buffer&& rb) noexcept;
+		error read_more() noexcept;
 		error charge() noexcept;
 		inline char normalize_lend(char ch);
 		inline void new_line_or_shift_col(const char ch);
-		error read_more() noexcept;
 	private:
 		s_read_channel src_;
 		byte_buffer rb_;

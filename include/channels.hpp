@@ -29,9 +29,10 @@ class IO_PUBLIC_SYMBOL channel:public object {
 public:
 	channel(const channel&) = delete;
 	channel& operator=(const channel&) = delete;
-	virtual ~channel() noexcept = 0;
 protected:
-	channel() noexcept;
+	constexpr channel() noexcept:
+		ref_count_(0)
+	{}
 private:
     std::atomic_size_t ref_count_;
     inline friend void intrusive_ptr_add_ref(channel* const ch) noexcept {
@@ -168,36 +169,6 @@ inline std::size_t transfer(std::error_code& ec,const s_read_channel& src, const
 		read = src->read(ec, rbuf, buff);
 	}
 	return result;
-}
-
-std::size_t IO_PUBLIC_SYMBOL read_some(const read_channel* ch,uint8_t* const buff, std::size_t bytes);
-std::size_t IO_PUBLIC_SYMBOL write_some(const write_channel* ch,const uint8_t* buff, std::size_t size);
-
-inline std::size_t read_some(const s_read_channel& ch, uint8_t* const buff, std::size_t bytes)
-{
-	return read_some(ch.get(), buff, bytes);
-}
-
-inline std::size_t write_some(const s_write_channel& ch,const uint8_t* buff, std::size_t size)
-{
-	return write_some( ch.get(), buff, size);
-}
-
-inline void read_some(const s_read_channel& ch, byte_buffer& buff) {
-	std::size_t read = read_some( ch.get(), const_cast<uint8_t*>( buff.position().get() ), buff.available() );
-	buff.move(read);
-}
-
-inline std::size_t write_some(const write_channel* ch,const byte_buffer& buff) {
-	return write_some( ch, buff.position().get(), buff.size() );
-}
-
-inline std::size_t write_some(const write_channel* ch,byte_buffer&& buff) {
-	return write_some( ch, buff.position().get(), buff.size() );
-}
-
-inline std::size_t write_some(const s_write_channel& ch,const byte_buffer& buff) {
-	return write_some( ch.get(), buff );
 }
 
 } // namespace io

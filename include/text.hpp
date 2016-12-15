@@ -24,18 +24,20 @@
 #endif // HAS_PRAGMA_ONCE
 
 #ifdef __IO_WINDOWS_BACKEND__
-#	define IO_U_TEXT(S) L##S;
-#	define IO_UCHARSET io::code_pages::UTF_16LE
+#	define _U(quote) L##quote
+#	define _u(quote) quote
+#	define IO_SYS_UNICODE io::code_pages::UTF_16LE
 typedef wchar_t unicode_char;
-#define IO_UCONV_RATE  io::charset_conv_rate::twice_less
+#define IO_UCONV_RATE  io::charset_conv_rate::twice_larger
 #endif // __IO_WINDOWS_BACKEND__
 
 #ifdef __IO_POSIX_BACKEND__
-#	define IO_U_TEXT(S) U##S
+#	define _U(S) U##S
+#	define _u(quote) u8##quote
 #	ifdef IO_IS_LITTLE_ENDIAN
-#		define IO_UCHARSET io::code_pages::UTF_32LE
+#		define IO_SYS_UNICODE io::code_pages::UTF_32LE
 #	else
-#		define IO_UCHARSET io::code_pages::UTF_32BE
+#		define IO_SYS_UNICODE io::code_pages::UTF_32BE
 #	endif // IO_IS_LITTLE_ENDIAN
 typedef char32_t unicode_char;
 #define IO_UCONV_RATE io::charset_conv_rate::same
@@ -49,6 +51,9 @@ enum class charset_conv_rate: int8_t {
 	/// use same transcoding memory buffer length
 	/// e.g. CP_1250 -> UTF-8 || USC4 -> UTF-8
 	same = 1,
+	/// use two times less transcoding destination buffer length
+	/// e.g. UTF8 -> UCS-2
+	twice_larger = 2,
 	/// use two times less transcoding destination buffer length
 	/// e.g. USC-2 -> UTF-8, UCS-4 -> UCS-2
 	twice_less = -2,
@@ -65,7 +70,7 @@ enum class charset_conv_rate: int8_t {
 class IO_PUBLIC_SYMBOL conv_read_channel final: public read_channel {
 private:
 	friend class io::nobadalloc<conv_read_channel>;
-	conv_read_channel(s_read_channel&& src,code_cnvtr&& conv,int8_t crate) noexcept;
+	conv_read_channel(const s_read_channel& src,const s_code_cnvtr& conv,int8_t crate) noexcept;
 public:
 	/// Opens a converting channel from a underlying read channel
 	/// Note! Reentrant and thread safe, blocks on malloc and read operations.
@@ -79,7 +84,7 @@ public:
 	/// \param conv character set converter
 	/// \param crate transcoding buffers rating
 	/// \throw never throws
-	static s_read_channel open(std::error_code& ec,s_read_channel&& src,code_cnvtr&& conv,charset_conv_rate crate) noexcept;
+	static s_read_channel open(std::error_code& ec,const s_read_channel& src,const s_code_cnvtr& conv,charset_conv_rate crate) noexcept;
 	/// Reads bytes from underlying read channel and convert them to the destination charset
 	/// \param ec operation error code
 	/// \param buff destination memory buffer, must be at least bytes wide
@@ -91,9 +96,10 @@ public:
 	virtual ~conv_read_channel() noexcept;
 private:
 	s_read_channel src_;
-	code_cnvtr conv_;
+	s_code_cnvtr conv_;
 	uint8_t crate_;
 };
+
 /// \brief On-fly character conversion synchronous write channel implementation.
 /*!
 	Convert characters into internal memory buffer first, and then writes them into destination channel.
@@ -102,21 +108,9 @@ private:
 class IO_PUBLIC_SYMBOL conv_write_channel final:public write_channel {
 private:
 	friend class io::nobadalloc<conv_write_channel>;
-	conv_write_channel(s_write_channel&& dst,code_cnvtr&& conv,int8_t crate) noexcept;
+	conv_write_channel(const s_write_channel& dst,const s_code_cnvtr& conv) noexcept;
+	friend s_write_channel IO_PUBLIC_SYMBOL create_conv_channel(std::error_code& ec,const s_write_channel& dst,const s_code_cnvtr& conv) noexcept;
 public:
-	/// Opens a converting channel from a underlying write channel
-	/// Note! Reentrant and thread safe, blocks on malloc and read operations.
-	/// \param ec operation error code contains failure in case of:
-	///         <ul>
-	///           <li>character set conversion error</li>
-	///           <li>io error</li>
-	///           <li>out of memory</li>
-	///         </ul>
-	/// \param dst destination synchronous write channel
-	/// \param conv character set converter
-	/// \param crate transcoding buffers rating
-	/// \throw never throws
-	static s_write_channel open(std::error_code& ec,s_write_channel&& dst,code_cnvtr&& conv,charset_conv_rate crate) noexcept;
 	/// Destroys channel and releases all associated resources
 	/// \throw never throws
 	virtual ~conv_write_channel() noexcept override;
@@ -128,9 +122,21 @@ public:
 	virtual std::size_t write(std::error_code& ec, const uint8_t* buff,std::size_t bytes) const noexcept override;
 private:
 	s_write_channel dst_;
-	code_cnvtr conv_;
-	uint8_t crate_;
+	s_code_cnvtr conv_;
 };
+
+/// Opens a converting channel from a underlying write channel
+/// Note! Reentrant and thread safe, blocks on malloc and read operations.
+/// \param ec operation error code contains failure in case of:
+///         <ul>
+///           <li>character set conversion error</li>
+///           <li>io error</li>
+///           <li>out of memory</li>
+///         </ul>
+/// \param dst destination synchronous write channel
+/// \param conv character set converter
+/// \throw never throws
+s_write_channel IO_PUBLIC_SYMBOL new_text_conv(std::error_code& ec,const s_write_channel& dst,const s_code_cnvtr& conv) noexcept;
 
 namespace detail {
 

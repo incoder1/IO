@@ -95,15 +95,9 @@ public:
 		return unicode_;
 	}
 
-	constexpr inline bool operator==(const charset& rhs) const
-	{
-		return code_ == rhs.code_;
-	}
+	bool operator==(const charset& rhs) const noexcept;
 
-	constexpr inline bool operator!=(const charset& rhs) const
-	{
-		return code_ != rhs.code_;
-	}
+	bool operator!=(const charset& rhs) const noexcept;
 
 private:
 	uint16_t code_;

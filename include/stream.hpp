@@ -36,6 +36,10 @@ private:
 	typedef typename base_type::__string_type string_type;
 public:
 
+	w_channel_stream_buff():
+		base_type( string_type(1024) , std::ios_base::out)
+	{}
+
 	w_channel_stream_buff(w_channel_stream_buff&& oth):
 		base_type( std::forward<base_type>(oth) ),
 		out_( std::forward<s_write_channel>(oth.out_) )
@@ -61,25 +65,26 @@ public:
 	}
 
 	virtual int sync() override {
-		string_type s( std::move( base_type::str() ) );
+		string_type str( base_type::str() );
+		str.push_back( static_cast<char_type>(0) );
+		const char_type* s = str.data();
+		std::size_t len = traits_type::length(s);
 		std::error_code ec;
-		const std::size_t len = s.length() * sizeof(char_type);
-		std::size_t bwritten = out_->write(ec,
-								reinterpret_cast<const uint8_t*>( s.data() ),
-								len );
-		if(ec)
-		#ifndef IO_NO_EXCEPTIONS
-			throw std::system_error(ec);
-		#else
-		{
-			std::cerr<< ec.message() << std::endl;
-			std::unexpected();
+		if ( out_->write(ec, reinterpret_cast<const uint8_t*>( s ), len * sizeof(char_type) ) == 0 ) {
+			len = 0;
 		}
-		#endif // IO_NO_EXCEPTIONS
+		if(ec) {
+			#ifndef IO_NO_EXCEPTIONS
+				throw std::system_error(ec);
+			#else
+				std::fprintf( stderr, "%s", ec.message().data() );
+				std::unexpected();
+			#endif // IO_NO_EXCEPTIONS
+		}
 		// clear
 		char_type clear_d[1] = {char_type('\0')};
 		base_type::setbuf(&clear_d[0], 1);
-		return static_cast<int>(bwritten / sizeof(char_type) );
+		return len;
 	}
 
 private:
@@ -139,7 +144,7 @@ public:
 		#ifndef IO_NO_EXCEPTIONS
 			throw std::system_error(ec);
 		#else
-			std::cerr<< ec.message() << std::endl;
+			std::fprintf( stderr, "%s", ec.message().data() );
 			std::unexpected();
 		#endif // IO_NO_EXCEPTION
 		}

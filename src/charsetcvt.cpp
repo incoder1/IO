@@ -11,6 +11,8 @@
 #include "stdafx.hpp"
 #include "charsetcvt.hpp"
 
+#include <iconv.h>
+
 namespace io {
 
 namespace detail {
@@ -34,33 +36,32 @@ static inline converrc iconv_to_conv_errc(int erno) {
 }
 
 engine::engine(const char* from,const char* to):
-	object(),
 	iconv_(INVALID_ICONV_DSPTR)
 {
 	iconv_ = ::iconv_open( to, from );
-	assert(INVALID_ICONV_DSPTR != iconv_);
 }
 
-inline engine::~engine() noexcept
+engine::~engine() noexcept
 {
 	if(INVALID_ICONV_DSPTR != iconv_) {
 		::iconv_close(iconv_);
 	}
 }
 
-converrc engine::convert(const uint8_t* src,const std::size_t size, uint8_t* dst, std::size_t& available) const noexcept
+engine::engine(engine&& other) noexcept:
+	iconv_(other.iconv_)
 {
-	char *_src = const_cast<char*>( reinterpret_cast<const char*>(src) );
-	char *_dst = reinterpret_cast<char*>(dst);
-	char **s = &_src;
-	char **d = &_dst;
-	std::size_t left = size;
-	do {
-		if( ICONV_ERROR == ::iconv(iconv_, s, &left, d, &available) ) {
-			return iconv_to_conv_errc(errno);
-		}
-	} while(left > 0);
-	return converrc::success;
+	other.iconv_ = INVALID_ICONV_DSPTR;
+}
+
+engine& engine::operator=(engine&& rhs)
+{
+	engine( std::forward<engine>(rhs) ).swap( *this );
+	return *this;
+}
+
+void engine::swap(engine& other) {
+	std::swap(iconv_, other.iconv_);
 }
 
 converrc engine::convert(uint8_t** src,std::size_t& size, uint8_t** dst, std::size_t& avail) const noexcept
@@ -122,61 +123,47 @@ std::error_condition IO_PUBLIC_SYMBOL make_error_condition(io::converrc err) noe
 	return std::error_condition(static_cast<int>(err), *(chconv_error_category::instance()) );
 }
 
-//code_cnvtr
-code_cnvtr code_cnvtr::open(std::error_code& ec, const char* from,const char* to) noexcept {
-	if( from == to || 0 == io_strcmp(from,to) ) {
+s_code_cnvtr code_cnvtr::open(std::error_code& ec, const charset& from,const charset& to) noexcept {
+	if( from.code() == to.code() ) {
 		ec = make_error_code(converrc::not_supported);
-		return code_cnvtr();
+		return s_code_cnvtr();
 	}
-	detail::engine *engine = nobadalloc<detail::engine>::construct(ec, from, to );
-	if(ec) {
-		return code_cnvtr();
+	detail::engine iconve( from.name(), to.name() );
+	if(!iconve) {
+		ec = make_error_code(converrc::not_supported);
+		return s_code_cnvtr();
 	}
-	return code_cnvtr(engine);
+	return s_code_cnvtr( new code_cnvtr( std::move(iconve) ) );
 }
 
-code_cnvtr code_cnvtr::open(std::error_code& ec, const charset& from,const charset& to) noexcept
-{
-	if( from == to ) {
-		ec = make_error_code(converrc::not_supported);
-		return code_cnvtr();
-	}
-	return open(ec, from.name(), to.name());
-}
-
-code_cnvtr::code_cnvtr(detail::s_engine&& eng) noexcept:
-	eng_( std::forward<detail::s_engine>(eng) )
+code_cnvtr::code_cnvtr(detail::engine&& eng) noexcept:
+	object(),
+	eng_( std::forward<detail::engine>(eng) )
 {}
 
-code_cnvtr::~code_cnvtr() noexcept {
-}
-
-void code_cnvtr::convert(std::error_code& ec, const uint8_t* in,std::size_t& in_bytes_left,uint8_t* const out, std::size_t& out_bytes_left) const noexcept
+void code_cnvtr::convert(std::error_code& ec, uint8_t** in,std::size_t& in_bytes_left,uint8_t** const out, std::size_t& out_bytes_left) const noexcept
 {
-	assert(eng_);
-	assert(nullptr != in );
-	assert(nullptr != out);
-	uint8_t **src = const_cast<uint8_t**>(&in);
-	uint8_t **dst = const_cast<uint8_t**>(&out);
-	converrc result = eng_->convert(src, in_bytes_left, dst, out_bytes_left);
+	converrc result = eng_.convert(in, in_bytes_left, out, out_bytes_left);
 	if( converrc::success != result ) {
 		ec = make_error_code(result);
+		return;
 	}
 }
 
 void code_cnvtr::convert(std::error_code& ec, const uint8_t* src,const std::size_t size, byte_buffer& dst) const noexcept {
 	dst.clear();
-	assert(eng_ || nullptr != src || size > 0);
+	std::size_t left = size;
 	std::size_t available = dst.capacity();
-	uint8_t* d = const_cast<uint8_t*>( dst.position().get() );
-	converrc result = eng_->convert(src, size, d, available);
-	if( converrc::success != result ) {
-		ec = make_error_code(result);
+	uint8_t** s = const_cast<uint8_t**>(&src);
+	const uint8_t* d = dst.position().get();
+	while(!ec && left > 0) {
+		convert(ec, s, left, const_cast<uint8_t**>(&d), available);
 	}
 	dst.move(dst.capacity() - available);
 	dst.flip();
 }
 
+// free functions
 std::size_t IO_PUBLIC_SYMBOL transcode(std::error_code& ec, const uint8_t* u8_src, std::size_t src_bytes, char16_t* const dst, std::size_t dst_size) noexcept
 {
 	assert(nullptr != u8_src && src_bytes > 0);
