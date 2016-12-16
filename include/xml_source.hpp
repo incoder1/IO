@@ -48,6 +48,7 @@ class IO_PUBLIC_SYMBOL source final:public object
 		static const std::size_t READ_BUFF_INITIAL_SIZE;
 		static const std::size_t READ_BUFF_MAXIMAL_SIZE;
 		static s_source create(std::error_code& ec, s_read_channel&& src, byte_buffer&& rb, const charset& ch) noexcept;
+		friend io::nobadalloc<source>;
 		source(s_read_channel&& src, byte_buffer&& rb) noexcept;
 		error read_more() noexcept;
 		error charge() noexcept;

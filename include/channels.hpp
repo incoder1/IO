@@ -147,6 +147,46 @@ public:
 
 DECLARE_IPTR(random_access_channel);
 
+namespace detail {
+
+	template<typename T>
+class scoped_arr {
+private:
+	static void dispoce(T* const px) noexcept {
+		 std::return_temporary_buffer<T>(px);
+	}
+public:
+	typedef void (*release_function)(T* const);
+	scoped_arr(const scoped_arr&)  = delete;
+	scoped_arr& operator=(const scoped_arr&) = delete;
+	constexpr scoped_arr(std::size_t len, T* arr, release_function rf) noexcept:
+		len_(len),
+		mem_(arr),
+		rf_(rf)
+	{}
+	scoped_arr(std::size_t len) noexcept:
+		scoped_arr(len, std::get_temporary_buffer<T>(len).first, &scoped_arr::dispoce)
+	{}
+	~scoped_arr() noexcept
+	{
+		rf_(mem_);
+	}
+	inline T* get() const noexcept
+	{
+		return mem_;
+	}
+	inline std::size_t len() const noexcept
+	{
+		return len_;
+	}
+private:
+	const std::size_t len_;
+	T* mem_;
+	release_function rf_;
+};
+
+} // namespace detail
+
 /// Transfers all read channel data to destination write channel
 /// \param ec opration error code, contains error when io error
 /// \return count of bytes transfered
@@ -154,19 +194,19 @@ DECLARE_IPTR(random_access_channel);
 inline std::size_t transfer(std::error_code& ec,const s_read_channel& src, const s_write_channel& dst, uint16_t buff) noexcept
 {
 	std::size_t result = 0;
-	uint8_t* rbuf = static_cast<uint8_t*> ( io_alloca( buff ) );
+	detail::scoped_arr<uint8_t> rbuf(buff);
 	std::size_t written = 0;
-	std::size_t read = src->read(ec, rbuf, buff);
+	std::size_t read = src->read(ec, rbuf.get(), rbuf.len());
 	while( 0 != read && !ec ) {
 		do {
-			written = dst->write(ec, rbuf, read);
+			written = dst->write(ec, rbuf.get(), read);
 			if(ec)
 				return result;
 			read -= written;
 			result += written;
 			written = 0;
 		} while( 0 != read );
-		read = src->read(ec, rbuf, buff);
+		read = src->read(ec, rbuf.get(), buff);
 	}
 	return result;
 }

@@ -127,14 +127,26 @@ public:
 	///
 	/// \param out
 	void convert(std::error_code& ec, uint8_t** in,std::size_t& in_bytes_left,uint8_t** const out, std::size_t& out_bytes_left) const noexcept;
+
 	void convert(std::error_code& ec, const uint8_t* src,const std::size_t src_size, byte_buffer& dst) const noexcept;
+
+	/// Calculates requared desination memory buffer size
+	/// source_size source text block size in bytes
+	/// \return memory buffer size requared for charcter set conversation
+	inline std::size_t requared_conv_buffer(std::size_t source_size) {
+		return rhs_ ? source_size >> rate_ : source_size << rate_;
+	}
+
 private:
-	code_cnvtr(detail::engine&& eng) noexcept;
+	code_cnvtr(uint8_t rate,bool rhs,detail::engine&& eng) noexcept;
+	friend class io::nobadalloc<code_cnvtr>;
 public:
 	static s_code_cnvtr open(std::error_code& ec, const charset& from,const charset& to) noexcept;
 	static std::error_condition _ok;
 private:
 	detail::engine eng_; // converting engine
+	uint8_t rate_;
+	bool rhs_;
 };
 
 /// Convert a character array UTF-8 encoded to platform current USC-2 (UTF-16LE or UTF-16BE) character array

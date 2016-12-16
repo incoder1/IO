@@ -70,7 +70,7 @@ enum class charset_conv_rate: int8_t {
 class IO_PUBLIC_SYMBOL conv_read_channel final: public read_channel {
 private:
 	friend class io::nobadalloc<conv_read_channel>;
-	conv_read_channel(const s_read_channel& src,const s_code_cnvtr& conv,int8_t crate) noexcept;
+	conv_read_channel(const s_read_channel& src,s_code_cnvtr&& conv) noexcept;
 public:
 	/// Opens a converting channel from a underlying read channel
 	/// Note! Reentrant and thread safe, blocks on malloc and read operations.
@@ -84,7 +84,7 @@ public:
 	/// \param conv character set converter
 	/// \param crate transcoding buffers rating
 	/// \throw never throws
-	static s_read_channel open(std::error_code& ec,const s_read_channel& src,const s_code_cnvtr& conv,charset_conv_rate crate) noexcept;
+	static s_read_channel open(std::error_code& ec,const s_read_channel& src, const charset& from, const charset& to) noexcept;
 	/// Reads bytes from underlying read channel and convert them to the destination charset
 	/// \param ec operation error code
 	/// \param buff destination memory buffer, must be at least bytes wide
@@ -97,7 +97,6 @@ public:
 private:
 	s_read_channel src_;
 	s_code_cnvtr conv_;
-	uint8_t crate_;
 };
 
 /// \brief On-fly character conversion synchronous write channel implementation.
@@ -153,42 +152,6 @@ static inline void check_error(const std::error_code& ec)
 		std::unexpected();
 }
 #endif // IO_NO_EXCEPTIONS
-
-template<typename T>
-class scoped_arr {
-private:
-	static void dispoce(T* const px) noexcept {
-		 std::return_temporary_buffer<T>(px);
-	}
-public:
-	typedef void (*release_function)(T* const);
-	scoped_arr(const scoped_arr&)  = delete;
-	scoped_arr& operator=(const scoped_arr&) = delete;
-	constexpr scoped_arr(std::size_t len, T* arr, release_function rf) noexcept:
-		len_(len),
-		mem_(arr),
-		rf_(rf)
-	{}
-	scoped_arr(std::size_t len) noexcept:
-		scoped_arr(len, std::get_temporary_buffer<T>(len).first, &scoped_arr::dispoce)
-	{}
-	~scoped_arr() noexcept
-	{
-		rf_(mem_);
-	}
-	inline T* get() const noexcept
-	{
-		return mem_;
-	}
-	inline std::size_t len() const noexcept
-	{
-		return len_;
-	}
-private:
-	const std::size_t len_;
-	T* mem_;
-	release_function rf_;
-};
 
 template<typename T>
 static constexpr uint8_t* address_of(const T* p) noexcept

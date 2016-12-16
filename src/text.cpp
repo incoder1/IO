@@ -17,18 +17,20 @@ namespace io {
 
 s_read_channel IO_PUBLIC_SYMBOL conv_read_channel::open(
 								std::error_code& ec,
-								const s_read_channel& src,
-								const s_code_cnvtr& conv,
-								charset_conv_rate crate) noexcept
+		const s_read_channel& src,
+		const charset& from,
+		const charset& to) noexcept
 {
-	conv_read_channel *ch = io::nobadalloc<conv_read_channel>::construct(ec, src, conv, static_cast<int8_t>(crate) );
-	return nullptr != ch ? s_read_channel(ch) : s_read_channel();
+	s_code_cnvtr conv = code_cnvtr::open(ec, from, to);
+	if(ec)
+		return s_read_channel();
+	conv_read_channel *ch = io::nobadalloc<conv_read_channel>::construct(ec, src, std::move(conv) );
+	return !ec ? s_read_channel(ch) : s_read_channel();
 }
 
-conv_read_channel::conv_read_channel(const s_read_channel& src,const s_code_cnvtr& conv,int8_t crate) noexcept:
+conv_read_channel::conv_read_channel(const s_read_channel& src,s_code_cnvtr&& conv) noexcept:
 	src_(src),
-	conv_(conv),
-	crate_(crate)
+	conv_( std::forward<s_code_cnvtr>(conv) )
 {}
 
 conv_read_channel::~conv_read_channel() noexcept
@@ -37,23 +39,17 @@ conv_read_channel::~conv_read_channel() noexcept
 
 std::size_t conv_read_channel::read(std::error_code& ec,uint8_t* const buff, std::size_t bytes) const noexcept
 {
-//	assert( 0 == bytes % 2 );
-//	byte_buffer rb = byte_buffer::allocate(ec, (bytes * crate_) );
-//	if( ec )
-//		return 0;
-//	std::size_t read = src_->read(ec, const_cast<uint8_t*>(rb.position().get()), rb.capacity());
-//	if(0 == read)
-//		return 0;
-//	rb.move(read);
-//	rb.flip();
-//	std::size_t aval = bytes;
-//	std::size_t left = rb.size();
-//	const uint8_t* pos = rb.position().get();
-//	conv_->convert(ec, pos, left, buff, aval);
-//	if(ec)
-//		return 0;
-//	return (bytes - aval);
-	return 0;
+	assert( bytes < size_t(-1) );
+	// allign on size_t and div on 4
+	detail::scoped_arr<uint8_t> arr(conv_->requared_conv_buffer(bytes));
+	std::size_t read = src_->read(ec, arr.get(), bytes);
+	std::size_t converted = arr.len();
+	if(!ec) {
+		uint8_t *raw = arr.get();
+		uint8_t *conv = const_cast<uint8_t*>(buff);
+		conv_->convert(ec, &raw, read, &conv, converted);
+	}
+	return ec ? 0 : bytes - converted;
 }
 
 // conv_write_channel

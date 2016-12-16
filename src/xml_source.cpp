@@ -36,42 +36,11 @@ const std::size_t source::READ_BUFF_MAXIMAL_SIZE = 0x300000;
 // source
 s_source source::create(std::error_code& ec, s_read_channel&& src, byte_buffer&& rb,const charset& ch) noexcept
 {
-	s_source result;
-	if( ! ch.unicode() || ch == code_pages::UTF_7 ) {
-		ec = make_error_code(io::converrc::not_supported);
-		return result;
-	}
 	if(ch != code_pages::UTF_8) {
-		charset_conv_rate rate;
-		if( ch == code_pages::UTF_16LE || ch == code_pages::UTF_16BE) {
-			rate = charset_conv_rate::twice_less; // Ok since surogate pairs is two elements
-		} else if( ch == code_pages::UTF_32LE || ch == code_pages::UTF_32BE ) {
-			rate = charset_conv_rate::same; // must be the same size, since multibytes
-		} else {
-			ec = make_error_code(converrc::not_supported);
-			return result;
-		}
-		s_code_cnvtr cnv = code_cnvtr::open(ec, ch, code_pages::UTF_8);
-		src = conv_read_channel::open(ec, src, cnv, rate);
-		if(ec) {
-			return result;
-		}
+		src = conv_read_channel::open(ec, src, ch, code_pages::UTF_8);
 	}
-	source *sc = nullptr;
-#ifndef IO_NO_EXCEPTIONS
-	try {
-#endif // IO_NO_EXCEPTIONS
-	sc = new source( std::move(src), std::forward<byte_buffer>(rb) );
-#ifndef IO_NO_EXCEPTIONS
-	} catch (std::exception& exc) {
-#else
-	if(nullptr == sc) {
-#endif // IO_NO_EXCEPTIONS
-		ec = std::make_error_code(std::errc::not_enough_memory);
-		return result;
-	}
-	result.reset(sc);
-	return result;
+	source *sc = nobadalloc<source>::construct(ec, std::move(src), std::forward<byte_buffer>(rb) );
+	return !ec ? s_source(sc) : s_source();
 }
 
 s_source source::create(std::error_code& ec, s_read_channel&& src, const charset& ch) noexcept
