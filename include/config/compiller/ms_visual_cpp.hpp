@@ -66,7 +66,7 @@
 
 #define io_strcpy(__s1,__s2 ) strcpy( (__s1), (__s2) )
 
-#define io_strcspn(__s, __p) strcpy( (__s), (__p) )
+#define io_strcspn(__s, __p) strcspn( (__s), (__p) )
 
 #ifndef _DEBUG
 #define NDEBUG
