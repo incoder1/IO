@@ -276,7 +276,7 @@ document_event event_stream_parser::parse_start_doc() noexcept
 		return document_event();
     }
     i += 9;
-    const char* stop  = static_cast<char*>( std::memchr( i, '"', str_size( i, end ) ) );
+    const char* stop  = static_cast<const char*>( std::memchr( i, '"', str_size( i, end ) ) );
     if(nullptr == stop ) {
 		assign_error(error::illegal_prologue);
 		return document_event();

@@ -2,8 +2,9 @@
 #define __IO_H_ALLOCATOR_HPP_INCLUDED__
 
 #include <utility>
-
 #include <new>
+
+#include <cstdlib>
 
 namespace io {
 
@@ -82,13 +83,13 @@ public:
 	{
 		void *result;
 		const size_t bytes_size = sizeof(value_type) * __n;
-		result = io::h_malloc( bytes_size );
+		result = std::malloc( bytes_size );
 		if(NULL != result)
 			return uncast_void<value_type>(result);
 #ifdef __GNUC__
-		while ( __builtin_expect( (result = io::h_malloc(bytes_size) ) == nullptr, false) ) {
+		while ( __builtin_expect( (result = std::malloc(bytes_size) ) == nullptr, false) ) {
 #else
-		while( nullptr == (result = io::h_malloc(size)) ) {
+		while( nullptr == (result =std::malloc(size) ) {
 #endif // __GNUC__
 
 			std::new_handler handler = std::get_new_handler();
@@ -107,7 +108,7 @@ public:
 	void deallocate(pointer __p, size_type) noexcept
 	{
 		assert(nullptr != __p);
-		io::h_free(__p);
+		std::free(__p);
 	}
 
 	// addon to std::allocator make this noexcept(true) if constructor is also noexcept

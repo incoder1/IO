@@ -41,7 +41,7 @@ public:
 
 	~mem_block() noexcept {
 		if(nullptr != px_)
-			h_free(px_);
+			io::h_free(px_);
 	}
 
 	mem_block(mem_block&& other) noexcept:

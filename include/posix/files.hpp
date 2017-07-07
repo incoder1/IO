@@ -17,7 +17,7 @@ typedef int fd_t;
 class IO_PUBLIC_SYMBOL synch_file_channel final:public random_access_channel
 {
 public:
-	constexpr synch_file_channel(fd_t fd) noexcept;
+	synch_file_channel(fd_t fd) noexcept;
 
 	virtual ~synch_file_channel() noexcept override;
 
@@ -59,11 +59,8 @@ enum class write_open_mode
 class IO_PUBLIC_SYMBOL file
 {
 private:
-	explicit constexpr file() noexcept:
-		name_(nullptr)
-	{}
-	explicit constexpr file(wchar_t* name) noexcept:
-		name_(name)
+	explicit file(std::string&& name) noexcept:
+        name_( std::forward<std::string>(name) )
 	{}
 public:
 	/// Returns file object by OS specific file path
@@ -84,12 +81,8 @@ public:
 	static file get(std::error_code& ec,const wchar_t* name) noexcept;
 
 	file(file&& oth) noexcept:
-		name_(oth.name_)
-	{
-		if(nullptr != oth.name_) {
-			oth.name_ = nullptr;
-		}
-	}
+		name_( std::move(oth.name_) )
+	{}
 
 	file& operator=(file&& rhs)
 	{
@@ -98,7 +91,7 @@ public:
 		return *this;
 	}
 
-	~file() noexcept;
+	~file() noexcept = default;
 
 	/// Returns true when file with this path exist
 	/// \return whether file exist
@@ -109,17 +102,12 @@ public:
 	bool create() noexcept;
 
 	/// Returns UCS-4 encoded file path
-	inline const wchar_t* name() noexcept {
-		return nullptr != name_ ? name_ : L"";
+	inline std::wstring wpath()  {
+        return transcode_to_ucs(name_.c_str());
 	}
 
-	inline std::string name(std::error_code& ec) {
-		typedef std::char_traits<wchar_t> wcht;
-		const std::size_t len = wcht::length(name_);
-		std::string res( (len*sizeof(char32_t))+1, '\0');
-		res.resize( transcode(ec, reinterpret_cast<char32_t*>(name_), len,
-					  reinterpret_cast<uint8_t*>(&res[0]), (len*sizeof(char32_t)) ) + 1 );
-		return res;
+	inline std::string path() {
+		return std::string(name_);
 	}
 
 	/// Opens blocking read channel from this file
@@ -147,7 +135,7 @@ public:
 	/// \throw never throws
 	s_random_access_channel open_for_random_access(std::error_code& ec, write_open_mode mode) noexcept;
 private:
-	const wchar_t* name_;
+	std::string name_;
 };
 
 } // namespace io

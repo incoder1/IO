@@ -21,6 +21,7 @@
 					<Add option="-g" />
 					<Add option="-Og" />
 					<Add option="-fexceptions" />
+					<Add option="-fPIC" />
 					<Add option="-DIO_HAS_BOOST" />
 					<Add option="-DBOOST_SYSTEM_NO_DEPRECATED" />
 					<Add directory="include" />
@@ -29,6 +30,7 @@
 					<Add directory="include/win" />
 				</Compiler>
 				<Linker>
+					<Add option="-pg" />
 					<Add option="-pg -lgmon" />
 					<Add library="iconv.dll" />
 					<Add directory="deps/lib" />
@@ -145,20 +147,14 @@
 					<Add option="-Wnon-virtual-dtor" />
 					<Add option="-Winline" />
 					<Add option="-pedantic" />
+					<Add option="-std=c++11" />
 					<Add option="-g" />
 					<Add option="-Og" />
 					<Add option="-fexceptions" />
+					<Add option="-fPIC" />
 					<Add directory="include" />
-					<Add directory="include/win" />
-					<Add directory="deps/include" />
-					<Add directory="../boost_1_60_0" />
-					<Add directory="include/config/libs" />
 					<Add directory="include/posix" />
 				</Compiler>
-				<Linker>
-					<Add library="iconv.dll" />
-					<Add directory="deps/lib" />
-				</Linker>
 			</Target>
 		</Build>
 		<Compiler>
@@ -182,6 +178,9 @@
 		<Unit filename="include/network.hpp" />
 		<Unit filename="include/object.hpp" />
 		<Unit filename="include/posix/files.hpp">
+			<Option target="debug-unix-gcc-so-x64" />
+		</Unit>
+		<Unit filename="include/posix/hmalloc.hpp">
 			<Option target="debug-unix-gcc-so-x64" />
 		</Unit>
 		<Unit filename="include/posix/posixconf.hpp">

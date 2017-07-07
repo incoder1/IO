@@ -16,6 +16,7 @@
 #include "charsetcvt.hpp"
 //
 #include <string>
+#include <climits>
 
 #ifdef HAS_PRAGMA_ONCE
 #pragma once
@@ -85,7 +86,7 @@ constexpr inline bool is_digit(_char_t ch)
 
 // capital  unicode-ASCII-latin1 [A-Z]
 template<typename _char_t>
-static constexpr inline is_uppercase_latin1(_char_t ch)
+static constexpr inline bool is_uppercase_latin1(_char_t ch)
 {
 #ifdef io_isupper
 	typedef std::char_traits<_char_t> tr;

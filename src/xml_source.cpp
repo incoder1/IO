@@ -19,11 +19,11 @@ namespace xml {
 static const char _eof = std::char_traits<char>::eof();
 
 static std::size_t min_mem() noexcept {
-#if defined(__IO_WINDOWS_BACKEND__)
+#ifdef __IO_WINDOWS_BACKEND__
   ::SYSTEM_INFO info;
   ::GetSystemInfo(&info);
   return info.dwPageSize;
-#elif definend(__IO_POSIX_BACKEND__)
+#elif defined  (__IO_POSIX_BACKEND__)
 	return ::sysconf(_SC_PAGE_SIZE);
 #else
 return 4096;

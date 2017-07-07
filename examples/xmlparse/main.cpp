@@ -2,7 +2,7 @@
 #include <files.hpp>
 #include <xml_parse.hpp>
 
-#include <console.hpp>
+//#include <console.hpp>
 #include <iostream>
 
 using namespace io;
@@ -95,7 +95,7 @@ void log_chars(std::ostream& cstr,const char* msg, const char* chars)
 
 int main(int argc, const char** argv)
 {
-	std::ostream& cout = io::out_stream();
+	std::ostream& cout =  std::cout; // io::out_stream();
 	std::ostream& cerr = std::cerr;
 	if(argc < 2) {
 		cout<< "XML parsing example\n Usage:\t xmlparse <xmlfile>" <<std::endl;
@@ -105,7 +105,7 @@ int main(int argc, const char** argv)
 	file sf = file::get(ec, argv[1] );
 	check_system_error(ec);
 	if(!sf.exist()) {
-		cerr<<"file " << sf.name() << " is not exist"<<std::endl;
+		cerr<<"file " << sf.path() << " is not exist"<<std::endl;
 		return -2;
 	}
 
