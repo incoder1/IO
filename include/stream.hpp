@@ -77,7 +77,7 @@ public:
 			#ifndef IO_NO_EXCEPTIONS
 				throw std::system_error(ec);
 			#else
-				std::fprintf( stderr, "%s", ec.message().data() );
+				std::fprintf( stderr, ec.message().data() );
 				std::unexpected();
 			#endif // IO_NO_EXCEPTIONS
 		}
@@ -144,7 +144,7 @@ public:
 		#ifndef IO_NO_EXCEPTIONS
 			throw std::system_error(ec);
 		#else
-			std::fprintf( stderr, "%s", ec.message().data() );
+			std::fprintf( stderr, ec.message().data() );
 			std::unexpected();
 		#endif // IO_NO_EXCEPTION
 		}

@@ -21,7 +21,7 @@ char_holder* char_holder::alloc(const char* s,const std::size_t len) noexcept {
 	if(nullptr == raw)
 		return nullptr;
 	char* dst = static_cast<char*>(raw) + sizeof(char_holder);
-	std::char_traits<char>::copy( dst, s, len);
+	io_memmove( dst, s, len);
 	*(dst+len) = '\0';
 	return new (raw) char_holder( reinterpret_cast<char*>(dst) );
 }

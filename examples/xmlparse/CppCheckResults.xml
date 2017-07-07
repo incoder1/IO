@@ -1,4 +1,0 @@
-<?xml version="1.0" encoding="UTF-8" ?>
-<results>
-    <error file="..\..\include\config.hpp" line="15" id="preprocessorErrorDirective" severity="error" msg='#error &quot;This library requires at least C++ 11 standard compiler&quot;' />
-</results>

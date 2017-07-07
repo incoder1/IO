@@ -25,7 +25,7 @@ public:
 	static inline const uint8_t* data() noexcept {
 		return DATA;
 	}
-	static constexpr std::size_t len() noexcept {
+	static constexpr inline std::size_t len() noexcept {
 		return 3;
 	}
 	static inline bool is(const uint8_t* str) noexcept {
@@ -43,7 +43,7 @@ public:
 	static inline const uint8_t* data() noexcept {
 		return DATA;
 	}
-	static constexpr std::size_t len() noexcept {
+	static constexpr inline std::size_t len() noexcept {
 		return 2;
 	}
 	static inline bool is(const uint8_t* str) noexcept {
@@ -61,7 +61,7 @@ public:
 	static inline const uint8_t* data() noexcept {
 		return DATA;
 	}
-	static inline std::size_t len() noexcept {
+	static constexpr inline std::size_t len() noexcept {
 		return 4;
 	}
 	static inline bool is(const uint8_t* str) noexcept {
@@ -79,7 +79,7 @@ public:
 	static inline const uint8_t* data() noexcept {
 		return DATA;
 	}
-	static inline std::size_t len() noexcept {
+	static constexpr inline std::size_t len() noexcept {
 		return 2;
 	}
 	static inline bool is(const uint8_t* str) noexcept {
@@ -97,7 +97,7 @@ public:
 	static inline const uint8_t* data() noexcept {
 		return DATA;
 	}
-	static inline std::size_t len() noexcept {
+	static constexpr inline std::size_t len() noexcept {
 		return 4;
 	}
 	static inline bool is(const uint8_t* str) noexcept {

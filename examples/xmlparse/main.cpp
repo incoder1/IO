@@ -95,7 +95,7 @@ void log_chars(std::ostream& cstr,const char* msg, const char* chars)
 
 int main(int argc, const char** argv)
 {
-	std::ostream& cout = std::cout;
+	std::ostream& cout = io::out_stream();
 	std::ostream& cerr = std::cerr;
 	if(argc < 2) {
 		cout<< "XML parsing example\n Usage:\t xmlparse <xmlfile>" <<std::endl;

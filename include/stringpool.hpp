@@ -157,7 +157,7 @@ public:
 	/// Returns string length in bytes
 	/// \return string length in bytes
 	inline std::size_t length() const noexcept {
-		return nullptr == holder_ ? 0 : traits_type::length( data() );
+		return io_strlen( data() );
 	}
 
 	/// Hash this string bytes (murmur3 for 32bit, cityhash for 64 bit)
@@ -200,7 +200,7 @@ public:
 	/// \param s zero terminated C string
 	/// \return whether this string is equals with C string
 	inline bool eq(const char* s) const noexcept {
-		return eq(s, traits_type::length(s) );
+		return 0 == io_strcmp(data(), s);
 	}
 
 		/// Converts this string to system UCS-2 ( UTF-16 LE or BE)

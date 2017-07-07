@@ -85,11 +85,6 @@
 
 #define io_strcspn(__s, __p) __builtin_strcspn( (__s), (__p) )
 
-#ifndef IO_IS_MINGW
-
-#define io_bswap32 __builtin_bswap32
-#define io_bswap64 __builtin_bswap64
-
 #define io_isspace(__ch) __builtin_isspace((__ch))
 #define io_islower(__ch) __builtin_islower((__ch))
 #define io_isupper(__ch) __builtin_isupper((__ch))
@@ -97,6 +92,11 @@
 #define io_tolower(__ch) __builtin_tolower((__ch))
 #define io_toupper(__ch) __builtin_toupper((__ch))
 #define io_strchr(__s,__c) __builtin_strchr( (__s), (__c) )
+
+#ifndef IO_IS_MINGW
+
+#define io_bswap32 __builtin_bswap32
+#define io_bswap64 __builtin_bswap64
 
 #else
 

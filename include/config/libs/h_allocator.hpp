@@ -7,6 +7,24 @@
 
 namespace io {
 
+namespace {
+
+class no_exept_mode {
+	no_exept_mode() = delete;
+	~no_exept_mode() = delete;
+	no_exept_mode(const no_exept_mode&) = delete;
+	no_exept_mode operator=(const no_exept_mode&) = delete;
+public:
+#ifdef IO_NO_EXCEPTIONS
+	static constexpr bool is = true;
+#else
+	static constexpr bool is = false;
+#endif // IO_NO_EXCEPTIONS
+};
+
+
+} // namesapace
+
 template<typename T>
 class h_allocator {
 private:
@@ -15,6 +33,14 @@ private:
 	{
 		return reinterpret_cast<_Tp*>
 		       (&const_cast<uint8_t&>(reinterpret_cast<const volatile uint8_t&>(__r)));
+	}
+	template< typename _T>
+	static constexpr _T* uncast_void(void * const ptr) {
+#ifdef __GNUC__
+		return static_cast<_T*>( __builtin_assume_aligned(ptr, sizeof(_T) ) );
+#else
+		return static_cast<_T*>( ptr );
+#endif
 	}
 public:
 	typedef std::size_t size_type;
@@ -42,44 +68,40 @@ public:
 
 	~h_allocator() noexcept = default;
 
-	constexpr inline pointer address(reference __x) const noexcept
+	constexpr pointer address(reference __x) const noexcept
 	{
-		return address_of(__x);
+		return address_of<pointer>(__x);
 	}
 
-	constexpr inline const_pointer address(const_reference __x) const noexcept
+	constexpr const_pointer address(const_reference __x) const noexcept
 	{
 		return address_of<const_pointer>(__x);
 	}
-#ifndef IO_NO_EXCEPTIONS
-	pointer allocate(size_type __n, const void* = 0)
+
+	pointer allocate(size_type __n, const void* = 0) noexcept(no_exept_mode::is)
 	{
-		void * result = io::h_malloc(__n * sizeof(value_type));
-		if(NULL == result)
-			throw std::bad_alloc();
-		return static_cast<pointer>(result);
-	}
-#else
-	pointer allocate(size_type __n, const void* = 0) noexcept
-	{
-		void *result = nullptr;
-		const std::size_t size = __n * sizeof(value_type);
+		void *result;
+		const size_t bytes_size = sizeof(value_type) * __n;
+		result = io::h_malloc( bytes_size );
+		if(NULL != result)
+			return uncast_void<value_type>(result);
 #ifdef __GNUC__
-		while ( __builtin_expect( (result = io::h_malloc(size) ) == nullptr, false) ) {
+		while ( __builtin_expect( (result = io::h_malloc(bytes_size) ) == nullptr, false) ) {
 #else
-		result = io::h_malloc(size);
-		for(; nullptr == result; result = io::h_malloc(size) ) { ;
+		while( nullptr == (result = io::h_malloc(size)) ) {
 #endif // __GNUC__
-			if(nullptr != result) {
-				std::new_handler handler = std::get_new_handler();
-				if(nullptr == handler)
-					return nullptr;
-				handler();
-			}
-		}
-		return static_cast<pointer>(result);
-	}
+
+			std::new_handler handler = std::get_new_handler();
+			if (nullptr == handler)
+#ifdef IO_NO_EXCEPTIONS
+				return nullptr;
+#else
+				throw std::bad_alloc();
 #endif // IO_NO_EXCEPTIONS
+			handler();
+		}
+		return uncast_void<value_type>(result);
+	}
 
 	// __p is not permitted to be a null pointer.
 	void deallocate(pointer __p, size_type) noexcept
@@ -88,7 +110,7 @@ public:
 		io::h_free(__p);
 	}
 
-	// addon to std::allocator make this noexcept(true) if constructing type is also noexcept
+	// addon to std::allocator make this noexcept(true) if constructor is also noexcept
 	template<typename _Up, typename... _Args>
 	__forceinline void construct(_Up* __p, _Args&&... __args) noexcept( noexcept( _Up(std::forward<_Args>(__args)...) ) )
 	{
@@ -102,7 +124,7 @@ public:
 		__p->~_Up();
 	}
 
-	size_type max_size() const noexcept
+	constexpr size_type max_size() const noexcept
 	{
 		return SIZE_MAX / sizeof(value_type);
 	}

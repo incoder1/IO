@@ -27,9 +27,9 @@ class byte_buffer;
 namespace detail {
 
 class mem_block {
-public:
 	mem_block(const mem_block&) = delete;
 	mem_block& operator=(const mem_block&) = delete;
+public:
 
 	constexpr mem_block() noexcept:
 		px_(nullptr)
@@ -40,9 +40,8 @@ public:
 	{}
 
 	~mem_block() noexcept {
-		if(nullptr != px_) {
+		if(nullptr != px_)
 			h_free(px_);
-		}
 	}
 
 	mem_block(mem_block&& other) noexcept:
@@ -66,9 +65,9 @@ public:
 		return px_;
 	}
 
-	static inline mem_block allocate(std::size_t size) noexcept
+	static inline mem_block allocate(const std::size_t size) noexcept
 	{
-		uint8_t *ptr = static_cast<uint8_t*>( io::h_malloc( size * sizeof(uint8_t) ) );
+		uint8_t *ptr = static_cast<uint8_t*>( io::h_malloc( size ) );
 		if(nullptr == ptr)
 			return mem_block();
 		io_zerro_mem( ptr, size);
@@ -86,7 +85,8 @@ private:
 template<typename T>
 inline std::size_t distance(const T* hiptr,const T* loptr)
 {
-	return reinterpret_cast<std::size_t>(loptr) - reinterpret_cast<std::size_t>(hiptr);
+	std::ptrdiff_t diff = loptr - hiptr;
+	return diff > 0 ? static_cast<std::size_t>(diff) : 0;
 }
 
 } // namespace detail

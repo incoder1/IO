@@ -39,15 +39,12 @@ public:
 	const_string(const char* first, const char* last) noexcept:
 		data_(nullptr)
 	{
-		const std::size_t len = reinterpret_cast<std::size_t>(last) - reinterpret_cast<std::size_t>(first);
-		if(len > 0) {
-			data_ = static_cast<char*>( io::h_malloc( len + 1) );
-			if(nullptr != data_) {
-				traits_type::move(data_, first, len);
+		if(first < last) {
+			std::size_t len = reinterpret_cast<std::size_t>(last) - reinterpret_cast<std::size_t>(first);
+			data_ = static_cast<char*>( io::h_malloc(len+1) );
+			if( nullptr != data_) {
 				*(data_+len) = '\0';
-			} else {
-				// need abnormal termination in this case
-				std::unexpected();
+				traits_type::copy(data_, first, len-1);
 			}
 		}
 	}
@@ -59,7 +56,7 @@ public:
 
 	/// Deep copies a zero ending C string
 	const_string(const char* str) noexcept:
-		const_string(str, traits_type::length(str)-1 )
+		const_string(str, io_strlen(str) )
 	{}
 
 	/// Copy constructor, deep copies string content
@@ -67,10 +64,10 @@ public:
 		data_(nullptr)
 	{
 		if( ! rhs.empty() ) {
-			std::size_t len = rhs.length();
-			data_ = static_cast<char*>( io::h_malloc( len+1 ) );
+			std::size_t len = rhs.length() + 1;
+			data_ = static_cast<char*>( io::h_malloc(len) );
 			if(nullptr != data_) {
-				io_strcpy(data_, rhs.data_);
+				traits_type::copy(data_, rhs.data_, len);
 			}
 		}
 	}

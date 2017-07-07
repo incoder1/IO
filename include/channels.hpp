@@ -31,26 +31,15 @@ public:
 	channel& operator=(const channel&) = delete;
 protected:
 	constexpr channel() noexcept:
-		ref_count_(0)
+		object()
 	{}
-private:
-    std::atomic_size_t ref_count_;
-    inline friend void intrusive_ptr_add_ref(channel* const ch) noexcept {
-    	ch->ref_count_.fetch_add(1, std::memory_order_relaxed);
-    }
-    inline friend void intrusive_ptr_release(channel* const ch) noexcept {
-    	if(1 == ch->ref_count_.fetch_sub(1, std::memory_order_acquire) ) {
-			std::atomic_thread_fence( std::memory_order_release);
-			delete ch;
-    	}
-    }
+	virtual ~channel() override = default;
 };
 
 /**
   General interface to input operations on an resource like a: file, socket, std in device, named pipe, shared memory blocks etc.
  **/
-class IO_PUBLIC_SYMBOL read_channel:public virtual channel
-{
+class IO_PUBLIC_SYMBOL read_channel:public virtual channel {
 protected:
 	read_channel() noexcept;
 public:
@@ -72,8 +61,7 @@ DECLARE_IPTR(read_channel);
  * General interface to output operations on an resource
  * like a: file, socket, std out device, named pipe, shared memory blocks etc.
  **/
-class IO_PUBLIC_SYMBOL write_channel:public virtual channel
-{
+class IO_PUBLIC_SYMBOL write_channel:public virtual channel {
 protected:
 	write_channel() noexcept;
 public:
@@ -96,8 +84,7 @@ DECLARE_IPTR(write_channel);
 * General interface to input and output operations on an resource
 * like a: file, socket, std in/out device, named pipe, shared memory blocks etc.
 **/
-class IO_PUBLIC_SYMBOL read_write_channel:public virtual channel, public read_channel, public write_channel
-{
+class IO_PUBLIC_SYMBOL read_write_channel:public virtual channel, public read_channel, public write_channel {
 protected:
 	read_write_channel() noexcept;
 public:
@@ -112,8 +99,7 @@ DECLARE_IPTR(read_write_channel);
  * General interface to input, output and position moving operations on an resource
  * like a: file, socket, shared memory blocks etc.
  **/
-class IO_PUBLIC_SYMBOL random_access_channel:public read_write_channel
-{
+class IO_PUBLIC_SYMBOL random_access_channel:public read_write_channel {
 public:
 	/// Moving forward current device position
 	/// \param ec
@@ -149,11 +135,12 @@ DECLARE_IPTR(random_access_channel);
 
 namespace detail {
 
-	template<typename T>
+template<typename T>
 class scoped_arr {
 private:
-	static void dispoce(T* const px) noexcept {
-		 std::return_temporary_buffer<T>(px);
+	static void dispoce(T* const px) noexcept
+	{
+		std::return_temporary_buffer<T>(px);
 	}
 public:
 	typedef void (*release_function)(T* const);
@@ -187,7 +174,7 @@ private:
 
 } // namespace detail
 
-/// Transfers all read channel data to destination write channel
+/// Transfers all read channels data to destination write channel
 /// \param ec opration error code, contains error when io error
 /// \return count of bytes transfered
 /// \throw never throws
@@ -204,8 +191,7 @@ inline std::size_t transfer(std::error_code& ec,const s_read_channel& src, const
 				return result;
 			read -= written;
 			result += written;
-			written = 0;
-		} while( 0 != read );
+		} while( 0 > read );
 		read = src->read(ec, rbuf.get(), buff);
 	}
 	return result;

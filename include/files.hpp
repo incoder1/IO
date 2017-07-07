@@ -21,5 +21,9 @@
 #	include "win/files.hpp"
 #endif // __IO_WINDOWS_BACKEND__
 
+#ifdef __IO_POSIX_BACKEND__
+#	include "posix/files.hpp"
+#endif // __IO_POSIX_BACKEND__
+
 
 #endif // __IO_FILES_HPP_INCLUDED__

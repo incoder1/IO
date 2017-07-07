@@ -75,7 +75,12 @@ inline constexpr bool is_whitespace(__char_t ch)
 template<typename _char_t>
 constexpr inline bool is_digit(_char_t ch)
 {
+#ifdef io_isdigit
+	typedef std::char_traits<_char_t> tr;
+	return io_isdigit( tr::to_int_type(ch) );
+#else
 	return between('0','9', ch);
+#endif // io_isdigit
 }
 
 // capital  unicode-ASCII-latin1 [A-Z]
@@ -83,7 +88,8 @@ template<typename _char_t>
 static constexpr inline is_uppercase_latin1(_char_t ch)
 {
 #ifdef io_isupper
-	return io_isupper(static_cast<int>(ch));
+	typedef std::char_traits<_char_t> tr;
+	return io_isupper(tr::to_int_type(ch));
 #else
 	return between( 'A', 'Z', ch );
 #endif // io_isupper
@@ -94,7 +100,8 @@ template<typename _char_t>
 static constexpr inline bool is_lowercase_latin1(_char_t ch) noexcept
 {
 #ifdef io_islower
-	return io_islower(static_cast<int>(ch));
+	typedef std::char_traits<_char_t> tr;
+	return io_islower(tr::to_int_type(ch));
 #else
 	return between( 'a', 'z', ch );
 #endif // io_islower
