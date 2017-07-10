@@ -117,8 +117,8 @@ enum class unicode_cp {
 	not_detected
 };
 
-template<class _char_type>
-inline std::basic_ostream<_char_type>& operator<<(std::basic_ostream<_char_type>& os, unicode_cp bom) noexcept {
+template<typename _char_type,class _trailts_type = std::char_traits<_char_type> >
+inline std::basic_ostream<_char_type,_trailts_type>& operator<<(std::basic_ostream<_char_type, _trailts_type>& os, unicode_cp bom) noexcept {
 	const uint8_t *bomd;
 	std::size_t boml;
 	switch(bom) {
@@ -145,7 +145,7 @@ inline std::basic_ostream<_char_type>& operator<<(std::basic_ostream<_char_type>
 		boml = utf_32be_bom::len();
 		break;
 	}
-	os.write( reinterpret_cast<const _char_type*>(bomd), (boml / sizeof(_char_type)) );
+	os.write( reinterpret_cast<const _char_type*>(bomd), boml);
 	return os;
 }
 

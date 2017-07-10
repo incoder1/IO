@@ -125,18 +125,13 @@ static inline win::synch_file_channel* create_file_channel(std::error_code& err,
 	return result;
 }
 
-file::~file() noexcept
-{
-	if(nullptr != name_) {
-		h_free(name_);
-	}
-}
 
 bool file::exist() noexcept
 {
-	if(nullptr == name_) return false;
+	if(name_.empty())
+		return false;
    ::WIN32_FIND_DATAW fdata;
-   ::HANDLE handle = ::FindFirstFileW(name_, &fdata);
+   ::HANDLE handle = ::FindFirstFileW(name_.data(), &fdata);
    bool result = handle != INVALID_HANDLE_VALUE;
    if(result) {
        ::FindClose(handle);
@@ -146,10 +141,10 @@ bool file::exist() noexcept
 
 bool file::create() noexcept
 {
-	if(nullptr == name_)
+	if(name_.empty())
 		return false;
 	::HANDLE hnd = ::CreateFileW(
-						name_,
+						name_.c_str(),
 						GENERIC_READ | GENERIC_WRITE, 0,
 						nullptr,
 						CREATE_NEW,
@@ -162,12 +157,12 @@ bool file::create() noexcept
 }
 
 s_read_channel file::open_for_read(std::error_code& ec) noexcept {
-	if(nullptr == name_) {
+	if(name_.empty()) {
 		ec = std::make_error_code(std::errc::no_such_file_or_directory);
 		return s_read_channel();
 	}
 	::HANDLE hnd = ::CreateFileW(
-						name_,
+						name_.c_str(),
 						GENERIC_READ, 0,
 						nullptr,
 						OPEN_EXISTING,
@@ -182,12 +177,12 @@ s_read_channel file::open_for_read(std::error_code& ec) noexcept {
 
 s_write_channel file::open_for_write(std::error_code& ec,write_open_mode mode) noexcept
 {
-	if(nullptr == name_) {
+	if(name_.empty()) {
 		ec = std::make_error_code(std::errc::no_such_file_or_directory);
 		return s_write_channel();
 	}
 	::HANDLE hnd = ::CreateFileW(
-						name_,
+						name_.c_str(),
 						GENERIC_WRITE, 0,
 						nullptr,
 						static_cast<::DWORD>(mode),
@@ -202,12 +197,12 @@ s_write_channel file::open_for_write(std::error_code& ec,write_open_mode mode) n
 
 s_random_access_channel file::open_for_random_access(std::error_code& ec,write_open_mode mode) noexcept
 {
-	if(nullptr == name_) {
+	if(name_.empty()) {
 		ec = std::make_error_code(std::errc::no_such_file_or_directory);
 		return s_random_access_channel();
 	}
 	::HANDLE hnd = ::CreateFileW(
-						name_,
+						name_.c_str(),
 						GENERIC_READ | GENERIC_WRITE, 0,
 						nullptr,
 						static_cast<::DWORD>(mode),

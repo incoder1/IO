@@ -27,6 +27,7 @@ static const std::size_t HUGE_BUFF_SIZE = 128;
 static constexpr int LEFTB =  60; // '<';
 static constexpr int RIGHTB =  62; // '>';
 static constexpr int SRIGHTB = 93; // ']'
+static constexpr int QNM = 34; // '"'
 static constexpr int QM = 63; // '?'
 static constexpr int EM = 33;//'!';
 static constexpr int SPACE = 32;//' ';
@@ -276,12 +277,12 @@ document_event event_stream_parser::parse_start_doc() noexcept
 		return document_event();
     }
     i += 9;
-    const char* stop  = static_cast<const char*>( std::memchr( i, '"', str_size( i, end ) ) );
+    const char* stop  = static_cast<const char*>( std::memchr( i, QNM, str_size( i, end ) ) );
     if(nullptr == stop ) {
 		assign_error(error::illegal_prologue);
 		return document_event();
     }
-    version = const_string( i, stop  );
+    version = const_string( i, stop );
     if( version.empty() ) {
 		assign_error(error::out_of_memory);
 		return document_event();
@@ -292,7 +293,7 @@ document_event event_stream_parser::parse_start_doc() noexcept
     const char* j = io_strstr(i, "encoding=\"");
     if(nullptr != j) {
 		i = j + 10;
-		stop  = static_cast<char*>( io_memchr( i, '"', str_size(i,end) ) );
+		stop  = static_cast<char*>( std::memchr( i, QNM, str_size(i,end) ) );
 		if(nullptr == stop ) {
 			assign_error(error::illegal_prologue);
 			return document_event();
@@ -308,7 +309,7 @@ document_event event_stream_parser::parse_start_doc() noexcept
     j = io_strstr(i, "standalone=\"");
 	if(nullptr != j) {
 		i = j + 12;
-		stop  = static_cast<char*>( io_memchr( i, '"', str_size(i,end) ) );
+		stop  = static_cast<char*>( io_memchr( i, QNM, str_size(i,end) ) );
 		if(nullptr == stop ) {
 			assign_error(error::illegal_prologue);
 			return document_event();

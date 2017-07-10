@@ -83,9 +83,9 @@ private:
 };
 
 template<typename T>
-inline std::size_t distance(const T* hiptr,const T* loptr)
+inline std::size_t distance(const T* loptr,const T* hiptr)
 {
-	std::ptrdiff_t diff = loptr - hiptr;
+	std::ptrdiff_t diff = hiptr - loptr;
 	return diff > 0 ? static_cast<std::size_t>(diff) : 0;
 }
 

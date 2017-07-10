@@ -92,19 +92,23 @@ namespace detail {
 
 class engine {
 public:
-	constexpr engine() noexcept:
-		iconv_( (iconv_t)(-1) )
-	{}
 	engine(const engine&) = delete;
 	engine& operator=(const engine&) = delete;
+
 	engine(engine&& other) noexcept;
-	engine& operator=(engine&& rhs);
-	~engine() noexcept;
-	operator bool() const {
-		return (iconv_t)(-1) != iconv_;
+	engine& operator=(engine&& rhs) noexcept;
+	operator bool() const
+	{
+		return is_open();
 	}
-	void swap(engine& other);
+
+	engine() noexcept;
 	engine(const char* from,const char* to);
+	~engine() noexcept;
+
+	inline void swap(engine& other) noexcept;
+	bool is_open() const;
+
 	converrc convert(uint8_t** src,std::size_t& size, uint8_t** dst, std::size_t& avail) const noexcept;
 private:
 	iconv_t iconv_;
@@ -133,7 +137,8 @@ public:
 	/// Calculates requared desination memory buffer size
 	/// source_size source text block size in bytes
 	/// \return memory buffer size requared for charcter set conversation
-	inline std::size_t requared_conv_buffer(std::size_t source_size) {
+	inline std::size_t requared_conv_buffer(std::size_t source_size)
+	{
 		return rhs_ ? source_size >> rate_ : source_size << rate_;
 	}
 
@@ -196,8 +201,8 @@ std::size_t IO_PUBLIC_SYMBOL transcode(std::error_code& ec,const char32_t* u32_s
 namespace std {
 
 template<>
-struct is_error_condition_enum<io::converrc> : public true_type
-{};
+struct is_error_condition_enum<io::converrc> : public true_type {
+};
 
 } // namespace std
 

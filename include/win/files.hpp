@@ -3,7 +3,7 @@
 
 #include <config.hpp>
 #include <channels.hpp>
-#include <charsetcvt.hpp>
+#include <text.hpp>
 
 #include "handlechannel.hpp"
 
@@ -59,11 +59,11 @@ class IO_PUBLIC_SYMBOL file
 	file(const file&) = delete;
 	file& operator=(const file&) = delete;
 private:
-	explicit constexpr file() noexcept:
-		name_(nullptr)
+	explicit file() noexcept:
+		name_()
 	{}
-	explicit constexpr file(wchar_t* name) noexcept:
-		name_(name)
+	explicit file(std::wstring&& name) noexcept:
+		name_( std::forward<std::wstring>(name) )
 	{}
 public:
 	/// Returns file object by OS specific file path
@@ -84,10 +84,8 @@ public:
 	static file get(std::error_code& ec,const wchar_t* name) noexcept;
 
 	file(file&& oth) noexcept:
-		name_(oth.name_)
-	{
-		oth.name_ = nullptr;
-	}
+		name_( std::move<std::wstring&>(oth.name_) )
+	{}
 
 	file& operator=(file&& rhs) noexcept {
 		file( std::forward<file>(rhs) ).swap( *this );
@@ -98,7 +96,7 @@ public:
 		std::swap(name_, oth.name_);
 	}
 
-	~file() noexcept;
+	~file() noexcept = default;
 
 	/// Returns true when file with this path exist
 	/// \return whether file exist
@@ -108,23 +106,15 @@ public:
 	/// \return whether file was created
 	bool create() noexcept;
 
-	/// Returns UTF-16LE encoded file path
-	/// \return file path
-	inline const wchar_t* name() noexcept {
-		return nullptr != name_ ? name_ : L"";
+	/// Returns UCS-2 encoded file path
+	inline std::wstring wpath()  {
+        return name_;
 	}
 
-	/// Returns UTF-8 encoded file path
-	/// \return file path
-	inline std::string name(std::error_code& ec) noexcept {
-		typedef std::char_traits<wchar_t> wcht;
-		const std::size_t len = wcht::length(name_);
-		std::string res( len, '\0');
-		transcode(ec, reinterpret_cast<char16_t*>(name_), len,
-					  reinterpret_cast<uint8_t*>(&res[0]), len );
-		return res;
+	/// Returns system code page file path
+	inline std::string path() {
+		return transcode( name_.c_str() );
 	}
-
 
 	/// Opens blocking read channel from this file
 	/// \param ec
@@ -151,7 +141,7 @@ public:
 	/// \throw never throws
 	s_random_access_channel open_for_random_access(std::error_code& ec, write_open_mode mode) noexcept;
 private:
-	wchar_t* name_;
+	std::wstring name_;
 };
 
 } // namespce io

@@ -82,10 +82,12 @@ enum class text_color: uint8_t {
 class IO_PUBLIC_SYMBOL console {
 public:
 	typedef ::HANDLE native_id;
+	typedef channel_ostream<char> cons_ostream;
 private:
 	console();
 
 	static const console* get();
+	static s_write_channel conv_channel(const s_write_channel& ch);
 
 public:
 
@@ -111,6 +113,16 @@ public:
 		return s_write_channel( get()->cerr_ );
 	}
 
+	static cons_ostream& out_stream()
+	{
+		return _out;
+	}
+
+	static cons_ostream& error_stream()
+	{
+		return _err;
+	}
+
 	/// Returns console character set, always UTF-16LE for Windows
 	/// \return current console character set
 	/// \throw never throws
@@ -124,18 +136,18 @@ public:
 	 s_read_channel cin_;
 	 s_write_channel cout_;
 	 s_write_channel cerr_;
+	 static cons_ostream _out;
+	 static cons_ostream _err;
 };
 
-typedef channel_ostream<char> costream;
-typedef channel_istream<char> cistream;
-typedef channel_ostream<wchar_t> wcostream;
-typedef channel_istream<wchar_t> wcistream;
+//typedef channel_istream<char> cistream;
+typedef channel_ostream<wchar_t> const_wstream;
+//typedef channel_istream<wchar_t> wcistream;
 
-costream& IO_PUBLIC_SYMBOL out_stream();
-costream& IO_PUBLIC_SYMBOL err_stream();
-
+/*
 wcostream& IO_PUBLIC_SYMBOL wout_stream();
 wcostream& IO_PUBLIC_SYMBOL werr_stream();
+*/
 
 } // namesapce io
 

@@ -40,11 +40,11 @@ public:
 		data_(nullptr)
 	{
 		if(first < last) {
-			std::size_t len = reinterpret_cast<std::size_t>(last) - reinterpret_cast<std::size_t>(first);
-			data_ = static_cast<char*>( io::h_malloc(len+1) );
+			std::size_t len = detail::distance(first, last) + 1;
+			data_ = static_cast<char*>( io::h_malloc(len) );
 			if( nullptr != data_) {
-				*(data_+len) = '\0';
 				traits_type::copy(data_, first, len-1);
+				data_[len] = '\0';
 			}
 		}
 	}
@@ -96,9 +96,8 @@ public:
 	/// Releases string memory if allocated before
 	~const_string() noexcept
 	{
-		if(nullptr != data_) {
+		if(nullptr != data_)
 			io::h_free( data_ );
-		}
 	}
 
 	/// Swaps two const_string objects

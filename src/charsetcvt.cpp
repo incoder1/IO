@@ -35,6 +35,29 @@ static inline converrc iconv_to_conv_errc(int erno) {
 	}
 }
 
+engine::engine(engine&& other) noexcept:
+	iconv_(other.iconv_)
+{
+	other.iconv_ = INVALID_ICONV_DSPTR;
+}
+
+engine& engine::operator=(engine&& rhs) noexcept {
+	engine( std::forward<engine>(rhs) ).swap( *this );
+	return *this;
+}
+
+bool engine::is_open() const {
+	return INVALID_ICONV_DSPTR != iconv_;
+}
+
+inline void engine::swap(engine& other) noexcept {
+	std::swap(iconv_, other.iconv_);
+}
+
+engine::engine() noexcept:
+	iconv_( INVALID_ICONV_DSPTR )
+{}
+
 engine::engine(const char* from,const char* to):
 	iconv_(INVALID_ICONV_DSPTR)
 {
@@ -46,22 +69,6 @@ engine::~engine() noexcept
 	if(INVALID_ICONV_DSPTR != iconv_) {
 		::iconv_close(iconv_);
 	}
-}
-
-engine::engine(engine&& other) noexcept:
-	iconv_(other.iconv_)
-{
-	other.iconv_ = INVALID_ICONV_DSPTR;
-}
-
-engine& engine::operator=(engine&& rhs)
-{
-	engine( std::forward<engine>(rhs) ).swap( *this );
-	return *this;
-}
-
-void engine::swap(engine& other) {
-	std::swap(iconv_, other.iconv_);
 }
 
 converrc engine::convert(uint8_t** src,std::size_t& size, uint8_t** dst, std::size_t& avail) const noexcept
