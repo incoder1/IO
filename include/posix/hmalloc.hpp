@@ -5,15 +5,22 @@
 
 namespace io {
 
-inline void* h_malloc(std::size_t count) noexcept
+#define IO_PREVENT_MACRO
+
+struct memory_traits
 {
-	return std::malloc(count);
+
+static inline void* malloc IO_PREVENT_MACRO (std::size_t count) noexcept
+{
+	return h_malloc(count);
 }
 
-inline void h_free(void * const ptr) noexcept
+static inline void free IO_PREVENT_MACRO (void * const ptr) noexcept
 {
-	std::free(ptr);
+	h_free(ptr);
 }
+
+};
 
 } // namesapace io
 

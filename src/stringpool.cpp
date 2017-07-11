@@ -17,7 +17,7 @@ namespace detail {
 
 char_holder* char_holder::alloc(const char* s,const std::size_t len) noexcept {
 	std::size_t bytes = ('\0'!=*(s+len)) ? len+1 : len;
-	void* raw = io::h_malloc( sizeof(char_holder) + bytes );
+	void* raw = memory_traits::malloc( sizeof(char_holder) + bytes );
 	if(nullptr == raw)
 		return nullptr;
 	char* dst = static_cast<char*>(raw) + sizeof(char_holder);

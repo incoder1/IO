@@ -4,7 +4,6 @@
 #include <utility>
 #include <new>
 
-#include <cstdlib>
 
 namespace io {
 
@@ -17,16 +16,16 @@ class no_exept_mode {
 	no_exept_mode operator=(const no_exept_mode&) = delete;
 public:
 #ifdef IO_NO_EXCEPTIONS
-	static constexpr bool is = true;
+	static constexpr bool is_nothrow = true;
 #else
-	static constexpr bool is = false;
+	static constexpr bool is_nothrow = false;
 #endif // IO_NO_EXCEPTIONS
 };
 
 
 } // namesapace
 
-template<typename T>
+template<typename T, class __memory_traits>
 class h_allocator {
 private:
 	template<typename _Tp>
@@ -54,7 +53,7 @@ public:
 
 	template<typename T1>
 	struct rebind {
-		typedef h_allocator<T1> other;
+		typedef h_allocator<T1, __memory_traits> other;
 	};
 
 	constexpr h_allocator() noexcept
@@ -64,7 +63,7 @@ public:
 	{ }
 
 	template<typename T1>
-	constexpr h_allocator(const h_allocator<T1>&) noexcept
+	constexpr h_allocator(const h_allocator<T1, __memory_traits>&) noexcept
 	{ }
 
 	~h_allocator() noexcept = default;
@@ -79,17 +78,17 @@ public:
 		return address_of<const_pointer>(__x);
 	}
 
-	pointer allocate(size_type __n, const void* = 0) noexcept(no_exept_mode::is)
+	pointer allocate(size_type __n, const void* = 0) noexcept(no_exept_mode::is_nothrow)
 	{
 		void *result;
 		const size_t bytes_size = sizeof(value_type) * __n;
-		result = std::malloc( bytes_size );
+		result = __memory_traits::malloc( bytes_size );
 		if(NULL != result)
 			return uncast_void<value_type>(result);
 #ifdef __GNUC__
 		while ( __builtin_expect( (result = std::malloc(bytes_size) ) == nullptr, false) ) {
 #else
-		while( nullptr == (result =std::malloc(size) ) {
+		while( nullptr == (result = __memory_traits::malloc(size) ) {
 #endif // __GNUC__
 
 			std::new_handler handler = std::get_new_handler();
@@ -108,7 +107,7 @@ public:
 	void deallocate(pointer __p, size_type) noexcept
 	{
 		assert(nullptr != __p);
-		std::free(__p);
+		__memory_traits::free(__p);
 	}
 
 	// addon to std::allocator make this noexcept(true) if constructor is also noexcept
@@ -131,14 +130,14 @@ public:
 	}
 };
 
-template<typename _Tp>
-constexpr inline bool operator==(const h_allocator<_Tp>&, const h_allocator<_Tp>&)
+template<typename _Tp, class _Mt>
+constexpr inline bool operator==(const h_allocator<_Tp,_Mt>&, const h_allocator<_Tp,_Mt>&)
 {
 	return true;
 }
 
-template<typename _Tp>
-constexpr inline bool operator!=(const h_allocator<_Tp>&, const h_allocator<_Tp>&)
+template<typename _Tp, class _Mt>
+constexpr inline bool operator!=(const h_allocator<_Tp,_Mt>&, const h_allocator<_Tp,_Mt>&)
 {
 	return false;
 }

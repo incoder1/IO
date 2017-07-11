@@ -4,9 +4,6 @@
 #include <unistd.h>
 #include <fcntl.h>
 
-#ifdef __LP64__
-extern __off64_t lseek64 (int __fd, __off64_t __offset, int __whence) __THROW;
-#endif // __LP64__
 
 namespace io
 {
@@ -15,20 +12,7 @@ namespace posix
 {
 
 synch_file_channel* new_sync_file_channel(std::error_code& ec, fd_t fd) noexcept {
-    synch_file_channel *result = nullptr;
-#ifndef IO_NO_EXCEPTIONS
-	try {
-#endif // IO_NO_EXCEPTIONS
-	result = new synch_file_channel (fd);
-#ifndef IO_NO_EXCEPTIONS
-	} catch (std::exception& exc) {
-#else
-	if(nullptr == result) {
-#endif // IO_NO_EXCEPTIONS
-		ec = std::make_error_code(std::errc::not_enough_memory);
-		return nullptr;
-	}
-	return result;
+	return nobadalloc<synch_file_channel>::construct(ex, fd);
 }
 
 synch_file_channel::synch_file_channel(fd_t fd) noexcept:
@@ -44,54 +28,45 @@ synch_file_channel::~synch_file_channel() noexcept
 std::size_t synch_file_channel::read(std::error_code& ec,uint8_t* const buff, std::size_t bytes) const noexcept
 {
     ::ssize_t result = ::read(fd_, static_cast<void*>(buff), bytes);
-    if(0 != errno)
-    {
+    if(result < 0)
         ec.assign(errno, std::system_category() );
-    }
     return static_cast<size_t>(result);
 }
 
 std::size_t synch_file_channel::write(std::error_code& ec, const uint8_t* buff,std::size_t size) const noexcept
 {
-    ssize_t result = ::write(fd_, buff, size);
-    if(0 != errno)
-    {
+    ::ssize_t result = ::write(fd_, buff, size);
+    if(result < 0)
         ec.assign(errno, std::system_category() );
-    }
     return static_cast<size_t>(result);
 }
 
-inline std::size_t synch_file_channel::seek(std::error_code& ec,int64_t offset, int whence) noexcept
+inline std::size_t synch_file_channel::seek(std::error_code& ec,file_offset_t offset, int whence) noexcept
 {
-
- #ifdef __LP64__
-    ::__off64_t res = ::lseek64 (fd_, offset, whence);
-#else
-      ::__off_t  lseek = lseek(fd_, static_cast<long>(offset), whence);
- #endif // __LP64__
+    ::file_offset_t res = ::lseek_syscall(fd_, offset, whence);
     if( -1 == res)
-        ec.assign(errno, std::system_category() );
+        ec.assign( errno, std::system_category() );
     return static_cast<std::size_t>(res);
 }
 
 std::size_t synch_file_channel::forward(std::error_code& ec,std::size_t offset) noexcept
 {
-    return seek(ec, static_cast<int64_t>(offset), SEEK_CUR);
+    return seek(ec, static_cast<file_offset_t>(offset), SEEK_CUR);
 }
 
 std::size_t synch_file_channel::backward(std::error_code& ec, std::size_t offset) noexcept
 {
-    return seek( ec, -( static_cast<uint64_t>(offset) ), SEEK_CUR);
+    return seek( ec, -( static_cast<file_offset_t>(offset) ), SEEK_CUR);
 }
 
 std::size_t synch_file_channel::from_begin(std::error_code& ec, std::size_t offset) noexcept
 {
-    return seek( ec, static_cast<uint64_t>(offset), SEEK_SET );
+    return seek( ec, static_cast<file_offset_t>(offset), SEEK_SET );
 }
 
 std::size_t synch_file_channel::from_end(std::error_code& ec, std::size_t offset) noexcept
 {
-    return seek( ec, -( static_cast<uint64_t>(offset) ),SEEK_END);
+    return seek( ec, -( static_cast<file_offset_t>(offset) ),SEEK_END);
 }
 
 std::size_t synch_file_channel::position(std::error_code& ec) noexcept

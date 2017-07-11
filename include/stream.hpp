@@ -107,6 +107,8 @@ public:
 template<typename __char_type>
 class channel_ostream:public std::basic_ostream<__char_type, std::char_traits<__char_type> >
 {
+	channel_ostream(const channel_ostream&) = delete;
+	channel_ostream& operator=(const channel_ostream&) = delete;
 private:
 	typedef std::basic_ostream<__char_type, std::char_traits<__char_type> > super_type;
 	typedef ochannel_streambuf<__char_type, std::char_traits<__char_type> > streambuf_type;

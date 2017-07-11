@@ -42,7 +42,7 @@ std::size_t byte_buffer::put(const uint8_t* begin,const uint8_t* const end) noex
 {
 	if(end <= begin)
 		return 0;
-	std::size_t result = detail::distance(begin,end);
+	std::size_t result = memory_traits::distance(begin,end);
 	if( result > available())
 		return 0;
 	position_ = std::copy(begin, end, position_);
@@ -71,8 +71,8 @@ bool byte_buffer::extend(std::size_t extend_size) noexcept
 		return false;
 	if( has_data ) {
 		std::copy( arr_.get(), last_, new_block.get() );
-		position_ = new_block.get() + detail::distance( arr_.get(), position_ );
-		last_ = new_block.get() + detail::distance(arr_.get(), last_);
+		position_ = new_block.get() + memory_traits::distance( arr_.get(), position_ );
+		last_ = new_block.get() + memory_traits::distance(arr_.get(), last_);
 	} else {
 		position_ = new_block.get();
 		last_ = position_;

@@ -1,6 +1,7 @@
 #ifndef __IO_POSIXCONF_HPP_INCLUDED__
 #define __IO_POSIXCONF_HPP_INCLUDED__
 
+#include <sys/types.h>
 #include <unistd.h>
 
 // shared library

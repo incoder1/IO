@@ -47,7 +47,7 @@ IO_PUSH_IGNORE_UNUSED_PARAM
 			return p;
 		}
 		static inline void operator delete(void* ptr, std::size_t s) noexcept {
-			io::h_free(ptr);
+			memory_traits::free(ptr);
 		}
 IO_POP_IGNORE_UNUSED_PARAM
 		~char_holder() noexcept = default;
@@ -286,7 +286,7 @@ private:
 		cached_string,
 		std::hash<std::size_t>,
 		std::equal_to<std::size_t>,
-		io::h_allocator< std::pair<const std::size_t, cached_string> >
+		io::h_allocator< std::pair<const std::size_t, cached_string>, io::memory_traits >
 		> pool_type;
 	pool_type pool_;
 };

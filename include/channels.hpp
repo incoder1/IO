@@ -133,47 +133,6 @@ public:
 
 DECLARE_IPTR(random_access_channel);
 
-namespace detail {
-
-template<typename T>
-class scoped_arr {
-private:
-	static void dispoce(T* const px) noexcept
-	{
-		std::return_temporary_buffer<T>(px);
-	}
-public:
-	typedef void (*release_function)(T* const);
-	scoped_arr(const scoped_arr&)  = delete;
-	scoped_arr& operator=(const scoped_arr&) = delete;
-	constexpr scoped_arr(std::size_t len, T* arr, release_function rf) noexcept:
-		len_(len),
-		mem_(arr),
-		rf_(rf)
-	{}
-	scoped_arr(std::size_t len) noexcept:
-		scoped_arr(len, std::get_temporary_buffer<T>(len).first, &scoped_arr::dispoce)
-	{}
-	~scoped_arr() noexcept
-	{
-		rf_(mem_);
-	}
-	inline T* get() const noexcept
-	{
-		return mem_;
-	}
-	inline std::size_t len() const noexcept
-	{
-		return len_;
-	}
-private:
-	const std::size_t len_;
-	T* mem_;
-	release_function rf_;
-};
-
-} // namespace detail
-
 /// Transfers all read channels data to destination write channel
 /// \param ec opration error code, contains error when io error
 /// \return count of bytes transfered

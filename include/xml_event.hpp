@@ -187,7 +187,7 @@ private:
 class IO_PUBLIC_SYMBOL start_element_event final
 {
 public:
-	typedef std::vector<attribute, h_allocator<attribute> >::const_iterator iterator;
+	typedef std::vector<attribute, h_allocator<attribute, io::memory_traits> >::const_iterator iterator;
 
 	start_element_event(const start_element_event& rhs) = delete;
 	start_element_event& operator=(const start_element_event& rhs) = delete;
@@ -241,7 +241,7 @@ public:
 
 private:
 	qname name_;
-	std::vector<attribute, h_allocator<attribute> > attributes_;
+	std::vector<attribute, h_allocator<attribute, memory_traits> > attributes_;
 	bool empty_element_;
 };
 

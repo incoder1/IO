@@ -41,7 +41,7 @@ public:
 
 	~mem_block() noexcept {
 		if(nullptr != px_)
-			io::h_free(px_);
+			memory_traits::free(px_);
 	}
 
 	mem_block(mem_block&& other) noexcept:
@@ -67,7 +67,7 @@ public:
 
 	static inline mem_block allocate(const std::size_t size) noexcept
 	{
-		uint8_t *ptr = static_cast<uint8_t*>( io::h_malloc( size ) );
+		uint8_t *ptr = static_cast<uint8_t*>( memory_traits::malloc( size ) );
 		if(nullptr == ptr)
 			return mem_block();
 		io_zerro_mem( ptr, size);
@@ -82,12 +82,6 @@ private:
 	uint8_t *px_;
 };
 
-template<typename T>
-inline std::size_t distance(const T* loptr,const T* hiptr)
-{
-	std::ptrdiff_t diff = hiptr - loptr;
-	return diff > 0 ? static_cast<std::size_t>(diff) : 0;
-}
 
 } // namespace detail
 
@@ -299,21 +293,21 @@ public:
 	/// \return count of bytes between buffer first byte and last iterator
 	inline std::size_t size() const noexcept
 	{
-		return empty() ? 0 : detail::distance(arr_.get(), (last_-1) );
+		return empty() ? 0 : memory_traits::distance(arr_.get(), (last_-1) );
 	}
 
 	/// Returns bytes count between position and last iterators
 	/// \return bytes count between position and last iterators
 	inline std::size_t length() const noexcept
 	{
-		return detail::distance(position_, (last_-1) );
+		return memory_traits::distance(position_, (last_-1) );
 	}
 
 	/// Returns bytes count between buffer position and buffer capacity
 	/// \return count available to put
 	inline std::size_t available() const noexcept
 	{
-		return capacity_ - detail::distance(arr_.get(), position_);
+		return capacity_ - memory_traits::distance(arr_.get(), position_);
 	}
 
 	/// Checks whether buffer length equals to buffer capacity
@@ -452,7 +446,7 @@ public:
 	{
 		if(end <= begin)
 			return byte_buffer();
-		byte_buffer res = allocate( detail::distance(begin,end)+sizeof(T) );
+		byte_buffer res = allocate( memory_traits::distance(begin,end)+sizeof(T) );
 		if( 0 == res.capacity() )
 			return  byte_buffer();
 		res.put(begin, end);

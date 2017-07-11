@@ -1,12 +1,34 @@
 #ifndef __IO_POSIX_FILES_HPP_INCLUDED__
 #define __IO_POSIX_FILES_HPP_INCLUDED__
 
+#include <cerrno>
 #include <config.hpp>
 #include <text.hpp>
 
 #ifdef HAS_PRAGMA_ONCE
 #pragma once
 #endif // HAS_PRAGMA_ONCE
+
+#ifdef __LP64__
+
+extern "C" __off64_t lseek64 (int __fd, __off64_t __offset, int __whence) __THROW;
+
+typedef ::__off64_t file_offset_t;
+
+static inline file_offset_t lseek_syscall(int __fd, __off64_t __offset, int __whence) {
+	return ::lseek64(__fd, __offset, __whence );
+}
+
+#else
+
+extern "C" off_t lseek(int fd, __off_t offset, int whence);
+typedef ::__off_t file_offset_t;
+
+static inline file_offset_t lseek_syscall(int __fd, __off_t __offset, int __whence) {
+	return ::lseek(__fd, __offset, __whence );
+}
+
+#endif // __LP64__
 
 namespace io {
 

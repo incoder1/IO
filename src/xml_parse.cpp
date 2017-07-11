@@ -74,7 +74,7 @@ static std::size_t extract_prefix(std::size_t& start,const char* str) noexcept {
 		start = 0;
 		return 0;
 	}
-	return detail::distance(str,s-1) - (start-1);
+	return memory_traits::distance(str,s-1) - (start-1);
 }
 
 static std::size_t extract_local_name(std::size_t& start,const char* str) noexcept {
@@ -93,7 +93,7 @@ static std::size_t extract_local_name(std::size_t& start,const char* str) noexce
 		start = 0;
 		return 0;
 	}
-	return detail::distance(str,s-1) - (start-1);
+	return memory_traits::distance(str,s-1) - (start-1);
 }
 
 
@@ -110,7 +110,7 @@ static error check_xml_name(const char* tn) noexcept {
 		ch32 = static_cast<uint32_t*>( io_alloca( len*4 ) );
 	} else {
 		// a huge name, more then 255 bytes
-		ch32 = static_cast<uint32_t*>( h_malloc( len*4 ) );
+		ch32 = static_cast<uint32_t*>( memory_traits::malloc( len*4 ) );
 		if(nullptr == ch32) {
 			return error::out_of_memory;
 		}
@@ -122,7 +122,7 @@ static error check_xml_name(const char* tn) noexcept {
 	if( !ulen ) {
 		// huge name, release memory for UCS-4
 		if(len >= 256)
-			h_free(ch32);
+			memory_traits::free(ch32);
 		return error::illegal_name;
 	}
 	// name start char
@@ -134,7 +134,7 @@ static error check_xml_name(const char* tn) noexcept {
 			return error::illegal_name;
 	}
 	if(len >= UCHAR_MAX)
-		h_free(ch32);
+		memory_traits::free(ch32);
 	return error::ok;
 }
 

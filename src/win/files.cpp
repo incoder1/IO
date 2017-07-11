@@ -71,7 +71,7 @@ file file::get(std::error_code& ec,const char* name) noexcept {
 	}
 	// this size is in bytes
 	std::size_t len = std::char_traits<char>::length(name) + 1;
-	char16_t *uname = static_cast<char16_t*> ( h_malloc( len * sizeof(char16_t) ) );
+	char16_t *uname = static_cast<char16_t*> ( memory_traits::malloc( len * sizeof(char16_t) ) );
 	if(nullptr == uname) {
 		ec = std::make_error_code(std::errc::not_enough_memory);
 		return file();
@@ -88,7 +88,7 @@ file file::get(std::error_code& ec,const wchar_t* name) noexcept
 	}
 	typedef std::char_traits<wchar_t> wtr;
 	std::size_t len = wtr::length(name) + 1;
-	wchar_t *ncpy = static_cast<wchar_t*>( h_malloc( len * sizeof(wchar_t) ) );
+	wchar_t *ncpy = static_cast<wchar_t*>( memory_traits::malloc( len * sizeof(wchar_t) ) );
 	if(nullptr == ncpy) {
 		ec = std::make_error_code(std::errc::not_enough_memory);
 		return file();
