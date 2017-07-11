@@ -63,7 +63,7 @@ void byte_buffer::move(std::size_t offset) noexcept
 
 bool byte_buffer::extend(std::size_t extend_size) noexcept
 {
-	bool has_data = arr_ && !empty();
+	bool has_data = nullptr != last_ && arr_;
 	capacity_ += extend_size;
 	detail::mem_block new_block( detail::mem_block::allocate(capacity_) );
 	// out of memory

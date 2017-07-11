@@ -71,13 +71,15 @@ std::size_t conv_write_channel::write(std::error_code& ec, const uint8_t* buff,s
 {
 	uint8_t** src = const_cast<uint8_t**>(&buff);
 	std::size_t left = bytes;
-	std::size_t avail = left * 4;
-	detail::scoped_arr<uint8_t> tmp(avail);
+	std::size_t to_convert = bytes * 4;
+	detail::scoped_arr<uint8_t> tmp(to_convert);
 	uint8_t* conv = tmp.get();
-	conv_->convert(ec, src, left, static_cast<uint8_t**>(&conv), avail);
-	if(!ec && dst_->write(ec, tmp.get(), tmp.len() - avail) > 0 ) {
+	conv_->convert(ec, src, left, const_cast<uint8_t**>(&conv), to_convert);
+	if(ec)
+		return 0;
+	size_t converted = tmp.len() - to_convert;
+	if( (dst_->write(ec, tmp.get(), converted) > 0) && !ec)
 		return bytes - left;
-	}
 	return 0;
 }
 

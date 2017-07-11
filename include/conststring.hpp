@@ -138,10 +138,11 @@ public:
 		std::size_t len = sizeof(std::size_t) + length + 1;
 		allocator_type all;
 		data_ = all.allocate(len);
+		io_memset(data_,0,len);
 		std::size_t *p = reinterpret_cast<std::size_t*>(data_);
 		*p = 1;
-		io_memmove(static_cast<void*>(++p), static_cast<const void*>(str), length);
-		data_[ len ] = static_cast<uint8_t>('\0');
+		uint8_t *b = data_ + sizeof(std::size_t);
+		io_memmove(b, str, length);
 	}
 
 	/// Decrement this string refference count, release allocated memory when

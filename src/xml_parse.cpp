@@ -237,21 +237,29 @@ byte_buffer event_stream_parser::read_entity() noexcept
 	sb_clear(scan_buf_);
 	constexpr int_fast32_t EOS = std::char_traits<int_fast32_t>::eof();
 	int_fast32_t ch;
+	bool done = false;
 	do {
 		ch = static_cast<int_fast32_t>( next() );
 		switch(ch) {
 		case LEFTB:
 		case EOS:
 			assign_error(error::illegal_markup);
-			return byte_buffer();
+			done = true;
+			break;
 		case RIGHTB:
 			putch(result, static_cast<char>(ch) );
-			result.flip();
-			return std::move(result);
+			done = true;
+			break;
 		default:
 			putch(result, static_cast<char>(ch) );
 		}
-	} while( !is_error() );
+		if(is_error())
+			break;
+	} while( !done );
+	if(done) {
+		result.flip();
+		return result;
+	}
 	return byte_buffer();
 }
 
@@ -267,33 +275,34 @@ document_event event_stream_parser::parse_start_doc() noexcept
 	}
 	buff.shift(5);
 	const_string version, encoding;
-	bool stal = false;
+	bool standalone = false;
 	const char* prologue = buff.position().cdata();
-	const char* end = prologue + io_strlen(prologue);
     // extract version
-    const char* i = io_strstr(prologue, "version=\"");
+    char* i = io_strstr(prologue, "version=\"");
     if(nullptr == i) {
 		assign_error(error::illegal_prologue);
 		return document_event();
     }
     i += 9;
-    const char* stop  = static_cast<const char*>( std::memchr( i, QNM, str_size( i, end ) ) );
-    if(nullptr == stop ) {
+    const char* stop = i;
+    while( !cheq(QNM, *stop) )
+		++stop;
+    if(nullptr == stop || cheq('\0',*stop) ) {
 		assign_error(error::illegal_prologue);
 		return document_event();
     }
-    version = const_string( i, stop );
+    version = const_string( i, stop);
     if( version.empty() ) {
 		assign_error(error::out_of_memory);
 		return document_event();
     }
     // extract optionalal
-    i = stop + 1;
+    i = const_cast<char*>( stop + 1 );
     // extract encoding if exist
     const char* j = io_strstr(i, "encoding=\"");
     if(nullptr != j) {
-		i = j + 10;
-		stop  = static_cast<char*>( std::memchr( i, QNM, str_size(i,end) ) );
+		i = const_cast<char*>( j + 10 );
+		stop  = tstrchr( i, QNM );
 		if(nullptr == stop ) {
 			assign_error(error::illegal_prologue);
 			return document_event();
@@ -303,13 +312,13 @@ document_event event_stream_parser::parse_start_doc() noexcept
 			assign_error(error::out_of_memory);
 			return document_event();
 		}
-		i = stop + 1;
+		i = const_cast<char*> ( stop + 1 );
     }
 	// extract standalone if exist
     j = io_strstr(i, "standalone=\"");
 	if(nullptr != j) {
-		i = j + 12;
-		stop  = static_cast<char*>( io_memchr( i, QNM, str_size(i,end) ) );
+		i = const_cast<char*> ( j + 12 );
+		stop  = tstrchr( i, QNM);
 		if(nullptr == stop ) {
 			assign_error(error::illegal_prologue);
 			return document_event();
@@ -318,21 +327,21 @@ document_event event_stream_parser::parse_start_doc() noexcept
 			assign_error(error::illegal_prologue);
 			return document_event();
 		}
-        stal = 0 == io_memcmp(i,"yes",3);
-        if(!stal) {
+        standalone =  ( 0 == io_memcmp( i, "yes", 3) );
+        if( !standalone ) {
 			if( 0 != io_memcmp(i,"no",2) ) {
 				assign_error(error::illegal_prologue);
 				return document_event();
 			}
         }
-        i = stop + 1;
+        i = const_cast<char*> ( stop + 1 );
 	}
 	// check error in this point
 	if( 0 != io_memcmp( find_first_symbol(i) ,"?>", 2) ) {
 		assign_error(error::illegal_prologue);
 		return document_event();
 	}
-	return document_event( std::move(version), std::move(encoding), stal);
+	return document_event( std::move(version), std::move(encoding), standalone);
 }
 
 instruction_event event_stream_parser::parse_processing_instruction() noexcept

@@ -273,7 +273,7 @@ public:
 	/// \return whether this buffer empty
 	inline bool empty() const noexcept
 	{
-		return position_ == last_;
+		return last_ == nullptr || last_ == (position_ + 1);
 	}
 
 	/// Returns count of bytes this buffer can store
@@ -345,7 +345,7 @@ public:
 	inline void shift(std::size_t offset) noexcept
 	{
 		position_ += offset;
-		if( position_ >= last_)
+		if( position_ >= last_ || (position_+1) == last_ )
 			clear();
 	}
 
@@ -405,7 +405,7 @@ public:
 	inline void clear() noexcept
 	{
 		position_ = arr_.get();
-		last_ = position_;
+		last_ = position_ + 1;
 	}
 
 	/// Swaps this buffer with another buffer

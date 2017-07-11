@@ -20,12 +20,12 @@ namespace io {
 namespace {
 	static inline void check_error_code(std::error_code& ec) {
 		if(ec) {
-#ifdef IO_NO_EXCEPTIONS
+//#ifdef IO_NO_EXCEPTIONS
 		std::fprintf(stderr, ec.message().c_str() );
 		std::unexpected();
-#else
-			throw std::system_error(ec);
-#endif // IO_NO_EXCEPTIONS
+//#else
+//			throw std::system_error(ec);
+//#endif // IO_NO_EXCEPTIONS
 		}
 	}
 }
@@ -88,15 +88,28 @@ public:
 	virtual int_type overflow(int_type __c) override
 	{
 		std::error_code ec;
-		if( !traits_type::not_eof(__c) )
-			traits_type::eof();
 		buff_.flip();
-		int ret = static_cast<int>( ch_->write(ec, buff_.position().get(), buff_.length()) );
-		if(ec)
-			return -1;
-		return ret;
+		if( !buff_.empty() ) {
+			std::size_t written;
+			do {
+				written = ch_->write(ec, buff_.position().get(), buff_.length());
+				check_error_code(ec);
+				if( written == 0)
+					return traits_type::eof();
+				buff_.shift( written );
+			} while( !buff_.empty() || buff_.last() != ++buff_.position() );
+			buff_.clear();
+		}
+		return traits_type::not_eof(__c);
 	}
 
+	virtual std::streamsize showmanyc() {
+		return static_cast<std::streamsize>( buff_.capacity() - buff_.length() );
+	}
+
+	virtual int sync() override {
+		return this->overflow( traits_type::eof() );
+	}
 
 public:
 	s_write_channel ch_;

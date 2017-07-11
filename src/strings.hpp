@@ -67,8 +67,16 @@ template<typename __char_t>
 inline constexpr bool is_whitespace(__char_t ch)
 {
 	typedef std::char_traits<__char_t> tr;
+#ifdef io_isspace
+	return io_isspace( tr::to_int_type(ch) );
+#else
 	return char8_traits::to_int_type(' ') == tr::to_int_type(ch)
-	       || between( '\t', '\r', tr::to_int_type(ch) );
+	       || between(
+				char8_traits::to_int_type('\t'),
+				char8_traits::to_int_type('\r'),
+				tr::to_int_type(ch)
+			  );
+#endif // io_isspace
 }
 
 
@@ -76,11 +84,15 @@ inline constexpr bool is_whitespace(__char_t ch)
 template<typename _char_t>
 constexpr inline bool is_digit(_char_t ch)
 {
-#ifdef io_isdigit
 	typedef std::char_traits<_char_t> tr;
+#ifdef io_isdigit
 	return io_isdigit( tr::to_int_type(ch) );
 #else
-	return between('0','9', ch);
+	return between(
+			char8_traits::to_int_type('0'),
+			char8_traits::to_int_type('9'),
+			tr::to_int_type(ch)
+		);
 #endif // io_isdigit
 }
 
@@ -88,11 +100,15 @@ constexpr inline bool is_digit(_char_t ch)
 template<typename _char_t>
 static constexpr inline bool is_uppercase_latin1(_char_t ch)
 {
-#ifdef io_isupper
 	typedef std::char_traits<_char_t> tr;
+#ifdef io_isupper
 	return io_isupper(tr::to_int_type(ch));
 #else
-	return between( 'A', 'Z', ch );
+	return between(
+				char8_traits::to_int_type('A'),
+				char8_traits::to_int_type('Z'),
+				tr::to_int_type(ch)
+			);
 #endif // io_isupper
 }
 
@@ -135,17 +151,21 @@ inline char latin1_to_upper(const char ch) noexcept
 
 inline bool start_with(const char* s,const char* pattern,std::size_t size) noexcept
 {
+#ifdef io_memcmp
+	return 0 == io_memcmp( static_cast<const void*>(s), static_cast<const void*>(pattern), size);
+#else
 	return 0 == char8_traits::compare(s, pattern, size );
+#endif // io_strcmp
 }
 
-inline constexpr bool is_xml_name_start_char_lo(uint32_t ch) noexcept
+inline bool is_xml_name_start_char_lo(uint32_t ch) noexcept
 {
 	// _ | :
 	return is_one_of(ch,0x5F,0x3A) || is_latin1(ch);
 }
 
 // Works only for UCS-4
-inline constexpr bool is_xml_name_start_char(uint_fast32_t ch) noexcept
+inline bool is_xml_name_start_char(uint_fast32_t ch) noexcept
 {
 	return is_xml_name_start_char_lo(ch) ||
 	       between(0xC0,0xD6, ch)    ||
@@ -176,18 +196,8 @@ static constexpr inline bool is_xml_name_char(uint_fast32_t ch) noexcept
 template<typename _char_t>
 inline constexpr std::size_t str_size(const _char_t* b, const _char_t* e)
 {
-	return reinterpret_cast<std::size_t>(e) - reinterpret_cast<std::size_t>(b);
+	return memory_traits::distance(b, e);
 }
-
-// search for character
-template<typename _char_t>
-inline constexpr _char_t* tstrchr(const _char_t* where,_char_t what)
-{
-	typedef std::char_traits<_char_t> tr;
-	return nullptr == where || cheq(_char_t(0),*where)
-	       ? nullptr : const_cast<_char_t*>( tr::find(where,  /*tr::length(where)*/ UINT_MAX, what) );
-}
-
 
 static constexpr const size_t ALIGN = sizeof(size_t)-1;
 static constexpr const size_t ONES = size_t(~0) / uint8_t(~0);
@@ -228,6 +238,24 @@ inline char* tstrchr(const char* s,char c)
 #endif // io_strchr
 }
 
+inline char* tstrchrn(const char* s,char c,std::size_t max_len)
+{
+	return static_cast<char*>( io_memchr( s, static_cast<int>(c), max_len) );
+}
+
+template<typename _char_t>
+inline std::size_t tstrchrn(const _char_t *str, _char_t character, std::size_t max_len)
+{
+	typedef std::char_traits<_char_t> traits_t;
+	return traits_t::find(str, max_len, character);
+}
+
+template<typename _char_t>
+inline std::size_t tstrchr(const _char_t *str, _char_t character, std::size_t max_len)
+{
+	return tstrchrn( str, character, ULONG_MAX);
+}
+
 inline const char *strstr2b(const char *s, const char *n)
 {
 	const uint8_t *un = reinterpret_cast<const uint8_t*>(n);
@@ -266,7 +294,7 @@ inline __char_t* find_first_symbol(const __char_t* s)
 		case CR:
 		case SPACE:
 			++s;
-			break;
+			continue;
 		default:
 			return const_cast<__char_t*>(s);
 		}
