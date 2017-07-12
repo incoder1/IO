@@ -18,7 +18,6 @@
 #include <string>
 #include <iostream>
 
-
 #ifdef HAS_PRAGMA_ONCE
 #pragma once
 #endif // HAS_PRAGMA_ONCE
@@ -47,13 +46,13 @@ namespace detail {
 	{
 	public:
 #	ifdef _M_X64 // 64 bit instruction set
-	static inline void inc(std::size_t volatile *ptr)
+	static inline std::size_t inc(std::size_t volatile *ptr)
 	{
 		__int64 volatile *p = reinterpret_cast<__int64 volatile*>(ptr);
 #	ifdef _M_ARM
-		_InterlockedIncrement64_nf(p);
+		return static_cast<std::size_t>( _InterlockedIncrement64_nf(p) );
 #	else
-		_InterlockedIncrement64(p);
+		return static_cast<std::size_t>( _InterlockedIncrement64(p) );
 #	endif // _M_ARM
 	}
 	static inline std::size_t dec(std::size_t volatile *ptr)
@@ -62,19 +61,19 @@ namespace detail {
 		return return static_cast<std::size_t>( _InterlockedDecrement64(p) );
 	}
 #	else // 32 bit instruction set
-	static inline void atomic_inc(std::size_t volatile *ptr)
+	static inline std::size_t inc(std::size_t volatile *ptr)
 	{
 		_long volatile *p = reinterpret_cast<long volatile*>(ptr);
 #	ifdef _M_ARM
-		_InterlockedIncrement_nf(p);
+		return static_cast<std::size_t>( _InterlockedIncrement_nf(p) );
 #	else
-		_InterlockedIncrement(p);
+		return static_cast<std::size_t>( _InterlockedIncrement(p) );
 #	endif // _M_ARM
 	}
-	static inline std::size_t atomic_dec(std::size_t volatile *ptr)
+	static inline std::size_t dec(std::size_t volatile *ptr)
 	{
 		long volatile *p = reinterpret_cast<long volatile*>(ptr);
-		return static_cast<std::size_t>( _InterlockedDecrement64(p) );
+		return static_cast<std::size_t>( _InterlockedDecrement(p) );
 	}
 #	endif // 32 bit instruction set
 
@@ -118,12 +117,14 @@ public:
 		return *this;
 	}
 
+	/// Movement constructor, default movement semantic
 	const_string(const_string&& other) noexcept:
 		data_(other.data_)
 	{
 		other.data_ = nullptr;
 	}
 
+	/// Movement assigment operator, defailt movement semantic
 	const_string operator=(const_string&& other) noexcept
 	{
 		const_string( std::forward<const_string>(other) ).swap( *this );
@@ -131,6 +132,8 @@ public:
 	}
 
 	/// Deep copy a character array
+	/// \param str pointer to character array begin
+	/// \param length count of chars to be copied
 	const_string(const char* str, std::size_t length) noexcept:
 		data_(nullptr)
 	{
@@ -146,7 +149,7 @@ public:
 	}
 
 	/// Decrement this string refference count, release allocated memory when
-	/// reference coung bring to 0
+	/// reference count bring to 0
 	~const_string() noexcept
     {
     	if(nullptr != data_ && intrusive_release(data_) ) {
@@ -164,16 +167,16 @@ public:
 
 	/// Deep copies a zero ending C string
 	const_string(const char* str) noexcept:
-		const_string(str, io_strlen(str) )
+		const_string(str, traits_type::length(str) )
 	{}
 
 	/// Swaps two const_string objects
-	/// \param with cached_string object to swap with this
+	/// \param with object to swap with this
 	inline void swap(const_string& with) noexcept {
 		std::swap(data_, with.data_);
 	}
 
-	/// Returns whether this string is pointing on nullptr
+	/// Returns whether this string is pointing on nullptr or have "" value
 	/// \retrun whether nullptr string
 	inline bool empty() const noexcept {
 		return nullptr == data_;

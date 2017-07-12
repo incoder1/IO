@@ -1,3 +1,13 @@
+/*
+ *
+ * Copyright (c) 2016
+ * Viktor Gubin
+ *
+ * Use, modification and distribution are subject to the
+ * Boost Software License, Version 1.0. (See accompanying file
+ * LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
+ *
+ */
 #ifndef __IO_OBJECT_HPP_INCLUDED__
 #define __IO_OBJECT_HPP_INCLUDED__
 
@@ -26,27 +36,32 @@ public:
 	virtual ~object() noexcept = default;
 
 #if defined(__IO_WINDOWS_BACKEND__) && defined(IO_SHARED_LIB) && defined(IO_NO_EXCEPTIONS)
-	void* operator new(std::size_t size) {
-		assert(size >= sizeof(object));
-		void *res = io::h_malloc(size);
-		if(nullptr == res) {
-#ifndef IO_NO_EXCEPTIONS
-			throw std::bad_alloc();
+	void* operator new(std::size_t size) throw() {
+		void *result;
+		result = memory_traits::malloc( size );
+		if(NULL != result)
+			return result;
+#ifdef __GNUC__
+		while ( __builtin_expect( (result = std::malloc(size) ) == nullptr, false) ) {
 #else
-		std::new_handler new_handler = std::get_new_handler();
-		if(nullptr != new_handler) {
-			new_handler();
-		} else {
-			std::unexpected();
-		}
+		while( nullptr == (result = __memory_traits::malloc(size) ) {
+#endif // __GNUC__
+
+			std::new_handler handler = std::get_new_handler();
+			if (nullptr == handler)
+#ifdef IO_NO_EXCEPTIONS
+				return nullptr;
+#else
+				throw std::bad_alloc();
 #endif // IO_NO_EXCEPTIONS
+			handler();
 		}
-		return res;
+		return result;
 	}
 
 	void operator delete(void* const ptr) noexcept {
 		assert(nullptr != ptr);
-		io::h_free(ptr);
+		memory_traits::free(ptr);
 	}
 #endif // defined
 

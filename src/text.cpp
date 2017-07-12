@@ -41,7 +41,7 @@ std::size_t conv_read_channel::read(std::error_code& ec,uint8_t* const buff, std
 {
 	assert( bytes < size_t(-1) );
 	// allign on size_t and div on 4
-	detail::scoped_arr<uint8_t> arr(conv_->requared_conv_buffer(bytes));
+	scoped_arr<uint8_t> arr(conv_->requared_conv_buffer(bytes));
 	std::size_t read = src_->read(ec, arr.get(), bytes);
 	std::size_t converted = arr.len();
 	if(!ec) {
@@ -72,7 +72,7 @@ std::size_t conv_write_channel::write(std::error_code& ec, const uint8_t* buff,s
 	uint8_t** src = const_cast<uint8_t**>(&buff);
 	std::size_t left = bytes;
 	std::size_t to_convert = bytes * 4;
-	detail::scoped_arr<uint8_t> tmp(to_convert);
+	scoped_arr<uint8_t> tmp(to_convert);
 	uint8_t* conv = tmp.get();
 	conv_->convert(ec, src, left, const_cast<uint8_t**>(&conv), to_convert);
 	if(ec)

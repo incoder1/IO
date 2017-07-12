@@ -168,7 +168,7 @@ static constexpr uint8_t* address_of(const T* p) noexcept
 /// \throw std::system_error or std::bad_alloc
 inline std::u16string transcode_to_u16(const char* u8_str, std::size_t bytes)
 {
-	detail::scoped_arr<char16_t> arr(bytes);
+	scoped_arr<char16_t> arr(bytes);
 	std::error_code ec;
 	std::size_t conv = transcode(ec, detail::address_of(u8_str), bytes, arr.get(), arr.len() );
 	detail::check_error(ec);
@@ -182,7 +182,7 @@ inline std::u16string transcode_to_u16(const char* u8_str, std::size_t bytes)
 /// \throw std::system_error or std::bad_alloc
 inline std::u32string transcode_to_u32(const char* u8_str, std::size_t bytes)
 {
-	detail::scoped_arr<char32_t> arr(bytes);
+	scoped_arr<char32_t> arr(bytes);
 	std::error_code ec;
 	std::size_t conv = transcode(ec, detail::address_of(u8_str), bytes, arr.get(), arr.len() );
 	detail::check_error(ec);
@@ -204,7 +204,7 @@ inline std::u32string transcode_to_u32(const char* u8_str)
 /// Convert a system UCS-2 character array to UTF-8 encoded STL string
 inline std::string transcode(const char16_t* u16_str, std::size_t len)
 {
-	detail::scoped_arr<char> arr( len*sizeof(char16_t) );
+	scoped_arr<char> arr( len*sizeof(char16_t) );
 	std::error_code ec;
 	std::size_t conv = transcode(ec, u16_str, len, detail::address_of(arr.get()), arr.len() );
 	detail::check_error(ec);
@@ -214,7 +214,7 @@ inline std::string transcode(const char16_t* u16_str, std::size_t len)
 /// Convert a system UCS-4 character array to UTF-8 encoded STL string
 inline std::string transcode(const char32_t* u32_str, std::size_t len)
 {
-	detail::scoped_arr<char> arr( len*sizeof(char32_t) );
+	scoped_arr<char> arr( len*sizeof(char32_t) );
 	std::error_code ec;
 	std::size_t conv = transcode(ec, u32_str, len,detail::address_of(arr.get()), arr.len() );
 	detail::check_error(ec);
@@ -236,9 +236,9 @@ inline std::string transcode(const char32_t* u32_str)
 inline std::wstring transcode_to_ucs(const char* u8_str, std::size_t bytes)
 {
 #ifdef __IO_WINDOWS_BACKEND__
-	detail::scoped_arr<char16_t> arr( bytes*sizeof(char16_t) );
+	scoped_arr<char16_t> arr( bytes*sizeof(char16_t) );
 #else
-	detail::scoped_arr<char32_t> arr( bytes*sizeof(char32_t) );
+	scoped_arr<char32_t> arr( bytes*sizeof(char32_t) );
 #endif // __IO_WINDOWS_BACKEND__
 	std::error_code ec;
 	std::size_t conv = transcode(ec, detail::address_of(u8_str), bytes, arr.get(), arr.len() );
@@ -255,10 +255,10 @@ inline std::string transcode(const wchar_t* ucs_str, std::size_t len)
 {
 #ifdef __IO_WINDOWS_BACKEND__
 	const char16_t* ucs = reinterpret_cast<const char16_t*>(ucs_str);
-	detail::scoped_arr<char> arr( len*2 );
+	scoped_arr<char> arr( len*2 );
 #else
 	const char32_t* ucs = reinterpret_cast<const char32_t*>(ucs_str);
-	detail::scoped_arr<char> arr( len*4 );
+	scoped_arr<char> arr( len*4 );
 #endif // __IO_WINDOWS_BACKEND__
 	std::error_code ec;
 	std::size_t conv = transcode(ec, ucs, len, detail::address_of(arr.get()), arr.len() );

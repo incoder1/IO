@@ -37,19 +37,26 @@ namespace detail {
 		char_holder& operator=(const char_holder&) = delete;
 		void* operator new(std::size_t) = delete;
 	public:
+
 		const char* data() const noexcept {
 			return data_;
 		}
 
 IO_PUSH_IGNORE_UNUSED_PARAM
-		static inline void* operator new(std::size_t s, void* p) noexcept {
+
+		static inline void* operator new(std::size_t s, void* p) noexcept
+		{
 			assert(nullptr != p);
 			return p;
 		}
-		static inline void operator delete(void* ptr, std::size_t s) noexcept {
+
+		static inline void operator delete(void* ptr, std::size_t s = 1) noexcept
+		{
 			memory_traits::free(ptr);
 		}
+
 IO_POP_IGNORE_UNUSED_PARAM
+
 		~char_holder() noexcept = default;
 	public:
 		constexpr char_holder(const char* data) noexcept:
@@ -286,7 +293,7 @@ private:
 		cached_string,
 		std::hash<std::size_t>,
 		std::equal_to<std::size_t>,
-		io::h_allocator< std::pair<const std::size_t, cached_string>, io::memory_traits >
+		io::h_allocator< std::pair<const std::size_t, cached_string>, memory_traits >
 		> pool_type;
 	pool_type pool_;
 };

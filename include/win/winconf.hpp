@@ -7,7 +7,7 @@
 
 // shared library
 #if defined(IO_SHARED_LIB)
-#	if defined(IO_BUILD_SHARED_LIB)
+#	if defined(IO_BUILD)
 #		ifdef __GNUC__
 #			define IO_PUBLIC_SYMBOL __attribute__ ((dllexport))
 #		else

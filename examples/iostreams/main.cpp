@@ -13,6 +13,8 @@ void check_error(const std::error_code& ec) {
     }
 }
 
+/// Opens a file channel with auto-reconverting content
+/// to UTF-8 from current wchar_t unicode
 io::s_write_channel prepare_file() {
 	using namespace io;
 	// Open a file to write results
@@ -32,17 +34,23 @@ io::s_write_channel prepare_file() {
 	return ret;
 }
 
+const char* umessage = "Hello!\nПривет!\nПривіт!\nΧαιρετίσματα!\nHelló!\nHallå!\nこんにちは!\n您好!\n";
+const wchar_t* wmessage = L"Hello!\nПривет!\nПривіт!\nΧαιρετίσματα!\nHelló!\nHallå!\nこんにちは!\n您好!\n";
+
 int main()
 {
-	const wchar_t* message = L"Hello!\nПривет!\nПривіт!\nΧαιρετίσματα!\nHelló!\nHallå!\nこんにちは!\n您好!\n";
+
 	io::channel_ostream<wchar_t> fout( prepare_file() );
-	fout << message << std::endl;
-	//fout.flush();
+	fout << wmessage << 1234567890ull << L'\n' << 123456.78e+09 << L'\n' << 12356.789e+10L << std::endl;
 
 	io::console::reset_colors( io::text_color::yellow, io::text_color::light_green,  io::text_color::light_red );
 
-	io::channel_ostream<wchar_t> ucout( io::console::out() );
-	ucout << message << 1234567890ull << L'\n' << 123456.78e+09 << std::endl;
+	std::ostream& cout = io::console::out_stream();
+	std::ostream& cerr = io::console::error_stream();
+	cout << "You can found the same message in result.txt file " << std::endl;
+	std::printf("Synchronized with C lib calls\n");
+	cout << umessage << 1234567890ull << '\n' << 123456.78e+09 << '\n' << 12356.789e+10L << std::endl;
+	cerr << "No errors so far" << std::endl;
 
 	// io::channel_istream<wchar_t> ucin( io::console::in() );
 	//ucout <<  L"Type something to echo:" ;

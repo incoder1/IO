@@ -16,6 +16,7 @@
 #include "config.hpp"
 #include "object.hpp"
 #include "buffer.hpp"
+#include "scoped_array.hpp"
 
 #ifdef HAS_PRAGMA_ONCE
 #pragma once
@@ -140,7 +141,7 @@ DECLARE_IPTR(random_access_channel);
 inline std::size_t transfer(std::error_code& ec,const s_read_channel& src, const s_write_channel& dst, uint16_t buff) noexcept
 {
 	std::size_t result = 0;
-	detail::scoped_arr<uint8_t> rbuf(buff);
+	scoped_arr<uint8_t> rbuf(buff);
 	std::size_t written = 0;
 	std::size_t read = src->read(ec, rbuf.get(), rbuf.len());
 	while( 0 != read && !ec ) {

@@ -16,6 +16,7 @@
 #include "channels.hpp"
 #include "files.hpp"
 #include "charsets.hpp"
+#include "conststring.hpp"
 
 #include <string>
 #include <system_error>
