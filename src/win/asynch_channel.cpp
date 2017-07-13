@@ -19,8 +19,11 @@ void asynch_channel::read(std::size_t bytes, std::size_t pos) const noexcept
 {
 	std::error_code ec;
 	uint8_t *buff = static_cast<uint8_t*>( memory_traits::malloc(bytes) );
-	if( ec )
-        on_read_finished(ec, pos, byte_buffer() );
+	if( nullptr == buff ) {
+		ec = std::make_error_code(std::errc::not_enough_memory);
+		on_read_finished(ec, pos, byte_buffer() );
+		return;
+	}
 	LARGE_INTEGER p;
 	p.QuadPart = pos;
 	::OVERLAPPED ovlp;
