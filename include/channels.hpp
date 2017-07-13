@@ -10,7 +10,7 @@
 #ifndef __CHANNELS_HPP_INCLUDED__
 #define __CHANNELS_HPP_INCLUDED__
 
-#include <atomic>
+#include <functional>
 #include <system_error>
 
 #include "config.hpp"
@@ -101,7 +101,10 @@ DECLARE_IPTR(read_write_channel);
  * like a: file, socket, shared memory blocks etc.
  **/
 class IO_PUBLIC_SYMBOL random_access_channel:public read_write_channel {
+protected:
+	random_access_channel() noexcept;
 public:
+	virtual ~random_access_channel() noexcept = 0;
 	/// Moving forward current device position
 	/// \param ec
 	///		operation error code
@@ -156,6 +159,61 @@ inline std::size_t transfer(std::error_code& ec,const s_read_channel& src, const
 	}
 	return result;
 }
+
+typedef std::function<void(std::error_code&,std::size_t,byte_buffer&&)>
+		asynch_callback;
+
+class IO_PUBLIC_SYMBOL asynch_channel:public channel
+{
+protected:
+	asynch_channel() noexcept;
+public:
+	virtual ~asynch_channel() noexcept = 0;
+	virtual bool cancel_pending() const noexcept = 0;
+	virtual bool cancel_all() const noexcept = 0;
+};
+
+class IO_PUBLIC_SYMBOL asynch_read_channel:public virtual asynch_channel {
+protected:
+	asynch_read_channel(const asynch_callback& routine) noexcept;
+	void on_read_finished(std::error_code& ec,std::size_t pos, byte_buffer&& buff) const;
+public:
+	virtual ~asynch_read_channel() noexcept = 0;
+	virtual void read(std::size_t bytes, std::size_t pos) const noexcept = 0;
+private:
+	asynch_callback callback_;
+};
+
+DECLARE_IPTR(asynch_read_channel);
+
+class IO_PUBLIC_SYMBOL asynch_write_channel:public virtual asynch_channel {
+protected:
+	asynch_write_channel(const asynch_callback& callback) noexcept;
+	void on_write_finished(std::error_code& ec,std::size_t pos, byte_buffer&& buff) const;
+public:
+	virtual ~asynch_write_channel() = 0;
+	virtual void write(byte_buffer&& buff, std::size_t pos) const noexcept = 0;
+private:
+	asynch_callback callback_;
+};
+
+DECLARE_IPTR(asynch_write_channel);
+
+class IO_PUBLIC_SYMBOL asynch_read_write_channel:public virtual asynch_channel,
+								public asynch_read_channel,
+								public asynch_write_channel
+{
+protected:
+	asynch_read_write_channel(const asynch_callback& rc, const asynch_callback& wc) noexcept;
+public:
+	virtual ~asynch_read_write_channel() noexcept = 0;
+	virtual void read(std::size_t bytes, std::size_t pos) const noexcept override = 0;
+	virtual void write(byte_buffer&& buff, std::size_t pos) const noexcept override = 0;
+	virtual bool cancel_pending() const noexcept override = 0;
+	virtual bool cancel_all() const noexcept override = 0;
+};
+
+DECLARE_IPTR(asynch_read_write_channel);
 
 } // namespace io
 

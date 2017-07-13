@@ -1,3 +1,8 @@
+
+#ifdef _WIN32
+#define _WIN32_WINNT 0x0600
+#endif // _WIN32
+
 #include <console.hpp>
 #include <files.hpp>
 #include <iostream>

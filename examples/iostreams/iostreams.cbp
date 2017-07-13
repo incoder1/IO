@@ -40,7 +40,6 @@
 					<Add option="-std=c++14" />
 					<Add option="-fno-exceptions" />
 					<Add option="-fno-rtti" />
-					<Add option="-DIO_HAS_BOOST" />
 					<Add directory="../../deps/include" />
 					<Add directory="../../../boost_1_60_0" />
 				</Compiler>

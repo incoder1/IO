@@ -401,6 +401,109 @@ public:
 		return put( s.data(), s.length() * sizeof(_char_t) );
 	}
 
+	// binary primitives functions
+
+	/// Puts a small value in its binary representation into current buffer
+	/// \param small a small value
+    inline bool put(int8_t small) {
+    	return put( static_cast<uint8_t>(small) );
+    }
+
+	inline int8_t get_int8() {
+		return binary_get<int8_t>();
+	}
+
+    /// Puts an unsigned short value in its binary representation into current buffer
+	/// \param us an unsigned short value
+    inline bool put(uint16_t us) {
+        return binary_put(us);
+    }
+
+	inline uint16_t get_uint16() {
+		return binary_get<uint16_t>();
+	}
+
+	/// Puts a signed short value in its binary representation into current buffer
+	/// \param ss a short value
+    inline bool put(int16_t ss) {
+    	return binary_put(ss);
+    }
+
+	inline int16_t get_int16() {
+		return binary_get<int16_t>();
+	}
+
+	/// Puts an unsigned integer value in its binary representation into current buffer
+	/// \param ui an unsigned integer value
+    inline bool put(uint32_t ui) {
+		return binary_put(ui);
+    }
+
+	inline uint32_t get_uint32() {
+		return binary_get<uint32_t>();
+	}
+
+	/// Puts a signed integer value in its binary representation into current buffer
+	/// \param si a signed integer value
+    inline bool put(int32_t si) {
+    	return binary_put(si);
+    }
+
+	inline int32_t get_int32() {
+		return binary_get<int32_t>();
+	}
+
+	/// Puts an unsigned long integer value in its binary representation into current buffer
+	/// \param ull an unsigned long integer value
+    inline bool put(uint64_t ull)
+	{
+		return binary_put(ull);
+    }
+
+	inline uint64_t get_uint64() {
+		return binary_get<int64_t>();
+	}
+
+	/// Puts a signed long integer value in its binary representation into current buffer
+	/// \param sll a signed long integer value
+    inline bool put(int64_t sll) {
+    	return binary_put(sll);
+    }
+
+	inline int64_t get_int64() {
+		return binary_get<int64_t>();
+	}
+
+	/// Puts a float value in its binary representation into current buffer
+	/// \param f a float value
+    inline bool put(float f) {
+    	return binary_put(f);
+    }
+
+	inline float get_float() {
+		return binary_get<float>();
+	}
+
+	/// Puts a double value in its binary representation into current buffer
+	/// \param d a double value
+    inline bool put(double d) {
+		return binary_put(d);
+    }
+
+	inline double get_double() {
+		return binary_get<long double>();
+	}
+
+	/// Puts a long double value in its binary representation into current buffer
+	/// \param ld a long double value
+	inline bool put(long double ld) {
+		return binary_put(ld);
+    }
+
+    inline long double get_long_double() {
+		return binary_get<long double>();
+    }
+
 	/// Sets position and last iterator to the buffer's first byte
 	inline void clear() noexcept
 	{
@@ -433,6 +536,26 @@ private:
 		position_(arr_.get()),
 		last_(arr_.get())
 	{}
+
+	template < typename T >
+	bool binary_put(const T v) {
+		const T volatile bin = v;
+		return 0 != put(
+				reinterpret_cast<const uint8_t*> (
+					const_cast<const T*>( &bin )
+				),
+				sizeof(T) );
+	}
+
+	template< typename T >
+	inline T binary_get() {
+    	if( empty() )
+			return static_cast<T>( 0 );
+		T ret;
+		io_memmove( &ret, position_, sizeof(T) );
+        shift( sizeof(T) );
+        return ret;
+    }
 
 public:
 	static byte_buffer allocate(std::error_code& ec, std::size_t capacity) noexcept;

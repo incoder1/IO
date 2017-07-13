@@ -34,17 +34,16 @@ enum class whence_type: ::DWORD {
 	end = FILE_END
 };
 
-class handle_synch_channel {
-	handle_synch_channel(const handle_synch_channel&) = delete;
-	handle_synch_channel& operator=(handle_synch_channel&) = delete;
-
+class handle_channel {
+	handle_channel(const handle_channel&) = delete;
+	handle_channel& operator=(handle_channel&) = delete;
 public:
 
-	constexpr handle_synch_channel(::HANDLE hnd) noexcept:
+	constexpr handle_channel(::HANDLE hnd) noexcept:
 		hnd_(hnd)
 	{}
 
-	~handle_synch_channel() noexcept
+	~handle_channel() noexcept
 	{
 		::CloseHandle(hnd_);
 	}
@@ -57,6 +56,19 @@ public:
 		return result;
 	}
 
+	inline void asynch_read(::LPOVERLAPPED ovrlp, uint8_t* const to, std::size_t bytes) const noexcept
+	{
+		 std::error_code ec;
+		::BOOL errorCode = ::ReadFile(
+								hnd_,
+								void_cast( to ),
+								bytes,
+								NULL, ovrlp);
+		::DWORD lastError = ::GetLastError();
+		if( !errorCode && ERROR_IO_PENDING != lastError )
+			ec.assign( lastError, std::system_category() );
+	}
+
 	inline std::size_t write(std::error_code& err, const uint8_t* buff,std::size_t size) const noexcept
 	{
 		::DWORD result;
@@ -64,6 +76,20 @@ public:
 			err.assign(::GetLastError(), std::system_category() );
 		return result;
 	}
+
+	inline void asynch_write(::LPOVERLAPPED ovrlp,const uint8_t* what, std::size_t len) const noexcept
+	{
+		 std::error_code ec;
+		::BOOL errorCode = ::WriteFile(
+								hnd_,
+								void_cast( what ),
+								len,
+								NULL, ovrlp);
+		::DWORD lastError = ::GetLastError();
+		if( !errorCode && ERROR_IO_PENDING != lastError )
+			ec.assign( lastError, std::system_category() );
+	}
+
 
 	inline uint64_t seek(std::error_code err,whence_type whence,int64_t offset)
 	{
@@ -74,7 +100,7 @@ public:
 		return li.QuadPart;
 	}
 
-	inline ::HANDLE hnd() noexcept
+	inline ::HANDLE hnd() const noexcept
 	{
 		return hnd_;
 	}

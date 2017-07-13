@@ -47,8 +47,9 @@ public:
 	virtual std::size_t position(std::error_code& ec) noexcept override;
 
 private:
-	detail::handle_synch_channel hch_;
+	detail::handle_channel hch_;
 };
+
 
 } // namespace win
 

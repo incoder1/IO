@@ -1,6 +1,6 @@
 /*
  *
- * Copyright (c) 2016
+ * Copyright (c) 2017
  * Viktor Gubin
  *
  * Use, modification and distribution are subject to the
@@ -58,6 +58,7 @@ std::size_t synch_file_channel::position(std::error_code& err) noexcept
 {
     return hch_.seek(err, detail::whence_type::current, 0);
 }
+
 
 } // namespace win
 

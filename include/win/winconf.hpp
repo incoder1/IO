@@ -1,6 +1,14 @@
 #ifndef __IO_WINCONG_HPP_INCLUDED__
 #define __IO_WINCONG_HPP_INCLUDED__
 
+#if defined(_WIN32_WINNT) && defined(IO_BUILD)
+#	undef _WIN32_WINNT
+#	define _WIN32_WINNT 0x0600
+#elif !defined(_WIN32_WINNT)
+#	define _WIN32_WINNT 0x0600
+#elif ( _WIN32_WINNT < 0x0600 )
+#	error "Windows Vista is minimal supported windows version"
+#endif // defined
 
 #include <winsock2.h>
 #include <windows.h>
