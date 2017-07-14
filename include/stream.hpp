@@ -12,33 +12,28 @@
 #define __IO_STREAMS_HPP_INCLUDED__
 
 #include "config.hpp"
-#include "channels.hpp"
-
-#include <streambuf>
-#include <ostream>
-
-#ifdef IO_NO_EXCEPTIONS
-#	include <cstdio>
-#endif // IO_NO_EXCEPTIONS
 
 #ifdef HAS_PRAGMA_ONCE
 #pragma once
 #endif // HAS_PRAGMA_ONCE
 
+#include "errorcheck.hpp"
+#include "channels.hpp"
+
+#include <streambuf>
+#include <ostream>
+
 namespace io {
 
 namespace {
-static inline void check_error_code(std::error_code& ec)
-{
-	if(ec) {
-#ifdef IO_NO_EXCEPTIONS
-		std::fprintf(stderr, ec.message().c_str() );
-		std::unexpected();
-#else
-		throw std::system_error(ec);
-#endif // IO_NO_EXCEPTIONS
+	inline void ios_check_error_code(const char* msg, std::error_code const &ec )
+	{
+		#ifdef IO_NO_EXCEPTIONS
+			io::detail::panic(ec.value(), ec.message().c_str() );
+		#else
+			throw std::ios_base::failure( msg, ec );
+		#endif
 	}
-}
 }
 
 template<typename __char_type, class __traits_type >
@@ -93,7 +88,7 @@ public:
 		data_ = static_cast<char_type*>( memory_traits::malloc( buffer_size * sizeof(char_type) ) );
 		if(nullptr == data_ ) {
 			std::error_code ec = std::make_error_code(std::errc::not_enough_memory);
-			check_error_code( ec );
+			ios_check_error_code( "output stream buff ", ec );
 		}
 		end_ = data_ + buffer_size;
 		clear();

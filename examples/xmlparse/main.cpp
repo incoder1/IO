@@ -1,3 +1,8 @@
+#if _WIN32_WINNT < 0x0600
+#	undef  _WIN32_WINNT
+#	define WINVER 0x0600
+#	define _WIN32_WINNT 0x0600
+#endif // _WIN32_WINNT
 
 #include <files.hpp>
 #include <xml_parse.hpp>
@@ -6,17 +11,6 @@
 #include <iostream>
 
 using namespace io;
-
-void check_system_error(const std::error_code& ec) {
-	if(ec) {
-#ifndef IO_NO_EXCEPTIONS
-		throw std::system_error(ec);
-#else
-		fprintf(stderr, "%s", ec.message().data() );
-		std::terminate();
-#endif // IO_NO_EXCEPTIONS
-	}
-}
 
 void print_start_doc(std::ostream& cstr,const xml::s_event_stream_parser& s)
 {
@@ -87,32 +81,40 @@ void print_event(std::ostream& cstr,const xml::s_event_stream_parser& s)
 	}
 }
 
-void log_chars(std::ostream& cstr,const char* msg, const char* chars)
+static  void log_chars(std::ostream& cstr,const char* msg, const char* chars)
 {
 	cstr<< msg << '\n' << chars << '\n';
 }
 
+static void on_terminate() noexcept
+{
+	io::exit_with_current_error();
+}
+
+
 int main(int argc, const char** argv)
 {
-	//std::ostream& cout = std::cout; //
+
+	std::set_terminate( on_terminate );
+
 	std::ostream& cout = io::console::out_stream();
-	std::ostream& cerr = std::cerr;
+	std::ostream& cerr = io::console::error_stream();
 	if(argc < 2) {
 		cout<< "XML parsing example\n Usage:\t xmlparse <xmlfile>" <<std::endl;
 		return 0;
 	}
 	std::error_code ec;
 	file sf = file::get(ec, argv[1] );
-	check_system_error(ec);
-	if(!sf.exist()) {
-		cerr<<"file " << sf.path() << " is not exist"<<std::endl;
-		return -2;
+	io::check_error_code( ec );
+	if( !sf.exist() ) {
+		cerr << sf.path() << " can not be found" << std::endl;
+		return ec.value();
 	}
 
 	xml::s_source src = xml::source::create(ec, sf.open_for_read(ec), code_pages::UTF_8 );
-	check_system_error(ec);
+	io::check_error_code( ec );
 	xml::s_event_stream_parser xs = xml::event_stream_parser::open(ec, src);
-	check_system_error(ec);
+	io::check_error_code( ec );
 
 	xml::state state;
 	do {

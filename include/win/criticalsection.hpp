@@ -19,19 +19,17 @@
 
 namespace io {
 
-namespace win {
-
-static constexpr ::DWORD _spin_count = 4000;
-
 class critical_section
 {
 	critical_section(const critical_section&) = delete;
 	critical_section& operator=(const critical_section&) = delete;
+private:
+	static constexpr ::DWORD SPIN_COUNT = 4000;
 public:
 	critical_section() noexcept:
 		cs_()
 	{
-		::InitializeCriticalSectionAndSpinCount(&cs_, _spin_count);
+		::InitializeCriticalSectionAndSpinCount(&cs_, SPIN_COUNT);
 	}
 	__forceinline void lock() noexcept {
 		::EnterCriticalSection(&cs_);
@@ -66,8 +64,6 @@ public:
 private:
 	critical_section& cs_;
 };
-
-} // namespace win
 
 } // namespace io
 

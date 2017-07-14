@@ -12,13 +12,12 @@
 #define __STDAFX_HPP_INCLUDED__
 
 #include "config.hpp"
+#include "errorcheck.hpp"
+
 #include "buffer.hpp"
 #include "channels.hpp"
-#include "files.hpp"
+
 #include "charsets.hpp"
 #include "conststring.hpp"
-
-#include <string>
-#include <system_error>
 
 #endif // __STDAFX_HPP_INCLUDED__

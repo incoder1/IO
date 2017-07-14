@@ -154,7 +154,7 @@ inline std::size_t transfer(std::error_code& ec,const s_read_channel& src, const
 				return result;
 			read -= written;
 			result += written;
-		} while( 0 > read );
+		} while( read > 0 );
 		read = src->read(ec, rbuf.get(), buff);
 	}
 	return result;

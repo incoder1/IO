@@ -52,7 +52,7 @@
 #endif // __LP64__
 
 #ifndef __forceinline
-#define __forceinline inline __attribute__((__always_inline__))
+#define __forceinline inline __attribute__((__always_inline__,__gnuinline__))
 #endif // __forceinline
 
 #ifdef IO_CPU_BITS_64

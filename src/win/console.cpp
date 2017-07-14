@@ -11,41 +11,35 @@
 #include "stdafx.hpp"
 #include "console.hpp"
 
+#include <stdlib.h>
+
+#ifndef CP_WINUNICODE
+#define CP_WINUNICODE 1200
+#endif // CP_WINUNICODE 1200
+
 namespace io {
 
 namespace win {
 
-static inline ::WORD prev_attr(::HANDLE hcons) noexcept {
+static inline ::WORD prev_attr(::HANDLE hcons) noexcept
+{
 	::CONSOLE_SCREEN_BUFFER_INFO info;
 	::GetConsoleScreenBufferInfo(hcons,&info);
 	return info.wAttributes;
 }
 
-class attr_swap {
-	attr_swap(const attr_swap&) = delete;
-	attr_swap& operator=(const attr_swap&) = delete;
-public:
-	attr_swap(::HANDLE hcons, ::DWORD swattr) noexcept:
-		hcons_(hcons),
-		prev_( prev_attr(hcons_) )
-	{
-		::SetConsoleTextAttribute(hcons_, swattr );
-	}
-	inline ~attr_swap() noexcept
-	{
-		::SetConsoleTextAttribute(hcons_, prev_ );
-	}
-private:
-	::HANDLE hcons_;
-	::DWORD prev_;
-};
-
 // console_channel
-console_channel::console_channel(::HANDLE hcons, ::WORD attr) noexcept:
+console_channel::console_channel(::HANDLE hcons, ::WORD orig, ::WORD attr) noexcept:
 	read_write_channel(),
 	hcons_(hcons),
+	orig_attr_( orig ),
 	attr_( attr )
 {
+}
+
+void console_channel::change_color(::DWORD attr) noexcept
+{
+	attr_ = attr;
 }
 
 console_channel::~console_channel() noexcept
@@ -54,22 +48,22 @@ console_channel::~console_channel() noexcept
 
 std::size_t console_channel::read(std::error_code& err,uint8_t* const buff, std::size_t bytes) const noexcept
 {
-	attr_swap color_swap(hcons_, attr_);
 	assert(bytes % sizeof(::WCHAR) == 0);
 	::DWORD result;
-	if( ! ::ReadConsoleW(hcons_, (::LPVOID)buff, bytes / sizeof(::WCHAR), &result, nullptr) ) {
+	::SetConsoleTextAttribute(hcons_, attr_ );
+	if( ! ::ReadConsoleW(hcons_, (::LPVOID)buff, bytes / sizeof(::WCHAR), &result, nullptr) )
 		err.assign( ::GetLastError(), std::system_category() );
-	}
+	::SetConsoleTextAttribute(hcons_, orig_attr_ );
 	return result * sizeof(::WCHAR);
 }
 
 std::size_t console_channel::write(std::error_code& err, const uint8_t* buff,std::size_t size) const noexcept
 {
-	attr_swap color_swap(hcons_, attr_);
 	::DWORD result;
-	if(! ::WriteConsoleW(hcons_, static_cast<const void*>(buff), size / sizeof(::WCHAR), &result, nullptr ) ) {
+	::SetConsoleTextAttribute(hcons_, attr_ );
+	if(! ::WriteConsoleW(hcons_, static_cast<const void*>(buff), size / sizeof(::WCHAR), &result, nullptr ) )
 		err.assign( ::GetLastError(), std::system_category() );
-	}
+	::SetConsoleTextAttribute(hcons_, orig_attr_ );
 	return result;
 }
 
@@ -77,105 +71,99 @@ std::size_t console_channel::write(std::error_code& err, const uint8_t* buff,std
 
 // Console
 
-const console* console::get() {
-	static console _instance;
-	return &_instance;
-}
-
-#ifdef IO_NO_EXCEPTIONS
-static void panic(const std::error_code& ec) {
-	::HANDLE ferr = ::GetStdHandle(STD_ERROR_HANDLE);
-	::DWORD preva = win::prev_attr(ferr);
-	::SetConsoleTextAttribute(ferr, 0x0C);
-	std::string msg( std::move( ec.message() ) );
-	::DWORD written;
-	::WriteConsoleA( ferr, msg.data(), msg.length(), &written, nullptr );
-	::SetConsoleTextAttribute(ferr, preva);
-	std::unexpected();
-}
-#endif // IO_NO_EXCEPTIONS
-
-static void check_error(const std::error_code& ec)
+std::ostream& console::out_stream()
 {
-	if(ec)
-#ifndef IO_NO_EXCEPTIONS
-		throw std::system_error( ec );
-#else
-		panic( ec );
-#endif // IO_NO_EXCEPTIONS
+	static cons_ostream _outs( console::conv_channel( console::out() ) );
+	return _outs;
+}
+
+std::ostream& console::error_stream()
+{
+	static cons_ostream _errs( console::conv_channel( console::err() ) );
+	return _errs;
 }
 
 console::console():
 	need_release_( ::AllocConsole() ),
 	prev_charset_( ::GetConsoleCP() ),
-	cin_(),
-	cout_(),
-	cerr_()
+	cin_(nullptr),
+	cout_(nullptr),
+	cerr_(nullptr)
 {
-	std::error_code ec;
 	::HANDLE hstdin = ::GetStdHandle(STD_INPUT_HANDLE);
 	::HANDLE hstdout = ::GetStdHandle(STD_OUTPUT_HANDLE);
 	::HANDLE hstderr =  ::GetStdHandle(STD_ERROR_HANDLE);
-	win::console_channel *in = nobadalloc<win::console_channel>::construct(ec, hstdin, win::prev_attr(hstdin) );
-	check_error(ec);
-	cin_.reset( in , true);
-	win::console_channel *out =  nobadalloc<win::console_channel>::construct(ec, hstdout, win::prev_attr(hstdout) );
-	check_error(ec);
-	cout_.reset(out, true);
-	win::console_channel *err =  nobadalloc<win::console_channel>::construct(ec, hstderr,  0x0C );
-	check_error(ec);
-	cerr_.reset( err, true );
+	::WORD origing_attr = win::prev_attr(hstdout);
+	cin_ = new win::console_channel( hstdin, origing_attr, origing_attr );
+	intrusive_ptr_add_ref( cin_ );
+	cout_ = new win::console_channel( hstdout, origing_attr, origing_attr);
+	intrusive_ptr_add_ref( cout_ );
+	cerr_ =  new win::console_channel( hstderr, origing_attr, 0x0C);
+	intrusive_ptr_add_ref( cerr_ );
 	// both of them returns false, but working as expected
 	::SetConsoleCP(CP_WINUNICODE);
 	::SetConsoleOutputCP(CP_WINUNICODE);
 }
 
-console::~console() noexcept {
+console::~console() noexcept
+{
+	delete cin_;
+	delete cout_;
+	delete cerr_;
+
 	::SetConsoleCP(prev_charset_);
 	::SetConsoleOutputCP(prev_charset_);
 	// Release console in case of GUI app
-	if(need_release_) {
+	if(need_release_)
 		::FreeConsole();
-	}
 }
 
-void console::reset_colors(text_color in, text_color out, text_color err) noexcept
+void console::reset_colors(const text_color in,const text_color out,const text_color err) noexcept
 {
 	console* cons = const_cast<console*>( get() );
-	win::console_channel *p = static_cast<win::console_channel*>( cons->cin_.get() );
-	p->change_color( static_cast<::DWORD>(in) );
-	p = static_cast<win::console_channel*>( cons->cout_.get() );
-	p->change_color( static_cast<::DWORD>(out) );
-	p = static_cast<win::console_channel*>( cons->cerr_.get() );
-	p->change_color( static_cast<::DWORD>(err) );
+	lock_guard lock(_cs);
+	cons->cin_->change_color( static_cast<::DWORD>(in) );
+	cons->cout_->change_color( static_cast<::DWORD>(out) );
+	cons->cerr_->change_color( static_cast<::DWORD>(err) );
 }
 
-
-s_write_channel console::conv_channel(const s_write_channel& ch) {
+s_write_channel console::conv_channel(const s_write_channel& ch)
+{
 	std::error_code ec;
 	s_code_cnvtr conv = code_cnvtr::open(ec, code_pages::UTF_8,code_pages::UTF_16LE);
-	check_error(ec);
+	io::check_error_code( ec );
 	s_write_channel result = new_text_conv(ec, ch, conv);
-	check_error(ec);
+	io::check_error_code( ec );
 	return result;
 }
 
+std::atomic<console*> console::_instance( nullptr );
+io::critical_section  console::_cs;
 
-console::cons_ostream console::_out(console::conv_channel( console::out() ) );
-console::cons_ostream console::_err(console::conv_channel( console::err() ) );
-
-/*
-wcostream& IO_PUBLIC_SYMBOL wout_stream()
+void console::release_console() noexcept
 {
-	static wcostream _result( console::out() );
-	return _result;
+	console* inst = _instance.load( std::memory_order_seq_cst );
+	inst->~console();
+	memory_traits::free( inst );
 }
 
-wcostream& IO_PUBLIC_SYMBOL werr_stream()
+const console* console::get()
 {
-	static wcostream _result( console::err() );
-	return _result;
+	console *tmp = _instance.load( std::memory_order_relaxed );
+	if( nullptr == tmp ) {
+		tmp = _instance.load( std::memory_order_acquire );
+		lock_guard lock(_cs);
+		if( nullptr == tmp ) {
+			void *raw = memory_traits::malloc( sizeof(console) );
+			if(nullptr != raw) {
+				tmp = new (raw) console();
+				_instance.store( tmp, std::memory_order_release );
+				std::atexit( &console::release_console );
+			}
+			std::atomic_thread_fence( std::memory_order_release );
+		}
+	}
+	return tmp;
 }
-*/
 
 } // namespace io

@@ -198,6 +198,7 @@
 		<Unit filename="include/config/libs/intrusive_ptr.hpp" />
 		<Unit filename="include/console.hpp" />
 		<Unit filename="include/conststring.hpp" />
+		<Unit filename="include/errorcheck.hpp" />
 		<Unit filename="include/files.hpp" />
 		<Unit filename="include/hashing.hpp" />
 		<Unit filename="include/net/tcp_ip.hpp" />
@@ -233,6 +234,12 @@
 			<Option target="debug-win-gcc-static-x64" />
 			<Option target="release-win-gcc-static-x64" />
 			<Option target="debug-win-gcc-dll-x64" />
+			<Option target="release-win-gcc-dll-x64" />
+		</Unit>
+		<Unit filename="include/win/errorcheck.hpp">
+			<Option target="debug-win-gcc-dll-x64" />
+			<Option target="release-win-gcc-static-x64" />
+			<Option target="debug-win-gcc-static-x64" />
 			<Option target="release-win-gcc-dll-x64" />
 		</Unit>
 		<Unit filename="include/win/files.hpp">
@@ -272,19 +279,16 @@
 		<Unit filename="src/charsets.cpp" />
 		<Unit filename="src/codedetect.cpp" />
 		<Unit filename="src/net/error_category_shim.cpp">
-			<Option target="debug-win-gcc-dll-x64" />
 			<Option target="debug-win-gcc-static-x64" />
 			<Option target="release-win-gcc-dll-x64" />
 			<Option target="debug-unix-gcc-so-x64" />
 		</Unit>
 		<Unit filename="src/net/error_category_shim.hpp">
-			<Option target="debug-win-gcc-dll-x64" />
 			<Option target="debug-win-gcc-static-x64" />
 			<Option target="release-win-gcc-dll-x64" />
 			<Option target="debug-unix-gcc-so-x64" />
 		</Unit>
 		<Unit filename="src/net/tcp_ip.cpp">
-			<Option target="debug-win-gcc-dll-x64" />
 			<Option target="debug-win-gcc-static-x64" />
 			<Option target="release-win-gcc-dll-x64" />
 			<Option target="debug-unix-gcc-so-x64" />
@@ -314,6 +318,12 @@
 			<Option target="debug-win-gcc-static-x64" />
 			<Option target="release-win-gcc-static-x64" />
 			<Option target="debug-win-gcc-dll-x64" />
+			<Option target="release-win-gcc-dll-x64" />
+		</Unit>
+		<Unit filename="src/win/errorcheck.cpp">
+			<Option target="debug-win-gcc-dll-x64" />
+			<Option target="release-win-gcc-static-x64" />
+			<Option target="debug-win-gcc-static-x64" />
 			<Option target="release-win-gcc-dll-x64" />
 		</Unit>
 		<Unit filename="src/win/files.cpp">

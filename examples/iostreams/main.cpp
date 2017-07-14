@@ -44,7 +44,6 @@ const wchar_t* wmessage = L"Hello!\nПривет!\nПривіт!\nΧαιρετί
 
 int main()
 {
-
 	io::channel_ostream<wchar_t> fout( prepare_file() );
 	fout << wmessage << 1234567890ull << L'\n' << 123456.78e+09 << L'\n' << 12356.789e+10L << std::endl;
 
