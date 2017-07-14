@@ -117,6 +117,18 @@ public:
 	/// \param err color for error stream
 	static void reset_colors(const text_color in,const text_color out,const text_color err) noexcept;
 
+	/// Reset input stream console output color
+	/// \param clr new color
+	static void reset_in_color(const text_color clr) noexcept;
+
+	/// Reset stdout stream console output color
+	/// \param clr new color
+	static void reset_out_color(const text_color clr) noexcept;
+
+	/// Reset stderr stream console output color
+	/// \param clr new color
+	static void reset_err_color(const text_color crl) noexcept;
+
 	/// Returns console input channel
 	/// \return console input channel
 	/// \throw can throw std::bad_alloc, when out of memory

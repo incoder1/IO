@@ -33,13 +33,13 @@ console_channel::console_channel(::HANDLE hcons, ::WORD orig, ::WORD attr) noexc
 	read_write_channel(),
 	hcons_(hcons),
 	orig_attr_( orig ),
-	attr_( attr )
+	attr_( (orig_attr_ & 0xF0) | attr )
 {
 }
 
 void console_channel::change_color(::DWORD attr) noexcept
 {
-	attr_ = attr;
+	attr_ = (orig_attr_ & 0xF0) | attr;
 }
 
 console_channel::~console_channel() noexcept
@@ -125,6 +125,27 @@ void console::reset_colors(const text_color in,const text_color out,const text_c
 	cons->cin_->change_color( static_cast<::DWORD>(in) );
 	cons->cout_->change_color( static_cast<::DWORD>(out) );
 	cons->cerr_->change_color( static_cast<::DWORD>(err) );
+}
+
+void console::reset_in_color(const text_color clr) noexcept
+{
+	console* cons = const_cast<console*>( get() );
+	lock_guard lock(_cs);
+	cons->cin_->change_color( static_cast<::DWORD>(clr) );
+}
+
+void console::reset_out_color(const text_color clr) noexcept
+{
+	console* cons = const_cast<console*>( get() );
+	lock_guard lock(_cs);
+	cons->cout_->change_color( static_cast<::DWORD>(clr) );
+}
+
+void console::reset_err_color(const text_color clr) noexcept
+{
+	console* cons = const_cast<console*>( get() );
+	lock_guard lock(_cs);
+	cons->cerr_->change_color( static_cast<::DWORD>(clr) );
 }
 
 s_write_channel console::conv_channel(const s_write_channel& ch)
