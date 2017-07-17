@@ -24,4 +24,6 @@ const uint8_t* utf_16be_bom::DATA = _u16be_bom;
 const uint8_t* utf_32le_bom::DATA = _u32le_bom;
 const uint8_t* utf_32be_bom::DATA = _u32be_bom;
 
+
+
 } // namespace io

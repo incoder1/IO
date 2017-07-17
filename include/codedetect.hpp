@@ -10,6 +10,7 @@
 #define __IO_CODEDETECT_HPP_INCLUDED__
 
 #include "config.hpp"
+#include "charsets.hpp"
 #include <ostream>
 
 #ifdef HAS_PRAGMA_ONCE
@@ -255,6 +256,15 @@ static unicode_cp guess_charset(const uint8_t* bytes) {
 	return unicode_cp::not_detected;
 }
 
+};
+
+class charset_detector:public object
+{
+public:
+	charset_detector(const charset_detector&) = delete;
+	charset_detector& operator=(const charset_detector&) = delete;
+private:
+	const charset* detect(std::error_code ec&, const uint8_t* sequence) noexcept;
 };
 
 } // namespace io
