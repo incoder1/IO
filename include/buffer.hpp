@@ -13,12 +13,13 @@
 
 #include "config.hpp"
 
-#include <cstring>
-#include <iterator>
-
 #ifdef HAS_PRAGMA_ONCE
 #pragma once
 #endif // HAS_PRAGMA_ONCE
+
+#include <cstring>
+#include <iterator>
+#include <type_traits>
 
 namespace io {
 
@@ -40,8 +41,9 @@ public:
 	{}
 
 	~mem_block() noexcept {
-		if(nullptr != px_)
-			memory_traits::free(px_);
+		if(nullptr != px_) {
+			memory_traits::free( px_ );
+		}
 	}
 
 	mem_block(mem_block&& other) noexcept:
@@ -52,7 +54,8 @@ public:
 
 	mem_block& operator=(mem_block&& rhs) noexcept
 	{
-		mem_block( std::forward<mem_block>(rhs) ).swap( *this );
+		px_ = rhs.px_;
+		rhs.px_ = nullptr;
 		return *this;
 	}
 
@@ -67,7 +70,7 @@ public:
 
 	static inline mem_block allocate(const std::size_t size) noexcept
 	{
-		uint8_t *ptr = static_cast<uint8_t*>( memory_traits::malloc( size ) );
+		uint8_t *ptr = static_cast<uint8_t*> ( memory_traits::malloc(size) );
 		if(nullptr == ptr)
 			return mem_block();
 		io_zerro_mem( ptr, size);
@@ -273,7 +276,7 @@ public:
 	/// \return whether this buffer empty
 	inline bool empty() const noexcept
 	{
-		return last_ == nullptr || last_ == (position_ + 1);
+		return (position_ == nullptr) || ( position_==arr_.get() && last_ == (position_ + 1) );
 	}
 
 	/// Returns count of bytes this buffer can store
@@ -549,6 +552,7 @@ private:
 
 	template< typename T >
 	inline T binary_get() {
+		static_assert( std::is_arithmetic<T>::value, "Must be an arithmetic type" );
     	if( empty() )
 			return static_cast<T>( 0 );
 		T ret;

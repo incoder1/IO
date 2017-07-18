@@ -26,10 +26,14 @@
 namespace io {
 
 namespace {
-	inline void ios_check_error_code(const char* msg, std::error_code const &ec )
+
+	void ios_check_error_code(const char* msg, std::error_code const &ec )
 	{
 		#ifdef IO_NO_EXCEPTIONS
-			io::detail::panic(ec.value(), ec.message().c_str() );
+			std::string message(msg);
+			message.push_back(' ');
+			message.append(ec.message());
+			io::detail::panic(ec.value(), message.c_str() );
 		#else
 			throw std::ios_base::failure( msg, ec );
 		#endif
@@ -186,6 +190,43 @@ private:
 	streambuf_type *sb_;
 };
 
+template<typename __char_type, class __traits_type >
+class ichannel_streambuf final: public std::basic_streambuf<__char_type, __traits_type >
+{
+	typedef std::basic_streambuf<__char_type, __traits_type > super_type;
+public:
+
+
+	/**
+	*  These are standard types.  They permit a standardized way of
+	*  referring to names of (or names dependent on) the template
+	*  parameters, which are specific to the implementation.
+	*/
+	typedef typename super_type::char_type char_type;
+	typedef typename super_type::traits_type traits_type;
+	typedef typename traits_type::int_type int_type;
+	typedef typename traits_type::pos_type pos_type;
+	typedef typename traits_type::off_type off_type;
+
+	ichannel_streambuf(s_read_channel&& src, std::size_t buffer_size):
+		rch_( std::forward<s_read_channel>(src) ),
+		data_(nullptr)
+	{
+		data_ = static_cast<char_type*>( memory_traits::malloc( buffer_size * sizeof(char_type) ) );
+		if(nullptr == data_ ) {
+			std::error_code ec = std::make_error_code(std::errc::not_enough_memory);
+			ios_check_error_code( "input stream buff ", ec );
+		}
+	}
+
+	virtual ~ichannel_streambuf() override
+	{
+		memory_traits::free( data_ );
+	}
+private:
+	s_read_channel rch_;
+	char_type data_;
+};
 
 } // namespace io
 

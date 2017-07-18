@@ -32,6 +32,12 @@ struct memory_traits {
 		return std::malloc(count);
 	}
 
+	static inline void* realloc IO_PREVENT_MACRO (void * const base, std::size_t new_size) noexcept
+	{
+	   assert(new_size > 0);
+       return std::realloc(base, new_size);
+	}
+
 	static inline void free IO_PREVENT_MACRO (void * const ptr) noexcept
 	{
 		std::free(ptr);

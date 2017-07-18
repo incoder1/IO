@@ -20,7 +20,7 @@ void print_start_doc(std::ostream& cstr,const xml::s_event_stream_parser& s)
 	cstr<<"start document:\n";
 	cstr<<"\tversion: " << e.version();
 	cstr<<" encoding: " << e.encoding();
-	cstr<<" standalone: " << (e.standalone() ? "yes" : "no") << '\n';
+	cstr<<" standalone: " << (e.standalone() ? "yes" : "no") << std::endl;
 }
 
 void print_instr(std::ostream& cstr, const xml::s_event_stream_parser& s)
@@ -59,8 +59,7 @@ void print_end_element(std::ostream& cstr, const xml::s_event_stream_parser& s)
 	xml::end_element_event e = s->parse_end_element();
 	if(s->is_error()) return;
 	cstr<<"End element:\n\tprefix:" << e.name().prefix();
-	cstr<<" name:" << e.name().local_name() << '\n';
-	cstr.flush();
+	cstr<<" name:" << e.name().local_name() << std::endl;
 }
 
 void print_event(std::ostream& cstr,const xml::s_event_stream_parser& s)
@@ -83,7 +82,7 @@ void print_event(std::ostream& cstr,const xml::s_event_stream_parser& s)
 
 static  void log_chars(std::ostream& cstr,const char* msg, const char* chars)
 {
-	cstr<< msg << '\n' << chars << '\n';
+	cstr<< msg << '\n' << chars << std::endl;
 }
 
 static void on_terminate() noexcept

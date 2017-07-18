@@ -15,6 +15,7 @@
 
 #include <assert.h>
 #include <atomic>
+#include <new>
 
 #ifdef HAS_PRAGMA_ONCE
 #pragma once
@@ -35,8 +36,15 @@ public:
 
 	virtual ~object() noexcept = default;
 
-#if defined(__IO_WINDOWS_BACKEND__) && defined(IO_SHARED_LIB) && defined(IO_NO_EXCEPTIONS)
-	void* operator new(std::size_t size) throw() {
+
+#ifdef IO_SHARED_LIB
+
+#ifdef IO_NO_EXCEPTIONS
+	void* operator new(std::size_t size) noexcept
+#else
+	void* operator new(std::size_t size)
+#endif // IO_NO_EXCEPTIONS
+	{
 		void *result;
 		result = memory_traits::malloc( size );
 		if(NULL != result)
@@ -44,9 +52,8 @@ public:
 #ifdef __GNUC__
 		while ( __builtin_expect( (result = std::malloc(size) ) == nullptr, false) ) {
 #else
-		while( nullptr == (result = __memory_traits::malloc(size) ) {
+		while( nullptr == ( result = __memory_traits::malloc(size) ) ) {
 #endif // __GNUC__
-
 			std::new_handler handler = std::get_new_handler();
 			if (nullptr == handler)
 #ifdef IO_NO_EXCEPTIONS
@@ -63,7 +70,7 @@ public:
 		assert(nullptr != ptr);
 		memory_traits::free(ptr);
 	}
-#endif // defined
+#endif // IO_SHARED_LIB
 
 private:
 	std::atomic_size_t ref_count_;

@@ -11,16 +11,16 @@
 #define __IO_CONSTSTRING_HPP_INCLUDED__
 
 #include "config.hpp"
+
+#ifdef HAS_PRAGMA_ONCE
+#pragma once
+#endif // HAS_PRAGMA_ONCE
+
 #include "text.hpp"
 #include "hashing.hpp"
 
 #include <ostream>
 #include <string>
-#include <iostream>
-
-#ifdef HAS_PRAGMA_ONCE
-#pragma once
-#endif // HAS_PRAGMA_ONCE
 
 namespace io {
 
@@ -106,6 +106,7 @@ public:
 	const_string(const const_string& other):
 		data_(other.data_)
 	{
+		if(nullptr != data_)
         // increase refference count
 		intrusive_add_ref(data_);
 	}
@@ -125,7 +126,7 @@ public:
 	}
 
 	/// Movement assigment operator, defailt movement semantic
-	const_string operator=(const_string&& other) noexcept
+	const_string& operator=(const_string&& other) noexcept
 	{
 		const_string( std::forward<const_string>(other) ).swap( *this );
 		return *this;
@@ -142,8 +143,8 @@ public:
 		allocator_type all;
 		data_ = all.allocate(len);
 		io_memset(data_,0,len);
-		std::size_t *p = reinterpret_cast<std::size_t*>(data_);
-		*p = 1;
+		// set initial intrusive atomic reference count
+		intrusive_add_ref( data_ );
 		uint8_t *b = data_ + sizeof(std::size_t);
 		io_memmove(b, str, length);
 	}
@@ -176,7 +177,7 @@ public:
 		std::swap(data_, with.data_);
 	}
 
-	/// Returns whether this string is pointing on nullptr or have "" value
+	/// Returns whether this string is pointing on nullptr
 	/// \retrun whether nullptr string
 	inline bool empty() const noexcept {
 		return nullptr == data_;

@@ -11,6 +11,8 @@
 #ifndef __STDAFX_HPP_INCLUDED__
 #define __STDAFX_HPP_INCLUDED__
 
+#include <ostream>
+
 #include "config.hpp"
 #include "errorcheck.hpp"
 

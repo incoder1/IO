@@ -1,9 +1,9 @@
 #ifndef __IO_H_ALLOCATOR_HPP_INCLUDED__
 #define __IO_H_ALLOCATOR_HPP_INCLUDED__
 
-#include <utility>
+#include <memory>
 #include <new>
-
+#include <utility>
 
 namespace io {
 
@@ -31,8 +31,7 @@ private:
 	template<typename _Tp>
 	static constexpr inline _Tp* address_of(_Tp& __r) noexcept
 	{
-		return reinterpret_cast<_Tp*>
-		       (&const_cast<uint8_t&>(reinterpret_cast<const volatile uint8_t&>(__r)));
+		return std::addressof( __r );
 	}
 	template< typename _T>
 	static constexpr _T* uncast_void(void * const ptr) {
@@ -80,17 +79,18 @@ public:
 
 	pointer allocate(size_type __n, const void* = 0) noexcept(no_exept_mode::is_nothrow)
 	{
+		assert( 0 != __n );
 		void *result;
 		const size_t bytes_size = sizeof(value_type) * __n;
-		result = __memory_traits::malloc( bytes_size );
-		if(NULL != result)
+		result = __memory_traits::malloc(bytes_size);
+		if(nullptr != result)
 			return uncast_void<value_type>(result);
 #ifdef __GNUC__
-		while ( __builtin_expect( (result = std::malloc(bytes_size) ) == nullptr, false) ) {
+		while ( __builtin_expect( (result = __memory_traits::malloc(bytes_size) ) == nullptr, false) )
 #else
-		while( nullptr == (result = __memory_traits::malloc(size) ) {
+		while( nullptr == (result = __memory_traits::malloc(bytes_size) ) )
 #endif // __GNUC__
-
+		{
 			std::new_handler handler = std::get_new_handler();
 			if (nullptr == handler)
 #ifdef IO_NO_EXCEPTIONS

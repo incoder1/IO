@@ -64,7 +64,8 @@ DECLARE_IPTR(event_stream_parser);
 /// Limitations:
 /// <ul>
 /// <li>DTD including embedded and external is ignored, but can be extracted for later usage</li>
-/// <li>XML attribute values are always interpreted as #CDATA attribute, with white spaces normalization</li>
+/// <li>XML attribute values are always interpreted as #CDATA attribute, with white spaces normalization
+///  e.g. &nbsp; must be converted manually to ' ' </li>
 /// <li>No XML validation neither DTD neither XSD schema since parsing</li>
 /// <ul>
 class IO_PUBLIC_SYMBOL event_stream_parser:public object

@@ -34,6 +34,12 @@ struct memory_traits {
 		std::free(ptr);
 	}
 
+	static inline void* realloc IO_PREVENT_MACRO (void * const base, std::size_t new_size) noexcept
+	{
+	   assert(new_size > 0);
+       return std::realloc(base, new_size);
+	}
+
 	template<typename T>
 	static inline std::size_t distance(const T* less_address,const T* lager_address) noexcept
 	{

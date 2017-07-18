@@ -56,6 +56,15 @@ int main()
 	cout << umessage << 1234567890ull << '\n' << 123456.78e+09 << '\n' << 12356.789e+10L << std::endl;
 	cerr << "No errors so far" << std::endl;
 
+	std::wostream& wcout = io::console::out_wstream();
+	std::wostream& wcerr = io::console::error_wstream();
+	io::console::reset_out_color(io::text_color::white);
+	wcout << "Wide version: " << std::endl;
+	io::console::reset_out_color(io::text_color::light_blue);
+	wcout << wmessage << 1234567890ull << L'\n' << 123456.78e+09 << L'\n' << 12356.789e+10L << std::endl;
+	io::console::reset_err_color(io::text_color::yellow);
+	wcerr << L"No errors so far" << std::endl;
+
 	// io::channel_istream<wchar_t> ucin( io::console::in() );
 	//ucout <<  L"Type something to echo:" ;
 	//ucout.flush();

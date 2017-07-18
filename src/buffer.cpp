@@ -63,21 +63,24 @@ void byte_buffer::move(std::size_t offset) noexcept
 
 bool byte_buffer::extend(std::size_t extend_size) noexcept
 {
-	bool has_data = nullptr != last_ && arr_;
+	bool has_data = arr_ && nullptr != last_;
 	capacity_ += extend_size;
-	detail::mem_block new_block( detail::mem_block::allocate(capacity_) );
+	uint8_t *new_data = static_cast<uint8_t*>( memory_traits::realloc(arr_.get(), capacity_) );
 	// out of memory
-	if(!new_block)
+	if(nullptr == new_data)
 		return false;
 	if( has_data ) {
-		std::copy( arr_.get(), last_, new_block.get() );
-		position_ = new_block.get() + memory_traits::distance( arr_.get(), position_ );
-		last_ = new_block.get() + memory_traits::distance(arr_.get(), last_);
+		position_ = new_data + memory_traits::distance( arr_.get(), position_ );
+		last_ = new_data + memory_traits::distance(arr_.get(), last_);
+		std::size_t zerro_bytes = memory_traits::distance(last_, new_data + capacity_);
+		if(zerro_bytes > 0)
+			io_zerro_mem(last_, zerro_bytes );
 	} else {
-		position_ = new_block.get();
+		position_ = new_data;
 		last_ = position_;
+		io_zerro_mem(position_, capacity_);
 	}
-	arr_ = std::move(new_block);
+	arr_ = detail::mem_block( new_data );
 	return true;
 }
 

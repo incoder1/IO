@@ -22,35 +22,10 @@ namespace io {
 /// \brief A named mapping for the character set code page
 class IO_PUBLIC_SYMBOL charset {
 public:
-
-	constexpr charset(const charset& rhs) noexcept:
-		code_(rhs.code_),
-		name_(rhs.name_),
-		char_max_(rhs.char_max_),
-		unicode_(rhs.unicode_)
-	{}
-
-	charset& operator=(const charset& rhs) noexcept
-	{
-		charset(rhs).swap(*this);
-		return *this;
-	}
-
-	constexpr charset(charset&& rhs) noexcept:
-		code_(rhs.code_),
-		name_(rhs.name_),
-		char_max_(rhs.char_max_),
-		unicode_(rhs.unicode_)
-	{}
-
-	charset& operator=(charset&& rhs) noexcept
-	{
-		code_ = std::move(rhs.code_);
-		name_ = std::move(rhs.name_);
-		char_max_ = std::move(rhs.char_max_);
-		unicode_ = std::move(rhs.unicode_);
-		return *this;
-	}
+	charset(const charset& rhs) = default;
+	charset& operator=(const charset& rhs) = default;
+	charset(charset&& rhs) = default;
+	charset& operator=(charset&& rhs) = default;
 
 	constexpr charset(uint16_t code, const char* name, uint8_t char_max, bool unicode) noexcept:
 		code_(code),
@@ -58,13 +33,6 @@ public:
 		char_max_(char_max),
 		unicode_(unicode)
 	{}
-
-	inline void swap(charset& rhs) noexcept {
-		std::swap(code_,rhs.code_);
-		std::swap(name_,rhs.name_);
-		std::swap(char_max_,rhs.char_max_);
-		std::swap(unicode_,rhs.unicode_);
-	}
 
 	/// Returns integer identifier of this character set, number is equal to Win32 id-s
 	/// \return charset integer identifier

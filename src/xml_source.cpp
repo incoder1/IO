@@ -18,20 +18,9 @@ namespace xml {
 
 static const char _eof = std::char_traits<char>::eof();
 
-static std::size_t min_mem() noexcept {
-#ifdef __IO_WINDOWS_BACKEND__
-  ::SYSTEM_INFO info;
-  ::GetSystemInfo(&info);
-  return info.dwPageSize;
-#elif defined  (__IO_POSIX_BACKEND__)
-	return ::sysconf(_SC_PAGE_SIZE);
-#else
-return 4096;
-#endif // __IO_WINDOWS_BACKEND__
-}
 
-const std::size_t source::READ_BUFF_INITIAL_SIZE = min_mem();
-const std::size_t source::READ_BUFF_MAXIMAL_SIZE = 0x300000;
+const std::size_t source::READ_BUFF_INITIAL_SIZE = memory_traits::page_size(); // 4k in most cases
+const std::size_t source::READ_BUFF_MAXIMAL_SIZE = 0x800000; // 8m
 
 // source
 s_source source::create(std::error_code& ec, s_read_channel&& src, byte_buffer&& rb,const charset& ch) noexcept
@@ -46,6 +35,8 @@ s_source source::create(std::error_code& ec, s_read_channel&& src, byte_buffer&&
 s_source source::create(std::error_code& ec, s_read_channel&& src, const charset& ch) noexcept
 {
 	byte_buffer buff = byte_buffer::allocate(ec,READ_BUFF_INITIAL_SIZE);
+	if(ec)
+		return s_source();
 	if(buff.capacity() > 0 ) {
 		return create(ec, std::forward<s_read_channel>(src), std::move(buff), ch );
 	}
@@ -81,7 +72,7 @@ error source::read_more() noexcept
 {
 	if(  !rb_.empty() &&  rb_.capacity() < READ_BUFF_MAXIMAL_SIZE) {
 		rb_.clear();
-		if( !rb_.extend( READ_BUFF_MAXIMAL_SIZE - rb_.capacity() ) ) {
+		if( !rb_.extend( rb_.capacity() << 1 ) ) {
 			return error::out_of_memory;
 		}
 	} else {

@@ -84,20 +84,18 @@ enum class text_color: uint8_t {
 
 
 /// \brief System console (terminal window) low level access API.
-/// Windows based implementation
-/// Console is not a replacement for C++ iostreams, it is for compatibility
-/// with channels API. Unlike iostreams this is low level access interface to
-/// the console OS system calls without locales and formating support.
-/// Console is usefull to implement a software like POSIX 'cat','more' etc. when you
-/// only need to output some raw character data into console screen, and don't care
-/// about content.
-/// Console is UNICODE (UTF-16LE) only! I.e. supports multi-languages text at time
+/// Windows based implementation based on
+/// <wincon.h> console API with UNICODE only input/output.
+/// Console is usefull to implement a software like POSIX 'cat','more' etc.
+/// Console is UNICODE only! I.e. supports multi-languages text at time
+/// Non whide characters expected to be in UTF-8 (or compatiable) code page
 class IO_PUBLIC_SYMBOL console {
 	console(const console&) = delete;
 	console operator=(const console&) = delete;
 public:
 	typedef ::HANDLE native_id;
 	typedef channel_ostream<char> cons_ostream;
+	typedef channel_ostream<wchar_t> cons_wostream;
 private:
 	console();
 
@@ -157,15 +155,11 @@ public:
 	/// UTF-8 multibyte characters into console default UTF-16LE
 	static std::ostream& error_stream();
 
-	static inline std::wostream& out_wstream()
-	{
-		return std::wcout;
-	}
+	/// Returns std::basic_stream<wchar_t> stream to constole output stream
+	static std::wostream& out_wstream();
 
-	static inline std::wostream& out_errstream()
-	{
-		return std::wcerr;
-	}
+	/// Returns std::basic_stream<wchar_t> stream to constole error stream
+	static std::wostream& error_wstream();
 
 	/// Returns console character set, always UTF-16LE for Windows
 	/// \return current console character set

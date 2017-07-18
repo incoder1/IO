@@ -258,6 +258,7 @@ static unicode_cp guess_charset(const uint8_t* bytes) {
 
 };
 
+/*
 class charset_detector:public object
 {
 public:
@@ -266,6 +267,7 @@ public:
 private:
 	const charset* detect(std::error_code ec&, const uint8_t* sequence) noexcept;
 };
+*/
 
 } // namespace io
 

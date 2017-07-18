@@ -83,6 +83,18 @@ std::ostream& console::error_stream()
 	return _errs;
 }
 
+std::wostream& console::out_wstream()
+{
+	static cons_wostream _wcouts( console::out() );
+	return _wcouts;
+}
+
+std::wostream& console::error_wstream()
+{
+	static cons_wostream _wcerrs( console::err()  );
+	return _wcerrs;
+}
+
 console::console():
 	need_release_( ::AllocConsole() ),
 	prev_charset_( ::GetConsoleCP() ),
@@ -157,6 +169,7 @@ s_write_channel console::conv_channel(const s_write_channel& ch)
 	io::check_error_code( ec );
 	return result;
 }
+
 
 std::atomic<console*> console::_instance( nullptr );
 io::critical_section  console::_cs;
