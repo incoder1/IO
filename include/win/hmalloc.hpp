@@ -13,9 +13,6 @@ namespace io {
 
 struct memory_traits {
 
-/*
-		return static_cast<std::size_t>( sysconf(_SC_PAGESIZE) );
-*/
 
 	static inline std::size_t page_size()
 	{
@@ -24,9 +21,9 @@ struct memory_traits {
 		return static_cast<std::size_t>( si.dwPageSize );
 	}
 
-	static inline void* malloc IO_PREVENT_MACRO (std::size_t count) noexcept
+	static inline void* malloc IO_PREVENT_MACRO (std::size_t bytes) noexcept
 	{
-		return std::malloc(count);
+		return std::malloc(bytes);
 	}
 
 	static inline void free IO_PREVENT_MACRO (void * const ptr) noexcept

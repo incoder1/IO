@@ -163,7 +163,7 @@ private:
 
 	static inline uint64_t hash_len16(uint64_t u, uint64_t v) {
 		// Murmur-inspired hashing.
-		static constexpr uint64_t kMul = 0x9DDFEA08EB382D69ULL;
+		static const uint64_t kMul = 0x9DDFEA08EB382D69ULL;
 		uint64_t a = (u ^ v) * kMul;
 		a ^= (a >> 47);
 		uint64_t b = (v ^ a) * kMul;

@@ -214,9 +214,8 @@ private:
 	inline char next() noexcept
 	{
 		char result = src_->next();
-		if( is_eof(result) ) {
+		if( is_eof(result) )
 			assign_error( src_->last_error() );
-		}
 		return result;
 	}
 

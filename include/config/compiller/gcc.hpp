@@ -16,7 +16,8 @@
 #include <cstdint>
 
 #if __cplusplus < 201103L
-#	error "This library requires at least C++ 11 standard compatiable compiler. Check compiller options"
+#	error "This library requires at least C++ 11 standard compatiable compiler.\
+	Check your compiller options must have -std=c++[11,14,17,...]"
 #endif // CPP11 detection
 
 #define HAS_PRAGMA_ONCE

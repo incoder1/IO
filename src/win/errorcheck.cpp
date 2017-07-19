@@ -62,7 +62,10 @@ extern "C" void IO_PANIC_ATTR exit_with_current_error()
 		                  256, NULL );
 
 		::DWORD written;
-		::WriteConsoleW( ::GetStdHandle(STD_ERROR_HANDLE), msg, len, &written, nullptr );
+		if( !::WriteConsoleW( ::GetStdHandle(STD_ERROR_HANDLE), msg, len, &written, nullptr ) )
+		{
+			MessageBoxExW(NULL, msg, NULL, MB_OK | MB_ICONERROR , MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT) );
+		}
 		oswap.pop();
 	}
 	std::exit( lastErr );
@@ -86,7 +89,10 @@ static void print_error_message(int errcode,const char* message) noexcept
 	len = wlen;
 #endif
 	::DWORD written;
-	::WriteConsoleW( ::GetStdHandle(STD_ERROR_HANDLE), msg, len, &written, nullptr );
+	if( ! ::WriteConsoleW( ::GetStdHandle(STD_ERROR_HANDLE), msg, len, &written, nullptr ) )
+	{
+        MessageBoxExW(NULL, msg, NULL, MB_OK | MB_ICONERROR , MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT) );
+	}
 	oswap.pop();
 }
 

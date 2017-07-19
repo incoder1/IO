@@ -74,7 +74,7 @@ static std::size_t extract_prefix(std::size_t& start,const char* str) noexcept {
 		start = 0;
 		return 0;
 	}
-	return memory_traits::distance(str,s-1) - (start-1);
+	return str_size(str, (s-1) ) - (start-1);
 }
 
 static std::size_t extract_local_name(std::size_t& start,const char* str) noexcept {
@@ -119,7 +119,7 @@ static error check_xml_name(const char* tn) noexcept {
 	std::size_t ulen = transcode(ec,
 				reinterpret_cast<const uint8_t*>(tn),len,
 				reinterpret_cast<char32_t*>(ch32),len);
-	if( !ulen ) {
+	if( ec || !ulen ) {
 		// huge name, release memory for UCS-4
 		if(len >= 256)
 			memory_traits::free(ch32);
@@ -444,7 +444,7 @@ void event_stream_parser::skip_comment() noexcept
 		return;
 	}
 	if( !sb_check(scan_buf_) ) {
-		assign_error(error::Illegal_commentary);
+		assign_error(error::illegal_commentary);
 		return;
 	}
 	sb_clear(scan_buf_);
@@ -459,7 +459,7 @@ void event_stream_parser::skip_comment() noexcept
 	} while( !is_error() && _ptrn != i );
 	i = next();
 	if( !cheq(RIGHTB,i) ) {
-		assign_error(error::Illegal_commentary);
+		assign_error(error::illegal_commentary);
 	}
 }
 
@@ -501,7 +501,7 @@ const_string event_stream_parser::read_comment() noexcept
 		assign_error(error::invalid_state);
 		return const_string();
 	}
-	byte_buffer tmp( read_until_double_separator(HYPHEN, error::Illegal_commentary) );
+	byte_buffer tmp( read_until_double_separator(HYPHEN, error::illegal_commentary) );
 	tmp.flip();
 	return const_string( tmp.position().cdata(), tmp.last().cdata()-2 );
 }
@@ -557,7 +557,7 @@ const_string event_stream_parser::read_cdata() noexcept {
 		assign_error(error::invalid_state);
 		return const_string();
 	}
-	byte_buffer tmp( read_until_double_separator(SRIGHTB, error::illegal_cdata) );
+	byte_buffer tmp( read_until_double_separator(SRIGHTB, error::illegal_cdata_section) );
 	tmp.flip();
 	return const_string( tmp.position().cdata(), tmp.last().cdata()-2 );
 }
@@ -565,7 +565,7 @@ const_string event_stream_parser::read_cdata() noexcept {
 attribute event_stream_parser::extract_attribute(const char* from, std::size_t& len) noexcept
 {
 	len = 0;
-	// skip leadin spaces, to not copy them into name
+	// skip leadin spaces, not copy them into name
 	char *i = find_first_symbol(from);
 	if( nullptr == i || is_one_of(*i, SOLIDUS,RIGHTB) ) {
 		return attribute();
@@ -580,7 +580,7 @@ attribute event_stream_parser::extract_attribute(const char* from, std::size_t& 
 	// 2 symbols
 	i += 2;
 	start = i;
-	i = tstrchr(i,'"');
+	i = tstrchr(i, static_cast<char>(QNM) );
 	if(nullptr == i) {
 		assign_error(error::illegal_name);
 		return attribute();
@@ -633,47 +633,38 @@ bool event_stream_parser::validate_xml_name(const cached_string& str, bool attr)
 
 start_element_event event_stream_parser::parse_start_element() noexcept
 {
-	if(state_type::event != state_.current || current_ != event_type::start_element)  {
+	if(state_type::event != state_.current || current_ != event_type::start_element) {
 		assign_error(error::invalid_state);
 		return start_element_event();
 	}
 	byte_buffer buff = read_entity();
-	if( !check_buffer(buff) ) {
+	if( !check_buffer(buff) )
 		return start_element_event();
-	}
 	bool empty_element = cheq(SOLIDUS, *(buff.last().cdata()-3));
-	if( !empty_element ) {
+	if( !empty_element )
 		++nesting_;
-	}
 	std::size_t len = 0;
 	qname name = extract_qname( buff.position().cdata(), len );
-	if(is_error()) {
+	if(is_error())
 		return start_element_event();
-	}
 	// check name validity
-	if( name.has_prefix() ) {
-		if( !validate_xml_name( name.prefix(), false ) ) {
-			return start_element_event();
-		}
-	}
-	if( !validate_xml_name( name.local_name(), false ) ) {
+	if( name.has_prefix() && !validate_xml_name( name.prefix(), false ) )
 		return start_element_event();
-	}
+	if( !validate_xml_name( name.local_name(), false ) )
+		return start_element_event();
 	start_element_event result( std::move(name), empty_element );
-	if( is_error() ) {
+	if( is_error() )
 		return result;
-	}
 	char *left = const_cast<char*>( buff.position().cdata() + len );
 	if( is_whitespace(*left) ) {
 		std::size_t offset = 0;
-		while(true) {
-			attribute attr = extract_attribute(left,offset);
-			if(0 == offset) break;
-			left += offset;
-			if(! validate_xml_name( attr.name(), true ) ) {
+		attribute attr = extract_attribute(left,offset);
+		while(offset != 0) {
+			if( !validate_xml_name( attr.name(), true ) )
 				return start_element_event();
-			}
 			result.add_attribute( std::move(attr) );
+			left += offset;
+			attr = extract_attribute(left,offset);
 		}
 	}
 	return  result;
@@ -735,7 +726,8 @@ void event_stream_parser::s_instruction_or_prologue() noexcept
 
 void event_stream_parser::s_comment_cdata_or_dtd() noexcept
 {
-	char st[8] = "\0\0\0\0\0\0\0";
+	char st[8];
+	io_zerro_mem(st, 8);
 	st[0] = next();
 	st[1] = next();
 	if( is_comment(st) ) {
@@ -745,7 +737,7 @@ void event_stream_parser::s_comment_cdata_or_dtd() noexcept
 	for(std::size_t i=2; i < 7; i++) {
 		st[i] = next();
 		if( is_eof(st[i]) ) {
-			assign_error(error::parse_error);
+			assign_error(error::root_element_is_unbalanced);
 			return;
 		}
 	}

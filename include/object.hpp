@@ -13,13 +13,14 @@
 
 #include "config.hpp"
 
-#include <assert.h>
-#include <atomic>
-#include <new>
 
 #ifdef HAS_PRAGMA_ONCE
 #pragma once
 #endif // HAS_PRAGMA_ONCE
+
+#include <assert.h>
+#include <atomic>
+#include <new>
 
 namespace io {
 

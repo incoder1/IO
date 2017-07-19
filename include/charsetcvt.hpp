@@ -14,7 +14,7 @@
 #include <cerrno>
 #include <functional>
 #include <system_error>
-
+#include <locale>
 
 #include "buffer.hpp"
 #include "charsets.hpp"
@@ -194,7 +194,6 @@ std::size_t IO_PUBLIC_SYMBOL transcode(std::error_code& ec,const char16_t* u16_s
 /// \return count of filled bytes in destinaton character array, or 0 in case of failure
 /// \throw never throws
 std::size_t IO_PUBLIC_SYMBOL transcode(std::error_code& ec,const char32_t* u32_src, std::size_t src_width, uint8_t* const u8_dst, std::size_t dst_size) noexcept;
-
 
 } // namespace io
 

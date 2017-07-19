@@ -11,6 +11,8 @@
 #ifndef HMALLOC_HPP_INCLUDED
 #define HMALLOC_HPP_INCLUDED
 
+#include <string>
+
 #include <sys/types.h>
 #include <unistd.h>
 

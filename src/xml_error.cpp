@@ -47,11 +47,11 @@ const char* error_category::cstr_message(int err_code) const noexcept
 		return "XML node markup is incorrect";
 	case error::illegal_prologue:
 		return "Illegal XML prologue declaration";
-	case error::illegal_cdata:
+	case error::illegal_cdata_section:
 		return "Illegal <!CDATA[]]> section";
 	case error::illegal_dtd:
 		return "Illegal DTD declaration";
-	case error::Illegal_commentary:
+	case error::illegal_commentary:
 		return "Illegal commentary";
 	case error::root_element_is_unbalanced:
 		return "Root element is unbalanced";

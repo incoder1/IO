@@ -210,7 +210,7 @@ public:
 		return 0 == io_strcmp(data(), s);
 	}
 
-		/// Converts this string to system UCS-2 ( UTF-16 LE or BE)
+	/// Converts this string to system UCS-2 ( UTF-16 LE or BE)
 	inline std::u16string convert_to_u16() const {
 		return empty() ? std::u16string() : transcode_to_u16( data(), length() );
 	}

@@ -20,6 +20,8 @@
 #include "channels.hpp"
 
 #include "charsets.hpp"
+#include "charsetcvt.hpp"
 #include "conststring.hpp"
+#include "text.hpp"
 
 #endif // __STDAFX_HPP_INCLUDED__

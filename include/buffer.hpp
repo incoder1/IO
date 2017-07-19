@@ -568,6 +568,7 @@ public:
 		detail::mem_block block( detail::mem_block::allocate(capacity) );
 		return block ? byte_buffer( std::move(block), capacity ) : byte_buffer();
 	}
+
 	template<typename T>
 	static byte_buffer wrap(const T* begin,const T* end) noexcept
 	{

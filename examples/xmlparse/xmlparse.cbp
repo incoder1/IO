@@ -44,13 +44,14 @@
 					<Add option="-std=c++14" />
 					<Add option="-fno-exceptions" />
 					<Add option="-fno-rtti" />
-					<Add option="-mtune=generic" />
+					<Add option="-mtune=native" />
 					<Add option="-Ofast" />
 					<Add option="-DNDEBUG" />
 					<Add directory="../../deps/include" />
 				</Compiler>
 				<Linker>
 					<Add option="-s" />
+					<Add option="-fno-set-stack-executable" />
 					<Add library="iconv.dll" />
 					<Add directory="../../deps/lib" />
 					<Add directory="../../bin/release-win-gcc-static-x64" />

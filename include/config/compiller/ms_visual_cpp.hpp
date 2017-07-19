@@ -68,6 +68,8 @@
 
 #define io_strcspn(__s, __p) strcspn( (__s), (__p) )
 
+#define io_strchr(__s,__c) strchr( (__s), (__c) )
+
 #ifndef _DEBUG
 #define NDEBUG
 #endif

@@ -49,6 +49,7 @@
 				<Option type="2" />
 				<Option compiler="gcc" />
 				<Compiler>
+					<Add option="-O3" />
 					<Add option="-Weffc++" />
 					<Add option="-pedantic" />
 					<Add option="-Wall" />
@@ -59,7 +60,13 @@
 					<Add option="-fdeclone-ctor-dtor" />
 					<Add option="-fdevirtualize-at-ltrans" />
 					<Add option="-mtune=generic" />
-					<Add option="-Ofast" />
+					<Add option="-mmovbe" />
+					<Add option="-mmmx" />
+					<Add option="-msse" />
+					<Add option="-msse2" />
+					<Add option="-msse3" />
+					<Add option="-msse4" />
+					<Add option="-mssse3" />
 					<Add option="-DNDEBUG" />
 					<Add directory="include" />
 					<Add directory="deps/include" />
@@ -116,6 +123,7 @@
 				<Option createDefFile="1" />
 				<Option createStaticLib="1" />
 				<Compiler>
+					<Add option="-O3" />
 					<Add option="-Weffc++" />
 					<Add option="-pedantic" />
 					<Add option="-Wall" />
@@ -125,7 +133,6 @@
 					<Add option="-minline-stringops-dynamically" />
 					<Add option="-fdeclone-ctor-dtor" />
 					<Add option="-fdevirtualize-at-ltrans" />
-					<Add option="-mtune=generic" />
 					<Add option="-fvisibility=hidden" />
 					<Add option="-DNDEBUG" />
 					<Add option="-DIO_SHARED_LIB" />
@@ -137,7 +144,14 @@
 				</Compiler>
 				<Linker>
 					<Add option="-s" />
+					<Add option="-mtune=generic" />
 					<Add option="-O3" />
+					<Add option="-fno-exceptions" />
+					<Add option="-fno-rtti" />
+					<Add option="-minline-stringops-dynamically" />
+					<Add option="-fdeclone-ctor-dtor" />
+					<Add option="-fdevirtualize-at-ltrans" />
+					<Add option="-fvisibility=hidden" />
 					<Add library="iconv.dll" />
 					<Add directory="deps/lib" />
 				</Linker>
@@ -287,17 +301,14 @@
 		<Unit filename="src/codedetect.cpp" />
 		<Unit filename="src/net/error_category_shim.cpp">
 			<Option target="debug-win-gcc-static-x64" />
-			<Option target="release-win-gcc-dll-x64" />
 			<Option target="debug-unix-gcc-so-x64" />
 		</Unit>
 		<Unit filename="src/net/error_category_shim.hpp">
 			<Option target="debug-win-gcc-static-x64" />
-			<Option target="release-win-gcc-dll-x64" />
 			<Option target="debug-unix-gcc-so-x64" />
 		</Unit>
 		<Unit filename="src/net/tcp_ip.cpp">
 			<Option target="debug-win-gcc-static-x64" />
-			<Option target="release-win-gcc-dll-x64" />
 			<Option target="debug-unix-gcc-so-x64" />
 		</Unit>
 		<Unit filename="src/posix/console.cpp">
@@ -309,7 +320,7 @@
 		<Unit filename="src/shared_library.cpp" />
 		<Unit filename="src/stdafx.cpp">
 			<Option link="0" />
-			<Option weight="0" />
+			<Option weight="1" />
 		</Unit>
 		<Unit filename="src/stdafx.hpp">
 			<Option compile="1" />

@@ -105,6 +105,14 @@ public:
 		)
 	{}
 
+	void swap(ochannel_streambuf& __sb)
+	{
+		ch_.swap( __sb.ch_ );
+		std::swap(data_, __sb.data_);
+		std::swap(end_, __sb.end_);
+		super_type::swap( __sb );
+	}
+
 	virtual ~ochannel_streambuf() override
 	{
 		if(nullptr != data_ ) {
@@ -171,7 +179,7 @@ public:
 		super_type(),
 		sb_( new streambuf_type(
 		         std::forward<s_write_channel>(ch),
-		         memory_traits::page_size() )
+		         memory_traits::page_size() / sizeof(__char_type) )
 		   )
 	{
 		this->init(sb_);
@@ -221,7 +229,8 @@ public:
 
 	virtual ~ichannel_streambuf() override
 	{
-		memory_traits::free( data_ );
+		if(nullptr != data_)
+			memory_traits::free( data_ );
 	}
 private:
 	s_read_channel rch_;

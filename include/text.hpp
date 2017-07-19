@@ -149,7 +149,7 @@ static inline void check_error(const std::error_code& ec)
 static inline void check_error(const std::error_code& ec)
 {
 	if(ec)
-		std::unexpected();
+		std::terminate();
 }
 #endif // IO_NO_EXCEPTIONS
 
@@ -158,6 +158,7 @@ static constexpr uint8_t* address_of(const T* p) noexcept
 {
 	return const_cast<uint8_t*>( reinterpret_cast<const uint8_t*>(p) );
 }
+
 } // namesapace detail
 
 

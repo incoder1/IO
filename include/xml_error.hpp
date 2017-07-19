@@ -30,8 +30,8 @@ enum class error
 	illegal_name,
 	illegal_markup,
 	illegal_dtd,
-	Illegal_commentary,
-	illegal_cdata,
+	illegal_commentary,
+	illegal_cdata_section,
 	root_element_is_unbalanced,
 	invalid_state,
 	parse_error

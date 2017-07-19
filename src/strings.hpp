@@ -120,7 +120,7 @@ static constexpr inline bool is_lowercase_latin1(_char_t ch) noexcept
 	typedef std::char_traits<_char_t> tr;
 	return io_islower(tr::to_int_type(ch));
 #else
-	return between( 'a', 'z', ch );
+	return between( char8_traits::to_int_type('a'), char8_traits::to_int_type('z'), ch );
 #endif // io_islower
 }
 
@@ -251,7 +251,7 @@ inline std::size_t tstrchrn(const _char_t *str, _char_t character, std::size_t m
 }
 
 template<typename _char_t>
-inline std::size_t tstrchr(const _char_t *str, _char_t character, std::size_t max_len)
+inline std::size_t tstrchr(const _char_t *str, _char_t character)
 {
 	return tstrchrn( str, character, ULONG_MAX);
 }
@@ -340,7 +340,7 @@ static constexpr __forceinline bool is_u8_5_or_6(const char ch)
 }
 
 // Gest UTF-8 character size
-constexpr __forceinline uint8_t u8_char_size(const char ch)
+__forceinline uint8_t u8_char_size(const char ch)
 {
 	return  (ch > 0) ? 1
 	        :  is_u8_2(ch) ? 2
