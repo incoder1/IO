@@ -1,0 +1,56 @@
+CC=gcc
+CXX=g++
+AS=g++
+LD=g++
+
+TARGET_ROOT = ./lib
+TARGET = $(TARGET_ROOT)/io-mingw64-dll
+OBJ_ROOT = ./obj
+OBJ ?= $(OBJ_ROOT)/io-mingw64-dll
+
+LIB_NAME=libio
+SHARED_EXT=dll
+
+PLATFORM_SHARED_LINK_OPTIONS?=-shared -Wl,--dll -Wl,--output-def=$(TARGET)/libio.def -Wl,--out-implib=$(TARGET)/libio.a
+
+LIBS?=-L./deps/lib -liconv.dll
+INCLUEDS?=-Iinclude -Ideps/include -Iinclude/win
+
+OPTIMIZE?=-mtune=generic -O3 -fno-exceptions -fno-rtti -minline-stringops-dynamically -fdeclone-ctor-dtor -fdevirtualize-at-ltrans -mmovbe -mmmx -msse -msse -msse3 -msse4 -mssse3
+SHARED-DEFINES?= -DIO_SHARED_LIB -DIO_BUILD
+DEFINES ?= -DNDEBUG $(SHARED-DEFINES)
+CPPFLAGS?= -std=gnu++14 -fno-exceptions -fno-rtti -Winline -pedantic $(OPTIMIZE) $(INCLUEDS)
+LDFLAGS?= $(LIBS) -s
+
+
+MODULES=. win
+
+SRC_DIR := $(addprefix ./src/,$(MODULES))
+SOURCE_FILES := $(foreach sdir,$(SRC_DIR),$(wildcard $(sdir)/*.cpp))
+OBJ_FILES := $(addprefix $(OBJ)/, $(notdir $(SOURCE_FILES:.cpp=.o)) )
+ 
+DESTDIR?=target
+ 
+all: clean link
+
+link: compile
+	$(LD) $(PLATFORM_SHARED_LINK_OPTIONS) $(OBJ_FILES) -o $(TARGET)/$(LIB_NAME).$(SHARED_EXT) $(LDFLAGS)
+		
+compile: $(OBJ)/stdafx.hpp.gch $(OBJ_FILES) 
+
+$(OBJ)/stdafx.hpp.gch: src/stdafx.hpp
+	$(CXX) $(CPPFLAGS) $(DEFINES) -c src/stdafx.hpp -o $(OBJ)/stdafx.hpp.gch
+	
+$(OBJ)/%.o: src/%.cpp
+	$(CXX) $(CPPFLAGS) $(DEFINES) -iquoteobj$(OBJ)/stdafx.hpp.gch -c $< -o $@
+	
+$(OBJ)/%.o: src/win/%.cpp
+	$(CXX) $(CPPFLAGS) $(DEFINES) -iquoteobj$(OBJ)/stdafx.hpp.gch  -c $< -o $@
+	
+clean:
+	mkdir -p $(OBJ_ROOT)
+	mkdir -p $(TARGET_ROOT)
+	rm -rf $(OBJ)
+	rm -rf $(TARGET)
+	mkdir $(OBJ)
+	mkdir $(TARGET)
