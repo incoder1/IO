@@ -15,8 +15,6 @@
 
 #ifdef IO_HAS_BOOST
 
-// #	include <boost/error>
-
 #ifdef IO_NO_EXCEPTIONS
 
 #include <exception>

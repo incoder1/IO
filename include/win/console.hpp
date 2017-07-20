@@ -96,6 +96,7 @@ public:
 	typedef ::HANDLE native_id;
 	typedef channel_ostream<char> cons_ostream;
 	typedef channel_ostream<wchar_t> cons_wostream;
+	typedef channel_istream<wchar_t> cons_wistream;
 private:
 	console();
 
@@ -132,19 +133,19 @@ public:
 	/// \throw can throw std::bad_alloc, when out of memory
 	static inline s_read_channel in()
 	{
-		return s_read_channel( get()->cin_ );
+		return s_read_channel( get()->cin_, true );
 	}
 
 	/// Returns console output channel
 	/// \throw can throw std::bad_alloc, when out of memory
 	static inline s_write_channel out()
 	{
-		return s_write_channel( get()->cout_ );
+		return s_write_channel( get()->cout_, true );
 	}
 
 	static inline s_write_channel err()
 	{
-		return s_write_channel( get()->cerr_ );
+		return s_write_channel( get()->cerr_, true );
 	}
 
 	/// Returns std::basic_stream<char> with ato-reconverting
@@ -160,6 +161,8 @@ public:
 
 	/// Returns std::basic_stream<wchar_t> stream to constole error stream
 	static std::wostream& error_wstream();
+
+	static std::wistream& in_wstream();
 
 	/// Returns console character set, always UTF-16LE for Windows
 	/// \return current console character set

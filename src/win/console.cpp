@@ -64,7 +64,7 @@ std::size_t console_channel::write(std::error_code& err, const uint8_t* buff,std
 	if(! ::WriteConsoleW(hcons_, static_cast<const void*>(buff), size / sizeof(::WCHAR), &result, nullptr ) )
 		err.assign( ::GetLastError(), std::system_category() );
 	::SetConsoleTextAttribute(hcons_, orig_attr_ );
-	return result;
+	return result * sizeof(::WCHAR);
 }
 
 } // namespace win
@@ -93,6 +93,12 @@ std::wostream& console::error_wstream()
 {
 	static cons_wostream _wcerrs( console::err()  );
 	return _wcerrs;
+}
+
+std::wistream& console::in_wstream()
+{
+	static cons_wistream _wcins( console::in(), 256 );
+	return _wcins;
 }
 
 console::console():

@@ -170,22 +170,17 @@ constexpr unicode_charset_detector() noexcept = default;
 // TODO:: Refactor
 static unicode_cp detect_by_bom(const uint8_t * bom)
 {
-	if( utf8_bom::is(bom) ) {
+	if( utf8_bom::is(bom) )
 		return unicode_cp::utf8;
-	}
-	if( 0xFF == *bom && 0xFE == *(bom+1) ) {
-		if( 0x00 == *(bom+2) && 0x00 == *(bom+3) ) {
+	if( utf_16le_bom::is(bom) ) {
+		if( utf_32le_bom::is(bom) )
 			return unicode_cp::utf_32le;
-		} else {
-			return unicode_cp::utf_16le;
-		}
+		return unicode_cp::utf_16le;
 	}
-	if(0x00 == *(bom) && 0x00 == *(bom+1) && 0xFE == *(bom+2) && 0xFF == *(bom+3) ) {
-		return unicode_cp::utf_32be;
-	}
-	if( 0xFE == *bom && 0xFF == *(bom+1) ) {
+	if( utf_16be_bom::is(bom) )
 		return unicode_cp::utf_16be;
-	}
+	if( utf_32be_bom::is(bom) )
+		return unicode_cp::utf_32be;
 	return unicode_cp::not_detected;
 }
 

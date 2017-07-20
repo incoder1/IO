@@ -12,6 +12,7 @@
 #define __STDAFX_HPP_INCLUDED__
 
 #include <ostream>
+#include <system_error>
 
 #include "config.hpp"
 #include "errorcheck.hpp"
