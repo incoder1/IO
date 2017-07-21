@@ -14,6 +14,7 @@
 #include "channels.hpp"
 #include "charsetcvt.hpp"
 #include "codedetect.hpp"
+#include "errorcheck.hpp"
 
 #include <atomic>
 #include <exception>
@@ -45,22 +46,6 @@ typedef char32_t unicode_char;
 
 namespace io {
 
-
-/// Character set memory buffer size conversion rating
-enum class charset_conv_rate: int8_t {
-	/// use same transcoding memory buffer length
-	/// e.g. CP_1250 -> UTF-8 || USC4 -> UTF-8
-	same = 1,
-	/// use two times less transcoding destination buffer length
-	/// e.g. UTF8 -> UCS-2
-	twice_larger = 2,
-	/// use two times less transcoding destination buffer length
-	/// e.g. USC-2 -> UTF-8, UCS-4 -> UCS-2
-	twice_less = -2,
-	/// use four times larger transcoding destination buffer length
-	/// e.g. UTF-8 -> UCS-4  || CP_1250 -> USC-4
-	quad_larger = 4
-};
 
 /// \brief Onfly character conversation synchronous read channel implementation.
 /*!
@@ -108,8 +93,9 @@ class IO_PUBLIC_SYMBOL conv_write_channel final:public write_channel {
 private:
 	friend class io::nobadalloc<conv_write_channel>;
 	conv_write_channel(const s_write_channel& dst,const s_code_cnvtr& conv) noexcept;
-	friend s_write_channel IO_PUBLIC_SYMBOL create_conv_channel(std::error_code& ec,const s_write_channel& dst,const s_code_cnvtr& conv) noexcept;
+	std::size_t convert_some(std::error_code& ec, const uint8_t *src, std::size_t &size, uint8_t *dst) const;
 public:
+	static s_write_channel open(std::error_code& ec,const s_write_channel& dst,const s_code_cnvtr& conv) noexcept;
 	/// Destroys channel and releases all associated resources
 	/// \throw never throws
 	virtual ~conv_write_channel() noexcept override;
@@ -124,34 +110,7 @@ private:
 	s_code_cnvtr conv_;
 };
 
-/// Opens a converting channel from a underlying write channel
-/// Note! Reentrant and thread safe, blocks on malloc and read operations.
-/// \param ec operation error code contains failure in case of:
-///         <ul>
-///           <li>character set conversion error</li>
-///           <li>io error</li>
-///           <li>out of memory</li>
-///         </ul>
-/// \param dst destination synchronous write channel
-/// \param conv character set converter
-/// \throw never throws
-s_write_channel IO_PUBLIC_SYMBOL new_text_conv(std::error_code& ec,const s_write_channel& dst,const s_code_cnvtr& conv) noexcept;
-
 namespace detail {
-
-#ifndef IO_NO_EXCEPTIONS
-static inline void check_error(const std::error_code& ec)
-{
-	if(ec)
-		throw std::system_error(ec);
-}
-#else
-static inline void check_error(const std::error_code& ec)
-{
-	if(ec)
-		std::terminate();
-}
-#endif // IO_NO_EXCEPTIONS
 
 template<typename T>
 static constexpr uint8_t* address_of(const T* p) noexcept
@@ -172,7 +131,7 @@ inline std::u16string transcode_to_u16(const char* u8_str, std::size_t bytes)
 	scoped_arr<char16_t> arr(bytes);
 	std::error_code ec;
 	std::size_t conv = transcode(ec, detail::address_of(u8_str), bytes, arr.get(), arr.len() );
-	detail::check_error(ec);
+	check_error_code(ec);
 	return std::u16string(arr.get(), conv);
 }
 
@@ -186,7 +145,7 @@ inline std::u32string transcode_to_u32(const char* u8_str, std::size_t bytes)
 	scoped_arr<char32_t> arr(bytes);
 	std::error_code ec;
 	std::size_t conv = transcode(ec, detail::address_of(u8_str), bytes, arr.get(), arr.len() );
-	detail::check_error(ec);
+	check_error_code(ec);
 	return std::u32string(arr.get(), conv);
 }
 
@@ -208,7 +167,7 @@ inline std::string transcode(const char16_t* u16_str, std::size_t len)
 	scoped_arr<char> arr( len*sizeof(char16_t) );
 	std::error_code ec;
 	std::size_t conv = transcode(ec, u16_str, len, detail::address_of(arr.get()), arr.len() );
-	detail::check_error(ec);
+	check_error_code(ec);
 	return std::string(arr.get(), conv);
 }
 
@@ -218,7 +177,7 @@ inline std::string transcode(const char32_t* u32_str, std::size_t len)
 	scoped_arr<char> arr( len*sizeof(char32_t) );
 	std::error_code ec;
 	std::size_t conv = transcode(ec, u32_str, len,detail::address_of(arr.get()), arr.len() );
-	detail::check_error(ec);
+	check_error_code(ec);
 	return std::string(arr.get(), conv);
 }
 
@@ -243,7 +202,7 @@ inline std::wstring transcode_to_ucs(const char* u8_str, std::size_t bytes)
 #endif // __IO_WINDOWS_BACKEND__
 	std::error_code ec;
 	std::size_t conv = transcode(ec, detail::address_of(u8_str), bytes, arr.get(), arr.len() );
-	detail::check_error(ec);
+	check_error_code(ec);
 	return std::wstring(reinterpret_cast<const wchar_t*>(arr.get()), conv );
 }
 
@@ -263,7 +222,7 @@ inline std::string transcode(const wchar_t* ucs_str, std::size_t len)
 #endif // __IO_WINDOWS_BACKEND__
 	std::error_code ec;
 	std::size_t conv = transcode(ec, ucs, len, detail::address_of(arr.get()), arr.len() );
-	detail::check_error(ec);
+	check_error_code(ec);
 	return std::string(arr.get(), conv);
 }
 

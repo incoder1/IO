@@ -34,7 +34,7 @@ io::s_write_channel prepare_file() {
 	// open converting write channel, and stream on top of it
 	s_code_cnvtr cvt = code_cnvtr::open(ec, IO_SYS_UNICODE, code_pages::UTF_8);
 	check_error(ec);
-	s_write_channel ret=  new_text_conv(ec, fch, cvt);
+	s_write_channel ret= conv_write_channel::open(ec, fch, cvt);
 	check_error(ec);
 	return ret;
 }

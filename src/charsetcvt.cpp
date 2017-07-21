@@ -129,22 +129,9 @@ std::error_condition IO_PUBLIC_SYMBOL make_error_condition(io::converrc err) noe
 {
 	return std::error_condition(static_cast<int>(err), *(chconv_error_category::instance()) );
 }
-
-static uint8_t u8_up_rate(const charset& dst_ch) {
-	switch( dst_ch.char_max_size() )
-	{
-		case 1:
-			return 0;
-		case 2:
-			return 1;
-	}
-	return 2;
-}
-
-static bool get_buffer_scale_op(uint8_t& rate,const charset& from,const charset& to)
-{
+/*
 	bool result = false;
-	if(from == code_pages::UTF_8) {
+		if(from == code_pages::UTF_8) {
 		 // to 1 byte, same size
 		 // to UCS-2 = size*2
 		 // to UCS-4 = size*4
@@ -163,29 +150,48 @@ static bool get_buffer_scale_op(uint8_t& rate,const charset& from,const charset&
 	}
 	return result;
 }
-
+*/
 s_code_cnvtr code_cnvtr::open(std::error_code& ec, const charset& from,const charset& to) noexcept {
 	if( from.code() == to.code() ) {
 		ec = make_error_code(converrc::not_supported);
 		return s_code_cnvtr();
 	}
-	uint8_t rate;
-	bool rhs = get_buffer_scale_op(rate, from, to);
 	detail::engine iconve( from.name(), to.name() );
 	if(!iconve) {
 		ec = make_error_code(converrc::not_supported);
 		return s_code_cnvtr();
 	}
-	code_cnvtr* result = io::nobadalloc<code_cnvtr>::construct( ec, rate, rhs, std::move(iconve)  );
+	code_cnvtr* result = io::nobadalloc<code_cnvtr>::construct( ec, std::move(iconve)  );
 	return !ec ? s_code_cnvtr( result ) : s_code_cnvtr();
 }
 
-code_cnvtr::code_cnvtr(uint8_t rate,bool rhs,detail::engine&& eng) noexcept:
+/*
+	bool result = false;
+		if(from == code_pages::UTF_8) {
+		 // to 1 byte, same size
+		 // to UCS-2 = size*2
+		 // to UCS-4 = size*4
+		 rate = u8_up_rate(to);
+	} else if(to == code_pages::UTF_8) {
+		// if from UCS[2,4] same or less, utherwise up to 4 times
+		// larger
+		rate = from.unicode() ? 0 : 2;
+	} else if( from.char_max_size() == to.char_max_size() ) {
+		rate = 0;
+	} else if(from.char_max_size() < to.char_max_size()) {
+		rate = (from.char_max_size() == 2) ? 1: 2;
+	} else {
+		result = true;
+		rate = (to.char_max_size() == 2) ? 1: 2;
+	}
+	return result;
+*/
+
+code_cnvtr::code_cnvtr(detail::engine&& eng) noexcept:
 	object(),
-	eng_( std::forward<detail::engine>(eng) ),
-	rate_(rate),
-	rhs_(rhs)
-{}
+	eng_( std::forward<detail::engine>(eng) )
+{
+}
 
 void code_cnvtr::convert(std::error_code& ec, uint8_t** in,std::size_t& in_bytes_left,uint8_t** const out, std::size_t& out_bytes_left) const noexcept
 {

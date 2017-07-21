@@ -73,6 +73,10 @@ public:
 			rf_(mem_);
 	}
 
+	operator bool() const noexcept {
+		return nullptr != mem_;
+	}
+
 	inline T* get() const noexcept
 	{
 		return mem_;

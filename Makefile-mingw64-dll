@@ -4,11 +4,11 @@ AS=g++
 LD=g++
 
 TARGET_ROOT = ./lib
-TARGET = $(TARGET_ROOT)/io-mingw64-dll
+TARGET = $(TARGET_ROOT)/release-win-gcc-dll-x64
 OBJ_ROOT = ./obj
-OBJ ?= $(OBJ_ROOT)/io-mingw64-dll
+OBJ ?= $(OBJ_ROOT)/release-win-gcc-dll-x64
 
-LIB_NAME=libio
+LIB_NAME=io-mingw64
 SHARED_EXT=dll
 
 PLATFORM_SHARED_LINK_OPTIONS?=-shared -Wl,--dll -Wl,--output-def=$(TARGET)/libio.def -Wl,--out-implib=$(TARGET)/libio.a
@@ -16,7 +16,8 @@ PLATFORM_SHARED_LINK_OPTIONS?=-shared -Wl,--dll -Wl,--output-def=$(TARGET)/libio
 LIBS?=-L./deps/lib -liconv.dll
 INCLUEDS?=-Iinclude -Ideps/include -Iinclude/win
 
-OPTIMIZE?=-mtune=generic -O3 -fno-exceptions -fno-rtti -minline-stringops-dynamically -fdeclone-ctor-dtor -fdevirtualize-at-ltrans -mmovbe -mmmx -msse -msse -msse3 -msse4 -mssse3
+MMX_AND_SSE?= -mmmx -msse -msse2 -mssse3 -msse3 -msse4
+OPTIMIZE?=-mtune=generic -O3 -fno-exceptions -fno-rtti -minline-stringops-dynamically -fdeclone-ctor-dtor -fdevirtualize-at-ltrans -mmovbe $(MMX_AND_SSE)
 SHARED-DEFINES?= -DIO_SHARED_LIB -DIO_BUILD
 DEFINES ?= -DNDEBUG $(SHARED-DEFINES)
 CPPFLAGS?= -std=gnu++14 -fno-exceptions -fno-rtti -Winline -pedantic $(OPTIMIZE) $(INCLUEDS)

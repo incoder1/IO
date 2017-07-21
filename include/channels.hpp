@@ -139,12 +139,20 @@ DECLARE_IPTR(random_access_channel);
 
 /// Transfers all read channels data to destination write channel
 /// \param ec opration error code, contains error when io error
+/// \param src source read channel
+/// \param dst destination write channel
+/// \param buff memory buffer size, will be alligned up to 4 bytes
 /// \return count of bytes transfered
 /// \throw never throws
 inline std::size_t transfer(std::error_code& ec,const s_read_channel& src, const s_write_channel& dst, uint16_t buff) noexcept
 {
 	std::size_t result = 0;
-	scoped_arr<uint8_t> rbuf(buff);
+	// allign size up to 4
+	scoped_arr<uint8_t> rbuf( (buff + 3) & 0xFC );
+	if( !rbuf ) {
+		ec = std::make_error_code(std::errc::not_enough_memory);
+		return 0;
+	}
 	std::size_t written = 0;
 	std::size_t read = src->read(ec, rbuf.get(), rbuf.len());
 	while( 0 != read && !ec ) {

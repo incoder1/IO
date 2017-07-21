@@ -1,3 +1,9 @@
+#if _WIN32_WINNT < 0x0600
+#	undef  _WIN32_WINNT
+#	define WINVER 0x0600
+#	define _WIN32_WINNT 0x0600
+#endif // _WIN32_WINNT
+
 #include <text.hpp>
 #include <files.hpp>
 
@@ -32,9 +38,9 @@ int main()
 	dst->write(ec, io::utf8_bom::data(), io::utf8_bom::len() );
 	check_system_error(ec);
 
-	std::size_t transfered = transfer(ec, src, dst, 1024);
+	std::size_t transfered = transfer(ec, src, dst, 128);
 	check_system_error(ec);
-	std::wcout<< transfered << L" bytes converted from "<< sf.name() << L" to " << to.name() << std::endl;
+	std::wcout<< transfered << L" bytes converted from "<< sf.wpath() << L" to " << to.wpath() << std::endl;
 
     return 0;
 }

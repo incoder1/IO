@@ -4,16 +4,16 @@ AS=g++
 AR=ar 
 
 TARGET_ROOT = lib
-TARGET = $(TARGET_ROOT)/io-mingw64-static
+TARGET = $(TARGET_ROOT)/release-win-gcc-static-x64
 OBJ_ROOT = obj
-OBJ ?= $(OBJ_ROOT)/io-mingw64-static
+OBJ ?= $(OBJ_ROOT)/release-win-gcc-static-x64
 
 LIB_NAME=libio
 
 LIBS?=-L./deps/lib -liconv.dll
 INCLUEDS?=-Iinclude -Ideps/include -Iinclude/win
-
-OPTIMIZE?=-mtune=generic -O3 -fno-exceptions -fno-rtti -minline-stringops-dynamically -fdeclone-ctor-dtor -fdevirtualize-at-ltrans -mmovbe -mmmx -msse -msse -msse3 -msse4 -mssse3
+MMX_AND_SSE?= -mmmx -msse -msse2 -mssse3 -msse3 -msse4
+OPTIMIZE?=-mtune=generic -O3 -fno-exceptions -fno-rtti -minline-stringops-dynamically -fdeclone-ctor-dtor -fdevirtualize-at-ltrans -mmovbe $(MMX_AND_SSE)
 SHARED-DEFINES?=-DIO_BUILD
 DEFINES ?= -DNDEBUG $(SHARED-DEFINES)
 CPPFLAGS?= -std=gnu++14 -fno-exceptions -fno-rtti -Winline -pedantic $(OPTIMIZE) $(INCLUEDS)
