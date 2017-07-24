@@ -169,7 +169,10 @@ void console::reset_err_color(const text_color clr) noexcept
 s_write_channel console::conv_channel(const s_write_channel& ch)
 {
 	std::error_code ec;
-	s_code_cnvtr conv = code_cnvtr::open(ec, code_pages::UTF_8,code_pages::UTF_16LE);
+	s_code_cnvtr conv = code_cnvtr::open(ec,
+										code_pages::UTF_8,
+										code_pages::UTF_16LE,
+										cnvrt_control::discard_on_failing_chars);
 	io::check_error_code( ec );
 	s_write_channel result = conv_write_channel::open(ec, ch, conv);
 	io::check_error_code( ec );

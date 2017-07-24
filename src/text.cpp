@@ -22,9 +22,10 @@ s_read_channel IO_PUBLIC_SYMBOL conv_read_channel::open(
 								std::error_code& ec,
 		const s_read_channel& src,
 		const charset& from,
-		const charset& to) noexcept
+		const charset& to,
+		const cnvrt_control control) noexcept
 {
-	s_code_cnvtr conv = code_cnvtr::open(ec, from, to);
+	s_code_cnvtr conv = code_cnvtr::open(ec, from, to, control);
 	if(ec)
 		return s_read_channel();
 	conv_read_channel *ch = io::nobadalloc<conv_read_channel>::construct(ec, src, std::move(conv) );

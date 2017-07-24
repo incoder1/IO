@@ -1,25 +1,30 @@
+#ifdef _WIN32
+#define _WIN32_WINNT 0x0600
+#endif // _WIN32
+
 #include <console.hpp>
 #include <files.hpp>
 #include <stream.hpp>
-#include <text.hpp>
 
 #include "stubs.hpp"
 
 static const char* PROLOGUE = "<?xml version=\"1.0\" encoding=\"UTF-8\" ?>";
 
-void check_error(const std::error_code& ec) {
-	if(ec) {
-		io::channel_ostream<wchar_t> ucerr( io::console::err() );
-		ucerr<< io::transcode_to_ucs( ec.message().data() ) << std::endl;
-		std::exit( -1 );
-    }
+
+static io::s_write_channel create_file_channel(const char* path) {
+	std::error_code ec;
+	io::file f = io::file::get(ec,  path );
+	io::check_error_code(ec);
+	io::s_write_channel ret = f.open_for_write(ec, io::write_open_mode::overwrite);
+	io::check_error_code(ec);
+	return ret;
 }
 
 #ifdef IO_XML_HAS_TO_XSD
 static const char* SCHEMA_BEGIN = "<xs:schema xmlns:xs=\"http://www.w3.org/2001/XMLSchema\">";
 
 void generate_xsd(app_settings& root) {
-	std::fstream xsd("generated-app-config.xsd", std::ios_base::binary | std::ios_base::out);
+	io::channel_ostream<char> xsd( create_file_channel("generated-app-config.xsd") );
 	xsd << io::unicode_cp::utf8;
 	xsd << PROLOGUE;
 	xsd << SCHEMA_BEGIN;
@@ -33,7 +38,6 @@ void generate_xsd(app_settings& root) {
 	xsd << "type=\"" << io::xml::extract_xsd_type_name<app_settings>() << "\"/>";
 	xsd << "</xs:schema>";
 	xsd.flush();
-	xsd.close();
 }
 #endif // IO_XML_HAS_TO_XSD
 
@@ -53,22 +57,17 @@ int main()
 
 	app_settings::xml_type xt = root.to_xml_type();
 
-	std::error_code ec;
-	io::file f = io::file::get(ec, "app-config.xml" );
-
-	f.open_for
-
-	std::ostream resf = io::ostream<char>(  );
-
-	//std::fstream file("app-config.xml", std::ios_base::binary | std::ios_base::out );
-	//file << io::unicode_cp::utf8;
-	//file << PROLOGUE;
-	//xt.marshal(file,0);
+	io::channel_ostream<char> xml( create_file_channel("app-config.xml"));
+	//std::fstream xml("app-config.xml", std::ios_base::binary | std::ios_base::out );
+	xml << io::unicode_cp::utf8;
+	xml << PROLOGUE;
+	xt.marshal(xml,0);
+	xml.flush();
 
 	cout<<"Resulting XML available in app-conf.xml:"<<std::endl;
 	cout<<PROLOGUE<<std::endl;
 	xt.marshal(cout, 1);
-	//cout.flush();
+	cout.flush();
 
 #if IO_XML_HAS_TO_XSD
 	generate_xsd(root);

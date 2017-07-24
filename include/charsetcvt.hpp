@@ -88,6 +88,13 @@ public:
 std::error_code IO_PUBLIC_SYMBOL make_error_code(io::converrc errc) noexcept;
 std::error_condition  IO_PUBLIC_SYMBOL make_error_condition(io::converrc err) noexcept;
 
+enum class cnvrt_control
+{
+	failure_on_failing_chars,
+	discard_on_failing_chars
+};
+
+
 namespace detail {
 
 class engine {
@@ -103,7 +110,7 @@ public:
 	}
 
 	engine() noexcept;
-	engine(const char* from,const char* to);
+	engine(const char* from,const char* to, cnvrt_control control);
 	~engine() noexcept;
 
 	inline void swap(engine& other) noexcept;
@@ -138,7 +145,7 @@ private:
 	code_cnvtr(detail::engine&& eng) noexcept;
 	friend class io::nobadalloc<code_cnvtr>;
 public:
-	static s_code_cnvtr open(std::error_code& ec, const charset& from,const charset& to) noexcept;
+	static s_code_cnvtr open(std::error_code& ec,const charset& from,const charset& to, cnvrt_control conrol) noexcept;
 	static std::error_condition _ok;
 private:
 	detail::engine eng_; // converting engine

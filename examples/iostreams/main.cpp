@@ -32,7 +32,8 @@ io::s_write_channel prepare_file() {
 	fch->write(ec, utf8_bom::data(), utf8_bom::len());
 	check_error(ec);
 	// open converting write channel, and stream on top of it
-	s_code_cnvtr cvt = code_cnvtr::open(ec, IO_SYS_UNICODE, code_pages::UTF_8);
+	s_code_cnvtr cvt = code_cnvtr::open(ec, IO_SYS_UNICODE, code_pages::UTF_8,
+										cnvrt_control::failure_on_failing_chars);
 	check_error(ec);
 	s_write_channel ret= conv_write_channel::open(ec, fch, cvt);
 	check_error(ec);
@@ -62,6 +63,7 @@ int main()
 	wcout << wmessage << 1234567890ull << L'\n' << 123456.78e+09 << L'\n' << 12356.789e+10L << std::endl;
 	io::console::reset_err_color(io::text_color::yellow);
 	wcerr << L"No errors so far" << std::endl;
-
+	int i = -1;
+	wcerr << (const wchar_t*)&i ;
     return 0;
 }

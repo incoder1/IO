@@ -26,7 +26,9 @@ const std::size_t source::READ_BUFF_MAXIMAL_SIZE = 0x1000000; // 16 m
 s_source source::create(std::error_code& ec, s_read_channel&& src, byte_buffer&& rb,const charset& ch) noexcept
 {
 	if(ch != code_pages::UTF_8)
-		src = conv_read_channel::open(ec, src, ch, code_pages::UTF_8);
+		src = conv_read_channel::open(ec, src, ch,
+										code_pages::UTF_8,
+										cnvrt_control::failure_on_failing_chars);
 	source *sc = nobadalloc<source>::construct(ec, std::move(src), std::forward<byte_buffer>(rb) );
 	return !ec ? s_source(sc) : s_source();
 }

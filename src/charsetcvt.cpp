@@ -20,7 +20,8 @@ namespace detail {
 static const ::iconv_t INVALID_ICONV_DSPTR = reinterpret_cast<::iconv_t>(-1);
 static const std::size_t ICONV_ERROR = static_cast<std::size_t>(-1);
 
-static inline converrc iconv_to_conv_errc(int erno) {
+static inline converrc iconv_to_conv_errc(int erno)
+{
 	switch(erno) {
 	case 0:
 		return converrc::success;
@@ -41,16 +42,19 @@ engine::engine(engine&& other) noexcept:
 	other.iconv_ = INVALID_ICONV_DSPTR;
 }
 
-engine& engine::operator=(engine&& rhs) noexcept {
+engine& engine::operator=(engine&& rhs) noexcept
+{
 	engine( std::forward<engine>(rhs) ).swap( *this );
 	return *this;
 }
 
-bool engine::is_open() const {
+bool engine::is_open() const
+{
 	return INVALID_ICONV_DSPTR != iconv_;
 }
 
-inline void engine::swap(engine& other) noexcept {
+inline void engine::swap(engine& other) noexcept
+{
 	std::swap(iconv_, other.iconv_);
 }
 
@@ -58,26 +62,28 @@ engine::engine() noexcept:
 	iconv_( INVALID_ICONV_DSPTR )
 {}
 
-engine::engine(const char* from,const char* to):
+engine::engine(const char* from,const char* to, cnvrt_control control):
 	iconv_(INVALID_ICONV_DSPTR)
 {
 	iconv_ = ::iconv_open( to, from );
+	if(INVALID_ICONV_DSPTR != iconv_) {
+		int discard = control == cnvrt_control::discard_on_failing_chars? 1: 0;
+		iconvctl(iconv_, ICONV_SET_DISCARD_ILSEQ, &discard);
+	}
 }
 
 engine::~engine() noexcept
 {
-	if(INVALID_ICONV_DSPTR != iconv_) {
+	if(INVALID_ICONV_DSPTR != iconv_)
 		::iconv_close(iconv_);
-	}
 }
 
 converrc engine::convert(uint8_t** src,std::size_t& size, uint8_t** dst, std::size_t& avail) const noexcept
 {
 	char **s = reinterpret_cast<char**>(src);
 	char **d = reinterpret_cast<char**>(dst);
-	if( ICONV_ERROR == ::iconv(iconv_, s, &size, d, &avail) ) {
+	if( ICONV_ERROR == ::iconv(iconv_, s, &size, d, &avail) )
 		return iconv_to_conv_errc(errno);
-	}
 	return converrc::success;
 }
 
@@ -151,12 +157,16 @@ std::error_condition IO_PUBLIC_SYMBOL make_error_condition(io::converrc err) noe
 	return result;
 }
 */
-s_code_cnvtr code_cnvtr::open(std::error_code& ec, const charset& from,const charset& to) noexcept {
+s_code_cnvtr code_cnvtr::open(std::error_code& ec,
+                              const charset& from,
+                              const charset& to,
+                              cnvrt_control control) noexcept
+{
 	if( from.code() == to.code() ) {
 		ec = make_error_code(converrc::not_supported);
 		return s_code_cnvtr();
 	}
-	detail::engine iconve( from.name(), to.name() );
+	detail::engine iconve( from.name(), to.name(), control);
 	if(!iconve) {
 		ec = make_error_code(converrc::not_supported);
 		return s_code_cnvtr();
@@ -202,15 +212,15 @@ void code_cnvtr::convert(std::error_code& ec, uint8_t** in,std::size_t& in_bytes
 	}
 }
 
-void code_cnvtr::convert(std::error_code& ec, const uint8_t* src,const std::size_t size, byte_buffer& dst) const noexcept {
+void code_cnvtr::convert(std::error_code& ec, const uint8_t* src,const std::size_t size, byte_buffer& dst) const noexcept
+{
 	dst.clear();
 	std::size_t left = size;
 	std::size_t available = dst.capacity();
 	uint8_t** s = const_cast<uint8_t**>(&src);
 	const uint8_t* d = dst.position().get();
-	while(!ec && left > 0) {
+	while(!ec && left > 0)
 		convert(ec, s, left, const_cast<uint8_t**>(&d), available);
-	}
 	dst.move(dst.capacity() - available);
 	dst.flip();
 }
@@ -220,7 +230,7 @@ std::size_t IO_PUBLIC_SYMBOL transcode(std::error_code& ec, const uint8_t* u8_sr
 {
 	assert(nullptr != u8_src && src_bytes > 0);
 	assert(nullptr != dst && dst_size > 0);
-	static detail::engine eng("UTF-8","UCS-2-INTERNAL");
+	static detail::engine eng("UTF-8","UCS-2-INTERNAL", cnvrt_control::failure_on_failing_chars);
 	uint8_t* s = const_cast<uint8_t*>( reinterpret_cast<const uint8_t*>(u8_src) );
 	uint8_t* d = reinterpret_cast<uint8_t*>(dst);
 	std::size_t left = src_bytes;
@@ -237,7 +247,9 @@ std::size_t IO_PUBLIC_SYMBOL transcode(std::error_code& ec,const uint8_t* u8_src
 {
 	assert(nullptr != u8_src && src_bytes > 0);
 	assert(nullptr != dst && dst_size > 1);
-	static detail::engine eng("UTF-8","UCS-4-INTERNAL");
+	static detail::engine eng("UTF-8",
+							"UCS-4-INTERNAL",
+							cnvrt_control::failure_on_failing_chars);
 	uint8_t* s = const_cast<uint8_t*>( reinterpret_cast<const uint8_t*>(u8_src) );
 	uint8_t* d = reinterpret_cast<uint8_t*>(dst);
 	std::size_t left = src_bytes;
@@ -254,7 +266,10 @@ std::size_t IO_PUBLIC_SYMBOL transcode(std::error_code& ec,const char16_t* u16_s
 {
 	assert(nullptr != u16_src && src_width > 0);
 	assert(nullptr != u8_dst && dst_size > 1);
-	static detail::engine eng("UCS-2-INTERNAL","UTF-8");
+	static detail::engine eng(
+							"UCS-2-INTERNAL",
+							"UTF-8",
+							cnvrt_control::failure_on_failing_chars);
 	uint8_t* s = const_cast<uint8_t*>( reinterpret_cast<const uint8_t*>(u16_src) );
 	uint8_t* d = const_cast<uint8_t*>(u8_dst);
 	std::size_t left = src_width * sizeof(char16_t);
@@ -270,7 +285,9 @@ std::size_t IO_PUBLIC_SYMBOL transcode(std::error_code& ec,const char16_t* u16_s
 std::size_t IO_PUBLIC_SYMBOL transcode(std::error_code& ec,const char32_t* u32_src, std::size_t src_width, uint8_t* const u8_dst, std::size_t dst_size) noexcept
 {
 	assert(nullptr != u8_dst && dst_size > 0);
-	static detail::engine eng("UCS-4-INTERNAL","UTF-8");
+	static detail::engine eng("UCS-4-INTERNAL",
+							"UTF-8",
+							cnvrt_control::failure_on_failing_chars);
 	uint8_t* s = const_cast<uint8_t*>( reinterpret_cast<const uint8_t*>(u32_src) );
 	uint8_t* d = const_cast<uint8_t*>(u8_dst);
 	std::size_t left = src_width * sizeof(char32_t);

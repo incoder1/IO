@@ -67,9 +67,12 @@ public:
 	///         </ul>
 	/// \param src source source raw bytes synchronous read channel
 	/// \param conv character set converter
-	/// \param crate transcoding buffers rating
+	/// \param control character conversation behavior control
 	/// \throw never throws
-	static s_read_channel open(std::error_code& ec,const s_read_channel& src, const charset& from, const charset& to) noexcept;
+	static s_read_channel open(std::error_code& ec,const s_read_channel& src,
+								const charset& from,
+								const charset& to,
+								const cnvrt_control control) noexcept;
 	/// Reads bytes from underlying read channel and convert them to the destination charset
 	/// \param ec operation error code
 	/// \param buff destination memory buffer, must be at least bytes wide
@@ -95,7 +98,9 @@ private:
 	conv_write_channel(const s_write_channel& dst,const s_code_cnvtr& conv) noexcept;
 	std::size_t convert_some(std::error_code& ec, const uint8_t *src, std::size_t &size, uint8_t *dst) const;
 public:
-	static s_write_channel open(std::error_code& ec,const s_write_channel& dst,const s_code_cnvtr& conv) noexcept;
+	static s_write_channel open(std::error_code& ec,
+					const s_write_channel& dst,
+					const s_code_cnvtr& conv) noexcept;
 	/// Destroys channel and releases all associated resources
 	/// \throw never throws
 	virtual ~conv_write_channel() noexcept override;
