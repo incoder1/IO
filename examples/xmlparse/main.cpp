@@ -111,6 +111,7 @@ int main(int argc, const char** argv)
 	}
 
 	xml::s_source src = xml::source::create(ec, sf.open_for_read(ec), code_pages::UTF_8 );
+	//xml::s_source src = xml::source::create(ec, sf.open_for_read(ec), code_pages::UTF_16LE );
 	io::check_error_code( ec );
 	xml::s_event_stream_parser xs = xml::event_stream_parser::open(ec, src);
 	io::check_error_code( ec );
