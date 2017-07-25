@@ -38,7 +38,9 @@ enum class text_color {
 
 namespace posix {
 
-	class console_channel final: public io::read_write_channel {
+	class IO_PUBLIC_SYMBOL console_channel final: public io::read_write_channel {
+        console_channel(const console_channel&) = delete;
+        console_channel& operator=(const console_channel&) = delete;
 	public:
 		console_channel(const fd_t stream) noexcept;
 		virtual ~console_channel() = default;
@@ -53,7 +55,7 @@ namespace posix {
 
 } // namespace posix
 
-class console
+class IO_PUBLIC_SYMBOL console
 {
 	private:
 		console();
@@ -116,17 +118,19 @@ class console
 	/// Returns console character set, always UTF-16LE for Windows
 	/// \return current console character set
 	/// \throw never throws
-	static inline const charset& charset() noexcept
+	/* static inline const charset charset() noexcept
 	{
-		return code_pages::UTF_8;
+        static charset __default = code_pages::UTF_8;
+		return __default;
 	}
+	*/
 
 	private:
 		posix::console_channel *in_;
 		posix::console_channel *out_;
 		posix::console_channel *err_;
 		static std::atomic<console*> _instance;
-		static critical_section _init_cs;
+		static critical_section _cs;
 };
 
 } // namespace io

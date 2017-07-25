@@ -112,7 +112,8 @@ public:
 	/// \throw never throws
 	static file get(std::error_code& ec,const wchar_t* name) noexcept;
 
-	file(file&& oth) noexcept:
+
+    file(file&& oth) noexcept:
 		name_( std::move(oth.name_) )
 	{}
 

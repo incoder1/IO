@@ -11,6 +11,7 @@
 #ifndef HMALLOC_HPP_INCLUDED
 #define HMALLOC_HPP_INCLUDED
 
+#include <assert.h>
 #include <string>
 
 #include <sys/types.h>
@@ -61,13 +62,13 @@ struct memory_traits {
 	template<typename T>
 	static inline T* calloc_temporary(std::size_t count) noexcept
 	{
-		return std::get_temporary_buffer<T>(count).first;
+		return static_cast<T*>( std::calloc(count,sizeof(T)) );
 	}
 
 	template<typename T>
 	static inline void free_temporary(T* const ptr) noexcept
 	{
-		std::return_temporary_buffer<T>(ptr);
+		std::free(ptr);
 	}
 
 };

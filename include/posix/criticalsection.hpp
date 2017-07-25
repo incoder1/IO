@@ -16,7 +16,8 @@ class critical_section
 	critical_section(const critical_section&) = delete;
 	critical_section& operator=(const critical_section&) = delete;
 public:
-	critical_section() noexcept
+	critical_section() noexcept:
+        sl_()
 	{
 		pthread_spin_init(&sl_, 0);
 	}
@@ -29,7 +30,7 @@ public:
 		pthread_spin_lock(&sl_);
 	}
 	__forceinline bool try_lock() noexcept {
-		return 0 == pthread_spin_trylock(&sl);
+		return 0 == ::pthread_spin_trylock(&sl_);
 	}
 	__forceinline void unlock() noexcept {
 		pthread_spin_unlock(&sl_);

@@ -13,6 +13,16 @@
 
 #include <iconv.h>
 
+#ifdef __linux__
+
+#define ICONV_SET_DISCARD_ILSEQ   4  /* const int *argument */
+int iconvctl (iconv_t cd, int request, void* argument)
+{
+    return 1;
+}
+
+#endif // __linux__
+
 namespace io {
 
 namespace detail {
@@ -68,7 +78,7 @@ engine::engine(const char* from,const char* to, cnvrt_control control):
 	iconv_ = ::iconv_open( to, from );
 	if(INVALID_ICONV_DSPTR != iconv_) {
 		int discard = control == cnvrt_control::discard_on_failing_chars? 1: 0;
-		iconvctl(iconv_, ICONV_SET_DISCARD_ILSEQ, &discard);
+		::iconvctl(iconv_, ICONV_SET_DISCARD_ILSEQ, &discard);
 	}
 }
 
@@ -247,9 +257,13 @@ std::size_t IO_PUBLIC_SYMBOL transcode(std::error_code& ec,const uint8_t* u8_src
 {
 	assert(nullptr != u8_src && src_bytes > 0);
 	assert(nullptr != dst && dst_size > 1);
+#ifndef __IO_POSIX_BACKEND__
 	static detail::engine eng("UTF-8",
 							"UCS-4-INTERNAL",
 							cnvrt_control::failure_on_failing_chars);
+#else
+    static detail::engine eng("UTF-8","WCHAR_T",cnvrt_control::failure_on_failing_chars);
+#endif // __IO_POSIX_BACKEND__
 	uint8_t* s = const_cast<uint8_t*>( reinterpret_cast<const uint8_t*>(u8_src) );
 	uint8_t* d = reinterpret_cast<uint8_t*>(dst);
 	std::size_t left = src_bytes;

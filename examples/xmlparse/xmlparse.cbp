@@ -36,6 +36,7 @@
 				<Option type="1" />
 				<Option compiler="gcc" />
 				<Option parameters="test.xml" />
+				<Option projectLinkerOptionsRelation="1" />
 				<Compiler>
 					<Add option="-Weffc++" />
 					<Add option="-pedantic" />
@@ -74,7 +75,8 @@
 				</Compiler>
 				<Linker>
 					<Add option="-pg" />
-					<Add directory="../../bin/debug-win-gcc-dll-x64" />
+					<Add library="pthread" />
+					<Add directory="../../bin/debug-unix-gcc-dll-x64" />
 				</Linker>
 			</Target>
 		</Build>

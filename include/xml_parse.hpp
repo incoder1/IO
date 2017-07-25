@@ -214,13 +214,13 @@ private:
 	inline char next() noexcept
 	{
 		char result = src_->next();
-		if( is_eof(result) )
-			assign_error( src_->last_error() );
+		if( src_->eof() )
+			return std::char_traits<char>::to_char_type( std::char_traits<char>::eof() );
 		return result;
 	}
 
 	static __forceinline bool is_eof(char ch) noexcept {
-		return !std::char_traits<char>::not_eof(ch);
+        return !std::char_traits<char>::not_eof(ch);
 	}
 
 	static __forceinline bool sb_check(const char* sb) noexcept {

@@ -86,15 +86,12 @@ error source::read_more() noexcept
 
 error source::charge() noexcept
 {
-	std::error_code err_code;
 	error ec = read_more();
-	if(!rb_.empty()) {
+	if(ec == error::ok && !rb_.empty()) {
 		pos_ = const_cast<char*>(rb_.position().cdata());
 		end_ = const_cast<char*>(rb_.last().cdata());
-	} else {
-		pos_ = end_;
-		return error::ok;
-	}
+	} else
+        pos_ = end_;
 	return ec;
 }
 
@@ -124,12 +121,17 @@ inline char source::normalize_lend(char ch)
 	return ch;
 }
 
+bool source::eof() noexcept
+{
+  return error::ok != last_ && pos_ != end_;
+}
+
 char source::next() noexcept
 {
 	if( pos_+2 > end_ ) {
 		last_ = charge();
 		if( pos_ == end_ || error::ok != last_ )
-			return _eof;
+            return _eof;
 	}
 	char result = *pos_;
 	if( char_shift_ > 1 ) {

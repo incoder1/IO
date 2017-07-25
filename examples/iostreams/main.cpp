@@ -10,13 +10,6 @@
 #include <text.hpp>
 #include <stream.hpp>
 
-void check_error(const std::error_code& ec) {
-	if(ec) {
-		io::channel_ostream<wchar_t> ucerr( io::console::err() );
-		ucerr<< io::transcode_to_ucs( ec.message().data() ) << std::endl;
-		std::exit( -1 );
-    }
-}
 
 /// Opens a file channel with auto-reconverting content
 /// to UTF-8 from current wchar_t unicode
@@ -25,18 +18,18 @@ io::s_write_channel prepare_file() {
 	// Open a file to write results
 	std::error_code ec;
 	file f = file::get(ec, "result.txt");
-	check_error(ec);
-	s_write_channel fch = f.open_for_write(ec, io::write_open_mode::overwrite);
-	check_error(ec);
+	io::check_error_code(ec);
+	s_write_channel fch = f.open_for_write(ec, write_open_mode::overwrite);
+	io::check_error_code(ec);
 	// write byte order mark
 	fch->write(ec, utf8_bom::data(), utf8_bom::len());
-	check_error(ec);
+	io::check_error_code(ec);
 	// open converting write channel, and stream on top of it
 	s_code_cnvtr cvt = code_cnvtr::open(ec, IO_SYS_UNICODE, code_pages::UTF_8,
 										cnvrt_control::failure_on_failing_chars);
-	check_error(ec);
+	io::check_error_code(ec);
 	s_write_channel ret= conv_write_channel::open(ec, fch, cvt);
-	check_error(ec);
+	io::check_error_code(ec);
 	return ret;
 }
 

@@ -35,6 +35,7 @@ class IO_PUBLIC_SYMBOL source final:public object
 		static s_source create(std::error_code& ec, s_read_channel&& src, const charset& ch) noexcept;
 		virtual ~source() noexcept override;
 		char next() noexcept;
+		bool eof() noexcept;
 		inline std::size_t row() const noexcept {
 			return row_;
 		}

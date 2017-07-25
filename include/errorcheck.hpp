@@ -13,6 +13,10 @@
 #	include "win/errorcheck.hpp"
 #endif // __IO_WINDOWS_BACKEND__
 
+#ifdef __IO_POSIX_BACKEND__
+#   include "posix/errorcheck.hpp"
+#endif // __IO_POSIX_BACKEND__
+
 #ifdef IO_HAS_BOOST
 
 #ifdef IO_NO_EXCEPTIONS

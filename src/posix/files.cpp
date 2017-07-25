@@ -18,9 +18,10 @@ namespace io {
 
 namespace posix {
 
+
 synch_file_channel* new_sync_file_channel(std::error_code& ec, fd_t fd) noexcept
 {
-	return nobadalloc<synch_file_channel>::construct(ex, fd);
+	return nobadalloc<synch_file_channel>::construct(ec, fd);
 }
 
 synch_file_channel::synch_file_channel(fd_t fd) noexcept:
@@ -89,6 +90,22 @@ bool file::exist() noexcept
 	return -1 != ::access( name_.c_str(), F_OK );
 }
 
+static constexpr int DEFAULT_FILE_PERMS = S_IRUSR | S_IWUSR | S_IRGRP | S_IWGRP | S_IROTH;
+
+bool file::create() noexcept
+{
+	if(name_.empty() || exist() )
+		return false;
+    int fd = ::open( name_.c_str(), O_WRONLY | O_CREAT | O_TRUNC | O_SYNC,
+            DEFAULT_FILE_PERMS);
+    if(-1 != fd) {
+        ::close(fd);
+        return true;
+    }
+    return false;
+
+}
+
 file file::get(std::error_code& ec,const char* name) noexcept
 {
 	if(nullptr == name || '\0' == *(name) )
@@ -130,13 +147,14 @@ s_write_channel file::open_for_write(std::error_code& ec,write_open_mode mode) n
 	int fd = -1;
 	switch(mode) {
 	case  write_open_mode::append:
-		fd = ::open( name_.c_str(), O_WRONLY, O_APPEND,O_SYNC);
+		fd = ::open( name_.c_str(), O_WRONLY | O_APPEND | O_SYNC);
 		break;
-	case  write_open_mode::create_if_not_exist :
-		fd = ::open( name_.c_str(), O_WRONLY, O_CREAT, O_APPEND,O_SYNC);
-		break;
+	case  write_open_mode::create_if_not_exist:
 	case  write_open_mode::overwrite:
-		fd = ::open( name_.c_str(), O_WRONLY, O_CREAT, O_TRUNC, O_SYNC);
+        if(!exist())
+            fd = ::open( name_.c_str(), (O_WRONLY | O_CREAT | O_TRUNC | O_SYNC), DEFAULT_FILE_PERMS);
+        else
+            fd = ::open( name_.c_str(), (O_WRONLY | O_TRUNC | O_SYNC) );
 		break;
 	}
 	if(-1 == fd) {

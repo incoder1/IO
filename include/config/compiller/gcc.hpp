@@ -53,7 +53,11 @@
 #endif // __LP64__
 
 #ifndef __forceinline
-#define __forceinline inline __attribute__((__always_inline__,__gnuinline__))
+#   if defined(__MINGW__)  || defined(__MINGW64__)
+#       define __forceinline inline __attribute__((__always_inline__,__gnuinline__))
+#   else
+#       define __forceinline inline __attribute__((__always_inline__))
+#   endif // defined
 #endif // __forceinline
 
 #ifdef IO_CPU_BITS_64

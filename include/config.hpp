@@ -25,7 +25,7 @@
 #pragma once
 #endif // HAS_PRAGMA_ONCE
 
-#if ( defined(_WIN32) || defined(_WIN64) || defined(_WIN32_WINNT) ) && !defined(__CYGWIN__)
+#if ( defined(_WIN32) || defined(_WIN64) ) && !defined(__CYGWIN__)
 #define __IO_WINDOWS_BACKEND__
 #include "win/winconf.hpp"
 #endif // defined

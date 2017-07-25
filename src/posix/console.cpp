@@ -1,5 +1,5 @@
 #include "stdafx.hpp"
-#include "console.hpp"
+#include "posix/console.hpp"
 
 namespace io {
 
@@ -8,7 +8,7 @@ namespace posix {
 //text_color
 
 #define DECLARE_COLOR( _C_NAME, __attr) \
-	static const uint8_t* (_C_NAME) = __attr
+	static const uint8_t* (_C_NAME) = reinterpret_cast<const uint8_t*>( (__attr) )
 
 DECLARE_COLOR(NAVY_BLUE,"\033[22;34m");
 DECLARE_COLOR(NAVY_GREEN,"\033[22;32m");
@@ -28,9 +28,9 @@ DECLARE_COLOR(BRIGHT_WHITE,"\033[01;37m");
 DECLARE_COLOR(RESET,"\033[0m");
 #undef DECLARE_COLOR
 
-static constexpr std::size_t RESET_LEN = io_strlen(RESET);
+static const std::size_t RESET_LEN = io_strlen( reinterpret_cast<const char*>(RESET) );
 
-static const  uint8_t COLOR_TABLE[15] = {
+static const  uint8_t* COLOR_TABLE[15] = {
 	NAVY_BLUE,
 	NAVY_GREEN,
 	NAVY_AQUA,
@@ -79,7 +79,6 @@ std::size_t console_channel::read(std::error_code& ec,uint8_t* const buff, std::
 
 std::size_t console_channel::write(std::error_code& ec, const uint8_t* buff,std::size_t size) const noexcept
 {
-	std::size_t ret;
 	if(RESET != color_) {
 		if( !::write(stream_, color_, color_len_) ) {
 			ec.assign(errno, std::system_category() );
@@ -103,7 +102,7 @@ std::size_t console_channel::write(std::error_code& ec, const uint8_t* buff,std:
 void console_channel::change_color(text_color cl) noexcept
 {
 	color_ = COLOR_TABLE[ static_cast<std::size_t>(cl) ];
-	color_len_ = io_strlen( color_ );
+	color_len_ = io_strlen( reinterpret_cast<const char*>( color_ ) );
 }
 
 } // namespace posix
@@ -111,7 +110,7 @@ void console_channel::change_color(text_color cl) noexcept
 
 // console
 std::atomic<console*> console::_instance(nullptr);
-critical_section console::_init_cs;
+critical_section console::_cs;
 
 void console::release_console() noexcept
 {
@@ -139,10 +138,10 @@ const console* console::get()
 	return tmp;
 }
 
-console::console()
-	in_( new posix::synch_file_channel(STDIN_FILENO) ),
-	out_( new posix::synch_file_channel(STDOUT_FILENO) ),
-	err_( new posix::synch_file_channel(STDERR_FILENO) )
+console::console():
+	in_( new posix::console_channel(STDIN_FILENO) ),
+	out_( new posix::console_channel(STDOUT_FILENO) ),
+	err_( new posix::console_channel(STDERR_FILENO) )
 {
 	intrusive_ptr_add_ref( in_ );
 	intrusive_ptr_add_ref( out_ );
@@ -172,7 +171,7 @@ void console::reset_out_color(const text_color clr) noexcept
 	con->out_->change_color(clr);
 }
 
-void console::reset_err_color(const text_color crl) noexcept
+void console::reset_err_color(const text_color clr) noexcept
 {
 	console *con = const_cast<console*>( get() );
 	lock_guard lock(_cs);
@@ -181,13 +180,13 @@ void console::reset_err_color(const text_color crl) noexcept
 
 std::ostream& console::out_stream()
 {
-	static io::channel_ostream<char> _cout( get()->cout_ );
+	static io::channel_ostream<char> _cout( get()->out_ );
 	return _cout;
 }
 
 std::ostream& console::error_stream()
 {
-	static io::channel_ostream<char> _cout( get()->cerr_ );
+	static io::channel_ostream<char> _cout( get()->err_ );
 	return _cout;
 }
 
@@ -213,13 +212,13 @@ static s_write_channel conv_channel(const s_write_channel& ch)
 
 std::wostream& console::out_wstream()
 {
-	static io::channel_ostream<wchar_t> _wcout( conv_channel( get()->cout_ ) );
-	return _cout;
+	static io::channel_ostream<wchar_t> _wcout( conv_channel( get()->out_ ) );
+	return _wcout;
 }
 
 std::wostream& console::error_wstream()
 {
-	static io::channel_ostream<wchar_t> _wcerr( conv_channel( get()->cout_ ) );
+	static io::channel_ostream<wchar_t> _wcerr( conv_channel( get()->err_ ) );
 	return _wcerr;
 }
 

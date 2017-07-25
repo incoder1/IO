@@ -32,7 +32,7 @@ static constexpr int QM = 63; // '?'
 static constexpr int EM = 33;//'!';
 static constexpr int SPACE = 32;//' ';
 static constexpr int SOLIDUS = 47;// '/'
-static constexpr int HYPHEN = 45;// '-'
+static constexpr int HYPHEN = char8_traits::to_int_type('-');// '-'
 static constexpr int COLON = 58; // ':'
 static constexpr int ENDL = 0;
 static constexpr int iEOF = std::char_traits<char32_t>::to_int_type( std::char_traits<char32_t>::eof() );
@@ -472,24 +472,26 @@ byte_buffer event_stream_parser::read_until_double_separator(const int separator
 	sb_clear(scan_buf_);
 	std::error_code errc;
 	byte_buffer buff = byte_buffer::allocate(errc, HUGE_BUFF_SIZE);
-	if(!check_buffer(buff)) {
+	if(!check_buffer(buff))
 		return byte_buffer();
-	}
-	const uint_fast16_t pattern =  (separator << 8) | separator;
-	uint_fast16_t i = 0;
+    const uint16_t pattern = (separator << 8) | separator;
+	uint16_t i = 0;
 	char c;
 	do {
 		c = next();
-		if( is_eof(c) )
+		if( is_eof(c) ) {
+            assign_error(ec);
 			break;
-		i = (i << 8) | c;
+        }
+		i = (i << 8) | static_cast<uint8_t>(c);
 		if(i == pattern)
 			break;
 		putch(buff, c);
 	} while( !is_error() );
 	buff.flip();
 	if( !cheq(RIGHTB, next() ) ) {
-		assign_error(ec);
+        if(error::ok != state_.ec)
+            assign_error(ec);
 		return byte_buffer();
 	}
 	return std::move(buff);

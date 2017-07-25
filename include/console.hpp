@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016
+ * Copyright (c) 2016-2017
  * Viktor Gubin
  *
  * Use, modification and distribution are subject to the
@@ -20,7 +20,7 @@
 
 #ifdef __IO_WINDOWS_BACKEND__
 #	include "win/console.hpp"
-#elif defined(__IO_POSIZE_BACKED__)
+#elif defined(__IO_POSIX_BACKEND__)
 #	include "posix/console.hpp"
 #endif // __IO_WINDOWS_BACKEND__
 
