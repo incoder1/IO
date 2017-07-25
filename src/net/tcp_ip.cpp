@@ -41,7 +41,7 @@ public:
 		boost::system::error_code ec;
         socket_.close( ec );
         if(ec)
-			std::unexpected();
+			std::terminate();
 	}
 	virtual std::size_t read(std::error_code& ec,uint8_t* const buff, std::size_t bytes) const noexcept override
 	{

@@ -141,7 +141,7 @@ const console* console::get()
 
 console::console()
 	in_( new posix::synch_file_channel(STDIN_FILENO) ),
-	out_(new posix::synch_file_channel(STDOUT_FILENO) ),
+	out_( new posix::synch_file_channel(STDOUT_FILENO) ),
 	err_( new posix::synch_file_channel(STDERR_FILENO) )
 {
 	intrusive_ptr_add_ref( in_ );
@@ -181,21 +181,46 @@ void console::reset_err_color(const text_color crl) noexcept
 
 std::ostream& console::out_stream()
 {
-
+	static io::channel_ostream<char> _cout( get()->cout_ );
+	return _cout;
 }
 
 std::ostream& console::error_stream()
 {
+	static io::channel_ostream<char> _cout( get()->cerr_ );
+	return _cout;
+}
+
+
+
+static s_write_channel conv_channel(const s_write_channel& ch)
+{
+#ifdef IO_IS_LITTLE_ENDIAN
+	static const charset SYSTEM_WIDE = code_pages::UTF_32LE;
+#else
+	static const charset SYSTEM_WIDE = code_pages::UTF_32BE;
+#endif // IO_IS_LITTLE_ENDIAN
+	std::error_code ec;
+	s_code_cnvtr conv = code_cnvtr::open(ec,
+										SYSTEM_WIDE,
+										code_pages::UTF_8,
+										cnvrt_control::discard_on_failing_chars);
+	io::check_error_code( ec );
+	s_write_channel result = conv_write_channel::open(ec, ch, conv);
+	io::check_error_code( ec );
+	return result;
 }
 
 std::wostream& console::out_wstream()
 {
+	static io::channel_ostream<wchar_t> _wcout( conv_channel( get()->cout_ ) );
+	return _cout;
 }
 
 std::wostream& console::error_wstream()
 {
-
+	static io::channel_ostream<wchar_t> _wcerr( conv_channel( get()->cout_ ) );
+	return _wcerr;
 }
-
 
 } // namespace io
