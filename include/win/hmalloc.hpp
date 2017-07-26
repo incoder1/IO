@@ -53,7 +53,7 @@ struct memory_traits {
 	template<typename T>
 	static inline T* calloc_temporary(std::size_t count) noexcept
 	{
-		return std::calloc(count,sizeof(T));
+		return static_cast<T*>( std::calloc(count,sizeof(T) ) );
 	}
 
 	template<typename T>

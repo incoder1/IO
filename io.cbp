@@ -194,6 +194,7 @@
 		<Unit filename="include/buffer.hpp" />
 		<Unit filename="include/channels.hpp" />
 		<Unit filename="include/charsetcvt.hpp" />
+		<Unit filename="include/charsetdetector.hpp" />
 		<Unit filename="include/charsets.hpp" />
 		<Unit filename="include/codedetect.hpp" />
 		<Unit filename="include/config.hpp" />
@@ -287,6 +288,7 @@
 		<Unit filename="src/buffer.cpp" />
 		<Unit filename="src/channels.cpp" />
 		<Unit filename="src/charsetcvt.cpp" />
+		<Unit filename="src/charsetdetector.cpp" />
 		<Unit filename="src/charsets.cpp" />
 		<Unit filename="src/codedetect.cpp" />
 		<Unit filename="src/net/error_category_shim.cpp">
