@@ -220,6 +220,16 @@ public:
 		return reinterpret_cast<difference_type>(position_)
 		       - reinterpret_cast<difference_type>(lhs.position_);
 	}
+
+	inline bool operator<(const byte_buffer_iterator& rhs) const noexcept
+	{
+        return  position_ < rhs.position_;
+	}
+
+	inline bool operator>(const byte_buffer_iterator& rhs) const noexcept
+	{
+        return  position_ > rhs.position_;
+	}
 private:
 	uint8_t* position_;
 };

@@ -55,17 +55,12 @@ public:
 		typedef h_allocator<T1, __memory_traits> other;
 	};
 
-	constexpr h_allocator() noexcept
-	{ }
-
-	constexpr h_allocator(const h_allocator&) noexcept
-	{ }
+	constexpr h_allocator() noexcept = default;
+	~h_allocator() noexcept = default;
 
 	template<typename T1>
 	constexpr h_allocator(const h_allocator<T1, __memory_traits>&) noexcept
 	{ }
-
-	~h_allocator() noexcept = default;
 
 	constexpr pointer address(reference __x) const noexcept
 	{

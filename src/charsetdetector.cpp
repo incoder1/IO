@@ -1,5 +1,6 @@
 #include "stdafx.hpp"
 #include "charsetdetector.hpp"
+#include "strings.hpp"
 
 namespace io {
 
@@ -50,16 +51,6 @@ enum class state_t: uint32_t {
 	found = 2
 };
 
-/*
-#define GETFROMPCK(i, c) \
-( \
-	( \
-		(((c).data)[(i)>>(c).idxsft]) \
-		>> \
-		(((i)&(c).sftmsk)<<(c).bitsft) \
-	)&(c).unitmsk \
-) */
-
 static inline uint32_t get_from_pck(const std::size_t i, const pkg_int& ct)
 {
 	uint32_t di = ct.data[ i >> static_cast<std::size_t>(ct.idxsft) ];
@@ -75,26 +66,33 @@ static inline uint32_t get_class(uint8_t c, const model_t* model)
 class state_machine;
 DECLARE_IPTR( state_machine );
 
-class state_machine: public object {
+class state_machine  {
 	state_machine(const state_machine&) = delete;
 	state_machine&  operator=(const state_machine&) = delete;
-private:
-	friend class nobadalloc<state_machine>;
+public:
+
 	explicit constexpr state_machine(const model_t* model) noexcept:
-		object(),
 		model_(model),
 		state_(state_t::start),
 		char_len_(0),
 		byte_pos_(0)
 	{}
-public:
 
-	static s_state_machine create(std::error_code& ec, const model_t* model) noexcept
+	state_t next_state(uint8_t c) noexcept
 	{
-		return nobadalloc<state_machine>::construct( ec, model );
+		// for each byte we get its class,
+		// if it is first byte, we also get byte length
+		uint32_t byte_class = get_class( c, model_);
+		if(state_ == state_t::start) {
+			byte_pos_ = 0;
+			char_len_ = model_->char_len_table[ byte_class ];
+		}
+		//from byte's class and stateTable, we get its next state
+		uint32_t ind = static_cast<uint32_t>(state_) * (model_->class_factor) + byte_class;
+		state_ = static_cast<state_t>( get_from_pck( ind, model_->state_table ) );
+		++byte_pos_;
+		return  state_;
 	}
-
-	state_t next_state(uint8_t c) noexcept;
 
 	inline uint8_t current_char_len() const noexcept
 	{
@@ -107,33 +105,6 @@ private:
 	uint8_t  char_len_;
 	std::size_t byte_pos_;
 };
-
-state_t state_machine::next_state(uint8_t c) noexcept
-{
-	// for each byte we get its class,
-	// if it is first byte, we also get byte length
-	uint32_t byte_class = get_class( c, model_);
-	if(state_ == state_t::start) {
-		byte_pos_ = 0;
-		char_len_ = model_->char_len_table[ byte_class ];
-	}
-	//from byte's class and stateTable, we get its next state
-	uint32_t ind = static_cast<uint32_t>(state_) * (model_->class_factor) + byte_class;
-	state_ = static_cast<state_t>( get_from_pck( ind, model_->state_table ) );
-	++byte_pos_;
-	return  state_;
-}
-/*
-#define PCK16BITS(a,b)            ((PRUint32)(((b) << 16) | (a)))
-
-#define PCK8BITS(a,b,c,d)         PCK16BITS( ((PRUint32)(((b) << 8) | (a))),  \
-                                             ((PRUint32)(((d) << 8) | (c))))
-
-#define PCK4BITS(a,b,c,d,e,f,g,h) PCK8BITS(  ((PRUint32)(((b) << 4) | (a))), \
-                                             ((PRUint32)(((d) << 4) | (c))), \
-                                             ((PRUint32)(((f) << 4) | (e))), \
-											 ((PRUint32)(((h) << 4) | (g))) )
-*/
 
 static constexpr uint32_t PCK16BITS(uint32_t a, uint32_t b)
 {
@@ -154,6 +125,78 @@ static constexpr uint32_t PCK4BITS(uint32_t a, uint32_t b, uint32_t c,uint32_t d
 	                 ( (h << 4) | g)
 	               );
 }
+
+namespace latin1 {
+
+// undefined
+static constexpr uint32_t UDF = 0;
+//other
+static constexpr uint32_t OTH = 1;
+// ascii capital letter
+static constexpr uint32_t ASC = 2;
+// ascii small letter
+static constexpr uint32_t ASS = 3;
+// accent capital vowel
+static constexpr uint32_t ACV = 4;
+// accent capital other
+static constexpr uint32_t ACO = 5;
+// accent small vowel
+static constexpr uint32_t ASV = 6;
+// accent small other
+static constexpr uint32_t ASO = 7;
+// total classes
+static constexpr uint32_t CLASS_NUM = 8;
+
+static uint8_t CHAR_TO_CLASS[] = {
+	OTH, OTH, OTH, OTH, OTH, OTH, OTH, OTH,   // 00 - 07
+	OTH, OTH, OTH, OTH, OTH, OTH, OTH, OTH,   // 08 - 0F
+	OTH, OTH, OTH, OTH, OTH, OTH, OTH, OTH,   // 10 - 17
+	OTH, OTH, OTH, OTH, OTH, OTH, OTH, OTH,   // 18 - 1F
+	OTH, OTH, OTH, OTH, OTH, OTH, OTH, OTH,   // 20 - 27
+	OTH, OTH, OTH, OTH, OTH, OTH, OTH, OTH,   // 28 - 2F
+	OTH, OTH, OTH, OTH, OTH, OTH, OTH, OTH,   // 30 - 37
+	OTH, OTH, OTH, OTH, OTH, OTH, OTH, OTH,   // 38 - 3F
+	OTH, ASC, ASC, ASC, ASC, ASC, ASC, ASC,   // 40 - 47
+	ASC, ASC, ASC, ASC, ASC, ASC, ASC, ASC,   // 48 - 4F
+	ASC, ASC, ASC, ASC, ASC, ASC, ASC, ASC,   // 50 - 57
+	ASC, ASC, ASC, OTH, OTH, OTH, OTH, OTH,   // 58 - 5F
+	OTH, ASS, ASS, ASS, ASS, ASS, ASS, ASS,   // 60 - 67
+	ASS, ASS, ASS, ASS, ASS, ASS, ASS, ASS,   // 68 - 6F
+	ASS, ASS, ASS, ASS, ASS, ASS, ASS, ASS,   // 70 - 77
+	ASS, ASS, ASS, OTH, OTH, OTH, OTH, OTH,   // 78 - 7F
+	OTH, UDF, OTH, ASO, OTH, OTH, OTH, OTH,   // 80 - 87
+	OTH, OTH, ACO, OTH, ACO, UDF, ACO, UDF,   // 88 - 8F
+	UDF, OTH, OTH, OTH, OTH, OTH, OTH, OTH,   // 90 - 97
+	OTH, OTH, ASO, OTH, ASO, UDF, ASO, ACO,   // 98 - 9F
+	OTH, OTH, OTH, OTH, OTH, OTH, OTH, OTH,   // A0 - A7
+	OTH, OTH, OTH, OTH, OTH, OTH, OTH, OTH,   // A8 - AF
+	OTH, OTH, OTH, OTH, OTH, OTH, OTH, OTH,   // B0 - B7
+	OTH, OTH, OTH, OTH, OTH, OTH, OTH, OTH,   // B8 - BF
+	ACV, ACV, ACV, ACV, ACV, ACV, ACO, ACO,   // C0 - C7
+	ACV, ACV, ACV, ACV, ACV, ACV, ACV, ACV,   // C8 - CF
+	ACO, ACO, ACV, ACV, ACV, ACV, ACV, OTH,   // D0 - D7
+	ACV, ACV, ACV, ACV, ACV, ACO, ACO, ACO,   // D8 - DF
+	ASV, ASV, ASV, ASV, ASV, ASV, ASO, ASO,   // E0 - E7
+	ASV, ASV, ASV, ASV, ASV, ASV, ASV, ASV,   // E8 - EF
+	ASO, ASO, ASV, ASV, ASV, ASV, ASV, OTH,   // F0 - F7
+	ASV, ASV, ASV, ASV, ASV, ASO, ASO, ASO,   // F8 - FF
+};
+
+static uint8_t CLASS_MODEL[] = {
+	/*      UDF OTH ASC ASS ACV ACO ASV ASO  */
+	/*UDF*/  0,  0,  0,  0,  0,  0,  0,  0,
+	/*OTH*/  0,  3,  3,  3,  3,  3,  3,  3,
+	/*ASC*/  0,  3,  3,  3,  3,  3,  3,  3,
+	/*ASS*/  0,  3,  3,  3,  1,  1,  3,  3,
+	/*ACV*/  0,  3,  3,  3,  1,  2,  1,  2,
+	/*ACO*/  0,  3,  3,  3,  3,  3,  3,  3,
+	/*ASV*/  0,  3,  1,  3,  1,  1,  1,  3,
+	/*ASO*/  0,  3,  1,  3,  1,  1,  3,  3,
+};
+
+} // namespace latin1
+
+namespace unicode {
 
 static uint32_t UTF8_class [ 32 ] = {
 //PCK4BITS(0,1,1,1,1,1,1,1),  // 00 - 07
@@ -234,19 +277,159 @@ static model_t UTF8_MODEL = {
 	UTF8_CHAR_LEN_TABLE
 };
 
+} // namesapce unicode
+
 } // namespace coding
 
 namespace detail {
 
+// prober
+prober::prober() noexcept:
+	object()
+{}
+
+byte_buffer prober::filter_without_english_letters(std::error_code& ec, const uint8_t* buff, std::size_t size) const noexcept
+{
+	byte_buffer ret = byte_buffer::allocate(ec, size);
+	if (ec)
+		return ret;
+	const uint8_t *end = buff + size;
+	const uint8_t *prev_ptr = buff, *cur_ptr = buff;
+	bool meet_MSB = false;
+	for (; cur_ptr < end; cur_ptr++) {
+		if (*cur_ptr & 0x80) {
+			meet_MSB = false;
+			continue;
+		}
+		if ( is_latin1(*cur_ptr) ) {
+			//current char is a symbol, most likely a punctuation. we treat it as segment delimiter
+			if (meet_MSB && (cur_ptr > prev_ptr) ) {
+				// this segment contains more than single symbol, and it has upper ASCII, we need to keep it
+				ret.put(cur_ptr, cur_ptr);
+				ret.put(' ');
+				meet_MSB = false;
+			} else
+				//ignore current segment. (either because it is just a symbol or just an English word)
+				prev_ptr = cur_ptr + 1;
+		}
+	}
+	if (meet_MSB && (cur_ptr > prev_ptr) )
+		ret.put(cur_ptr, cur_ptr);
+	ret.flip();
+	return std::move(ret);
+}
+
+//do filtering to reduce load to probers
+byte_buffer prober::filter_with_english_letters(std::error_code& ec, const uint8_t* buff, std::size_t size) const noexcept
+{
+	byte_buffer ret = byte_buffer::allocate(ec, size);
+	if (ec)
+		return ret;
+	bool is_in_tag = false;
+	const uint8_t *end = buff + size;
+	const uint8_t *prev_ptr = buff, *cur_ptr = buff;
+	typedef std::char_traits<uint8_t> chtr;
+	for (; cur_ptr < end; ++cur_ptr) {
+		switch( chtr::to_int_type(*cur_ptr) ) {
+		case char8_traits::to_int_type('<'):
+			is_in_tag = true;
+			break;
+		case char8_traits::to_int_type('>'):
+			is_in_tag = false;
+			break;
+		}
+		if( ! (*cur_ptr & 0x80) && is_latin1(*cur_ptr) ) {
+			// Current segment contains more than just a symbol
+			// and it is not inside a tag, keep it.
+			if (cur_ptr > prev_ptr && !is_in_tag) {
+				ret.put( prev_ptr, cur_ptr);
+				prev_ptr = cur_ptr;
+			} else
+				prev_ptr = cur_ptr + 1;
+		}
+	}
+
+	// If the current segment contains more than just a symbol
+	// and it is not inside a tag then keep it.
+	if (!is_in_tag)
+		ret.put(prev_ptr, cur_ptr);
+	ret.flip();
+	return std::move(ret);
+}
+
+// latin1_prober
+class latin1_prober final:public prober {
+private:
+	static constexpr std::size_t FREQ_CAT_NUM =  4;
+	friend class nobadalloc<latin1_prober>;
+	latin1_prober() noexcept:
+		prober()
+	{}
+	float calc_confidence(const uint32_t *freq_counter) const noexcept
+	{
+		 float ret = 0.0f;
+		 std::size_t total = 0;
+		 for (std::size_t i = 0; i < FREQ_CAT_NUM; i++)
+			total += freq_counter[ i ];
+		 if(total > 0) {
+			ret = freq_counter[3] * 1.0f / total;
+			ret -= freq_counter[1] * 20.0f / total;
+		 }
+		 return ( ret < 0.0f) ? 0.0f : (ret * 0.50f);
+	}
+public:
+	static s_prober create(std::error_code& ec) noexcept
+	{
+		return s_prober( nobadalloc<latin1_prober>::construct(ec) );
+	}
+	virtual charset get_charset() const noexcept override
+	{
+#ifdef __IO_WINDOWS_BACKEND__
+		return code_pages::CP_1252;
+#else
+		return code_pages::ISO_8859_1;
+#endif // __IO_WINDOWS_BACKEND__
+	}
+	virtual bool probe(std::error_code& ec,float& confidence,const uint8_t* buff, std::size_t size) const noexcept override
+	{
+		using namespace coding::latin1;
+		typedef byte_buffer::iterator buff_it_t;
+
+		uint8_t last_char_class = OTH;
+		uint32_t freq_counter[FREQ_CAT_NUM];
+		io_zerro_mem(freq_counter, FREQ_CAT_NUM * sizeof(uint32_t) );
+		byte_buffer new_buff( filter_with_english_letters(ec, buff, size) );
+		if(ec) {
+			confidence = 0.0f;
+			return false;
+		}
+		uint8_t char_class;
+		uint8_t freq;
+		for(buff_it_t it = new_buff.position(); it < new_buff.last(); ++it) {
+			char_class = CHAR_TO_CLASS[ static_cast<std::size_t>( *it )  ];
+			freq = CLASS_MODEL[last_char_class * CLASS_NUM + char_class];
+			if (freq == 0) {
+				confidence = 0.0f;
+				return false;
+			}
+			++freq_counter[freq];
+			last_char_class = char_class;
+		}
+		confidence = calc_confidence(freq_counter);
+		return confidence >= 1.0f;
+	}
+};
+
+// utf8_prober
 class utf8_prober final: public prober {
 private:
 
 	static constexpr float ONE_CHAR_PROB = 0.5F;
 
 	friend class nobadalloc<utf8_prober>;
-	explicit utf8_prober(coding::s_state_machine&& sm) noexcept:
-		prober(),
-		sm_(sm)
+
+	explicit utf8_prober() noexcept:
+		prober()
 	{}
 
 	float calc_confidance(uint8_t multibyte_chars) const noexcept
@@ -263,43 +446,110 @@ private:
 public:
 	static s_prober create(std::error_code& ec) noexcept
 	{
-		coding::s_state_machine sm( coding::state_machine::create(ec, &coding::UTF8_MODEL ) );
-		utf8_prober *ret = nobadalloc<utf8_prober>::construct(ec, std::move(sm) );
-		return s_prober( ret );
+		return s_prober( nobadalloc<utf8_prober>::construct(ec) );
 	}
 	virtual charset get_charset() const noexcept override
 	{
-        return code_pages::UTF_8;
+		return code_pages::UTF_8;
 	}
-	virtual bool probe(float& confidence,const uint8_t* buff, std::size_t size) const noexcept override;
-private:
-	coding::s_state_machine sm_;
+	virtual bool probe(std::error_code& ec,float& confidence,const uint8_t* buff, std::size_t size) const noexcept override
+	{
+		coding::state_t coding_state;
+		coding::state_machine sm( &coding::unicode::UTF8_MODEL );
+		uint8_t multibyte_chars = 0;
+		for (std::size_t i = 0; i < size; i++) {
+			coding_state = sm.next_state( buff[i] );
+			switch(coding_state) {
+			case coding::state_t::start:
+				if( sm.current_char_len() > 2 )
+					++multibyte_chars;
+				break;
+			case coding::state_t::found:
+				confidence = 1.0F;
+				return true;
+			case coding::state_t::error:
+			default:
+				break;
+			}
+		}
+		confidence = calc_confidance(multibyte_chars);
+		return false;
+	}
 };
 
-bool utf8_prober::probe(float& confidence,const uint8_t* buff, std::size_t size) const noexcept
-{
-	coding::state_t coding_state;
-	uint8_t multibyte_chars = 0;
-	for (std::size_t i = 0; i < size; i++) {
-		coding_state = sm_->next_state( buff[i] );
-		switch(coding_state) {
-		case coding::state_t::start:
-			if( sm_->current_char_len() > 2 )
-				++multibyte_chars;
-			break;
-		case coding::state_t::found:
-			return true;
-		case coding::state_t::error:
-		default:
-			break;
-		}
+
+#ifdef IO_NO_EXCEPTIONS
+
+class bad_alloc_handler {
+public:
+	static void handle()
+	{
+		_bad_alloc.store(true);
 	}
-	confidence = calc_confidance(multibyte_chars);
-	return false;
-}
+	static std::atomic_bool _bad_alloc;
+};
+
+std::atomic_bool bad_alloc_handler::_bad_alloc(false);
+
+#endif // IO_NO_EXCEPTIONS
 
 } // detail
 
+//charset_detector
+s_charset_detector charset_detector::create(std::error_code& ec) noexcept
+{
+	detail::s_prober latin1_prob = detail::latin1_prober::create(ec);
+	detail::s_prober utf8_prob = detail::utf8_prober::create(ec);
+	if(ec)
+		return s_charset_detector();
+	v_pobers probers;
+#ifndef IO_NO_EXCEPTIONS
+	try {
+		probers = { latin1_prob, utf8_prob};
+	} catch(...) {
+		ec = std::make_error_code(std::errc::not_enough_memory);
+	}
+#else
+	std::new_handler prev = std::set_new_handler( &detail::bad_alloc_handler::handle );
+	probers = { latin1_prob, utf8_prob };
+	if(detail::bad_alloc_handler::_bad_alloc.load()) {
+		ec = std::make_error_code(std::errc::not_enough_memory);
+		detail::bad_alloc_handler::_bad_alloc.store(false);
+	}
+	std::set_new_handler(prev);
+#endif // IO_NO_EXCEPTIONS
+	return !ec ?  s_charset_detector(
+	           nobadalloc<charset_detector>::construct(ec, std::move(probers) )
+	       )
+	       : s_charset_detector();
+}
 
+charset_detector::charset_detector(v_pobers&& probers) noexcept:
+	object(),
+	probers_( std::forward<v_pobers>(probers) )
+{}
+
+charset_detect_status charset_detector::detect(std::error_code &ec,const uint8_t* buff, std::size_t size) const noexcept
+{
+	float *confidences = static_cast<float*>( io_alloca( probers_.size() ) );
+	float confidence;
+	std::size_t i = 0;
+	for(auto it = probers_.cbegin(); it != probers_.cend(); ++it) {
+		if( (*it)->probe(ec, confidence, buff, size) )
+			return charset_detect_status((*it)->get_charset(), 1.0F);
+		if(ec)
+			return charset_detect_status();
+		confidences[i++] = confidence;
+	}
+	std::size_t maxc_ind = 0;
+	float m = 0.0F;
+	for( i = 0; i < probers_.size(); i++) {
+		if( confidences[i] > m) {
+			m = confidences[i];
+			maxc_ind = i;
+		}
+	}
+	return charset_detect_status(probers_[maxc_ind]->get_charset(), m);
+}
 
 } // namespace io

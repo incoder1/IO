@@ -27,6 +27,13 @@ public:
 	charset(charset&& rhs) = default;
 	charset& operator=(charset&& rhs) = default;
 
+	constexpr charset() noexcept:
+		code_(0),
+		name_("unknown"),
+		char_max_(0),
+		unicode_(false)
+	{}
+
 	constexpr charset(uint16_t code, const char* name, uint8_t char_max, bool unicode) noexcept:
 		code_(code),
 		name_(name),
@@ -134,5 +141,17 @@ public:
 #undef DECLARE_CHARSET
 
 } // namespace io
+
+namespace std {
+
+template<>
+struct hash<io::charset> {
+public:
+	std::size_t operator()(const io::charset& ch)
+	{
+		return static_cast<std::size_t>( ch.code() );
+	}
+};
+}
 
 #endif // __CHARSETS_HPP_INCLUDED__
