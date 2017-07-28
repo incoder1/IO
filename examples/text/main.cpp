@@ -12,7 +12,7 @@
 
 #include <charsetdetector.hpp>
 
-const char* latin1str = "0Aa 1Bb 2Cc 3Dd 4Ee 5Ff 6Gg 7Hh 8Ii 9Jj";
+const char* latin1str = "0Aa\n\t1Bb\n\t2Cc\n\t3Dd\n\t4Ee\n\t5Ff\n\t6Gg\n\t7Hh\n\t8Ii\n\t9Jj";
 const char* u8str = "Hello!\nПривет!\nПривіт!\nΧαιρετίσματα!\nHelló!\nHallå!\nこんにちは!\n您好!\n";
 
 int main()

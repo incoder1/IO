@@ -230,6 +230,7 @@
 		<Unit filename="include/stringpool.hpp" />
 		<Unit filename="include/text.hpp" />
 		<Unit filename="include/tuple_meta_reflect.hpp" />
+		<Unit filename="include/unicode_bom.hpp" />
 		<Unit filename="include/win/asynch_channel.hpp">
 			<Option target="debug-win-gcc-dll-x64" />
 			<Option target="release-win-gcc-static-x64" />
@@ -290,7 +291,6 @@
 		<Unit filename="src/charsetcvt.cpp" />
 		<Unit filename="src/charsetdetector.cpp" />
 		<Unit filename="src/charsets.cpp" />
-		<Unit filename="src/codedetect.cpp" />
 		<Unit filename="src/net/error_category_shim.cpp">
 			<Option target="debug-win-gcc-static-x64" />
 		</Unit>
@@ -318,6 +318,7 @@
 		<Unit filename="src/stringpool.cpp" />
 		<Unit filename="src/strings.hpp" />
 		<Unit filename="src/text.cpp" />
+		<Unit filename="src/unicode_bom.cpp" />
 		<Unit filename="src/win/asynch_channel.cpp">
 			<Option target="debug-win-gcc-dll-x64" />
 			<Option target="release-win-gcc-static-x64" />

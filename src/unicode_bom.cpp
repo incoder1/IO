@@ -8,7 +8,7 @@
  *
  */
 #include "stdafx.hpp"
-#include "codedetect.hpp"
+#include "unicode_bom.hpp"
 
 namespace io {
 

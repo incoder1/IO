@@ -198,8 +198,8 @@ static uint8_t CLASS_MODEL[] = {
 
 namespace unicode {
 
-static uint32_t UTF8_class [ 32 ] = {
-//PCK4BITS(0,1,1,1,1,1,1,1),  // 00 - 07
+static uint32_t UTF8_class[] = {
+	//PCK4BITS(0,1,1,1,1,1,1,1),  // 00 - 07
 	PCK4BITS(1,1,1,1,1,1,1,1),  // 00 - 07  //allow 0x00 as a legal value
 	PCK4BITS(1,1,1,1,1,1,0,0),  // 08 - 0f
 	PCK4BITS(1,1,1,1,1,1,1,1),  // 10 - 17
@@ -531,6 +531,24 @@ charset_detector::charset_detector(v_pobers&& probers) noexcept:
 
 charset_detect_status charset_detector::detect(std::error_code &ec,const uint8_t* buff, std::size_t size) const noexcept
 {
+	// try unicode byte order mark first
+    unicode_cp unicp = detect_by_bom(buff);
+    switch(unicp) {
+	case unicode_cp::not_detected:
+		break;
+	case unicode_cp::utf8:
+		return charset_detect_status(code_pages::UTF_8, 1.0f);
+	case unicode_cp::utf_16be:
+		return charset_detect_status(code_pages::UTF_16BE, 1.0f);
+	case unicode_cp::utf_16le:
+		return charset_detect_status(code_pages::UTF_16LE, 1.0f);
+	case unicode_cp::utf_32be:
+		return charset_detect_status(code_pages::UTF_32BE, 1.0f);
+	case unicode_cp::utf_32le:
+		return charset_detect_status(code_pages::UTF_32BE, 1.0f);
+    }
+	// no unicode byte order mark found, try to detect/guess by evristic
+	// algorythms
 	float *confidences = static_cast<float*>( io_alloca( probers_.size() ) );
 	float confidence;
 	std::size_t i = 0;

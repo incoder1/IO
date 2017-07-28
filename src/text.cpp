@@ -18,7 +18,14 @@ static constexpr std::size_t MAX_CONVB_STACK_SIZE = 1024;
 
 // conv_read_channel
 
-s_read_channel IO_PUBLIC_SYMBOL conv_read_channel::open(
+s_read_channel conv_read_channel::open(std::error_code& ec, const s_read_channel& src, const s_code_cnvtr& conv) noexcept
+{
+	conv_read_channel *ch = io::nobadalloc<conv_read_channel>::construct(ec,
+													src, s_code_cnvtr(conv) );
+	return !ec ? s_read_channel(ch) : s_read_channel();
+}
+
+s_read_channel conv_read_channel::open(
 								std::error_code& ec,
 		const s_read_channel& src,
 		const charset& from,
@@ -28,8 +35,7 @@ s_read_channel IO_PUBLIC_SYMBOL conv_read_channel::open(
 	s_code_cnvtr conv = code_cnvtr::open(ec, from, to, control);
 	if(ec)
 		return s_read_channel();
-	conv_read_channel *ch = io::nobadalloc<conv_read_channel>::construct(ec, src, std::move(conv) );
-	return !ec ? s_read_channel(ch) : s_read_channel();
+	return open(ec, src, std::move(conv) );
 }
 
 conv_read_channel::conv_read_channel(const s_read_channel& src,s_code_cnvtr&& conv) noexcept:

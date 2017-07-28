@@ -11,6 +11,7 @@
 #include "charsets.hpp"
 #include "charsetcvt.hpp"
 #include "object.hpp"
+#include "unicode_bom.hpp"
 
 #include <vector>
 
@@ -41,6 +42,7 @@ public:
 class charset_detector;
 DECLARE_IPTR(charset_detector);
 
+/// Constails status of character set detection
 class charset_detect_status {
 public:
 	constexpr charset_detect_status(const charset& ch, float confidence) noexcept:
@@ -50,13 +52,19 @@ public:
 	constexpr charset_detect_status() noexcept:
 		charset_detect_status(charset(), 0.0F)
 	{}
+	/// Returns true if and only if dector 100% sure about detection accuracy
+	/// \return wether dector 100% sure about accuracy
 	operator bool() const noexcept
 	{
 		return 1.0F == confidence_;
 	}
+	/// Returns detected character_set
+	/// \return detected character_set
 	inline charset character_set() const noexcept {
 		return charset_;
 	}
+	/// Returns detection accuracy confidence, to get percentage value mull on 100.0F
+	/// \return detection accuracy confidence
 	inline float confidence() const noexcept {
 		return confidence_;
 	}
@@ -65,6 +73,9 @@ private:
 	float confidence_;
 };
 
+/// Universal character set detector
+/// Based on Mozilla Universal character detector source code
+/// but with C++ 11 implementation, and improvements
 class IO_PUBLIC_SYMBOL charset_detector:public object {
 	charset_detector(const charset_detector&) = delete;
 	charset_detector& operator=(const charset_detector&) = delete;
@@ -73,7 +84,16 @@ private:
 	typedef std::vector<detail::s_prober, h_allocator<detail::s_prober, memory_traits > > v_pobers;
 	explicit charset_detector(v_pobers&& probers) noexcept;
 public:
+	/// Creates new intrusive pointer on charset_detector object
+	/// \param ec in case of error code, more likely will be out of memory error
+	/// \return intrusive pointer on charset_detector object, or on null_ptr object in case of error
+	/// \throw never throws, including no throwing on bad_alloc
 	static s_charset_detector create(std::error_code& ec) noexcept;
+	/// Detect or guess character set (code page) from a portion of bytes
+	/// \param ec will be set in case of error (more likely in case of our of memory only)
+	/// \param buff a portion of bytes to detect a character set
+	/// \param size a count of bytes will be used to detect character set
+	/// \return detection result \see charset_detect_status
 	charset_detect_status detect(std::error_code& ec, const uint8_t* buff, std::size_t size) const noexcept;
 private:
 	v_pobers probers_;

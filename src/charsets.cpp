@@ -24,6 +24,7 @@ DECLARE_CHARSET(UTF_32BE,12001,"UTF-32BE",4,true)
 DECLARE_CHARSET(UTF_7,65000, "UTF-7", 2, true)
 
 // one byte code pages
+DECLARE_CHARSET(ASCII,20127,"ASCII",1,false)
 DECLARE_CHARSET(ISO_8859_1,28591,"ISO-8859-1",1,false) // Latin 1
 DECLARE_CHARSET(ISO_8859_2,28592,"ISO-8859-2",1,false)
 DECLARE_CHARSET(ISO_8859_3,28593,"ISO-8859-3",1,false)
@@ -45,15 +46,15 @@ DECLARE_CHARSET(KOI8_R,20866,"KOI8-R",1,false) // Unix Russian
 DECLARE_CHARSET(KOI8_U,21866,"KOI8-U",1,false) // Unix Ukrainian
 DECLARE_CHARSET(KOI8_RU,20866,"KOI8-RU",1,false) // Unix Belarusian
 // Windows national code pages for the alphabet based languages
-DECLARE_CHARSET(CP_1250,1250,"CP1250",1,false) // Windows version of ISO-8859-1 + additional character
-DECLARE_CHARSET(CP_1251,1251,"CP1251",1,false) // Windows version of ISO-8859-5 + additional character
-DECLARE_CHARSET(CP_1252,1252,"CP1252",1,false)
-DECLARE_CHARSET(CP_1253,1253,"CP1253",1,false)
-DECLARE_CHARSET(CP_1254,1254,"CP1254",1,false)
-DECLARE_CHARSET(CP_1255,1255,"CP1255",1,false)
-DECLARE_CHARSET(CP_1256,1256,"CP1256",1,false)
-DECLARE_CHARSET(CP_1257,1257,"CP1257",1,false)
-DECLARE_CHARSET(CP_1258,1258,"CP1258",1,false)
+DECLARE_CHARSET(CP_1250,1250,"CP1250",1,false) // ANSI Central European; Central European (Windows)
+DECLARE_CHARSET(CP_1251,1251,"CP1251",1,false) // ANSI Cyrillic; Cyrillic (Windows) (Bulgarian, Belarusian, Russian, Serbian or Ukrainian)
+DECLARE_CHARSET(CP_1252,1252,"CP1252",1,false) // ANSI Latin 1; Western European (Windows)
+DECLARE_CHARSET(CP_1253,1253,"CP1253",1,false) // ANSI Greek; Greek (Windows)
+DECLARE_CHARSET(CP_1254,1254,"CP1254",1,false) // ANSI Turkish; Turkish (Windows)
+DECLARE_CHARSET(CP_1255,1255,"CP1255",1,false) // ANSI Hebrew; Hebrew (Windows)
+DECLARE_CHARSET(CP_1256,1256,"CP1256",1,false) // ANSI Arabic; Arabic (Windows)
+DECLARE_CHARSET(CP_1257,1257,"CP1257",1,false) // ANSI Baltic; Baltic (Windows)
+DECLARE_CHARSET(CP_1258,1258,"CP1258",1,false) // ANSI/OEM Vietnamese; Vietnamese (Windows)
 
 
 bool charset::operator==(const charset& rhs) const noexcept

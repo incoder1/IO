@@ -136,6 +136,23 @@ const char* chconv_error_category::cstr_message(int err_code) const
 	return "Character conversion error";
 }
 
+#ifdef __IO_WINDOWS_BACKEND__
+
+static constexpr const char * SYSTEM_UTF16 = "UCS-2-INTERNAL";
+static constexpr const char * SYSTEM_UTF32 = "UCS-4-INTERNAL";
+
+#else // unix
+
+#	ifdef IO_IS_LITTLE_ENDIAN
+	static constexpr const char * SYSTEM_UTF16 = "UTF-16LE";
+	static constexpr const char * SYSTEM_UTF32 = "UTF-32LE";
+#	else
+	static constexpr const char * SYSTEM_UTF16 = "UTF-16BE";
+	static constexpr const char * SYSTEM_UTF32 = "UTF-32BE";
+#	endif // IO_IS_LITTLE_ENDIAN
+
+#endif // __IO_WINDOWS_BACKEND__
+
 std::error_code IO_PUBLIC_SYMBOL make_error_code(io::converrc ec) noexcept
 {
 	return std::error_code( ec, *(chconv_error_category::instance()) );
@@ -145,28 +162,7 @@ std::error_condition IO_PUBLIC_SYMBOL make_error_condition(io::converrc err) noe
 {
 	return std::error_condition(static_cast<int>(err), *(chconv_error_category::instance()) );
 }
-/*
-	bool result = false;
-		if(from == code_pages::UTF_8) {
-		 // to 1 byte, same size
-		 // to UCS-2 = size*2
-		 // to UCS-4 = size*4
-		 rate = u8_up_rate(to);
-	} else if(to == code_pages::UTF_8) {
-		// if from UCS[2,4] same or less, utherwise up to 4 times
-		// larger
-		rate = from.unicode() ? 0 : 2;
-	} else if( from.char_max_size() == to.char_max_size() ) {
-		rate = 0;
-	} else if(from.char_max_size() < to.char_max_size()) {
-		rate = (from.char_max_size() == 2) ? 1: 2;
-	} else {
-		result = true;
-		rate = (to.char_max_size() == 2) ? 1: 2;
-	}
-	return result;
-}
-*/
+
 s_code_cnvtr code_cnvtr::open(std::error_code& ec,
                               const charset& from,
                               const charset& to,
@@ -184,28 +180,6 @@ s_code_cnvtr code_cnvtr::open(std::error_code& ec,
 	code_cnvtr* result = io::nobadalloc<code_cnvtr>::construct( ec, std::move(iconve)  );
 	return !ec ? s_code_cnvtr( result ) : s_code_cnvtr();
 }
-
-/*
-	bool result = false;
-		if(from == code_pages::UTF_8) {
-		 // to 1 byte, same size
-		 // to UCS-2 = size*2
-		 // to UCS-4 = size*4
-		 rate = u8_up_rate(to);
-	} else if(to == code_pages::UTF_8) {
-		// if from UCS[2,4] same or less, utherwise up to 4 times
-		// larger
-		rate = from.unicode() ? 0 : 2;
-	} else if( from.char_max_size() == to.char_max_size() ) {
-		rate = 0;
-	} else if(from.char_max_size() < to.char_max_size()) {
-		rate = (from.char_max_size() == 2) ? 1: 2;
-	} else {
-		result = true;
-		rate = (to.char_max_size() == 2) ? 1: 2;
-	}
-	return result;
-*/
 
 code_cnvtr::code_cnvtr(detail::engine&& eng) noexcept:
 	object(),
@@ -240,7 +214,9 @@ std::size_t IO_PUBLIC_SYMBOL transcode(std::error_code& ec, const uint8_t* u8_sr
 {
 	assert(nullptr != u8_src && src_bytes > 0);
 	assert(nullptr != dst && dst_size > 0);
-	static detail::engine eng("UTF-8","UCS-2-INTERNAL", cnvrt_control::failure_on_failing_chars);
+	static detail::engine eng( code_pages::UTF_8.name(),
+							   SYSTEM_UTF16,
+							   cnvrt_control::failure_on_failing_chars);
 	uint8_t* s = const_cast<uint8_t*>( reinterpret_cast<const uint8_t*>(u8_src) );
 	uint8_t* d = reinterpret_cast<uint8_t*>(dst);
 	std::size_t left = src_bytes;
@@ -257,13 +233,9 @@ std::size_t IO_PUBLIC_SYMBOL transcode(std::error_code& ec,const uint8_t* u8_src
 {
 	assert(nullptr != u8_src && src_bytes > 0);
 	assert(nullptr != dst && dst_size > 1);
-#ifndef __IO_POSIX_BACKEND__
-	static detail::engine eng("UTF-8",
-							"UCS-4-INTERNAL",
+	static detail::engine eng(code_pages::UTF_8.name(),
+							SYSTEM_UTF32,
 							cnvrt_control::failure_on_failing_chars);
-#else
-    static detail::engine eng("UTF-8","WCHAR_T",cnvrt_control::failure_on_failing_chars);
-#endif // __IO_POSIX_BACKEND__
 	uint8_t* s = const_cast<uint8_t*>( reinterpret_cast<const uint8_t*>(u8_src) );
 	uint8_t* d = reinterpret_cast<uint8_t*>(dst);
 	std::size_t left = src_bytes;
@@ -281,8 +253,8 @@ std::size_t IO_PUBLIC_SYMBOL transcode(std::error_code& ec,const char16_t* u16_s
 	assert(nullptr != u16_src && src_width > 0);
 	assert(nullptr != u8_dst && dst_size > 1);
 	static detail::engine eng(
-							"UCS-2-INTERNAL",
-							"UTF-8",
+							SYSTEM_UTF16,
+							code_pages::UTF_8.name(),
 							cnvrt_control::failure_on_failing_chars);
 	uint8_t* s = const_cast<uint8_t*>( reinterpret_cast<const uint8_t*>(u16_src) );
 	uint8_t* d = const_cast<uint8_t*>(u8_dst);
@@ -299,8 +271,8 @@ std::size_t IO_PUBLIC_SYMBOL transcode(std::error_code& ec,const char16_t* u16_s
 std::size_t IO_PUBLIC_SYMBOL transcode(std::error_code& ec,const char32_t* u32_src, std::size_t src_width, uint8_t* const u8_dst, std::size_t dst_size) noexcept
 {
 	assert(nullptr != u8_dst && dst_size > 0);
-	static detail::engine eng("UCS-4-INTERNAL",
-							"UTF-8",
+	static detail::engine eng(SYSTEM_UTF32,
+							code_pages::UTF_8.name(),
 							cnvrt_control::failure_on_failing_chars);
 	uint8_t* s = const_cast<uint8_t*>( reinterpret_cast<const uint8_t*>(u32_src) );
 	uint8_t* d = const_cast<uint8_t*>(u8_dst);

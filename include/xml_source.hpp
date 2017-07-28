@@ -11,13 +11,16 @@
 #ifndef __IO_XML_SOURCE_HPP_INCLUDED__
 #define __IO_XML_SOURCE_HPP_INCLUDED__
 
-#include "channels.hpp"
-#include "xml_error.hpp"
-#include "text.hpp"
+#include "config.hpp"
 
 #ifdef HAS_PRAGMA_ONCE
 #pragma once
 #endif // HAS_PRAGMA_ONCE
+
+#include "channels.hpp"
+#include "xml_error.hpp"
+#include "text.hpp"
+#include "charsetdetector.hpp"
 
 namespace io {
 
@@ -32,7 +35,11 @@ class IO_PUBLIC_SYMBOL source final:public object
 	source(const source&) = delete;
 	source& operator=(const source&) = delete;
 	public:
-		static s_source create(std::error_code& ec, s_read_channel&& src, const charset& ch) noexcept;
+		static s_source create(std::error_code& ec,s_read_channel&& src) noexcept;
+		static s_source create(std::error_code& ec,const s_read_channel& src) noexcept
+		{
+			return create(ec, s_read_channel(src) );
+		}
 		virtual ~source() noexcept override;
 		char next() noexcept;
 		bool eof() noexcept;
@@ -48,7 +55,7 @@ class IO_PUBLIC_SYMBOL source final:public object
 	private:
 		static const std::size_t READ_BUFF_INITIAL_SIZE;
 		static const std::size_t READ_BUFF_MAXIMAL_SIZE;
-		static s_source create(std::error_code& ec, s_read_channel&& src, byte_buffer&& rb, const charset& ch) noexcept;
+		static s_source open(std::error_code& ec, const s_read_channel& src, byte_buffer&& rb) noexcept;
 		friend io::nobadalloc<source>;
 		source(s_read_channel&& src, byte_buffer&& rb) noexcept;
 		error read_more() noexcept;

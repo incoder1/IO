@@ -13,7 +13,7 @@
 #include "config.hpp"
 #include "channels.hpp"
 #include "charsetcvt.hpp"
-#include "codedetect.hpp"
+#include "unicode_bom.hpp"
 #include "errorcheck.hpp"
 
 #include <atomic>
@@ -73,6 +73,9 @@ public:
 								const charset& from,
 								const charset& to,
 								const cnvrt_control control) noexcept;
+
+	static s_read_channel open(std::error_code& ec, const s_read_channel& src,const s_code_cnvtr& conv) noexcept;
+
 	/// Reads bytes from underlying read channel and convert them to the destination charset
 	/// \param ec operation error code
 	/// \param buff destination memory buffer, must be at least bytes wide
