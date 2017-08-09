@@ -22,7 +22,8 @@
 #	define IO_PUBLIC_SYMBOL
 #endif // IO_SHARED_LIB
 
-#include  "hmalloc.hpp"
+define IO_MALLOC_ATTR __attribute__ ((dllexport,malloc))
 
+#include  "hmalloc.hpp"
 
 #endif // __IO_POSIXCONF_HPP_INCLUDED__

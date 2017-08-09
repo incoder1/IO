@@ -70,10 +70,18 @@ public:
 
 	static inline mem_block allocate(const std::size_t size) noexcept
 	{
-		uint8_t *ptr = static_cast<uint8_t*> ( memory_traits::malloc(size) );
+		uint8_t *ptr = memory_traits::malloc_array<uint8_t>(size);
 		if(nullptr == ptr)
 			return mem_block();
-		io_zerro_mem( ptr, size);
+		return mem_block( ptr );
+	}
+
+	static inline mem_block wrap(const uint8_t* arr, std::size_t size) noexcept
+	{
+		uint8_t *ptr = memory_traits::memory_traits::malloc_array<uint8_t>(size);
+		if(nullptr == ptr)
+			return mem_block();
+		io_memmove(ptr, arr, size);
 		return mem_block( ptr );
 	}
 
@@ -136,6 +144,18 @@ public:
 	inline const char* cdata() const noexcept
 	{
 		return reinterpret_cast<char*>(position_);
+	}
+
+	inline const wchar_t* wdata() const noexcept {
+		return reinterpret_cast<wchar_t*>(position_);
+	}
+
+	inline const char16_t* u16data() const noexcept {
+		return reinterpret_cast<char16_t*>(position_);
+	}
+
+	inline const char32_t* u32data() const noexcept {
+		return reinterpret_cast<char32_t*>(position_);
 	}
 
 	inline byte_buffer_iterator& operator++() noexcept
@@ -387,6 +407,7 @@ public:
 	template<typename T>
 	inline std::size_t put(const T* arr, std::size_t count) noexcept
 	{
+		static_assert( std::is_fundamental<T>::value || std::is_trivial<T>::value, "Must be an array of trivail or fundamental type" );
 		if(nullptr == arr || count == 0 )
 			return 0;
 		const uint8_t* b = reinterpret_cast<const uint8_t*>(arr);
@@ -582,18 +603,22 @@ public:
 	template<typename T>
 	static byte_buffer wrap(const T* begin,const T* end) noexcept
 	{
+		static_assert( std::is_fundamental<T>::value || std::is_trivial<T>::value, "Must be an array of trivail or fundamental type" );
 		if(end <= begin)
 			return byte_buffer();
-		byte_buffer res = allocate( memory_traits::distance(begin,end)+sizeof(T) );
-		if( 0 == res.capacity() )
-			return  byte_buffer();
-		res.put(begin, end);
-		return byte_buffer( std::move(res) );
+		return wrap( begin, memory_traits::distance(begin,end) * sizeof(T) );
 	}
 	template<typename T>
 	static inline byte_buffer wrap(const T* arr, std::size_t size) noexcept
 	{
-		return wrap(arr, size);
+		static_assert( std::is_fundamental<T>::value || std::is_trivial<T>::value, "Must be an array of trivail or fundamental type" );
+		if(0 == size)
+			return byte_buffer();
+		byte_buffer res = allocate( size );
+		if( 0 == res.capacity() )
+			return  byte_buffer();
+		res.put(arr, size);
+		return byte_buffer( std::move(res) );
 	}
 	template<typename __char_type>
 	static inline byte_buffer wrap(const __char_type* str) noexcept
@@ -607,6 +632,7 @@ private:
 	uint8_t* position_;
 	uint8_t* last_;
 };
+
 
 /// Converts this buffer into STL string of provided type by deep coppying all bytes between
 /// buffer position and last iterators into STL string

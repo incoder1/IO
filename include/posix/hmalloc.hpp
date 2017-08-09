@@ -41,6 +41,13 @@ struct memory_traits {
        return std::realloc(base, new_size);
 	}
 
+	template<typename T>
+	static inline T* malloc_array(std::size_t array_size) noexcept
+	{
+		assert(0 != array_size);
+        return static_cast<T*>( std::calloc(array_size, sizeof(T) ) );
+	}
+
 	static inline void free IO_PREVENT_MACRO (void * const ptr) noexcept
 	{
 		std::free(ptr);

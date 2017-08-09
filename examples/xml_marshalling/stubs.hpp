@@ -2,6 +2,7 @@
 #define STUBS_HPP_INCLUDED
 
 #include <xml_types.hpp>
+#include <xml_binding.hpp>
 
 #include <vector>
 #include <string>
@@ -59,14 +60,14 @@ public:
 		return xml_type("configuration", std::make_tuple(id,en), std::make_tuple(tm,s) );
 	}
 
-	static config from_xml_type(const xml_type* xt)
+	static config from_xml_type(const xml_type& xt)
 	{
 		// attributes
-		uint8_t id = std::get<0>( xt->attributes() ).value();
-		bool enabled = std::get<1>( xt->attributes() ).value();
+		uint8_t id = std::get<0>( xt.attributes() ).value();
+		bool enabled = std::get<1>( xt.attributes() ).value();
 		// elements
-		std::tm tm = std::get<0>( xt->elements() ).value();
-		std::string msg( std::get<1>( xt->elements() ).value() );
+		std::tm tm = std::get<0>( xt.elements() ).value();
+		std::string msg( std::get<1>( xt.elements() ).value() );
 		return config(id, enabled, std::move(tm) , std::move(msg) );
 	}
 
@@ -158,13 +159,13 @@ public:
 						std::make_tuple( primary_conf_.to_xml_type(), std::move(confs) ) );
 	}
 
-	static app_settings from_xml_type(const xml_type* xt)
+	static app_settings from_xml_type(const xml_type& xt)
 	{
 		// elements
-		primary_conf::xml_type r =  std::get<0>( xt->elements() );
+		primary_conf::xml_type r =  std::get<0>( xt.elements() );
 		primary_conf rt = primary_conf::from_xml_type( &r );
 		// get and unmap container
-		config_list confs = std::move( std::get<1>(xt->elements()) );
+		config_list confs( std::get<1>(xt.elements()) );
 		std::vector<config> vconf;
 		confs.unmap( vconf );
 		return app_settings( std::move(rt), std::move(vconf) );

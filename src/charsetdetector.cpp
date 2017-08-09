@@ -126,6 +126,7 @@ static constexpr uint32_t PCK4BITS(uint32_t a, uint32_t b, uint32_t c,uint32_t d
 	               );
 }
 
+
 namespace latin1 {
 
 // undefined
@@ -195,6 +196,63 @@ static uint8_t CLASS_MODEL[] = {
 };
 
 } // namespace latin1
+
+namespace single_byte {
+
+/** Codepoints **/
+
+/* Illegal codepoints.*/
+static constexpr uint8_t ILL = 255;
+/* Control character. */
+static constexpr uint8_t CTR = 254;
+/* Symbols and punctuation that does not belong to words. */
+static constexpr uint8_t SYM = 253;
+/* Return/Line feeds. */
+static constexpr uint8_t RET = 252;
+/* Numbers 0-9. */
+static constexpr uint8_t NUM = 251;
+
+struct sequence_model {
+	// [256] table use to find a char's order
+	uint8_t *char_to_order_map;
+	// [SAMPLE_SIZE][SAMPLE_SIZE]; table to find a 2-char sequence's frequency
+	char *precedence_matrix;
+	// The count of frequent characters.
+	int freq_char_count;
+	// = freqSeqs / totalSeqs
+	float  typical_positive_ratio;
+	// says if this script contains English characters (not implemented)
+	bool keep_english_letter;
+	// charset
+	charset character_set;
+};
+
+namespace cyrylic {
+
+//KOI8-R language model
+//Character Mapping Table:
+static const unsigned char KOI8R_CHAR_TO_ORDER_MAP[] = {
+	CTR,CTR,CTR,CTR,CTR,CTR,CTR,CTR,CTR,CTR,RET,CTR,CTR,RET,CTR,CTR,  //00
+	CTR,CTR,CTR,CTR,CTR,CTR,CTR,CTR,CTR,CTR,CTR,CTR,CTR,CTR,CTR,CTR,  //10
+	SYM,SYM,SYM,SYM,SYM,SYM,SYM,SYM,SYM,SYM,SYM,SYM,SYM,SYM,SYM,SYM,  //20
+	NUM,NUM,NUM,NUM,NUM,NUM,NUM,NUM,NUM,NUM,SYM,SYM,SYM,SYM,SYM,SYM,  //30
+	SYM,142,143,144,145,146,147,148,149,150,151,152, 74,153, 75,154,  //40
+	155,156,157,158,159,160,161,162,163,164,165,SYM,SYM,SYM,SYM,SYM,  //50
+	SYM, 71,172, 66,173, 65,174, 76,175, 64,176,177, 77, 72,178, 69,  //60
+	67,179, 78, 73,180,181, 79,182,183,184,185,SYM,SYM,SYM,SYM,SYM,  //70
+	191,192,193,194,195,196,197,198,199,200,201,202,203,204,205,206,  //80
+	207,208,209,210,211,212,213,214,215,216,217,218,219,220,221,222,  //90
+	223,224,225, 68,226,227,228,229,230,231,232,233,234,235,236,237,  //a0
+	238,239,240,241,242,243,244,245,246,247,248,249,250,251,NUM,SYM,  //b0
+	27,  3, 21, 28, 13,  2, 39, 19, 26,  4, 23, 11,  8, 12,  5,  1,  //c0
+	15, 16,  9,  7,  6, 14, 24, 10, 17, 18, 20, 25, 30, 29, 22, 54,  //d0
+	59, 37, 44, 58, 41, 48, 53, 46, 55, 42, 60, 36, 49, 38, 31, 34,  //e0
+	35, 43, 45, 32, 40, 52, 56, 33, 61, 62, 51, 57, 47, 63, 50, 70,  //f0
+};
+
+} // namesapace cyrylic
+
+} // namespace single_byte
 
 namespace unicode {
 
@@ -367,15 +425,15 @@ private:
 	{}
 	float calc_confidence(const uint32_t *freq_counter) const noexcept
 	{
-		 float ret = 0.0f;
-		 std::size_t total = 0;
-		 for (std::size_t i = 0; i < FREQ_CAT_NUM; i++)
+		float ret = 0.0f;
+		std::size_t total = 0;
+		for (std::size_t i = 0; i < FREQ_CAT_NUM; i++)
 			total += freq_counter[ i ];
-		 if(total > 0) {
+		if(total > 0) {
 			ret = freq_counter[3] * 1.0f / total;
 			ret -= freq_counter[1] * 20.0f / total;
-		 }
-		 return ( ret < 0.0f) ? 0.0f : (ret * 0.50f);
+		}
+		return ( ret < 0.0f) ? 0.0f : (ret * 0.50f);
 	}
 public:
 	static s_prober create(std::error_code& ec) noexcept
@@ -418,6 +476,82 @@ public:
 		confidence = calc_confidence(freq_counter);
 		return confidence >= 1.0f;
 	}
+};
+
+//single byte prober
+class single_byte_char_set_prober:public virtual prober {
+public:
+	typedef coding::single_byte::sequence_model sequence_model_t;
+private:
+	static constexpr uint16_t SB_ENOUGH_REL_THRESHOLD = 1024;
+	static constexpr float POSITIVE_SHORTCUT_THRESHOLD  = 0.95F;
+	static constexpr float NEGATIVE_SHORTCUT_THRESHOLD  = 0.05F;
+	static constexpr uint8_t SYMBOL_CAT_ORDER = 250;
+	static constexpr std::size_t NUMBER_OF_SEQ_CAT = 4;
+	static constexpr std::size_t POSITIVE_CAT = (NUMBER_OF_SEQ_CAT-1);
+	static constexpr std::size_t NEGATIVE_CAT = 0;
+public:
+	single_byte_char_set_prober(
+	    const sequence_model_t *model,
+	    bool reversed,
+	    const s_prober& name_prober) noexcept:
+		prober(),
+		reversed_(reversed),
+		last_order_(255),
+		total_seqs_(0),
+		total_char_(0),
+		ctrl_char_(0),
+		freq_char_(0),
+		model_(model)
+	{
+		io_zerro_mem(seq_counters_, NUMBER_OF_SEQ_CAT * sizeof(uint32_t) );
+	}
+	single_byte_char_set_prober(const coding::single_byte::sequence_model *model):
+		single_byte_char_set_prober(model, false, s_prober() )
+	{}
+	virtual bool probe(std::error_code& ec,float& confidence,const uint8_t* buff, std::size_t size) const noexcept override
+	{
+		typedef byte_buffer::iterator buff_it_t;
+		byte_buffer script = byte_buffer::wrap(buff, size);
+		if(script.empty()) {
+		}
+		return false;
+	}
+protected:
+	void reset()
+	{
+		last_order_ = 255;
+		io_zerro_mem(seq_counters_, NUMBER_OF_SEQ_CAT * sizeof(uint32_t) );
+		total_seqs_ = 0;
+		total_char_ = 0;
+		ctrl_char_  = 0;
+		freq_char_ = 0;
+	}
+	float calc_confidence() const noexcept
+	{
+		float ret = 0.01F;
+		if (total_seqs_ > 0) {
+			ret = 1.0F * seq_counters_[POSITIVE_CAT] / total_seqs_ / model_->typical_positive_ratio;
+			ret *= seq_counters_[POSITIVE_CAT] / total_char_;
+			ret *= (total_char_-ctrl_char_) / total_char_;
+			ret *= freq_char_ / total_char_;
+			if (ret >= 1.00F)
+				ret = 0.99F;
+		}
+		return ret;
+	}
+private:
+	bool reversed_;
+	//char order of last character
+	uint8_t last_order_;
+	uint32_t total_seqs_;
+	uint32_t total_char_;
+	uint32_t ctrl_char_;
+	//characters that fall in our sampling range
+	uint32_t freq_char_;
+	s_prober name_prober_;
+	uint32_t seq_counters_[NUMBER_OF_SEQ_CAT];
+	const sequence_model_t *model_;
 };
 
 // utf8_prober
@@ -532,8 +666,8 @@ charset_detector::charset_detector(v_pobers&& probers) noexcept:
 charset_detect_status charset_detector::detect(std::error_code &ec,const uint8_t* buff, std::size_t size) const noexcept
 {
 	// try unicode byte order mark first
-    unicode_cp unicp = detect_by_bom(buff);
-    switch(unicp) {
+	unicode_cp unicp = detect_by_bom(buff);
+	switch(unicp) {
 	case unicode_cp::not_detected:
 		break;
 	case unicode_cp::utf8:
@@ -546,7 +680,7 @@ charset_detect_status charset_detector::detect(std::error_code &ec,const uint8_t
 		return charset_detect_status(code_pages::UTF_32BE, 1.0f);
 	case unicode_cp::utf_32le:
 		return charset_detect_status(code_pages::UTF_32BE, 1.0f);
-    }
+	}
 	// no unicode byte order mark found, try to detect/guess by evristic
 	// algorythms
 	float *confidences = static_cast<float*>( io_alloca( probers_.size() ) );

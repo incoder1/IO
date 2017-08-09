@@ -105,6 +105,8 @@ void console_channel::change_color(text_color cl) noexcept
 	color_len_ = io_strlen( reinterpret_cast<const char*>( color_ ) );
 }
 
+DECLARE_IPTR(console_channel);
+
 } // namespace posix
 
 
@@ -142,19 +144,18 @@ console::console():
 	in_( new posix::console_channel(STDIN_FILENO) ),
 	out_( new posix::console_channel(STDOUT_FILENO) ),
 	err_( new posix::console_channel(STDERR_FILENO) )
-{
-	intrusive_ptr_add_ref( in_ );
-	intrusive_ptr_add_ref( out_ );
-	intrusive_ptr_add_ref( err_ );
-}
+{}
 
 void console::reset_colors(const text_color in,const text_color out,const text_color err) noexcept
 {
 	console *con = const_cast<console*>( get() );
 	lock_guard lock(_cs);
-	con->in_->change_color(in);
-	con->out_->change_color(out);
-	con->err_->change_color(err);
+	posix::s_console_channel cch = con->in_;
+	cch->change_color(in);
+	cch = con->out_;
+	cch->change_color(out);
+	cch = con->err_;
+	cch->change_color(err);
 }
 
 void console::reset_in_color(const text_color clr) noexcept

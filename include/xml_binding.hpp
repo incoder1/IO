@@ -12,6 +12,8 @@
 #define __IO_XML_BINDING_HPP_INCLUDED__
 
 #include "config.hpp"
+#include "tuple_meta_reflect.hpp"
+
 #include "xml_types.hpp"
 #include "xml_lexcast.hpp"
 #include "xml_parse.hpp"
@@ -24,25 +26,35 @@ namespace io {
 
 namespace xml {
 
-
 template <class xml_type>
 class unmarshaller
 {
 public:
-	typedef typename xml_type::mapping_type binded_type;
 
-	inline void unmarshall(std::error_code& ec,const event_stream_parser& parser, binded_type& to) noexcept
+	inline void unmarshall(std::error_code& ec,const s_event_stream_parser& parser, xml_type& to) noexcept
 	{
-		start_element_event e = parser->parse_start_element();
-		if( parser->is_error() ) {
-			parser->get_last_error(ec);
-			return;
-		}
-		if( ! e.empty_element() ) {
+		xml::state state;
+		bool done = false;
+		do {
+			state = parser->scan_next();
+			switch(state.current) {
+				case xml::state_type::start_document:
+					parser->parse
+					continue;
+				case xml::state_type::eod:
+					done = true;
+					break;
+				case xml::state_type::characters:
+					parser->
+					break;
+				case xml::state_type::dtd:
 
-		}
-
+				case xml::state_type::comment:
+					parser->skip_comment();
+			}
+		} while(!done);
 	}
+
 };
 
 } // namespace xml

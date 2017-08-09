@@ -28,7 +28,7 @@ class murmur3
 {
 private:
 	// an randomly selected number seed
-	static constexpr uint32_t SEED = 38257967;
+	static constexpr uint32_t SEED = 0xCAFEBABE;
 
 	static constexpr uint32_t C1 = 0xCC9E2D51;
 	static constexpr uint32_t C2 = 0x1B873593;
@@ -121,13 +121,13 @@ private:
 
 	static inline uint64_t unaligned_load64(const uint8_t *p) {
 		uint64_t result;
-		io_memmove( reinterpret_cast<void*>(&result), p, sizeof(uint64_t) );
+		io_memmove( static_cast<void*>(&result), p, sizeof(uint64_t) );
 		return result;
 	}
 
 	static inline uint32_t unaligned_load32(const uint8_t *p) {
 		uint32_t result;
-		io_memmove( reinterpret_cast<void*>(&result), p, sizeof(uint32_t) );
+		io_memmove( static_cast<void*>(&result), p, sizeof(uint32_t) );
 		return result;
 	}
 
@@ -237,7 +237,7 @@ private:
 								a,b);
 	}
 
-	static IO_NO_INLINE uint64_t hash_len33_to_64(const uint8_t *s, size_t len) IO_NO_INLINE {
+	static IO_NO_INLINE uint64_t hash_len33_to_64(const uint8_t *s, size_t len) noexcept {
 	  uint64_t mul = k2 + len * 2;
 	  uint64_t a = fetch_64(s) * k2;
 	  uint64_t b = fetch_64(s + 8);
@@ -258,7 +258,7 @@ private:
 	  return b + x;
 	}
 
-	static IO_NO_INLINE uint64_t hash_over_64(const uint8_t* s, std::size_t count) noexcept IO_NO_INLINE {
+	static IO_NO_INLINE uint64_t hash_over_64(const uint8_t* s, std::size_t count) noexcept {
 		// For arrays over 64 bytes we hash the end first, and then as we
 		// loop we keep 56 bytes of state: v, w, x, y, and z.
 		uint64_t x = fetch_64(s + count - 40);
@@ -287,15 +287,14 @@ private:
 public:
 
 	static uint64_t hash(const uint8_t* s, std::size_t count) noexcept {
-		if (count <= 16) {
+		if (count <= 16)
 			return hash_len0_to16(s, count);
-		} else if (count <= 32) {
+		else if (count <= 32)
 			return hash_len17_to32(s, count);
-		} else if (count <= 64) {
+		else if (count <= 64)
 			return hash_len33_to_64(s, count);
-		} else {
+		else
 			return hash_over_64(s, count);
-		}
 	}
 };
 

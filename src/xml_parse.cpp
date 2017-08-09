@@ -155,6 +155,18 @@ static inline error validate_attribute_name(const char* name) noexcept {
 }
 
 // event_stream_parser
+s_event_stream_parser event_stream_parser::open(std::error_code& ec, const s_source& src) noexcept
+{
+	if(!src) {
+		ec = std::make_error_code( std::errc::bad_address );
+		return s_event_stream_parser();
+	}
+	s_string_pool pool = string_pool::create(ec);
+	if(!pool)
+		return s_event_stream_parser();
+	return s_event_stream_parser( nobadalloc<event_stream_parser>::construct( ec, src, std::move(pool) ) );
+}
+
 event_stream_parser::event_stream_parser(const s_source& src, s_string_pool&& pool):
 	object(),
 	src_(src),
@@ -516,9 +528,8 @@ const_string event_stream_parser::read_chars() noexcept
 	}
 	std::error_code ec;
 	byte_buffer result = byte_buffer::allocate(ec,HUGE_BUFF_SIZE);
-	if(!check_buffer(result)) {
+	if(!check_buffer(result))
 		return const_string();
-	}
 	if( !sb_check(scan_buf_) ) {
 		assign_error(error::root_element_is_unbalanced);
 		return const_string();
@@ -552,6 +563,14 @@ const_string event_stream_parser::read_chars() noexcept
 	sb_append( scan_buf_, static_cast<char>(LEFTB) );
 	result.flip();
 	return const_string( result.position().cdata(), result.last().cdata() );
+}
+
+void event_stream_parser::skip_chars() noexcept {
+	if(state_type::characters != state_.current) {
+		assign_error(error::invalid_state);
+		return;
+	}
+	read_chars();
 }
 
 const_string event_stream_parser::read_cdata() noexcept {

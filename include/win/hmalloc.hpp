@@ -9,6 +9,13 @@
 
 namespace io {
 
+namespace win {
+
+	void* IO_MALLOC_ATTR private_heap_alloc(std::size_t bytes) noexcept;
+	void IO_PUBLIC_SYMBOL private_heap_free(void * const ptr) noexcept;
+
+} // namesapce win
+
 #define IO_PREVENT_MACRO
 
 struct memory_traits {
@@ -24,6 +31,13 @@ struct memory_traits {
 	static inline void* malloc IO_PREVENT_MACRO (std::size_t bytes) noexcept
 	{
 		return std::malloc(bytes);
+	}
+
+	template<typename T>
+	static inline T* malloc_array(std::size_t array_size) noexcept
+	{
+		assert(0 != array_size);
+        return static_cast<T*>( std::calloc(array_size, sizeof(T) ) );
 	}
 
 	static inline void free IO_PREVENT_MACRO (void * const ptr) noexcept
@@ -53,13 +67,13 @@ struct memory_traits {
 	template<typename T>
 	static inline T* calloc_temporary(std::size_t count) noexcept
 	{
-		return static_cast<T*>( std::calloc(count,sizeof(T) ) );
+		return static_cast<T*>( win::private_heap_alloc( sizeof(T) * count) );
 	}
 
 	template<typename T>
 	static inline void free_temporary(T* const ptr) noexcept
 	{
-		std::free(ptr);
+		return win::private_heap_free( static_cast<void* const>(ptr) );
 	}
 
 };

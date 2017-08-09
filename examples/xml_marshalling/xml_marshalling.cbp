@@ -30,13 +30,13 @@
 				<Option type="1" />
 				<Option compiler="gcc" />
 				<Compiler>
+					<Add option="-O3" />
 					<Add option="-Weffc++" />
 					<Add option="-pedantic" />
 					<Add option="-Wextra" />
 					<Add option="-Wall" />
 					<Add option="-std=c++14" />
 					<Add option="-mtune=native" />
-					<Add option="-Ofast" />
 					<Add option="-DNDEBUG" />
 				</Compiler>
 				<Linker>

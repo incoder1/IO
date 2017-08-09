@@ -11,7 +11,6 @@
 #include "stdafx.hpp"
 #include "buffer.hpp"
 
-
 namespace io {
 
 byte_buffer::byte_buffer(byte_buffer&& other) noexcept:

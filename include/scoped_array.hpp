@@ -17,12 +17,13 @@ namespace io {
 
 template<typename T>
 class scoped_arr {
-public:
-
+private:
 	static void dispoce_termporary(T* const px) noexcept
 	{
 		memory_traits::free_temporary<T>(px);
 	}
+
+public:
 
 	typedef void (*release_function)(T* const);
 

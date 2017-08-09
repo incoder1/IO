@@ -36,8 +36,8 @@
 				<Option type="1" />
 				<Option compiler="gcc" />
 				<Option parameters="test.xml" />
-				<Option projectLinkerOptionsRelation="1" />
 				<Compiler>
+					<Add option="-O3" />
 					<Add option="-Weffc++" />
 					<Add option="-pedantic" />
 					<Add option="-Wextra" />
@@ -46,7 +46,6 @@
 					<Add option="-fno-exceptions" />
 					<Add option="-fno-rtti" />
 					<Add option="-mtune=native" />
-					<Add option="-Ofast" />
 					<Add option="-DNDEBUG" />
 					<Add directory="../../deps/include" />
 				</Compiler>

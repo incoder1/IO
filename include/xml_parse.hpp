@@ -87,18 +87,8 @@ public:
 	/// \param ec contains system error code when parser can not be constructed,
 	/// 		for example in case of out of memory or nullptr pointed source
 	/// \param source an XML source data
-	static s_event_stream_parser open(std::error_code& ec, const s_source& src) noexcept
-	{
-		if(!src) {
-			ec = std::make_error_code( std::errc::bad_address );
-			return s_event_stream_parser();
-		}
-		s_string_pool pool = string_pool::create(ec);
-		if(!pool)
-			return s_event_stream_parser();
-		event_stream_parser *res =  nobadalloc<event_stream_parser>::construct( ec, src, std::move(pool) );
-		return nullptr != res ? s_event_stream_parser(res) : s_event_stream_parser();
-	}
+	static s_event_stream_parser open(std::error_code& ec, const s_source& src) noexcept;
+
 
 	/// Destroy parser and releases associated resources
 	virtual ~event_stream_parser() noexcept override;
@@ -168,6 +158,9 @@ public:
 	/// Extracts normalized XML characters, i.e. tag body
 	const_string read_chars() noexcept;
 
+	/// Skip characters until next tag declaration e.g. '>  <next-tag>'
+	void skip_chars() noexcept;
+
 	/// Extracs raw XML characters declared in <!CDATA[]]> section
 	const_string read_cdata() noexcept;
 
@@ -215,7 +208,7 @@ private:
 	{
 		char result = src_->next();
 		if( src_->eof() )
-			return std::char_traits<char>::to_char_type( std::char_traits<char>::eof() );
+			result = EOF;
 		return result;
 	}
 

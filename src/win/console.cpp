@@ -199,9 +199,9 @@ const console* console::get()
 		if( nullptr == tmp ) {
 			void *raw = memory_traits::malloc( sizeof(console) );
 			if(nullptr != raw) {
+				std::atexit( &console::release_console );
 				tmp = new (raw) console();
 				_instance.store( tmp, std::memory_order_release );
-				std::atexit( &console::release_console );
 			}
 			std::atomic_thread_fence( std::memory_order_release );
 		}

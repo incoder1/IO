@@ -65,8 +65,9 @@
 					<Add option="-msse" />
 					<Add option="-msse2" />
 					<Add option="-msse3" />
-					<Add option="-msse4" />
 					<Add option="-mssse3" />
+					<Add option="-msse4" />
+					<Add option="-mavx" />
 					<Add option="-DNDEBUG" />
 					<Add directory="include" />
 					<Add directory="deps/include" />
@@ -196,7 +197,6 @@
 		<Unit filename="include/charsetcvt.hpp" />
 		<Unit filename="include/charsetdetector.hpp" />
 		<Unit filename="include/charsets.hpp" />
-		<Unit filename="include/codedetect.hpp" />
 		<Unit filename="include/config.hpp" />
 		<Unit filename="include/config/compiller/gcc.hpp" />
 		<Unit filename="include/config/libs/exceptions.hpp" />
@@ -341,6 +341,12 @@
 			<Option target="debug-win-gcc-static-x64" />
 			<Option target="release-win-gcc-static-x64" />
 			<Option target="debug-win-gcc-dll-x64" />
+			<Option target="release-win-gcc-dll-x64" />
+		</Unit>
+		<Unit filename="src/win/memory_traits.cpp">
+			<Option target="debug-win-gcc-dll-x64" />
+			<Option target="release-win-gcc-static-x64" />
+			<Option target="debug-win-gcc-static-x64" />
 			<Option target="release-win-gcc-dll-x64" />
 		</Unit>
 		<Unit filename="src/xml_error.cpp" />

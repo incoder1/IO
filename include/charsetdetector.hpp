@@ -58,8 +58,8 @@ public:
 	{
 		return 1.0F == confidence_;
 	}
-	/// Returns detected character_set
-	/// \return detected character_set
+	/// Returns detected character set (code page)
+	/// \return detected character set (code page)
 	inline charset character_set() const noexcept {
 		return charset_;
 	}

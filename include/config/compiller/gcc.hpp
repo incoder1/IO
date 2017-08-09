@@ -23,7 +23,7 @@
 #define HAS_PRAGMA_ONCE
 
 #if defined(__MINGW32__) || defined(__MINGW64__)
-#define IO_IS_MINGW
+#	define IO_IS_MINGW
 #endif // defined
 
 #ifndef __GXX_RTTI
@@ -53,17 +53,13 @@
 #endif // __LP64__
 
 #ifndef __forceinline
-#   if defined(__MINGW__)  || defined(__MINGW64__)
-#       define __forceinline inline __attribute__((__always_inline__,__gnuinline__))
-#   else
-#       define __forceinline inline __attribute__((__always_inline__))
-#   endif // defined
+#	define __forceinline inline __attribute__((__always_inline__))
 #endif // __forceinline
 
 #ifdef IO_CPU_BITS_64
-#define io_size_t_abs(__x) __builtin_llabs( (__x) )
+#	define io_size_t_abs(__x) __builtin_llabs( (__x) )
 #else
-#define io_size_t_abs(__x) __builtin_labs( (__x) )
+#	define io_size_t_abs(__x) __builtin_labs( (__x) )
 #endif
 
 #define io_alloca(__x) __builtin_alloca((__x))
@@ -103,7 +99,7 @@
 #define io_bswap32 __builtin_bswap32
 #define io_bswap64 __builtin_bswap64
 
-#else
+#elif defined(IO_CPU_INTEL)
 
 inline uint32_t io_bswap32(uint32_t dword)  {
 	__asm__ ("bswapl %0" : "=a"(dword)  : "a"(dword) : );
@@ -122,6 +118,43 @@ inline uint64_t io_bswap64(uint64_t qword) {
 #define io_bswap64 __builtin_bswap64
 
 #endif // IO_x64
+
+#else
+
+template<typename int32_type>
+__forceinline int32_type io_bswap32(int32_type x)
+{
+	return ((x << 24) & 0xff000000 ) |
+		   ((x <<  8) & 0x00ff0000 ) |
+		   ((x >>  8) & 0x0000ff00 ) |
+		   ((x >> 24) & 0x000000ff );
+}
+
+template<typename int64_type>
+__forceinline int64_type io_bswap64(int64_type x) {
+#ifdef _LP64
+	/*
+	 * Assume we have wide enough registers to do it without touching
+	 * memory.
+	 */
+	return  ( (x << 56) & 0xff00000000000000UL ) |
+		( (x << 40) & 0x00ff000000000000UL ) |
+		( (x << 24) & 0x0000ff0000000000UL ) |
+		( (x <<  8) & 0x000000ff00000000UL ) |
+		( (x >>  8) & 0x00000000ff000000UL ) |
+		( (x >> 24) & 0x0000000000ff0000UL ) |
+		( (x >> 40) & 0x000000000000ff00UL ) |
+		( (x >> 56) & 0x00000000000000ffUL );
+#else
+	/*
+	 * Split the operation in two 32bit steps.
+	 */
+	uint32_t tl, th;
+	th = io_bswap32((uint32_t)(x & 0x00000000ffffffffULL));
+	tl = io_bswap32((uint32_t)((x >> 32) & 0x00000000ffffffffULL));
+	return ((int64_type)th << 32) | tl;
+#endif
+}
 
 #endif // IO_IS_MINGW
 

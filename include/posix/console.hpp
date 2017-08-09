@@ -126,9 +126,9 @@ class IO_PUBLIC_SYMBOL console
 	*/
 
 	private:
-		posix::console_channel *in_;
-		posix::console_channel *out_;
-		posix::console_channel *err_;
+		s_read_channel in_;
+		s_write_channel out_;
+		s_write_channel err_;
 		static std::atomic<console*> _instance;
 		static critical_section _cs;
 };

@@ -16,7 +16,7 @@ PLATFORM_SHARED_LINK_OPTIONS?=-shared -Wl,--dll -Wl,--output-def=$(TARGET)/libio
 LIBS?=-L./deps/lib -liconv.dll
 INCLUEDS?=-Iinclude -Ideps/include -Iinclude/win
 
-MMX_AND_SSE?= -mmmx -msse -msse2 -mssse3 -msse3 -msse4
+MMX_AND_SSE?= -mmmx -msse -msse2 -mssse3 -msse3 -msse4 -mavx
 OPTIMIZE?=-mtune=generic -O3 -fno-exceptions -fno-rtti -minline-stringops-dynamically -fdeclone-ctor-dtor -fdevirtualize-at-ltrans -mmovbe $(MMX_AND_SSE)
 SHARED-DEFINES?= -DIO_SHARED_LIB -DIO_BUILD
 DEFINES ?= -DNDEBUG $(SHARED-DEFINES)
