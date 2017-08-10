@@ -21,11 +21,13 @@ public:
 		name_()
 	{}
 
-	config(uint8_t id, bool enabled, std::tm&& tc, std::string&& name) noexcept:
+	config(uint8_t id, bool enabled, std::chrono::time_point<std::chrono::system_clock>&& tc, std::string&& name) noexcept:
 		id_(id),
 		enabled_(enabled),
-		time_created_(tc),
-		name_(std::move(name))
+		time_created_(
+			std::forward<std::chrono::time_point<std::chrono::system_clock> > (tc)
+		),
+		name_(std::forward<std::string>(name))
 	{}
 
 	inline uint8_t id() const noexcept {
@@ -36,12 +38,16 @@ public:
 		return enabled_;
 	}
 
-	inline const std::tm& time_created() const noexcept {
+	inline const std::chrono::time_point<std::chrono::system_clock>& time_created() const noexcept {
 		return time_created_;
 	}
 
-	inline const char* name() const noexcept {
-		return name_.data();
+	inline const std::chrono::time_point<std::chrono::system_clock>& date_created() const noexcept {
+		return time_created_;
+	}
+
+	inline const std::string& name() const noexcept {
+		return name_;
 	}
 
 	typedef io::xml::complex_type<config,
@@ -56,7 +62,7 @@ public:
 		io::xml::bool_attribute en("enabled", enabled_);
 		// elements
 		io::xml::date_element tm("date-created", time_created_);
-		io::xml::string_element s("name", name_.data() );
+		io::xml::string_element s("name", name_ );
 		return xml_type("configuration", std::make_tuple(id,en), std::make_tuple(tm,s) );
 	}
 
@@ -66,7 +72,7 @@ public:
 		uint8_t id = std::get<0>( xt.attributes() ).value();
 		bool enabled = std::get<1>( xt.attributes() ).value();
 		// elements
-		std::tm tm = std::get<0>( xt.elements() ).value();
+		std::chrono::time_point<std::chrono::system_clock> tm = std::get<0>( xt.elements() ).value();
 		std::string msg( std::get<1>( xt.elements() ).value() );
 		return config(id, enabled, std::move(tm) , std::move(msg) );
 	}
@@ -74,7 +80,7 @@ public:
 private:
 	uint8_t id_;
 	bool enabled_;
-	std::tm time_created_;
+	std::chrono::time_point<std::chrono::system_clock> time_created_;
 	std::string name_;
 };
 

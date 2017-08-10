@@ -63,14 +63,14 @@ class IO_PUBLIC_SYMBOL source final:public object
 		inline char normalize_lend(char ch);
 		inline void new_line_or_shift_col(const char ch);
 	private:
-		s_read_channel src_;
-		byte_buffer rb_;
+		uint8_t char_shift_;
+		error last_;
 		char *pos_;
 		char *end_;
 		std::size_t row_;
 		std::size_t col_;
-		uint8_t char_shift_;
-		error last_;
+		s_read_channel src_;
+		byte_buffer rb_;
 };
 
 } // namespace xml

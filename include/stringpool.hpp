@@ -44,13 +44,13 @@ namespace detail {
 
 IO_PUSH_IGNORE_UNUSED_PARAM
 
-		static inline void* operator new(std::size_t s, void* p) noexcept
+		static inline void* operator new(std::size_t, void* p) noexcept
 		{
 			assert(nullptr != p);
 			return p;
 		}
 
-		static inline void operator delete(void* ptr, std::size_t s = 1) noexcept
+		static inline void operator delete(void* ptr, std::size_t) noexcept
 		{
 			memory_traits::free(ptr);
 		}

@@ -22,9 +22,9 @@ const std::size_t source::READ_BUFF_INITIAL_SIZE = memory_traits::page_size(); /
 const std::size_t source::READ_BUFF_MAXIMAL_SIZE = 0x1000000; // 16 m
 
 static constexpr unsigned int ASCII_CP_CODE = 20127;
-static const unsigned int ISO_LATIN1_CP_CODE = 28591;
-static const unsigned int WINDOWS_LATIN1_CP_CODE = 1252;
-static const unsigned int UTF8_CP_CODE = 65001;
+static constexpr unsigned int ISO_LATIN1_CP_CODE = 28591;
+static constexpr unsigned int WINDOWS_LATIN1_CP_CODE = 1252;
+static constexpr unsigned int UTF8_CP_CODE = 65001;
 
 // source
 s_source source::open(std::error_code& ec, const s_read_channel& src, byte_buffer&& rb) noexcept
@@ -53,16 +53,22 @@ s_source source::open(std::error_code& ec, const s_read_channel& src, byte_buffe
 		break;
 		// Create converter
 	default:
-		if(utf_16le_bom::is(pos) || utf_16be_bom::is(pos) )
-			pos += utf_16le_bom::len();
-		else if(utf_32be_bom::is(pos) || utf_32le_bom::is(pos) )
-				pos += utf_32le_bom::len();
+		byte_buffer new_rb;
+		if(utf_16le_bom::is(pos) || utf_16be_bom::is(pos) ) {
+			pos += 2;
+			new_rb = byte_buffer::allocate( ec, rb.capacity() );
+		}
+		else if(utf_32be_bom::is(pos) || utf_32le_bom::is(pos) ) {
+			pos += 4;
+			new_rb = byte_buffer::allocate( ec, rb.capacity() );
+		} else {
+			new_rb = byte_buffer::allocate( ec, rb.capacity() << 2 );
+		}
+		if(ec)
+			return s_source();
 		s_code_cnvtr cnv = code_cnvtr::open(ec,ch,
 								code_pages::UTF_8,
 								cnvrt_control::failure_on_failing_chars);
-		if(ec)
-			return s_source();
-		byte_buffer new_rb = byte_buffer::allocate( ec, rb.capacity() << 2 );
 		if(ec)
 			return s_source();
 		cnv->convert(ec, pos, rb.size(), new_rb);
@@ -96,14 +102,15 @@ s_source source::create(std::error_code& ec,s_read_channel&& src) noexcept
 
 source::source(s_read_channel&& src, byte_buffer&& rb) noexcept:
 	object(),
-	src_(src),
-	rb_( std::move(rb) ), // 1k is minimum
+	char_shift_(1),
+	last_( error::ok ),
 	pos_(nullptr),
 	end_(nullptr),
 	row_(1),
 	col_(1),
-	char_shift_(1),
-	last_( error::ok )
+	src_(src),
+	// 1page is minimum
+	rb_( std::move(rb) )
 {
 	pos_ = const_cast<char*>(rb_.position().cdata());
 	end_ = const_cast<char*>(rb_.last().cdata());

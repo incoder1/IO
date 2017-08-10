@@ -381,7 +381,7 @@ private:
 		n /= static_cast<int_type>(radix);
 		return rem;
 	}
-	static inline const char_type* format_a(int_type value,char_type* to) noexcept IO_NO_INLINE
+	static const char_type* format_a(int_type value,char_type* to) noexcept IO_NO_INLINE
 	{
 		char_type result[cast_traits::max_str_len];
 		char_type *s = &result[cast_traits::max_str_len];

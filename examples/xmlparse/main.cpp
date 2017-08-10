@@ -145,6 +145,7 @@ int main(int argc, const char** argv)
 	if( xs->is_error() ) {
 		xs->get_last_error(ec);
 		cerr<< "XML error [" << xs->row() << ',' << xs->col() << "] " << ec.message() << std::endl;
-	}
+	} else
+		cout << "End of document" << std::endl;
 	return 0;
 }

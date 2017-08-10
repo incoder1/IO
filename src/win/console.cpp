@@ -51,7 +51,7 @@ std::size_t console_channel::read(std::error_code& err,uint8_t* const buff, std:
 	assert(bytes % sizeof(::WCHAR) == 0);
 	::DWORD result;
 	::SetConsoleTextAttribute(hcons_, attr_ );
-	if( ! ::ReadConsoleW(hcons_, (::LPVOID)buff, bytes / sizeof(::WCHAR), &result, nullptr) )
+	if( ! ::ReadConsoleW(hcons_, static_cast<::LPVOID>(buff), bytes / sizeof(::WCHAR), &result, nullptr) )
 		err.assign( ::GetLastError(), std::system_category() );
 	::SetConsoleTextAttribute(hcons_, orig_attr_ );
 	return result * sizeof(::WCHAR);
@@ -185,9 +185,10 @@ io::critical_section  console::_cs;
 
 void console::release_console() noexcept
 {
-	console* inst = _instance.load( std::memory_order_seq_cst );
+	console* inst = _instance.load( std::memory_order_acquire );
 	inst->~console();
 	memory_traits::free( inst );
+	_instance.store(nullptr, std::memory_order_release );
 }
 
 const console* console::get()

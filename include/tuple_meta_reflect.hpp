@@ -14,6 +14,7 @@
 #include "config.hpp"
 
 #include <tuple>
+#include <type_traits>
 #include <utility>
 
 #ifdef HAS_PRAGMA_ONCE
@@ -87,22 +88,9 @@ static constexpr inline void for_each( std::tuple<__args...>&& tup, __functor&& 
 }
 
 // compile time util
-template<bool>
-struct compile_time_bool
-{};
 
-template<>
-struct compile_time_bool<true> {
-	static constexpr bool value = true;
-};
-
-template<>
-struct compile_time_bool<false> {
-	static constexpr bool value = false;
-};
-
-typedef compile_time_bool<true>  true_type;
-typedef compile_time_bool<false> false_type;
+typedef std::true_type  true_type;
+typedef std::false_type false_type;
 
 } // namesapce meta
 

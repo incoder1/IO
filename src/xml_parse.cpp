@@ -535,14 +535,14 @@ const_string event_stream_parser::read_chars() noexcept
 		return const_string();
 	}
 	result.put(scan_buf_, sb_len(scan_buf_) );
-	int_fast32_t i;
-	constexpr int_fast32_t end_of_stream = std::char_traits<int_fast32_t>::eof();
-	bool done = false;
+	constexpr int end_of_stream = char8_traits::eof();
+	int i;
+	bool still_reading = true;
 	do {
-		i = static_cast<int_fast32_t>( next() );
+		i =  char8_traits::to_int_type( next() );
 		switch(i) {
 		case LEFTB:
-			done = true;
+			still_reading = false;
 			break;
 		case RIGHTB:
 			sb_clear( scan_buf_ );
@@ -555,11 +555,10 @@ const_string event_stream_parser::read_chars() noexcept
 		default:
 			putch(result, static_cast<char>(i) );
 		}
-	} while( !done && !is_error());
+	} while( still_reading && !is_error());
 	sb_clear( scan_buf_ );
-	if(is_error()) {
+	if(is_error())
 		return const_string();
-	}
 	sb_append( scan_buf_, static_cast<char>(LEFTB) );
 	result.flip();
 	return const_string( result.position().cdata(), result.last().cdata() );
@@ -593,11 +592,9 @@ attribute event_stream_parser::extract_attribute(const char* from, std::size_t& 
 	}
 	char* start = i;
 	i = const_cast<char*>( io::strstr2b( start, "=\"") );
-	if(nullptr == i) {
+	if(nullptr == i)
 		return attribute();
-	}
-	std::size_t copy_len = str_size(start, i);
-	cached_string name = pool_->get( start, copy_len );
+	cached_string name = pool_->get( start, str_size(start, i) );
 	// 2 symbols
 	i += 2;
 	start = i;
@@ -614,11 +611,10 @@ attribute event_stream_parser::extract_attribute(const char* from, std::size_t& 
 		}
 		// normalize
 		for(char *ch = start; ch != i; ch++) {
-			if( between('\t','\r',*ch) ) {
+			if( between('\t','\r',*ch) )
 				putch(val, ' ');
-			} else {
+			else
 				putch(val,*ch);
-			}
 			if(is_error())
 				return attribute();
 		}
@@ -702,18 +698,15 @@ end_element_event event_stream_parser::parse_end_element() noexcept
 		return end_element_event();
 	}
 	--nesting_;
-	if(0 == nesting_) {
+	if(0 == nesting_)
 		state_.current =  state_type::eod;
-	}
 	byte_buffer buff = read_entity();
-	if( !check_buffer(buff) ) {
+	if( !check_buffer(buff) )
 		return end_element_event();
-	}
 	std::size_t len = 0;
 	qname name = extract_qname( buff.position().cdata(), len );
-	if( is_error() ) {
+	if( is_error() )
 		return end_element_event();
-	}
 	return end_element_event( std::move(name) );
 }
 
@@ -798,7 +791,7 @@ void event_stream_parser::s_start_or_end_element() noexcept
 
 void event_stream_parser::s_entity() noexcept
 {
-	switch( std::char_traits<char>::to_int_type( scan_buf_[1] ) ) {
+	switch( char8_traits::to_int_type( scan_buf_[1] ) ) {
 	case QM:
 		s_instruction_or_prologue();
 		break;
@@ -823,11 +816,11 @@ void event_stream_parser::scan() noexcept
 			return;
 		}
 		sb_clear(scan_buf_);
-		*scan_buf_ = std::char_traits<char>::to_char_type( LEFTB );
+		*scan_buf_ = char8_traits::to_char_type( LEFTB );
 	}
 	sb_append(scan_buf_, next() );
-	switch( std::char_traits<char>::to_int_type(*scan_buf_) ) {
-	case iEOF:
+	switch( char8_traits::to_int_type(*scan_buf_) ) {
+	case char8_traits::eof():
 		state_.current = state_type::eod;
 		if(0 != nesting_)
 			assign_error(error::root_element_is_unbalanced);

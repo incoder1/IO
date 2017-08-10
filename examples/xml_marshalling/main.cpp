@@ -57,12 +57,10 @@ int main()
 
 	app_settings root( primary_conf(1) );
 
+	auto now = std::chrono::system_clock::now();
 
-	std::time_t cts = std::time(nullptr);
-	std::tm *tm =  std::gmtime(&cts);
-
-	root.add_conf( config(1, true,  std::move(*tm), "First configuration") );
-	root.add_conf( config(2, false, std::move(*tm), "Second configuration") );
+	root.add_conf( config(1, true,  std::move(now), "First configuration") );
+	root.add_conf( config(2, false, std::move(now), "Second configuration") );
 
 	app_settings::xml_type xt = root.to_xml_type();
 
@@ -78,9 +76,9 @@ int main()
 #endif // IO_XML_HAS_TO_XSD
 
 // unmarshal back from memory
-	io::xml::unmarshaller<app_settings::xml_type> unmarshaller;
-	//app_settings setings2 = app_settings::from_xml_type(xt);
-	//app_settings::xml_type xt2 = root.to_xml_type();
+	//io::xml::unmarshaller<app_settings::xml_type> unmarshaller;
+	app_settings setings2 = app_settings::from_xml_type(xt);
+	app_settings::xml_type xt2 = root.to_xml_type();
 
 	io::console::reset_out_color( io::text_color::white);
 	cout<<"Resulting XML available in app-conf.xml:"<<std::endl;
