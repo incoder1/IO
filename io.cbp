@@ -27,16 +27,13 @@
 					<Add option="-DBOOST_SYSTEM_NO_DEPRECATED" />
 					<Add directory="include" />
 					<Add directory="deps/include" />
-					<Add directory="../boost_1_60_0" />
 					<Add directory="include/win" />
-					<Add directory="include/net" />
-					<Add directory="src/net" />
+					<Add directory="../boost_1_60_0" />
 				</Compiler>
 				<Linker>
 					<Add option="-shared-libgcc" />
 					<Add library="iconv.dll" />
 					<Add library="Ws2_32" />
-					<Add library="boost_system-mt-d" />
 					<Add directory="deps/lib" />
 					<Add directory="../boost_1_60_0/stage/gcc64/lib" />
 				</Linker>
@@ -214,7 +211,6 @@
 		<Unit filename="include/errorcheck.hpp" />
 		<Unit filename="include/files.hpp" />
 		<Unit filename="include/hashing.hpp" />
-		<Unit filename="include/net/tcp_ip.hpp" />
 		<Unit filename="include/network.hpp" />
 		<Unit filename="include/object.hpp" />
 		<Unit filename="include/posix/console.hpp">
@@ -280,6 +276,12 @@
 			<Option target="debug-win-gcc-dll-x64" />
 			<Option target="release-win-gcc-dll-x64" />
 		</Unit>
+		<Unit filename="include/win/sockets.hpp">
+			<Option target="debug-win-gcc-dll-x64" />
+			<Option target="release-win-gcc-static-x64" />
+			<Option target="debug-win-gcc-static-x64" />
+			<Option target="release-win-gcc-dll-x64" />
+		</Unit>
 		<Unit filename="include/win/winconf.hpp">
 			<Option target="debug-win-gcc-static-x64" />
 			<Option target="release-win-gcc-static-x64" />
@@ -298,13 +300,7 @@
 		<Unit filename="src/charsetcvt.cpp" />
 		<Unit filename="src/charsetdetector.cpp" />
 		<Unit filename="src/charsets.cpp" />
-		<Unit filename="src/net/error_category_shim.cpp">
-			<Option target="debug-win-gcc-static-x64" />
-		</Unit>
 		<Unit filename="src/net/error_category_shim.hpp">
-			<Option target="debug-win-gcc-static-x64" />
-		</Unit>
-		<Unit filename="src/net/tcp_ip.cpp">
 			<Option target="debug-win-gcc-static-x64" />
 		</Unit>
 		<Unit filename="src/posix/console.cpp">
@@ -351,6 +347,12 @@
 			<Option target="release-win-gcc-dll-x64" />
 		</Unit>
 		<Unit filename="src/win/memory_traits.cpp">
+			<Option target="debug-win-gcc-dll-x64" />
+			<Option target="release-win-gcc-static-x64" />
+			<Option target="debug-win-gcc-static-x64" />
+			<Option target="release-win-gcc-dll-x64" />
+		</Unit>
+		<Unit filename="src/win/sockets.cpp">
 			<Option target="debug-win-gcc-dll-x64" />
 			<Option target="release-win-gcc-static-x64" />
 			<Option target="debug-win-gcc-static-x64" />
