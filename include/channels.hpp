@@ -90,8 +90,8 @@ protected:
 	read_write_channel() noexcept;
 public:
 	virtual ~read_write_channel() noexcept = 0;
-	virtual std::size_t read(std::error_code& ec,uint8_t* const buff, std::size_t bytes) const noexcept = 0;
-	virtual std::size_t write(std::error_code& ec, const uint8_t* buff,std::size_t size) const noexcept = 0;
+	virtual std::size_t read(std::error_code& ec,uint8_t* const buff, std::size_t bytes) const noexcept override = 0;
+	virtual std::size_t write(std::error_code& ec, const uint8_t* buff,std::size_t size) const noexcept override = 0;
 };
 
 DECLARE_IPTR(read_write_channel);

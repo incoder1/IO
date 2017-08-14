@@ -30,8 +30,6 @@ namespace io {
 		nobadalloc() = delete;
 		nobadalloc(const nobadalloc&) = delete;
 		nobadalloc& operator=(const nobadalloc&) = delete;
-		nobadalloc(nobadalloc&&) noexcept = delete;
-		nobadalloc& operator=(nobadalloc&&) noexcept = delete;
 		~nobadalloc() = delete;
 	public:
 #ifndef IO_NO_EXCEPTIONS

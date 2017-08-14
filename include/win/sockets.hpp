@@ -7,41 +7,52 @@
 #pragma once
 #endif // HAS_PRAGMA_ONCE
 
+#include <ws2tcpip.h>
+
+#include <atomic>
 #include <channels.hpp>
+#include "criticalsection.hpp"
 
 namespace io {
 
 namespace net {
 
-namespace inet {
-
-struct socket_address_v4
-{
-	uint8_t address[4];
-	uint16_t port;
+enum class socket_type {
+	TCP,
+	UDP,
+	ICMP
 };
 
-struct socket_address_v6 {
-	uint8_t address[6];
-	uint16_t port;
-};
-
-namespace tcp {
-
-class client_connection
-{
+class IO_PUBLIC_SYMBOL socket:public virtual object {
+protected:
+	socket() noexcept;
 public:
-	client_connection(socket_address_v4 addr) noexcept;
-	client_connection(socket_address_v6 addr) noexcept;
-	s_read_write_channel open(std::error_code& ec) noexcept;
+	virtual socket_type type() const noexcept = 0;
+	virtual s_read_write_channel connect(std::error_code& ec) const noexcept = 0;
 };
 
-} // namespace tcp
+DECLARE_IPTR(socket);
 
-// DECLARE_IPTR(socket);
+class IO_PUBLIC_SYMBOL socket_factory
+{
+	socket_factory(const socket_factory&) = delete;
+	socket_factory& operator=(const socket_factory&) = delete;
+private:
+	friend class nobadalloc<socket_factory>;
+	static void do_release() noexcept;
+	constexpr socket_factory() noexcept
+	{}
+public:
+	~socket_factory() noexcept;
+	static const socket_factory* instance(std::error_code& ec) noexcept;
+	s_socket client_socket(std::error_code& ec, const char* host, uint16_t port) const noexcept;
+private:
+	//static socket_address_v4 by_address(std::error_code& ec,const char* ip_address, uint16_t port) noexcept;
+private:
+	static std::atomic<socket_factory*> _instance;
+	static critical_section _init_cs;
+};
 
-
-} // namespace inet
 
 } //namespace net
 
