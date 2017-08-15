@@ -159,6 +159,7 @@
 					<Add option="-fdevirtualize-at-ltrans" />
 					<Add option="-fvisibility=hidden" />
 					<Add library="iconv.dll" />
+					<Add library="Ws2_32" />
 					<Add directory="deps/lib" />
 				</Linker>
 			</Target>
