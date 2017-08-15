@@ -389,6 +389,7 @@ public:
 	/// \return count of bytes put in this buffer, or 0 if memory block is to large end <= begin
 	std::size_t put(const uint8_t* begin,const uint8_t* const end) noexcept;
 
+
 	/// Puts continiues memory block (an array) into this buffer.
 	/// If memory block size larger then available bytes returns 0 and not puts anything into this buffer
 	/// \param arr address of memory block first byte
@@ -413,6 +414,12 @@ public:
 		const uint8_t* b = reinterpret_cast<const uint8_t*>(arr);
 		const uint8_t* e = reinterpret_cast<const uint8_t*>(arr + count);
 		return put( b, e) / sizeof(T);
+	}
+
+	template<typename __char_t>
+	std::size_t put(const __char_t* cstr) noexcept {
+	   static_assert( std::is_integral<__char_t>::value, " Must be integral type");
+       return put( cstr ,std::char_traits<__char_t>::length(cstr) );
 	}
 
 	/// Puts content between position and last bytes from another buffer

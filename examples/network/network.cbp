@@ -33,6 +33,7 @@
 				<Linker>
 					<Add option="-s" />
 					<Add library="iconv.dll" />
+					<Add library="Ws2_32" />
 					<Add directory="../../deps/lib" />
 					<Add directory="../../bin/release-win-gcc-static-x64" />
 				</Linker>
@@ -40,6 +41,7 @@
 		</Build>
 		<Compiler>
 			<Add option="-Wall" />
+			<Add option="-std=c++14" />
 			<Add option="-fexceptions" />
 			<Add directory="../../include" />
 		</Compiler>

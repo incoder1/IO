@@ -10,17 +10,20 @@
 #ifndef __CHANNELS_HPP_INCLUDED__
 #define __CHANNELS_HPP_INCLUDED__
 
-#include <functional>
-#include <system_error>
-
 #include "config.hpp"
-#include "object.hpp"
-#include "buffer.hpp"
-#include "scoped_array.hpp"
 
 #ifdef HAS_PRAGMA_ONCE
 #pragma once
 #endif // HAS_PRAGMA_ONCE
+
+#include <functional>
+#include <system_error>
+
+#include "object.hpp"
+#include "buffer.hpp"
+#include "scoped_array.hpp"
+#include "errorcheck.hpp"
+
 
 namespace io {
 
@@ -36,6 +39,10 @@ protected:
 	{}
 	virtual ~channel() override = default;
 };
+
+template <class C>
+class unsafe
+{};
 
 /**
   General interface to input operations on an resource like a: file, socket, std in device, named pipe, shared memory blocks etc.
@@ -57,6 +64,28 @@ public:
 };
 
 DECLARE_IPTR(read_channel);
+
+template <>
+class unsafe<s_read_channel>
+{
+public:
+	unsafe(s_read_channel&& ch) noexcept:
+		ch_( std::forward<s_read_channel>(ch) )
+	{}
+	unsafe(const s_read_channel& ch) noexcept:
+		ch_(ch)
+	{}
+	std::size_t read(uint8_t* const buff, std::size_t bytes) const
+	{
+		std::size_t ret;
+		std::error_code ec;
+		ret = ch_->read( ec, buff, bytes);
+		io::check_error_code( ec );
+		return ret;
+	}
+private:
+	s_read_channel ch_;
+};
 
 /**
  * General interface to output operations on an resource
@@ -80,6 +109,28 @@ public:
 
 DECLARE_IPTR(write_channel);
 
+template <>
+class unsafe<s_write_channel>
+{
+public:
+	unsafe(s_write_channel&& ch) noexcept:
+		ch_( std::forward<s_write_channel>(ch) )
+	{}
+	unsafe(s_write_channel& ch) noexcept:
+		ch_(ch)
+	{}
+	std::size_t write(const uint8_t* buff,std::size_t size) const
+	{
+		std::size_t ret;
+		std::error_code ec;
+		ret = ch_->write( ec, buff, size);
+		io::check_error_code( ec );
+		return ret;
+	}
+private:
+	s_write_channel ch_;
+};
+
 
 /**
 * General interface to input and output operations on an resource
@@ -95,6 +146,36 @@ public:
 };
 
 DECLARE_IPTR(read_write_channel);
+
+template <>
+class unsafe<s_read_write_channel>
+{
+public:
+	unsafe(s_read_write_channel&& ch) noexcept:
+		ch_( std::forward<s_read_write_channel>(ch) )
+	{}
+	unsafe(s_read_write_channel& ch) noexcept:
+		ch_(ch)
+	{}
+	std::size_t read(uint8_t* const buff, std::size_t bytes) const
+	{
+		std::size_t ret;
+		std::error_code ec;
+		ret = ch_->read( ec, buff, bytes);
+		io::check_error_code( ec );
+		return ret;
+	}
+	std::size_t write(const uint8_t* buff,std::size_t size) const
+	{
+		std::size_t ret;
+		std::error_code ec;
+		ret = ch_->write( ec, buff, size);
+		io::check_error_code( ec );
+		return ret;
+	}
+private:
+	s_read_write_channel ch_;
+};
 
 /**
  * General interface to input, output and position moving operations on an resource
@@ -136,6 +217,76 @@ public:
 };
 
 DECLARE_IPTR(random_access_channel);
+
+template <>
+class unsafe<s_random_access_channel>
+{
+public:
+	unsafe(s_random_access_channel&& ch) noexcept:
+		ch_( std::forward<s_random_access_channel>(ch) )
+	{}
+	unsafe(const s_random_access_channel& ch) noexcept:
+		ch_( ch )
+	{}
+	std::size_t read(uint8_t* const buff, std::size_t bytes) const
+	{
+		std::size_t ret;
+		std::error_code ec;
+		ret = ch_->read( ec, buff, bytes);
+		io::check_error_code( ec );
+		return ret;
+	}
+	std::size_t write(const uint8_t* buff,std::size_t size) const
+	{
+		std::size_t ret;
+		std::error_code ec;
+		ret = ch_->write( ec, buff, size);
+		io::check_error_code( ec );
+		return ret;
+	}
+	std::size_t forward(std::size_t size)
+	{
+		std::size_t ret;
+		std::error_code ec;
+		ret = ch_->forward(ec, size);
+		io::check_error_code( ec );
+		return ret;
+	}
+	std::size_t backward(std::size_t size)
+	{
+		std::size_t ret;
+		std::error_code ec;
+		ret = ch_->forward(ec, size);
+		io::check_error_code( ec );
+		return ret;
+	}
+	std::size_t from_begin(std::size_t size)
+	{
+		std::size_t ret;
+		std::error_code ec;
+		ret = ch_->from_begin(ec, size);
+		io::check_error_code( ec );
+		return ret;
+	}
+	std::size_t from_end(std::size_t size)
+	{
+		std::size_t ret;
+		std::error_code ec;
+		ret = ch_->from_end(ec, size);
+		io::check_error_code( ec );
+		return ret;
+	}
+	std::size_t position()
+	{
+		std::size_t ret;
+		std::error_code ec;
+		ret = ch_->position(ec);
+		io::check_error_code( ec );
+		return ret;
+	}
+private:
+	 s_random_access_channel ch_;
+};
 
 /// Transfers all read channels data to destination write channel
 /// \param ec opration error code, contains error when io error

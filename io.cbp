@@ -75,6 +75,7 @@
 				<Linker>
 					<Add option="-s" />
 					<Add library="iconv.dll" />
+					<Add library="Ws2_32" />
 					<Add directory="deps/lib" />
 				</Linker>
 			</Target>
