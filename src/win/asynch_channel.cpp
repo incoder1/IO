@@ -9,7 +9,7 @@
  *
  */
 #include "../stdafx.hpp"
-#include "asynch_channel.hpp"
+#include "win/asynch_channel.hpp"
 
 namespace io {
 

@@ -12,18 +12,13 @@
 #include <iostream>
 
 #include <network.hpp>
+#include <net/http_client.hpp>
+
+
 #include <errorcheck.hpp>
 #include <stream.hpp>
 #include <scoped_array.hpp>
-
-const char* GET = "GET / HTTP/1.1\r\n";
-const char* HEADERS[] = {
-	"Host: www.boost.org\r\n",
-	"Accept: text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8\r\n",
-	"User-Agent:io library\r\n",
-	"Accept-Charset:ISO-8859-1,utf-8;q=0.7,*;q=0.7\r\n",
-	"Connection: close\r\n\r\n"
-};
+#include <sstream>
 
 int main()
 {
@@ -43,23 +38,35 @@ int main()
 	io::s_read_write_channel sock = tpc_socket->connect(ec);
 	io::check_error_code(ec);
 
-	io::byte_buffer request = io::byte_buffer::allocate(io::memory_traits::page_size());
-	request.put(GET);
-	for(int i=0; i < 5; i++) {
-		request.put( HEADERS[i] );
-	}
-	request.flip();
+	io::s_string_pool sp = io::string_pool::create(ec);
+	io::check_error_code(ec);
 
-	io::unsafe<io::s_read_write_channel> stch( std::move(sock) );
-	stch.write(request.position().get(), request.size() );
+	http::request<http::method::get> getreq( sp->get("/") , sp->get("www.boost.org") );
+	getreq.add_headers( {
+			http::default_headers::ACCEPT_HTML_AND_XML,
+			http::default_headers::ACCEPT_CHARSET,
+			http::default_headers::IO_USER_AGNET,
+			std::make_pair("Connection"," close")
+		}  );
+
+	io::byte_buffer buff = io::byte_buffer::allocate(ec, io::memory_traits::page_size() );
+	io::check_error_code(ec);
+
+	getreq.to_buff(buff);
+	buff.flip();
+
+	std::cout << buff.position().cdata();
+
+	sock->write( ec, buff.position().get(), buff.length() );
+	io::check_error_code( ec );
 
 	io::scoped_arr<uint8_t> tmp( 1 << 20 ); // 1mb
 	if(!tmp)
 		io::check_error_code( std::make_error_code(std::errc::not_enough_memory) );
 
 	std::size_t read;
-	for(;;){
-		read = stch.read( tmp.get(), tmp.len() );
+	while(!ec){
+		read = sock->read(ec, tmp.get(), tmp.len() );
 		if(read > 0)
 			std::cout.write( reinterpret_cast<const char*>(tmp.get()), read);
 		else

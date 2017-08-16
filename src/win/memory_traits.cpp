@@ -10,8 +10,9 @@
  */
 
 #include "../stdafx.hpp"
-#include "winconf.hpp"
-#include "criticalsection.hpp"
+#include "win/hmalloc.hpp"
+#include "win/criticalsection.hpp"
+
 #include <atomic>
 
 namespace io {

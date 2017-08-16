@@ -22,23 +22,25 @@ namespace io {
 /// \brief A named mapping for the character set code page
 class IO_PUBLIC_SYMBOL charset {
 public:
+	/*
 	charset(const charset& rhs) = default;
 	charset& operator=(const charset& rhs) = default;
 	charset(charset&& rhs) = default;
 	charset& operator=(charset&& rhs) = default;
+	*/
 
 	constexpr charset() noexcept:
-		code_(0),
-		name_("unknown"),
+		unicode_(false),
 		char_max_(0),
-		unicode_(false)
+		code_(0),
+		name_(nullptr)
 	{}
 
 	constexpr charset(uint16_t code, const char* name, uint8_t char_max, bool unicode) noexcept:
-		code_(code),
-		name_(name),
+		unicode_(unicode),
 		char_max_(char_max),
-		unicode_(unicode)
+		code_(code),
+		name_(name)
 	{}
 
 	/// Returns integer identifier of this character set, number is equal to Win32 id-s
@@ -75,10 +77,10 @@ public:
 	bool operator!=(const charset& rhs) const noexcept;
 
 private:
+	bool unicode_;
+	uint8_t char_max_;
 	uint16_t code_;
 	const char* name_;
-	uint8_t char_max_;
-	bool unicode_;
 };
 
 #define DECLARE_CHARSET(ID) static const charset ID;

@@ -27,7 +27,6 @@
 					<Add option="-DBOOST_SYSTEM_NO_DEPRECATED" />
 					<Add directory="include" />
 					<Add directory="deps/include" />
-					<Add directory="include/win" />
 					<Add directory="../boost_1_60_0" />
 				</Compiler>
 				<Linker>
@@ -68,9 +67,6 @@
 					<Add option="-DNDEBUG" />
 					<Add directory="include" />
 					<Add directory="deps/include" />
-					<Add directory="include/win" />
-					<Add directory="include/net" />
-					<Add directory="src/net" />
 				</Compiler>
 				<Linker>
 					<Add option="-s" />
@@ -101,9 +97,6 @@
 					<Add directory="include" />
 					<Add directory="deps/include" />
 					<Add directory="../boost_1_60_0" />
-					<Add directory="include/win" />
-					<Add directory="include/net" />
-					<Add directory="src/net" />
 				</Compiler>
 				<Linker>
 					<Add option="-pg -lgmon" />
@@ -144,9 +137,6 @@
 					<Add option="-DIO_SHARED_LIB" />
 					<Add directory="include" />
 					<Add directory="deps/include" />
-					<Add directory="include/win" />
-					<Add directory="include/net" />
-					<Add directory="src/net" />
 				</Compiler>
 				<Linker>
 					<Add option="-s" />
@@ -186,6 +176,7 @@
 					<Add option="-DIO_SHARED_LIB" />
 					<Add directory="include" />
 					<Add directory="include/posix" />
+					<Add directory="include/network" />
 				</Compiler>
 				<Linker>
 					<Add option="-pg" />
@@ -196,7 +187,6 @@
 			<Add option="-Wall" />
 			<Add option="-DIO_BUILD" />
 			<Add directory="include" />
-			<Add directory="include/posix" />
 		</Compiler>
 		<Unit filename="include/buffer.hpp" />
 		<Unit filename="include/channels.hpp" />
@@ -213,6 +203,8 @@
 		<Unit filename="include/errorcheck.hpp" />
 		<Unit filename="include/files.hpp" />
 		<Unit filename="include/hashing.hpp" />
+		<Unit filename="include/net/http_client.hpp" />
+		<Unit filename="include/net/uri.hpp" />
 		<Unit filename="include/network.hpp" />
 		<Unit filename="include/object.hpp" />
 		<Unit filename="include/posix/console.hpp">
@@ -305,6 +297,8 @@
 		<Unit filename="src/net/error_category_shim.hpp">
 			<Option target="debug-win-gcc-static-x64" />
 		</Unit>
+		<Unit filename="src/net/http_client.cpp" />
+		<Unit filename="src/net/uri.cpp" />
 		<Unit filename="src/posix/console.cpp">
 			<Option target="debug-unix-gcc-so-x64" />
 		</Unit>

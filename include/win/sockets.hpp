@@ -96,7 +96,7 @@ public:
 	uint16_t port() const noexcept;
 	void set_port(uint16_t port) noexcept;
 	ip_family family() const noexcept;
-	const ::sockaddr_in* native() const noexcept;
+	const void* native() const noexcept;
 private:
 	std::shared_ptr<::addrinfo> addr_info_;
 };

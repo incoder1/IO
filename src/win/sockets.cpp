@@ -1,5 +1,5 @@
 #include "../stdafx.hpp"
-#include "sockets.hpp"
+#include "win/sockets.hpp"
 
 namespace io {
 
@@ -63,13 +63,34 @@ endpoint::endpoint(const std::shared_ptr<::addrinfo>& info) noexcept:
 
 uint16_t endpoint::port() const noexcept
 {
-	return ::ntohs( native()->sin_port );
+	switch( family() )
+	{
+		case ip_family::ip_v4:
+			 return ::ntohs(
+						reinterpret_cast<::PSOCKADDR_IN>(addr_info_->ai_addr)->sin_port
+					);
+		case ip_family::ip_v6:
+			return ::ntohs(
+						reinterpret_cast<PSOCKADDR_IN6>(addr_info_->ai_addr)->sin6_port
+					);
+		default:
+			return 0;
+	}
 }
 
 void endpoint::set_port(uint16_t port) noexcept
 {
-	::sockaddr_in *addr = const_cast<::sockaddr_in*>(native());
-	addr->sin_port = port;
+	switch( family() )
+	{
+		case ip_family::ip_v4:
+			reinterpret_cast<::PSOCKADDR_IN>(addr_info_->ai_addr)->sin_port = ::htons(port);
+			break;
+		case ip_family::ip_v6:
+			reinterpret_cast<::PSOCKADDR_IN6>(addr_info_->ai_addr)->sin6_port = ::htons(port);
+			break;
+		default:
+			break;
+	}
 }
 
 ip_family endpoint::family() const noexcept
@@ -77,18 +98,18 @@ ip_family endpoint::family() const noexcept
 	return static_cast<ip_family>( addr_info_->ai_family );
 }
 
-const ::sockaddr_in* endpoint::native() const noexcept
+const void* endpoint::native() const noexcept
 {
-	return reinterpret_cast<::sockaddr_in*>( addr_info_->ai_addr );
+	return static_cast<void*>(addr_info_.get());
 }
 
 const_string endpoint::ip_address() const noexcept
 {
 	char tmp[INET6_ADDRSTRLEN];
 	io_zerro_mem(tmp, INET6_ADDRSTRLEN);
-	const char* ret = ::InetNtop(native()->sin_family,
+	const char* ret = ::InetNtopA( addr_info_->ai_family,
 	                             const_cast<void*>(
-	                                 static_cast<const void*>(&(native()->sin_addr))
+	                                 static_cast<const void*>(addr_info_->ai_addr)
 	                             ),
 	                             tmp, INET6_ADDRSTRLEN);
 	return nullptr != ret ? const_string(tmp) : const_string() ;
@@ -114,9 +135,8 @@ public:
 			ec.assign( ::WSAGetLastError(), std::system_category() );
 			return s_read_write_channel();
 		}
-		if(SOCKET_ERROR == ::connect(s,
-								reinterpret_cast<const ::sockaddr*>(ep_.native()),
-								sizeof(::SOCKADDR_IN) ) )
+		const ::addrinfo *ai = static_cast<const ::addrinfo *>(ep_.native());
+		if(SOCKET_ERROR == ::connect(s, ai->ai_addr, ai->ai_addrlen) )
 		{
 			// TODO: change
 			int errc = ::WSAGetLastError();
@@ -203,7 +223,7 @@ static void freeaddrinfo_wrap(void* const p) noexcept {
 
 static s_socket creatate_tcp_socket(std::error_code& ec, ::addrinfo *addr, uint16_t port) noexcept {
 	endpoint ep( std::shared_ptr<::addrinfo>(addr, freeaddrinfo_wrap ) );
-	ep.set_port( ::htons(port) );
+	ep.set_port( port );
 	return s_socket( nobadalloc<tpc_socket>::construct(ec, std::move(ep) ) );
 }
 

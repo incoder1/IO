@@ -56,7 +56,7 @@ public:
 		return result;
 	}
 
-	inline void asynch_read(::LPOVERLAPPED ovrlp, uint8_t* const to, std::size_t bytes) const noexcept
+	inline void asynch_read(::LPOVERLAPPED const ovrlp, uint8_t* const to, std::size_t bytes) const noexcept
 	{
 		 std::error_code ec;
 		::BOOL errorCode = ::ReadFile(
@@ -77,7 +77,7 @@ public:
 		return result;
 	}
 
-	inline void asynch_write(::LPOVERLAPPED ovrlp,const uint8_t* what, std::size_t len) const noexcept
+	inline void asynch_write(::LPOVERLAPPED const ovrlp,const uint8_t* what, std::size_t len) const noexcept
 	{
 		 std::error_code ec;
 		::BOOL errorCode = ::WriteFile(
