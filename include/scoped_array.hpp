@@ -59,7 +59,8 @@ public:
 
 	explicit scoped_arr(std::size_t len) noexcept:
 		scoped_arr(len, memory_traits::calloc_temporary<T>(len), &scoped_arr::dispoce_termporary)
-	{}
+	{
+	}
 
 	inline void swap(scoped_arr& other) noexcept
 	{

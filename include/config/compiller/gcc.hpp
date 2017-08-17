@@ -86,13 +86,17 @@
 
 #define io_strcspn(__s, __p) __builtin_strcspn( (__s), (__p) )
 
+#define io_strpbrk(__s, __p) __builtin_strpbrk( (__s), (__p) )
+
+#define io_strchr(__s,__c) __builtin_strchr( (__s), (__c) )
+
+#define io_isalpha(__ch) __builtin_isalpha((__ch))
 #define io_isspace(__ch) __builtin_isspace((__ch))
 #define io_islower(__ch) __builtin_islower((__ch))
 #define io_isupper(__ch) __builtin_isupper((__ch))
 #define io_isdigit(__ch) __builtin_isdigit((__ch))
 #define io_tolower(__ch) __builtin_tolower((__ch))
 #define io_toupper(__ch) __builtin_toupper((__ch))
-#define io_strchr(__s,__c) __builtin_strchr( (__s), (__c) )
 
 #ifndef IO_IS_MINGW
 

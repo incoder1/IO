@@ -19,7 +19,8 @@ enum class protocol
 {
 	http,
 	https,
-	ftp
+	ftp,
+	file
 };
 
 inline uint16_t default_port(protocol prot) noexcept
@@ -41,11 +42,26 @@ public:
 
 	static uri parse(std::error_code& ec, const char* str) noexcept;
 
-	uri(protocol scheme,uint16_t port,
-		const_string&& host,const_string&& absolute,
-		const_string&& relative, const_string&& fragment) noexcept;
+	constexpr uri() noexcept:
+		port_(0),
+		scheme_(),
+		host_(),
+		user_info_(),
+		path_(),
+		query_(),
+		fragment_()
+	{}
 
-	protocol scheme() const noexcept {
+	uri(
+		const_string&& scheme,
+		uint16_t port,
+		const_string&& host,
+		const_string&& user_info,
+		const_string&& path,
+		const_string&& query,
+		const_string&& fragment) noexcept;
+
+	inline const const_string& scheme() const noexcept {
 		return scheme_;
 	}
 
@@ -57,24 +73,29 @@ public:
 		return host_;
 	}
 
-    inline const const_string& absolute() const noexcept {
-    	return absolute_;
-    }
+	inline const const_string& user_info() const noexcept {
+		return user_info_;
+	}
 
-    inline const const_string& relative() const noexcept {
-    	return relative_;
-    }
+	inline const const_string& path() const noexcept {
+		return path_;
+	}
+
+	inline const const_string& query() const noexcept {
+		return query_;
+	}
 
     inline const const_string& fragment() const noexcept {
     	return fragment_;
     }
 private:
 	uint16_t port_;
-	protocol scheme_;
+	const_string scheme_;
 	const_string host_;
-    const_string absolute_;
-    const_string relative_;
-    const_string fragment_;
+	const_string user_info_;
+	const_string path_;
+	const_string query_;
+	const_string fragment_;
 };
 
 
@@ -90,12 +111,18 @@ public:
 	std::size_t operator()(const io::net::uri& u) noexcept
 	{
 		static constexpr std::size_t PRIME = 31;
-		std::size_t ret = PRIME * u.host().hash();
-		ret = PRIME * ret + u.absolute().hash();
-		ret = PRIME * ret + u.relative().hash();
-		ret = PRIME * ret + u.fragment().hash();
+		std::size_t ret = PRIME + u.scheme().hash();
+		if( !u.host().empty() )
+			ret = PRIME * ret + u.host().hash();
+		if( !u.user_info().empty() )
+			ret = PRIME * ret + u.user_info().hash();
+		if( !u.path().empty() )
+			ret = PRIME * ret + u.path().hash();
+		if( !u.query().empty() )
+			ret = PRIME * ret + u.query().hash();
+		if( !u.fragment().empty() )
+			ret = PRIME * ret + u.fragment().hash();
 		ret = PRIME * ret + u.port();
-		ret = PRIME * ret + static_cast<std::size_t>(u.scheme());
 		return ret;
 	}
 };

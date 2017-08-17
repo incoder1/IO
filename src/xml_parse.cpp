@@ -58,7 +58,8 @@ static inline bool is_doc_type(const char *s) noexcept
 	return start_with(s, DOCTYPE, 7);
 }
 
-static std::size_t extract_prefix(std::size_t& start,const char* str) noexcept {
+static std::size_t extract_prefix(std::size_t& start,const char* str) noexcept
+{
 	start = 0;
 	char *s = const_cast<char*>(str);
 	if( cheq(LEFTB,*s) )
@@ -77,7 +78,8 @@ static std::size_t extract_prefix(std::size_t& start,const char* str) noexcept {
 	return str_size(str, (s-1) ) - (start-1);
 }
 
-static std::size_t extract_local_name(std::size_t& start,const char* str) noexcept {
+static std::size_t extract_local_name(std::size_t& start,const char* str) noexcept
+{
 	start = 0;
 	char *s = const_cast<char*>(str);
 	if( !is_one_of(*s, LEFTB,COLON,QM) )
@@ -97,28 +99,28 @@ static std::size_t extract_local_name(std::size_t& start,const char* str) noexce
 }
 
 
-static error check_xml_name(const char* tn) noexcept {
+static error check_xml_name(const char* tn) noexcept
+{
 	if( is_digit(*tn) )
 		return error::illegal_name;
 	// need to convert into USC-4 in this point
 	std::size_t len = io_strlen(tn);
 	uint32_t *ch32 = nullptr;
-	if(0 == len) {
+	if(0 == len)
 		return error::illegal_name;
-	} else if(len < UCHAR_MAX) {
+	else if(len < UCHAR_MAX) {
 		// stack in this point
 		ch32 = static_cast<uint32_t*>( io_alloca( len*4 ) );
 	} else {
 		// a huge name, more then 255 bytes
 		ch32 = static_cast<uint32_t*>( memory_traits::malloc( len*4 ) );
-		if(nullptr == ch32) {
+		if(nullptr == ch32)
 			return error::out_of_memory;
-		}
 	}
 	std::error_code ec;
 	std::size_t ulen = transcode(ec,
-				reinterpret_cast<const uint8_t*>(tn),len,
-				reinterpret_cast<char32_t*>(ch32),len);
+	                             reinterpret_cast<const uint8_t*>(tn),len,
+	                             reinterpret_cast<char32_t*>(ch32),len);
 	if( ec || !ulen ) {
 		// huge name, release memory for UCS-4
 		if(len >= 256)
@@ -138,19 +140,19 @@ static error check_xml_name(const char* tn) noexcept {
 	return error::ok;
 }
 
-static error validate_tag_name(const char* name) noexcept {
-	 // check XML,xMl,xml etc
+static error validate_tag_name(const char* name) noexcept
+{
+	// check XML,xMl,xml etc
 	char first[3];
-	for(std::size_t i=0; i < 3; i++) {
+	for(std::size_t i=0; i < 3; i++)
 		first[i] = latin1_to_lower(name[i]);
-	}
-	if( start_with(first, "xml", 3) ) {
+	if( start_with(first, "xml", 3) )
 		return error::illegal_name;
-	}
 	return check_xml_name(name);
 }
 
-static inline error validate_attribute_name(const char* name) noexcept {
+static inline error validate_attribute_name(const char* name) noexcept
+{
 	return check_xml_name(name);
 }
 
@@ -170,11 +172,14 @@ s_event_stream_parser event_stream_parser::open(std::error_code& ec, const s_sou
 event_stream_parser::event_stream_parser(const s_source& src, s_string_pool&& pool):
 	object(),
 	src_(src),
-	state_({error::ok,state_type::initial}),
-	current_(event_type::start_document),
-	pool_(std::forward<s_string_pool>(pool)),
-	validated_(),
-	nesting_(0)
+	state_(
+{
+	error::ok,state_type::initial
+}),
+current_(event_type::start_document),
+pool_(std::forward<s_string_pool>(pool)),
+validated_(),
+nesting_(0)
 {
 }
 
@@ -185,27 +190,26 @@ event_stream_parser::~event_stream_parser() noexcept
 void event_stream_parser::assign_error(error ec) noexcept
 {
 	state_.current = state_type::eod;
-	if(error::ok == state_.ec) {
+	if(error::ok == state_.ec)
 		state_.ec = ec;
-	}
 }
 
 // extract name and namespace prefix if any
-qname event_stream_parser::extract_qname(const char* from, std::size_t& len) noexcept {
+qname event_stream_parser::extract_qname(const char* from, std::size_t& len) noexcept
+{
 	cached_string prefix;
 	cached_string local_name;
 	len = 0;
 	std::size_t start = 0;
 	std::size_t count = extract_prefix(start,from);
-	if( count > 0 ) {
+	if( count > 0 )
 		prefix = pool_->get( from+start, count);
-	}
 	len += start+count;
 	const char* name = from+len;
 	count = extract_local_name(start,name);
-	if(count > 0) {
+	if(count > 0)
 		local_name = pool_->get(name+start, count);
-	} else {
+	else {
 		assign_error(error::illegal_name);
 		return qname();
 	}
@@ -215,26 +219,23 @@ qname event_stream_parser::extract_qname(const char* from, std::size_t& len) noe
 		++len;
 		++left;
 	}
-	if(cheq(RIGHTB,*left)) {
+	if(cheq(RIGHTB,*left))
 		++len;
-	}
 	return qname( std::move(prefix), std::move(local_name) );
 }
 
 state event_stream_parser::scan_next() noexcept
 {
-	if(state_type::eod != state_.current) {
+	if(state_type::eod != state_.current)
 		scan();
-	}
 	return state_;
 }
 
 char event_stream_parser::skip_to_symbol(const char symbol) noexcept
 {
 	char i = next();
-	while( !cheq( symbol, i) && !is_eof(i) ) {
+	while( !cheq( symbol, i) && !is_eof(i) )
 		i = next();
-	}
 	return i;
 }
 
@@ -242,9 +243,8 @@ byte_buffer event_stream_parser::read_entity() noexcept
 {
 	std::error_code ec;
 	byte_buffer result = byte_buffer::allocate(ec, MID_BUFF_SIZE);
-	if( !check_buffer(result) ) {
+	if( !check_buffer(result) )
 		return result;
-	}
 	result.put(scan_buf_, sb_len(scan_buf_) );
 	sb_clear(scan_buf_);
 	constexpr int_fast32_t EOS = std::char_traits<int_fast32_t>::eof();
@@ -282,37 +282,36 @@ document_event event_stream_parser::parse_start_doc() noexcept
 		return document_event();
 	}
 	byte_buffer buff( read_entity() );
-	if( !check_buffer(buff) ) {
+	if( !check_buffer(buff) )
 		return document_event();
-	}
 	buff.shift(5);
 	const_string version, encoding;
 	bool standalone = false;
 	const char* prologue = buff.position().cdata();
-    // extract version
-    char* i = io_strstr(prologue, "version=\"");
-    if(nullptr == i) {
+	// extract version
+	char* i = io_strstr(prologue, "version=\"");
+	if(nullptr == i) {
 		assign_error(error::illegal_prologue);
 		return document_event();
-    }
-    i += 9;
-    const char* stop = i;
-    while( !cheq(QNM, *stop) )
+	}
+	i += 9;
+	const char* stop = i;
+	while( !cheq(QNM, *stop) )
 		++stop;
-    if(nullptr == stop || cheq('\0',*stop) ) {
+	if(nullptr == stop || cheq('\0',*stop) ) {
 		assign_error(error::illegal_prologue);
 		return document_event();
-    }
-    version = const_string( i, stop);
-    if( version.empty() ) {
+	}
+	version = const_string( i, stop);
+	if( version.empty() ) {
 		assign_error(error::out_of_memory);
 		return document_event();
-    }
-    // extract optionalal
-    i = const_cast<char*>( stop + 1 );
-    // extract encoding if exist
-    const char* j = io_strstr(i, "encoding=\"");
-    if(nullptr != j) {
+	}
+	// extract optionalal
+	i = const_cast<char*>( stop + 1 );
+	// extract encoding if exist
+	const char* j = io_strstr(i, "encoding=\"");
+	if(nullptr != j) {
 		i = const_cast<char*>( j + 10 );
 		stop  = tstrchr( i, QNM );
 		if(nullptr == stop ) {
@@ -325,9 +324,9 @@ document_event event_stream_parser::parse_start_doc() noexcept
 			return document_event();
 		}
 		i = const_cast<char*> ( stop + 1 );
-    }
+	}
 	// extract standalone if exist
-    j = io_strstr(i, "standalone=\"");
+	j = io_strstr(i, "standalone=\"");
 	if(nullptr != j) {
 		i = const_cast<char*> ( j + 12 );
 		stop  = tstrchr( i, QNM);
@@ -339,17 +338,17 @@ document_event event_stream_parser::parse_start_doc() noexcept
 			assign_error(error::illegal_prologue);
 			return document_event();
 		}
-        standalone =  ( 0 == io_memcmp( i, "yes", 3) );
-        if( !standalone ) {
+		standalone =  ( 0 == io_memcmp( i, "yes", 3) );
+		if( !standalone ) {
 			if( 0 != io_memcmp(i,"no",2) ) {
 				assign_error(error::illegal_prologue);
 				return document_event();
 			}
-        }
-        i = const_cast<char*> ( stop + 1 );
+		}
+		i = const_cast<char*> ( stop + 1 );
 	}
 	// check error in this point
-	if( 0 != io_memcmp( find_first_symbol(i) ,"?>", 2) ) {
+	if( 0 != io_memcmp( find_first_symbol(i),"?>", 2) ) {
 		assign_error(error::illegal_prologue);
 		return document_event();
 	}
@@ -358,15 +357,13 @@ document_event event_stream_parser::parse_start_doc() noexcept
 
 instruction_event event_stream_parser::parse_processing_instruction() noexcept
 {
-	if(state_type::event != state_.current || current_ != event_type::processing_instruction)
-	{
+	if(state_type::event != state_.current || current_ != event_type::processing_instruction) {
 		assign_error(error::invalid_state);
 		return instruction_event();
 	}
 	byte_buffer buff = read_entity();
-	if( !check_buffer(buff) ) {
+	if( !check_buffer(buff) )
 		return instruction_event();
-	}
 	buff.move(1);
 	char *i = const_cast<char*>( buff.position().cdata() );
 	std::size_t start = 0;
@@ -421,9 +418,8 @@ const_string event_stream_parser::read_dtd() noexcept
 	}
 	std::error_code ec;
 	byte_buffer dtd = byte_buffer::allocate(ec, MID_BUFF_SIZE);
-	if( ! check_buffer(dtd) ) {
+	if( ! check_buffer(dtd) )
 		return const_string();
-	}
 	dtd.put(scan_buf_, sb_len(scan_buf_) );
 	sb_clear(scan_buf_);
 	std::size_t brackets = 1;
@@ -470,9 +466,8 @@ void event_stream_parser::skip_comment() noexcept
 		i = (i << 8) | c;
 	} while( !is_error() && _ptrn != i );
 	i = next();
-	if( !cheq(RIGHTB,i) ) {
+	if( !cheq(RIGHTB,i) )
 		assign_error(error::illegal_commentary);
-	}
 }
 
 byte_buffer event_stream_parser::read_until_double_separator(const int separator,error ec) noexcept
@@ -486,15 +481,15 @@ byte_buffer event_stream_parser::read_until_double_separator(const int separator
 	byte_buffer buff = byte_buffer::allocate(errc, HUGE_BUFF_SIZE);
 	if(!check_buffer(buff))
 		return byte_buffer();
-    const uint16_t pattern = (separator << 8) | separator;
+	const uint16_t pattern = (separator << 8) | separator;
 	uint16_t i = 0;
 	char c;
 	do {
 		c = next();
 		if( is_eof(c) ) {
-            assign_error(ec);
+			assign_error(ec);
 			break;
-        }
+		}
 		i = (i << 8) | static_cast<uint8_t>(c);
 		if(i == pattern)
 			break;
@@ -502,8 +497,8 @@ byte_buffer event_stream_parser::read_until_double_separator(const int separator
 	} while( !is_error() );
 	buff.flip();
 	if( !cheq(RIGHTB, next() ) ) {
-        if(error::ok != state_.ec)
-            assign_error(ec);
+		if(error::ok != state_.ec)
+			assign_error(ec);
 		return byte_buffer();
 	}
 	return std::move(buff);
@@ -564,7 +559,8 @@ const_string event_stream_parser::read_chars() noexcept
 	return const_string( result.position().cdata(), result.last().cdata() );
 }
 
-void event_stream_parser::skip_chars() noexcept {
+void event_stream_parser::skip_chars() noexcept
+{
 	if(state_type::characters != state_.current) {
 		assign_error(error::invalid_state);
 		return;
@@ -572,7 +568,8 @@ void event_stream_parser::skip_chars() noexcept {
 	read_chars();
 }
 
-const_string event_stream_parser::read_cdata() noexcept {
+const_string event_stream_parser::read_cdata() noexcept
+{
 	if(state_type::cdata != state_.current) {
 		assign_error(error::invalid_state);
 		return const_string();
@@ -587,9 +584,8 @@ attribute event_stream_parser::extract_attribute(const char* from, std::size_t& 
 	len = 0;
 	// skip leadin spaces, not copy them into name
 	char *i = find_first_symbol(from);
-	if( nullptr == i || is_one_of(*i, SOLIDUS,RIGHTB) ) {
+	if( nullptr == i || is_one_of(*i, SOLIDUS,RIGHTB) )
 		return attribute();
-	}
 	char* start = i;
 	i = const_cast<char*>( io::strstr2b( start, "=\"") );
 	if(nullptr == i)
@@ -598,7 +594,7 @@ attribute event_stream_parser::extract_attribute(const char* from, std::size_t& 
 	// 2 symbols
 	i += 2;
 	start = i;
-	i = tstrchr(i, static_cast<char>(QNM) );
+	i = tstrchrn(i, char8_traits::to_char_type(QNM), UCHAR_MAX);
 	if(nullptr == i) {
 		assign_error(error::illegal_name);
 		return attribute();
@@ -622,16 +618,33 @@ attribute event_stream_parser::extract_attribute(const char* from, std::size_t& 
 		++i;
 	}
 	len = str_size(from, i);
-  	return attribute( std::move(name), const_string(val.position().cdata(), val.last().cdata()) );
+	return attribute( std::move(name), const_string(val.position().cdata(), val.last().cdata()) );
+}
+
+void event_stream_parser::cache_validated_name(std::size_t hash)
+{
+#ifndef IO_NO_EXCEPTIONS
+	try {
+		validated_.emplace( hash );
+	} catch(std::bad_alloc& exc) {
+		assign_error( xml::error::out_of_memory );
+	}
+#else
+	auto ret = validated_.emplace( hash );
+	if(!ret.second)
+		assign_error( xml::error::out_of_memory );
+#endif // IO_NO_EXCEPTIONS
 }
 
 bool event_stream_parser::validate_xml_name(const cached_string& str, bool attr) noexcept
 {
-#ifndef IO_NO_EXCEPTIONS
-	try {
-#endif // IO_NO_EXCEPTIONS
 	if( validated_.end() == validated_.find( str.fast_hash() ) ) {
-		error err = attr ? validate_attribute_name(str.data()) : validate_tag_name(str.data());
+		error err;
+		if(attr)
+			err = validate_attribute_name( str.data() );
+		else
+			err = validate_tag_name( str.data() );
+
 		if(error::ok != err ) {
 			assign_error( err );
 			return false;
@@ -639,12 +652,6 @@ bool event_stream_parser::validate_xml_name(const cached_string& str, bool attr)
 		validated_.emplace( str.fast_hash() );
 		return true;
 	}
-#ifndef IO_NO_EXCEPTIONS
-	} catch(...) {
-		assign_error(error::out_of_memory);
-		return false;
-	}
-#endif // IO_NO_EXCEPTIONS
 	return true;
 }
 
@@ -756,11 +763,11 @@ void event_stream_parser::s_comment_cdata_or_dtd() noexcept
 		}
 	}
 	sb_append(scan_buf_, st);
-	if( is_cdata(st) ) {
+	if( is_cdata(st) )
 		state_.current = state_type::cdata;
-	} else if(is_doc_type(st)) {
+	else if(is_doc_type(st))
 		state_.current = state_type::dtd;
-	} else {
+	else {
 		// TODO: unknown instruction
 		assign_error(error::parse_error);
 	}

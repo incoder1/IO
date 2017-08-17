@@ -71,7 +71,7 @@ uint16_t endpoint::port() const noexcept
 					);
 		case ip_family::ip_v6:
 			return ::ntohs(
-						reinterpret_cast<PSOCKADDR_IN6>(addr_info_->ai_addr)->sin6_port
+						reinterpret_cast<::PSOCKADDR_IN6>(addr_info_->ai_addr)->sin6_port
 					);
 		default:
 			return 0;
@@ -136,8 +136,7 @@ public:
 			return s_read_write_channel();
 		}
 		const ::addrinfo *ai = static_cast<const ::addrinfo *>(ep_.native());
-		if(SOCKET_ERROR == ::connect(s, ai->ai_addr, ai->ai_addrlen) )
-		{
+		if(SOCKET_ERROR == ::connect(s, ai->ai_addr, ai->ai_addrlen) ) {
 			// TODO: change
 			int errc = ::WSAGetLastError();
 			switch(errc) {

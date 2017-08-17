@@ -114,7 +114,7 @@ public:
 	}
 
 	template<typename _Up>
-	__forceinline void  destroy(_Up* __p) noexcept( noexcept( __p->~_Up() ) )
+	__forceinline void  destroy(_Up* const __p) noexcept( noexcept( __p->~_Up() ) )
 	{
 		__p->~_Up();
 	}

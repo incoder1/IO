@@ -68,7 +68,18 @@
 
 #define io_strcspn(__s, __p) strcspn( (__s), (__p) )
 
+#define io_strpbrk(__s, __p) strpbrk( (__s), (__p) )
+
 #define io_strchr(__s,__c) strchr( (__s), (__c) )
+
+#define io_isalpha(__ch) isalpha((__ch))
+#define io_isspace(__ch) isspace((__ch))
+#define io_islower(__ch) islower((__ch))
+#define io_isupper(__ch) isupper((__ch))
+#define io_isdigit(__ch) isdigit((__ch))
+#define io_tolower(__ch) tolower((__ch))
+#define io_toupper(__ch) toupper((__ch))
+
 
 #ifndef _DEBUG
 #define NDEBUG

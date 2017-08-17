@@ -204,6 +204,8 @@ private:
 	attribute extract_attribute(const char* from, std::size_t& len) noexcept;
 	bool validate_xml_name(const cached_string& str, bool attr) noexcept;
 
+	void cache_validated_name(std::size_t name_hash);
+
 	inline char next() noexcept
 	{
 		char result = src_->next();

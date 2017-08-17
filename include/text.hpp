@@ -204,9 +204,9 @@ inline std::string transcode(const char32_t* u32_str)
 inline std::wstring transcode_to_ucs(const char* u8_str, std::size_t bytes)
 {
 #ifdef __IO_WINDOWS_BACKEND__
-	scoped_arr<char16_t> arr( bytes*sizeof(char16_t) );
+	scoped_arr<char16_t> arr( bytes << 1 );
 #else
-	scoped_arr<char32_t> arr( bytes*sizeof(char32_t) );
+	scoped_arr<char32_t> arr( bytes << 2 );
 #endif // __IO_WINDOWS_BACKEND__
 	std::error_code ec;
 	std::size_t conv = transcode(ec, detail::address_of(u8_str), bytes, arr.get(), arr.len() );
@@ -219,19 +219,50 @@ inline std::wstring transcode_to_ucs(const char* u8_str)
 	return transcode_to_ucs(u8_str, std::char_traits<char>::length(u8_str) );
 }
 
-inline std::string transcode(const wchar_t* ucs_str, std::size_t len)
+namespace detail {
+
+inline std::string transcode_big(const wchar_t* ucs_str, std::size_t len)
 {
 #ifdef __IO_WINDOWS_BACKEND__
 	const char16_t* ucs = reinterpret_cast<const char16_t*>(ucs_str);
-	scoped_arr<char> arr( len*2 );
 #else
-	const char32_t* ucs = reinterpret_cast<const char32_t*>(ucs_str);
-	scoped_arr<char> arr( len*4 );
+	const char32_t* ucs = reinterpret_cast<const char32_t*>(ucs_str);;
 #endif // __IO_WINDOWS_BACKEND__
+	scoped_arr<char> arr( len* sizeof(wchar_t) );
+	if(!arr)
+#ifdef IO_NO_EXCEPTIONS
+		check_error_code( std::make_error_code(std::errc::not_enough_memory) );
+#else
+		throw std::bad_alloc();
+#endif // IO_NO_EXCEPTIONS
 	std::error_code ec;
 	std::size_t conv = transcode(ec, ucs, len, detail::address_of(arr.get()), arr.len() );
 	check_error_code(ec);
 	return std::string(arr.get(), conv);
+}
+
+inline std::string transcode_small(const wchar_t* ucs_str, std::size_t len)
+{
+#ifdef __IO_WINDOWS_BACKEND__
+	const char16_t* ucs = reinterpret_cast<const char16_t*>(ucs_str);
+#else
+	const char32_t* ucs = reinterpret_cast<const char32_t*>(ucs_str);;
+#endif // __IO_WINDOWS_BACKEND__
+	const std::size_t buff_size = len* sizeof(wchar_t);
+	uint8_t *tmp = static_cast<uint8_t*>( io_alloca( buff_size ) );
+	std::error_code ec;
+	std::size_t conv = transcode(ec, ucs, len, tmp, buff_size );
+	check_error_code(ec);
+	return std::string( reinterpret_cast<const char*>(tmp), conv);
+}
+
+} // namespace detail
+
+inline std::string transcode(const wchar_t* ucs_str, std::size_t len)
+{
+	if(len <= (1024 / sizeof(wchar_t) ) )
+		return detail::transcode_small(ucs_str, len);
+	return detail::transcode_big(ucs_str, len);
 }
 
 inline std::string transcode(const wchar_t* ucs_str)

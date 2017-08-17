@@ -21,7 +21,6 @@
 					<Add option="-std=c++11" />
 					<Add option="-g" />
 					<Add option="-fexceptions" />
-					<Add option="-Og" />
 					<Add option="-DIO_SHARED_LIB" />
 					<Add option="-DIO_HAS_BOOST" />
 					<Add option="-DBOOST_SYSTEM_NO_DEPRECATED" />

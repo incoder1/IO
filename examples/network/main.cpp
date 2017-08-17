@@ -12,6 +12,8 @@
 #include <iostream>
 
 #include <network.hpp>
+
+#include <net/uri.hpp>
 #include <net/http_client.hpp>
 
 
@@ -24,11 +26,12 @@ int main()
 {
 	using namespace io::net;
 	std::error_code ec;
+	uri url = uri::parse(ec,"http://www.boost.org:80/");
 	const socket_factory* sf = socket_factory::instance(ec);
 	io::check_error_code(ec);
-	s_socket tpc_socket = sf->client_socket(ec, "boost.org", 80);
+	s_socket tpc_socket = sf->client_socket(ec, url.host().data(), url.port() );
 	io::check_error_code(ec);
-	std::cout << "boost.org resolved to: \n";
+	std::cout << "www.boost.org resolved to: \n";
 	endpoint ep = tpc_socket->get_endpoint();
 	do {
 		std::cout << "\t" << ep.ip_address();
@@ -41,7 +44,7 @@ int main()
 	io::s_string_pool sp = io::string_pool::create(ec);
 	io::check_error_code(ec);
 
-	http::request<http::method::get> getreq( sp->get("/") , sp->get("www.boost.org") );
+	http::request<http::method::get> getreq( sp->get(url.path().data()) , sp->get(url.host().data()) );
 	getreq.add_headers( {
 			http::default_headers::ACCEPT_HTML_AND_XML,
 			http::default_headers::ACCEPT_CHARSET,
@@ -72,6 +75,5 @@ int main()
 		else
 			break;
 	}
-
     return 0;
 }
