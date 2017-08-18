@@ -98,6 +98,8 @@
 #define io_tolower(__ch) __builtin_tolower((__ch))
 #define io_toupper(__ch) __builtin_toupper((__ch))
 
+#define io_bswap16 __builtin_bswap16
+
 #ifndef IO_IS_MINGW
 
 #define io_bswap32 __builtin_bswap32
@@ -124,6 +126,12 @@ inline uint64_t io_bswap64(uint64_t qword) {
 #endif // IO_x64
 
 #else
+
+template<typename int16_type>
+__forceinline int16_type io_bswap16(int16_type x)
+{
+	return ( (x << 8) & 0xFF00) ) | ( (x >> 8) & 0x00FF );
+}
 
 template<typename int32_type>
 __forceinline int32_type io_bswap32(int32_type x)

@@ -190,6 +190,7 @@ private:
 	typedef ochannel_streambuf<__char_type, std::char_traits<__char_type> > streambuf_type;
 	typedef boost::intrusive_ptr<streambuf_type> s_streambuf_type;
 public:
+
 	channel_ostream(s_write_channel&& ch):
 		super_type(),
 		sb_( new streambuf_type(
@@ -203,6 +204,13 @@ public:
 	channel_ostream(const s_write_channel& ch):
 		channel_ostream( s_write_channel(ch) )
 	{}
+
+	channel_ostream& operator=(channel_ostream&& rhs) noexcept
+	{
+		sb_.swap( rhs );
+		this->swap( static_cast<super_type>(rhs) );
+		return *this;
+	}
 
 	virtual ~channel_ostream() override
 	{}
@@ -239,13 +247,17 @@ public:
 			std::error_code ec = std::make_error_code(std::errc::not_enough_memory);
 			ios_check_error_code( "input stream buff ", ec );
 		}
-		super_type::setg(buff, buff, buff + buffer_size);
+		this->setg(buff, buff, buff + buffer_size);
 	}
-
+/*
 	virtual super_type* setbuf(char_type* data, std::streamsize size) override
 	{
+		if(nullptr == this->eback() )
+			memory_traits::free( this->eback() );
+		this->setg(data, data, data + size);
 		return this;
 	}
+*/
 
 	virtual std::streamsize xsgetn(char_type* __s, std::streamsize __n) override
 	{
@@ -258,7 +270,7 @@ public:
 				return -1;
 		}
 		std::copy(pos, (pos+__n), __s);
-		super_type::pbump(__n);
+		this->pbump(__n);
 		return __n;
 	}
 
@@ -273,12 +285,7 @@ public:
 	virtual int_type underflow() override
 	{
 		std::size_t ret = read_more_data();
-		return !ret ? traits_type::eof() : static_cast<int_type>(ret);
-	}
-
-	virtual int sync() override
-	{
-		return read_more_data() > 0;
+		return !ret ? traits_type::eof() : traits_type::to_int_type( *this->gptr() );
 	}
 
 	virtual std::streamsize showmanyc() override
@@ -303,7 +310,7 @@ private:
 		std::error_code ec;
 		std::size_t res = rch_->read(ec, reinterpret_cast<uint8_t*>( this->eback() ), count);
 		ios_check_error_code( "input stream buff ", ec );
-		super_type::setg(this->eback(), this->eback(), this->egptr() );
+		this->setg( this->eback(), this->eback(), this->eback() + res);
 		return res;
 	}
 
@@ -363,12 +370,6 @@ public:
 		channel_istream( s_read_channel(src) )
 	{}
 
-	inline void swap(channel_istream& rhs) noexcept
-	{
-		sb_.swap( rhs );
-		super_type::swap( rhs );
-	}
-
 	channel_istream(channel_istream&& other) noexcept:
 		super_type( std::forward<channel_istream>(other) ),
 		sb_( std::move( other.sb_ ) )
@@ -386,6 +387,17 @@ public:
 private:
 	s_streambuf_type sb_;
 };
+
+typedef channel_ostream<char> cnl_ostream;
+typedef channel_ostream<wchar_t> cnl_wostream;
+typedef channel_ostream<char16_t> cnl_u16ostream;
+typedef channel_ostream<char32_t> cnl_u32ostream;
+
+
+typedef channel_istream<char> cnl_istream;
+typedef channel_istream<wchar_t> cnl_wistream;
+typedef channel_istream<char16_t> cnl_u16istream;
+typedef channel_istream<char32_t> cnl_u32istream;
 
 } // namespace io
 

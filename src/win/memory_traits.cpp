@@ -9,9 +9,9 @@
  *
  */
 
-#include "../stdafx.hpp"
-#include "win/hmalloc.hpp"
-#include "win/criticalsection.hpp"
+#include "stdafx.hpp"
+#include "hmalloc.hpp"
+#include "criticalsection.hpp"
 
 #include <atomic>
 

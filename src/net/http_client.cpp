@@ -1,5 +1,5 @@
-#include "../stdafx.hpp"
-#include "net/http_client.hpp"
+#include "stdafx.hpp"
+#include "http_client.hpp"
 
 namespace io {
 

@@ -14,9 +14,7 @@
 				<Option compiler="gcc" />
 				<Compiler>
 					<Add option="-std=c++11" />
-					<Add option="-pg" />
 					<Add option="-g" />
-					<Add option="-Og" />
 					<Add option="-fexceptions" />
 					<Add option="-DIO_SHARED_LIB" />
 					<Add option="-DIO_HAS_BOOST" />
@@ -25,7 +23,6 @@
 					<Add directory="../../../boost_1_60_0" />
 				</Compiler>
 				<Linker>
-					<Add option="-pg -lgmon" />
 					<Add library="iconv.dll" />
 					<Add directory="../../deps/lib" />
 					<Add directory="../../bin/debug-win-gcc-dll-x64" />

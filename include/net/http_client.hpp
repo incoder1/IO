@@ -12,8 +12,8 @@
 #include <utility>
 
 #include <buffer.hpp>
-#include <conststring.hpp>
-#include <stringpool.hpp>
+
+#include "uri.hpp"
 
 namespace io {
 
@@ -50,11 +50,16 @@ template<>
 class request<method::get>
 {
 public:
-	request(const cached_string& path, const cached_string& host):
-		path_(path),
-		host_(host),
+	request(const s_uri& resouce):
+		uri_(resouce),
 		headers_()
 	{}
+	void add_header(const header& hdr) {
+		headers_.emplace_back( hdr );
+	}
+	void add_header(header&& hdr) {
+		headers_.emplace_back( std::forward<header>(hdr) );
+	}
 	void add_headers(std::initializer_list<header>&& headers)
 	{
 		for(auto it = headers.begin(); it != headers.end(); ++it)
@@ -62,9 +67,9 @@ public:
 	}
 	void to_buff(byte_buffer& buff) const noexcept {
 			buff.put("GET ");
-			buff.put( path_.data() );
+			buff.put( uri_->path().data() );
 			buff.put(" HTTP/1.1\r\nHost: ");
-			buff.put( host_.data() );
+			buff.put( uri_->host().data() );
 			buff.put( "\r\n");
 			for(auto it = headers_.cbegin(); it != headers_.cend(); ++it)
 			{
@@ -77,18 +82,31 @@ public:
 	}
 
 private:
-	cached_string path_;
-	cached_string host_;
+	s_uri uri_;
 	std::vector<header, h_allocator<header, memory_traits> > headers_;
+};
+
+class responce_parser
+{
+public:
+	responce_parser(const s_read_channel& from) noexcept:
+		from_(from)
+	{}
+    s_read_channel& data() noexcept
+    {
+    	return from_;
+    }
+private:
+	void parse_headers() {
+	}
+	void resolve_redirect() {
+	}
+private:
+	s_read_channel from_;
 };
 
 } // namespace http
 
-namespace http2 {
-
-
-
-} // namespace http2
 
 } // namespace net
 

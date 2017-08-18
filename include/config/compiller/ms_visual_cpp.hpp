@@ -43,6 +43,7 @@
 #endif
 
 
+#define io_bswap16 _byteswap_ushort
 #define io_bswap32 _byteswap_ulong
 #define io_bswap64 _byteswap_uint64
 

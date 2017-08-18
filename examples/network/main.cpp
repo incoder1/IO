@@ -16,22 +16,22 @@
 #include <net/uri.hpp>
 #include <net/http_client.hpp>
 
-
 #include <errorcheck.hpp>
 #include <stream.hpp>
 #include <scoped_array.hpp>
-#include <sstream>
 
 int main()
 {
 	using namespace io::net;
 	std::error_code ec;
-	uri url = uri::parse(ec,"http://www.boost.org:80/");
+	s_uri url = uri::parse(ec, "http://www.springframework.org/schema/beans/spring-beans-4.2.xsd");
+	io::check_error_code(ec);
 	const socket_factory* sf = socket_factory::instance(ec);
 	io::check_error_code(ec);
-	s_socket tpc_socket = sf->client_socket(ec, url.host().data(), url.port() );
+	std::cout << "connectig to: " << url->host() << std::endl;
+	s_socket tpc_socket = sf->client_socket(ec, url->host().data(),url->port() );
 	io::check_error_code(ec);
-	std::cout << "www.boost.org resolved to: \n";
+	std::cout << url->host() << "resolved to: \n";
 	endpoint ep = tpc_socket->get_endpoint();
 	do {
 		std::cout << "\t" << ep.ip_address();
@@ -41,15 +41,12 @@ int main()
 	io::s_read_write_channel sock = tpc_socket->connect(ec);
 	io::check_error_code(ec);
 
-	io::s_string_pool sp = io::string_pool::create(ec);
-	io::check_error_code(ec);
-
-	http::request<http::method::get> getreq( sp->get(url.path().data()) , sp->get(url.host().data()) );
+	http::request<http::method::get> getreq( url );
 	getreq.add_headers( {
-			http::default_headers::ACCEPT_HTML_AND_XML,
-			http::default_headers::ACCEPT_CHARSET,
-			http::default_headers::IO_USER_AGNET,
-			std::make_pair("Connection"," close")
+			{"Accept","text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8"},
+			{"User-Agent", "io library"},
+			{"Accept-Charset","ISO-8859-1,utf-8;q=0.7,*;q=0.7"},
+			{"Connection"," close"}
 		}  );
 
 	io::byte_buffer buff = io::byte_buffer::allocate(ec, io::memory_traits::page_size() );
@@ -68,12 +65,11 @@ int main()
 		io::check_error_code( std::make_error_code(std::errc::not_enough_memory) );
 
 	std::size_t read;
-	while(!ec){
+	do {
 		read = sock->read(ec, tmp.get(), tmp.len() );
 		if(read > 0)
 			std::cout.write( reinterpret_cast<const char*>(tmp.get()), read);
-		else
-			break;
-	}
+	} while(!ec && read > 0 );
+
     return 0;
 }

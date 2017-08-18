@@ -1,9 +1,31 @@
-#include "../stdafx.hpp"
-#include "win/sockets.hpp"
+#include "stdafx.hpp"
+#include "sockets.hpp"
 
 namespace io {
 
 namespace net {
+
+#ifdef IO_IS_LITTLE_ENDIAN
+
+static inline uint16_t io_ntohs(uint16_t x) {
+    return io_bswap16( x );
+}
+
+static inline uint16_t io_htons(uint16_t x) {
+    return io_bswap16( x );
+}
+
+#else
+
+static inline uint16_t io_ntohs(uint16_t x) {
+    return x;
+}
+
+static inline uint16_t io_htons(uint16_t x) {
+    return x;
+}
+
+#endif // IO_IS_LITTLE_ENDIAN
 
 class synch_socket_channel final:public read_write_channel {
 private:
@@ -66,11 +88,11 @@ uint16_t endpoint::port() const noexcept
 	switch( family() )
 	{
 		case ip_family::ip_v4:
-			 return ::ntohs(
+			 return io_ntohs(
 						reinterpret_cast<::PSOCKADDR_IN>(addr_info_->ai_addr)->sin_port
 					);
 		case ip_family::ip_v6:
-			return ::ntohs(
+			return io_ntohs(
 						reinterpret_cast<::PSOCKADDR_IN6>(addr_info_->ai_addr)->sin6_port
 					);
 		default:
@@ -83,10 +105,10 @@ void endpoint::set_port(uint16_t port) noexcept
 	switch( family() )
 	{
 		case ip_family::ip_v4:
-			reinterpret_cast<::PSOCKADDR_IN>(addr_info_->ai_addr)->sin_port = ::htons(port);
+			reinterpret_cast<::PSOCKADDR_IN>(addr_info_->ai_addr)->sin_port = io_htons(port);
 			break;
 		case ip_family::ip_v6:
-			reinterpret_cast<::PSOCKADDR_IN6>(addr_info_->ai_addr)->sin6_port = ::htons(port);
+			reinterpret_cast<::PSOCKADDR_IN6>(addr_info_->ai_addr)->sin6_port = io_htons(port);
 			break;
 		default:
 			break;
@@ -216,7 +238,8 @@ const socket_factory* socket_factory::instance(std::error_code& ec) noexcept
 	return ret;
 }
 
-static void freeaddrinfo_wrap(void* const p) noexcept {
+static void freeaddrinfo_wrap(void* const p) noexcept
+{
 	::freeaddrinfo( static_cast<::addrinfo*>(p) );
 }
 

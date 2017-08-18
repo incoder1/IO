@@ -8,8 +8,8 @@
  * LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
  *
  */
-#include "../stdafx.hpp"
-#include "win/asynch_channel.hpp"
+#include "stdafx.hpp"
+#include "asynch_channel.hpp"
 
 namespace io {
 

@@ -15,42 +15,21 @@ namespace io {
 
 namespace net {
 
-enum class protocol
-{
-	http,
-	https,
-	ftp,
-	file
-};
 
-inline uint16_t default_port(protocol prot) noexcept
-{
-	switch(prot) {
-	case protocol::http:
-		return 80;
-	case protocol::https:
-		return 443;
-	case protocol::ftp:
-		return 21;
-	default:
-		return static_cast<uint16_t>(-1);
-	}
-}
+class uri;
+DECLARE_IPTR(uri);
 
-class IO_PUBLIC_SYMBOL uri {
+class IO_PUBLIC_SYMBOL uri:public object {
 public:
 
-	static uri parse(std::error_code& ec, const char* str) noexcept;
+	static s_uri parse(std::error_code& ec, const char* str) noexcept;
 
-	constexpr uri() noexcept:
-		port_(0),
-		scheme_(),
-		host_(),
-		user_info_(),
-		path_(),
-		query_(),
-		fragment_()
-	{}
+	static uint16_t IO_NO_INLINE default_port_for_scheme(const char* scheme) noexcept;
+
+private:
+
+
+	friend class nobadalloc<uri>;
 
 	uri(
 		const_string&& scheme,
@@ -60,6 +39,7 @@ public:
 		const_string&& path,
 		const_string&& query,
 		const_string&& fragment) noexcept;
+public:
 
 	inline const const_string& scheme() const noexcept {
 		return scheme_;
@@ -106,23 +86,23 @@ private:
 namespace std {
 
 template<>
-struct hash<io::net::uri> {
+struct hash<io::net::s_uri> {
 public:
-	std::size_t operator()(const io::net::uri& u) noexcept
+	std::size_t operator()(const io::net::s_uri& u) noexcept
 	{
 		static constexpr std::size_t PRIME = 31;
-		std::size_t ret = PRIME + u.scheme().hash();
-		if( !u.host().empty() )
-			ret = PRIME * ret + u.host().hash();
-		if( !u.user_info().empty() )
-			ret = PRIME * ret + u.user_info().hash();
-		if( !u.path().empty() )
-			ret = PRIME * ret + u.path().hash();
-		if( !u.query().empty() )
-			ret = PRIME * ret + u.query().hash();
-		if( !u.fragment().empty() )
-			ret = PRIME * ret + u.fragment().hash();
-		ret = PRIME * ret + u.port();
+		std::size_t ret = PRIME + u->scheme().hash();
+		if( !u->host().empty() )
+			ret = PRIME * ret + u->host().hash();
+		if( !u->user_info().empty() )
+			ret = PRIME * ret + u->user_info().hash();
+		if( !u->path().empty() )
+			ret = PRIME * ret + u->path().hash();
+		if( !u->query().empty() )
+			ret = PRIME * ret + u->query().hash();
+		if( !u->fragment().empty() )
+			ret = PRIME * ret + u->fragment().hash();
+		ret = PRIME * ret + u->port();
 		return ret;
 	}
 };

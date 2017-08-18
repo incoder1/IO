@@ -21,11 +21,13 @@
 					<Add option="-std=c++11" />
 					<Add option="-g" />
 					<Add option="-fexceptions" />
+					<Add option="-Og" />
 					<Add option="-DIO_SHARED_LIB" />
 					<Add option="-DIO_HAS_BOOST" />
 					<Add option="-DBOOST_SYSTEM_NO_DEPRECATED" />
 					<Add directory="include" />
 					<Add directory="deps/include" />
+					<Add directory="include/win" />
 					<Add directory="../boost_1_60_0" />
 				</Compiler>
 				<Linker>
@@ -66,6 +68,7 @@
 					<Add option="-DNDEBUG" />
 					<Add directory="include" />
 					<Add directory="deps/include" />
+					<Add directory="include/win" />
 				</Compiler>
 				<Linker>
 					<Add option="-s" />
@@ -95,6 +98,7 @@
 					<Add option="-DBOOST_SYSTEM_NO_DEPRECATED" />
 					<Add directory="include" />
 					<Add directory="deps/include" />
+					<Add directory="include/win" />
 					<Add directory="../boost_1_60_0" />
 				</Compiler>
 				<Linker>
@@ -136,6 +140,7 @@
 					<Add option="-DIO_SHARED_LIB" />
 					<Add directory="include" />
 					<Add directory="deps/include" />
+					<Add directory="include/win" />
 				</Compiler>
 				<Linker>
 					<Add option="-s" />
@@ -161,24 +166,44 @@
 				<Option compiler="gcc" />
 				<Option createDefFile="1" />
 				<Option createStaticLib="1" />
-				<Option projectLinkerOptionsRelation="0" />
 				<Compiler>
+					<Add option="-O3" />
 					<Add option="-Weffc++" />
 					<Add option="-pedantic" />
 					<Add option="-Wall" />
 					<Add option="-std=c++14" />
-					<Add option="-pg" />
-					<Add option="-g" />
+					<Add option="-fno-exceptions" />
+					<Add option="-fno-rtti" />
+					<Add option="-minline-stringops-dynamically" />
+					<Add option="-fdeclone-ctor-dtor" />
+					<Add option="-fdevirtualize-at-ltrans" />
 					<Add option="-fvisibility=hidden" />
-					<Add option="-fPIC" />
-					<Add option="-DIO_BUILD" />
+					<Add option="-mmmx" />
+					<Add option="-msse" />
+					<Add option="-msse2" />
+					<Add option="-msse3" />
+					<Add option="-mssse3" />
+					<Add option="-msse4" />
+					<Add option="-mavx" />
+					<Add option="-DNDEBUG" />
 					<Add option="-DIO_SHARED_LIB" />
 					<Add directory="include" />
-					<Add directory="include/posix" />
-					<Add directory="include/network" />
+					<Add directory="deps/include" />
+					<Add directory="include/win" />
 				</Compiler>
 				<Linker>
-					<Add option="-pg" />
+					<Add option="-s" />
+					<Add option="-mtune=generic" />
+					<Add option="-O3" />
+					<Add option="-fno-exceptions" />
+					<Add option="-fno-rtti" />
+					<Add option="-minline-stringops-dynamically" />
+					<Add option="-fdeclone-ctor-dtor" />
+					<Add option="-fdevirtualize-at-ltrans" />
+					<Add option="-fvisibility=hidden" />
+					<Add library="iconv.dll" />
+					<Add library="Ws2_32" />
+					<Add directory="deps/lib" />
 				</Linker>
 			</Target>
 		</Build>
@@ -186,6 +211,8 @@
 			<Add option="-Wall" />
 			<Add option="-DIO_BUILD" />
 			<Add directory="include" />
+			<Add directory="include/net" />
+			<Add directory="src" />
 		</Compiler>
 		<Unit filename="include/buffer.hpp" />
 		<Unit filename="include/channels.hpp" />

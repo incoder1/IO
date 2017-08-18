@@ -20,6 +20,7 @@
 #include "hashing.hpp"
 
 #include <ostream>
+#include <cstring>
 #include <string>
 
 namespace io {

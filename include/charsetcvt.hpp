@@ -197,8 +197,8 @@ std::size_t IO_PUBLIC_SYMBOL transcode(std::error_code& ec,const char32_t* u32_s
 namespace std {
 
 template<>
-struct is_error_condition_enum<io::converrc> : public true_type {
-};
+struct is_error_condition_enum<io::converrc> : public true_type
+{};
 
 } // namespace std
 

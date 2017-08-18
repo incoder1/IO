@@ -11,7 +11,7 @@ OBJ ?= $(OBJ_ROOT)/release-win-gcc-static-x64
 LIB_NAME=libio
 
 LIBS?=-L./deps/lib -liconv.dll -lWs2_32
-INCLUEDS?=-Iinclude -Ideps/include
+INCLUEDS?=-Iinclude -Iinclude -Iinclude/win -Iinclude/net -Isrc -Ideps/include
 MMX_AND_SSE?= -mmmx -msse -msse2 -mssse3 -msse3 -msse4 -mavx
 OPTIMIZE?=-mtune=generic -O3 -fno-exceptions -fno-rtti -minline-stringops-dynamically -fdeclone-ctor-dtor -fdevirtualize-at-ltrans -mmovbe $(MMX_AND_SSE)
 SHARED-DEFINES?=-DIO_BUILD

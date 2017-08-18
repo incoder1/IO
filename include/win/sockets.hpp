@@ -12,7 +12,7 @@
 #include <atomic>
 #include <channels.hpp>
 #include "criticalsection.hpp"
-#include <conststring.hpp>
+#include "conststring.hpp"
 
 #ifndef BTHPROTO_RFCOMM
 #	define BTHPROTO_RFCOMM 3

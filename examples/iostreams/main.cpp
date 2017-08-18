@@ -38,7 +38,8 @@ const wchar_t* wmessage = L"Hello!\nПривет!\nПривіт!\nΧαιρετί
 
 int main()
 {
-	io::channel_ostream<wchar_t> fout( prepare_file() );
+	/*
+	io::cnl_wostream fout( prepare_file() );
 	fout << wmessage << 1234567890ull << L'\n' << 123456.78e+09 << L'\n' << 12356.789e+10L << std::endl;
 	io::console::reset_colors( io::text_color::yellow, io::text_color::light_green,  io::text_color::light_red );
 
@@ -58,5 +59,11 @@ int main()
 	wcerr << L"No errors so far" << std::endl;
 	int i = -1;
 	wcerr << (const wchar_t*)&i ;
+	*/
+	wchar_t str[32];
+	io::cnl_wistream wcin( io::console::in() );
+	std::wostream& wcout = io::console::out_wstream();
+	wcin >> str;
+	wcout << str;
     return 0;
 }
