@@ -53,6 +53,8 @@ namespace posix {
 		std::size_t color_len_;
 	};
 
+    DECLARE_IPTR(console_channel);
+
 } // namespace posix
 
 class IO_PUBLIC_SYMBOL console
@@ -126,9 +128,9 @@ class IO_PUBLIC_SYMBOL console
 	*/
 
 	private:
-		s_read_channel in_;
-		s_write_channel out_;
-		s_write_channel err_;
+        posix::s_console_channel in_;
+        posix::s_console_channel out_;
+		posix::s_console_channel err_;
 		static std::atomic<console*> _instance;
 		static critical_section _cs;
 };

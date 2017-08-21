@@ -105,7 +105,6 @@ void console_channel::change_color(text_color cl) noexcept
 	color_len_ = io_strlen( reinterpret_cast<const char*>( color_ ) );
 }
 
-DECLARE_IPTR(console_channel);
 
 } // namespace posix
 
