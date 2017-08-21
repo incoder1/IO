@@ -87,8 +87,7 @@ public:
 
 	ochannel_streambuf(const s_write_channel& ch,const std::size_t buffer_size):
 		ochannel_streambuf(
-		    s_write_channel( ch ),
-		    buffer_size
+		    s_write_channel( ch )
 		)
 	{}
 
@@ -224,6 +223,7 @@ class ichannel_streambuf final: public std::basic_streambuf<__char_type, __trait
 private:
 	typedef std::basic_streambuf<__char_type, __traits_type > super_type;
 	typedef ichannel_streambuf<__char_type, __traits_type> self_type;
+
 public:
 
 	/**
@@ -237,40 +237,31 @@ public:
 	typedef typename traits_type::pos_type pos_type;
 	typedef typename traits_type::off_type off_type;
 
-	ichannel_streambuf(s_read_channel&& src, std::size_t buffer_size) :
-		super_type(),
+	ichannel_streambuf(s_read_channel&& src, std::size_t buffer_size):
+		super_type( ),
 		rch_( std::forward<s_read_channel>(src) ),
-		ref_count_(0)
+		buffer_size_( buffer_size ),
+		ref_count_( 0 )
 	{
 		char_type *buff = static_cast<char_type*>( memory_traits::malloc( buffer_size * sizeof(char_type) ) );
 		if(nullptr == buff ) {
 			std::error_code ec = std::make_error_code(std::errc::not_enough_memory);
 			ios_check_error_code( "input stream buff ", ec );
 		}
-		this->setg(buff, buff, buff + buffer_size);
+		this->setg(buff, buff, buff);
 	}
-/*
-	virtual super_type* setbuf(char_type* data, std::streamsize size) override
-	{
-		if(nullptr == this->eback() )
-			memory_traits::free( this->eback() );
-		this->setg(data, data, data + size);
-		return this;
-	}
-*/
 
 	virtual std::streamsize xsgetn(char_type* __s, std::streamsize __n) override
 	{
 		if(0 == __n)
 			return 0;
-		const char_type *pos = this->gptr();
-		if( (pos + __n) >= this->egptr() ) {
-			__n =  memory_traits::distance(pos, this->egptr());
-			if(0 == __n && traits_type::not_eof( this->underflow() ) )
+		if( (this->gptr() + __n) >= this->egptr() ) {
+			__n =  memory_traits::distance( this->gptr(), this->egptr() );
+			if(0 == __n && !traits_type::not_eof( this->underflow() ) )
 				return -1;
 		}
-		std::copy(pos, (pos+__n), __s);
-		this->pbump(__n);
+		std::memmove( static_cast<void*>(__s), this->gptr(), __n);
+		this->gbump(__n);
 		return __n;
 	}
 
@@ -285,7 +276,7 @@ public:
 	virtual int_type underflow() override
 	{
 		std::size_t ret = read_more_data();
-		return !ret ? traits_type::eof() : traits_type::to_int_type( *this->gptr() );
+		return (0 != ret) ? traits_type::to_int_type( *this->gptr() ) : traits_type::eof();
 	}
 
 	virtual std::streamsize showmanyc() override
@@ -306,16 +297,12 @@ private:
 
 	std::size_t read_more_data()
 	{
-		const std::size_t count  = memory_traits::distance( this->eback(), this->egptr() );
 		std::error_code ec;
-		std::size_t res = rch_->read(ec, reinterpret_cast<uint8_t*>( this->eback() ), count);
+		std::size_t res = rch_->read(ec, reinterpret_cast<uint8_t*>( this->eback() ), buffer_size_);
 		ios_check_error_code( "input stream buff ", ec );
 		this->setg( this->eback(), this->eback(), this->eback() + res);
 		return res;
 	}
-
-	s_read_channel rch_;
-	std::atomic_size_t ref_count_;
 
 	inline friend void intrusive_ptr_add_ref(self_type* const obj) noexcept
 	{
@@ -329,6 +316,11 @@ private:
 			delete obj;
 		}
 	}
+
+private:
+	s_read_channel rch_;
+	std::size_t buffer_size_;
+	std::atomic_size_t ref_count_;
 };
 
 template<typename _char_type>
@@ -348,7 +340,7 @@ public:
 	typedef typename super_type::traits_type traits_type;
 
 	channel_istream(s_read_channel&& src, std::size_t buffer_size):
-		super_type(),
+		super_type( nullptr ),
 		sb_( new streambuf_type(
 					std::forward<s_read_channel>(src),
 					buffer_size
@@ -358,6 +350,7 @@ public:
 		assert( sb_ );
 		this->init( sb_.get() );
 	}
+
 
 	channel_istream(s_read_channel&& src):
 		channel_istream(

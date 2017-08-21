@@ -129,15 +129,14 @@ const_string endpoint::ip_address() const noexcept
 {
 	char tmp[INET6_ADDRSTRLEN];
 	io_zerro_mem(tmp, INET6_ADDRSTRLEN);
-	switch(addr_info_->ai_family)
-
-	::inet_ntoa();
-	const char* ret = ::InetNtopA( addr_info_->ai_family,
+	const char* ret = ::InetNtopA(
+								addr_info_->ai_family,
 	                             const_cast<void*>(
 	                                 static_cast<const void*>(addr_info_->ai_addr)
 	                             ),
-	                             tmp, INET6_ADDRSTRLEN);
-	return nullptr != ret ? const_string(tmp) : const_string() ;
+	                             tmp,
+	                             INET6_ADDRSTRLEN);
+	return (nullptr != ret) ? const_string(tmp) : const_string();
 }
 
 
