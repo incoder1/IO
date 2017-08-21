@@ -55,18 +55,18 @@
 				<Option object_output="obj/debug-unix-gcc-x64/" />
 				<Option type="1" />
 				<Option compiler="gcc" />
+				<Option projectIncludeDirsRelation="2" />
 				<Compiler>
 					<Add option="-std=c++11" />
 					<Add option="-pg" />
 					<Add option="-g" />
-					<Add option="-Og" />
 					<Add option="-fexceptions" />
 					<Add option="-DIO_SHARED_LIB" />
 				</Compiler>
 				<Linker>
 					<Add option="-pg" />
 					<Add library="pthread" />
-					<Add directory="../../bin/debug-unix-gcc-dll-x64" />
+					<Add directory="../../bin/debug-unix-gcc-so-x64" />
 				</Linker>
 			</Target>
 		</Build>

@@ -63,7 +63,7 @@ int main()
 	wchar_t str[32];
 	io::cnl_wistream wcin( io::console::in() );
 	std::wostream& wcout = io::console::out_wstream();
-	wcin >> str;
+	wcin.getline(str, 32);
 	wcout << str;
     return 0;
 }

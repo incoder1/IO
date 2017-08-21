@@ -1,0 +1,60 @@
+CC=gcc
+CXX=g++
+AS=g++
+LD=g++
+
+TARGET_ROOT = ./lib
+TARGET = $(TARGET_ROOT)/release-unix-gcc-so-x86_64
+OBJ_ROOT = ./obj
+OBJ ?= $(OBJ_ROOT)/release-unix-gcc-so-x86_64
+
+LIB_NAME=io-unix
+SHARED_EXT=so
+
+PLATFORM_SHARED_LINK_OPTIONS?=-shared
+
+LIBS?=-lpthread
+INCLUEDS?=-Iinclude -Iinclude/posix -Iinclude/net -Isrc
+
+MMX_AND_SSE?= -mmmx -msse -msse2 -mssse3 -msse3 -msse4 -mavx
+OPTIMIZE?=-mtune=generic -O3 -fno-exceptions -fno-rtti -minline-stringops-dynamically -fdeclone-ctor-dtor -fdevirtualize-at-ltrans -mmovbe $(MMX_AND_SSE)
+SHARED-DEFINES?= -DIO_SHARED_LIB -DIO_BUILD
+DEFINES ?= -DNDEBUG $(SHARED-DEFINES)
+CPPFLAGS?= -std=gnu++14 -fno-exceptions -fno-rtti -Winline -pedantic -fPIC $(OPTIMIZE) $(INCLUEDS)
+LDFLAGS?= $(LIBS) -s
+
+
+MODULES=. posix  net
+
+SRC_DIR := $(addprefix ./src/,$(MODULES))
+SOURCE_FILES := $(foreach sdir,$(SRC_DIR),$(wildcard $(sdir)/*.cpp))
+OBJ_FILES := $(addprefix $(OBJ)/, $(notdir $(SOURCE_FILES:.cpp=.o)) )
+ 
+DESTDIR?=target
+ 
+all: clean link
+
+link: compile
+	$(LD) $(PLATFORM_SHARED_LINK_OPTIONS) $(OBJ_FILES) -o $(TARGET)/$(LIB_NAME).$(SHARED_EXT) $(LDFLAGS)
+		
+compile: $(OBJ)/stdafx.hpp.gch $(OBJ_FILES) 
+
+$(OBJ)/stdafx.hpp.gch: src/stdafx.hpp
+	$(CXX) $(CPPFLAGS) $(DEFINES) -c src/stdafx.hpp -o $(OBJ)/stdafx.hpp.gch
+	
+$(OBJ)/%.o: src/%.cpp
+	$(CXX) $(CPPFLAGS) $(DEFINES) -iquoteobj$(OBJ)/stdafx.hpp.gch -c $< -o $@
+	
+$(OBJ)/%.o: src/posix/%.cpp
+	$(CXX) $(CPPFLAGS) $(DEFINES) -iquoteobj$(OBJ)/stdafx.hpp.gch  -c $< -o $@
+	
+$(OBJ)/%.o: src/net/%.cpp
+	$(CXX) $(CPPFLAGS) $(DEFINES) -iquoteobj$(OBJ)/stdafx.hpp.gch -c $< -o $@
+	
+clean:
+	mkdir -p $(OBJ_ROOT)
+	mkdir -p $(TARGET_ROOT)
+	rm -rf $(OBJ)
+	rm -rf $(TARGET)
+	mkdir $(OBJ)
+	mkdir $(TARGET)

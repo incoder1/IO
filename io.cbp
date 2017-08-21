@@ -180,6 +180,7 @@
 					<Add option="-DIO_BUILD" />
 					<Add option="-DIO_SHARED_LIB" />
 					<Add directory="src/posix" />
+					<Add directory="include/posix" />
 				</Compiler>
 				<Linker>
 					<Add option="-pg" />
@@ -225,6 +226,9 @@
 			<Option target="debug-unix-gcc-so-x64" />
 		</Unit>
 		<Unit filename="include/posix/posixconf.hpp">
+			<Option target="debug-unix-gcc-so-x64" />
+		</Unit>
+		<Unit filename="include/posix/sockets.hpp">
 			<Option target="debug-unix-gcc-so-x64" />
 		</Unit>
 		<Unit filename="include/scoped_array.hpp" />
@@ -308,6 +312,9 @@
 			<Option target="debug-unix-gcc-so-x64" />
 		</Unit>
 		<Unit filename="src/posix/files.cpp">
+			<Option target="debug-unix-gcc-so-x64" />
+		</Unit>
+		<Unit filename="src/posix/sockets.cpp">
 			<Option target="debug-unix-gcc-so-x64" />
 		</Unit>
 		<Unit filename="src/shared_library.cpp" />

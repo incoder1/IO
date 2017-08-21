@@ -19,6 +19,8 @@
 
 #ifdef __IO_WINDOWS_BACKEND__
 #	include "win/sockets.hpp"
+#elif defined(__IO_POSIX_BACKEND__)
+#	include "posix/sockets.hpp"
 #endif // __IO_WINDOWS_BACKEND__
 
 #endif // __IO_NETWORK_HPP_INCLUDED__
