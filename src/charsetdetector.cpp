@@ -511,10 +511,11 @@ public:
 	{}
 	virtual bool probe(std::error_code& ec,float& confidence,const uint8_t* buff, std::size_t size) const noexcept override
 	{
-		typedef byte_buffer::iterator buff_it_t;
+		/*typedef byte_buffer::iterator buff_it_t;
 		byte_buffer script = byte_buffer::wrap(buff, size);
 		if(script.empty()) {
 		}
+		*/
 		return false;
 	}
 protected:

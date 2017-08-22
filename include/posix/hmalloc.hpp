@@ -11,13 +11,16 @@
 #ifndef HMALLOC_HPP_INCLUDED
 #define HMALLOC_HPP_INCLUDED
 
-#include <assert.h>
-#include <string>
+#ifdef HAS_PRAGMA_ONCE
+#pragma once
+#endif // HAS_PRAGMA_ONCE
+
+#include "config/libs/h_allocator.hpp"
 
 #include <sys/types.h>
 #include <unistd.h>
-
 #include <cstdlib>
+#include <cstring>
 
 namespace io {
 
@@ -79,6 +82,52 @@ struct memory_traits {
 	}
 
 };
+
+template<typename T>
+class h_allocator: public heap_allocator_base <T, memory_traits>
+{
+public:
+
+	typedef std::size_t size_type;
+	typedef ptrdiff_t difference_type;
+	typedef T* pointer;
+	typedef const T* const_pointer;
+	typedef T&  reference;
+	typedef const T& const_reference;
+	typedef T value_type;
+
+	template<typename T1>
+	struct rebind {
+		typedef h_allocator<T1> other;
+	};
+
+	constexpr h_allocator() noexcept:
+		heap_allocator_base<T, memory_traits>()
+	{}
+
+	constexpr h_allocator(const h_allocator& other) noexcept:
+		heap_allocator_base<T, memory_traits>( other )
+	{}
+
+	template<typename _Tp1>
+	constexpr h_allocator(const h_allocator<_Tp1>& other) noexcept
+	{}
+
+	~h_allocator() noexcept = default;
+};
+
+
+template<typename _Tp>
+constexpr inline bool operator==(const h_allocator<_Tp>&, const h_allocator<_Tp>&)
+{
+	return true;
+}
+
+template<typename _Tp>
+constexpr inline bool operator!=(const h_allocator<_Tp>&, const h_allocator<_Tp>&)
+{
+	return false;
+}
 
 } // namesapace io
 

@@ -15,15 +15,14 @@ namespace io {
 
 namespace detail {
 
-char_holder* char_holder::alloc(const char* s,const std::size_t len) noexcept {
+char_holder* IO_MALLOC_ATTR char_holder::alloc(const char* s,const std::size_t len) noexcept {
 	std::size_t bytes = ('\0'!=*(s+len)) ? len+1 : len;
-	void* raw = memory_traits::malloc( sizeof(char_holder) + bytes );
+	uint8_t *raw = memory_traits::malloc_array<uint8_t>( sizeof(char_holder) + bytes );
 	if(nullptr == raw)
 		return nullptr;
-	char* dst = static_cast<char*>(raw) + sizeof(char_holder);
+	char* dst = reinterpret_cast<char*>( raw + sizeof(char_holder) );
 	io_memmove( dst, s, len);
-	*(dst+len) = '\0';
-	return new (raw) char_holder( reinterpret_cast<char*>(dst) );
+	return new ( static_cast<void*>(raw) ) char_holder( dst );
 }
 
 } // namespace detail
@@ -47,9 +46,8 @@ string_pool::string_pool():
 
 const cached_string string_pool::get(const char* s, std::size_t count) noexcept
 {
-	if(nullptr == s || count == 0) {
+	if(nullptr == s || '\0' == *s || count == 0)
 		return cached_string();
-	}
 	uint32_t h = io::hash_bytes(s,count);
 	pool_type::const_iterator i = pool_.find(h);
 	if(i == pool_.end()) {

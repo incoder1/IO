@@ -1,6 +1,7 @@
 #ifndef __IO_H_ALLOCATOR_HPP_INCLUDED__
 #define __IO_H_ALLOCATOR_HPP_INCLUDED__
 
+#include <assert.h>
 #include <memory>
 #include <new>
 #include <utility>
@@ -26,7 +27,7 @@ public:
 } // namesapace
 
 template<typename T, class __memory_traits>
-class h_allocator {
+class heap_allocator_base {
 private:
 	template<typename _Tp>
 	static constexpr inline _Tp* address_of(_Tp& __r) noexcept
@@ -50,17 +51,8 @@ public:
 	typedef const T& const_reference;
 	typedef T value_type;
 
-	template<typename T1>
-	struct rebind {
-		typedef h_allocator<T1, __memory_traits> other;
-	};
-
-	constexpr h_allocator() noexcept = default;
-	~h_allocator() noexcept = default;
-
-	template<typename T1>
-	constexpr h_allocator(const h_allocator<T1, __memory_traits>&) noexcept
-	{ }
+	constexpr heap_allocator_base() noexcept
+	{}
 
 	constexpr pointer address(reference __x) const noexcept
 	{
@@ -124,18 +116,6 @@ public:
 		return SIZE_MAX / sizeof(value_type);
 	}
 };
-
-template<typename _Tp, class _Mt>
-constexpr inline bool operator==(const h_allocator<_Tp,_Mt>&, const h_allocator<_Tp,_Mt>&)
-{
-	return true;
-}
-
-template<typename _Tp, class _Mt>
-constexpr inline bool operator!=(const h_allocator<_Tp,_Mt>&, const h_allocator<_Tp,_Mt>&)
-{
-	return false;
-}
 
 } // namespace io
 

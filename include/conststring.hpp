@@ -84,7 +84,6 @@ public:
 ///  \brief Immutable zero ending C style string wrapper
 class const_string {
 private:
-	typedef h_allocator<uint8_t,memory_traits> allocator_type;
 	static inline void intrusive_add_ref(uint8_t* ptr) noexcept
 	{
 		std::size_t volatile *p = reinterpret_cast<std::size_t volatile*>(ptr);
@@ -141,9 +140,7 @@ public:
 	{
 		assert(nullptr != str && length > 0);
 		const std::size_t len = sizeof(std::size_t) + length + 1;
-		allocator_type all;
-		data_ = all.allocate(len);
-		io_memset(data_,0,len);
+		data_ = memory_traits::malloc_array<uint8_t>( len );
 		// set initial intrusive atomic reference count
 		intrusive_add_ref( data_ );
 		uint8_t *b = data_ + sizeof(std::size_t);
@@ -155,8 +152,7 @@ public:
 	~const_string() noexcept
 	{
 		if(nullptr != data_ && intrusive_release(data_) ) {
-			allocator_type all;
-			all.deallocate(data_, 1);
+			memory_traits::free(data_);
 		}
 	}
 

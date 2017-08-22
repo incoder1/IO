@@ -76,7 +76,7 @@ private:
 			std::size_t,
 			std::hash<std::size_t>,
 			std::equal_to<std::size_t>,
-			h_allocator<std::size_t, memory_traits> > validated_set;
+			h_allocator<std::size_t> > validated_set;
 	friend class nobadalloc<event_stream_parser>;
 	event_stream_parser(const event_stream_parser&) = delete;
 	event_stream_parser& operator=(const event_stream_parser&) = delete;

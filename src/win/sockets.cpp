@@ -27,45 +27,6 @@ static inline uint16_t io_htons(uint16_t x) {
 
 #endif // IO_IS_LITTLE_ENDIAN
 
-class synch_socket_channel final:public read_write_channel {
-private:
-	friend class nobadalloc<synch_socket_channel>;
-	synch_socket_channel(::SOCKET socket) noexcept:
-		read_write_channel(),
-		socket_(socket)
-	{}
-public:
-	virtual ~synch_socket_channel() noexcept
-	{
-		::closesocket(socket_);
-	}
-	virtual std::size_t read(std::error_code& ec,uint8_t* const buff, std::size_t bytes) const noexcept override
-	{
-		::WSABUF wsab;
-		wsab.len = static_cast<::u_long>(bytes);
-		wsab.buf = const_cast<char*>(reinterpret_cast<const char*>(buff));
-		::DWORD ret, flags = 0;
-		if(SOCKET_ERROR == ::WSARecv(socket_, &wsab, 1, &ret, &flags, nullptr, nullptr) ) {
-			ec.assign( ::WSAGetLastError(), std::system_category() );
-			return 0;
-		}
-		return static_cast<::std::size_t>(ret);
-	}
-	virtual std::size_t write(std::error_code& ec, const uint8_t* buff,std::size_t size) const noexcept override
-	{
-		::WSABUF wsab;
-		wsab.len = static_cast<::u_long>(size);
-		wsab.buf = const_cast<char*>(reinterpret_cast<const char*>(buff));
-		::DWORD ret;
-		if(SOCKET_ERROR == ::WSASend(socket_, &wsab, 1, &ret, 0, nullptr, nullptr) ) {
-			ec.assign( ::WSAGetLastError(), std::system_category() );
-			return 0;
-		}
-		return static_cast<::std::size_t>(ret);
-	}
-public:
-	::SOCKET socket_;
-};
 
 // socket
 socket::socket() noexcept:
@@ -150,40 +111,52 @@ public:
 	{
 		return ep_;
 	}
-	virtual s_read_write_channel connect(std::error_code& ec) const noexcept override
+	virtual s_read_write_channel connect_secured(std::error_code& ec) const noexcept override
 	{
-		::SOCKET s = ::WSASocketA( static_cast<int>(
-		                           ep_.family()
-		                       ), SOCK_STREAM, IPPROTO_TCP, nullptr, 0, 0 );
-		if(s == INVALID_SOCKET) {
-			ec.assign( ::WSAGetLastError(), std::system_category() );
+		::SOCKET s = create_socket(ec);
+		if(ec)
+			return s_read_write_channel();
+		::SOCKET_SECURITY_SETTINGS sec_set = {
+			SOCKET_SECURITY_PROTOCOL_DEFAULT,
+			SOCKET_SETTINGS_GUARANTEE_ENCRYPTION
+		};
+		int errc = ::WSASetSocketSecurity(s,
+                                   &sec_set, sizeof(::SOCKET_SECURITY_SETTINGS), nullptr, nullptr);
+		if(SOCKET_ERROR == errc) {
+			ec = std::make_error_code( win::wsa_last_error_to_errc() );
 			return s_read_write_channel();
 		}
 		const ::addrinfo *ai = static_cast<const ::addrinfo *>(ep_.native());
+
+		//::SOCKET_PEER_TARGET_NAME ptn;
+		//::WSASetSocketPeerTargetName(s, ptn, len, nullptr, nullptr);
+
 		if(SOCKET_ERROR == ::connect(s, ai->ai_addr, ai->ai_addrlen) ) {
-			// TODO: change
-			int errc = ::WSAGetLastError();
-			switch(errc) {
-			case WSAEACCES:
-				ec = std::make_error_code( std::errc::permission_denied );
-				break;
-			case WSAEWOULDBLOCK:
-				ec = std::make_error_code( std::errc::resource_unavailable_try_again);
-				break;
-			case WSAEOPNOTSUPP:
-				ec = std::make_error_code( std::errc::operation_not_permitted );
-				break;
-			case WSAEINVAL:
-				ec = std::make_error_code( std::errc::invalid_argument );
-				break;
-			case WSAECONNREFUSED:
-			case WSAETIMEDOUT:
-				ec = std::make_error_code( std::errc::io_error );
-				break;
-			}
+			ec = std::make_error_code( win::wsa_last_error_to_errc() );
 			return s_read_write_channel();
 		}
 		return s_read_write_channel( nobadalloc<synch_socket_channel>::construct(ec, s ) );
+	}
+	virtual s_read_write_channel connect(std::error_code& ec) const noexcept override
+	{
+		::SOCKET s = create_socket(ec);
+		if(ec)
+			return s_read_write_channel();
+		const ::addrinfo *ai = static_cast<const ::addrinfo *>(ep_.native());
+		if(SOCKET_ERROR == ::connect(s, ai->ai_addr, ai->ai_addrlen) ) {
+			ec = std::make_error_code( win::wsa_last_error_to_errc() );
+			return s_read_write_channel();
+		}
+		return s_read_write_channel( nobadalloc<synch_socket_channel>::construct(ec, s ) );
+	}
+private:
+	::SOCKET create_socket(std::error_code& ec) const noexcept {
+		::SOCKET ret = ::WSASocketA( static_cast<int>(
+		                           ep_.family()
+		                       ), SOCK_STREAM, IPPROTO_TCP, nullptr, 0, 0 );
+		if(ret == INVALID_SOCKET)
+			ec = std::make_error_code( win::wsa_last_error_to_errc() );
+		return ret;
 	}
 private:
 	endpoint ep_;
@@ -245,7 +218,7 @@ static void freeaddrinfo_wrap(void* const p) noexcept
 	::freeaddrinfo( static_cast<::addrinfo*>(p) );
 }
 
-static s_socket creatate_tcp_socket(std::error_code& ec, ::addrinfo *addr, uint16_t port) noexcept {
+s_socket socket_factory::creatate_tcp_socket(std::error_code& ec, ::addrinfo *addr, uint16_t port) noexcept {
 	endpoint ep( std::shared_ptr<::addrinfo>(addr, freeaddrinfo_wrap ) );
 	ep.set_port( port );
 	return s_socket( nobadalloc<tpc_socket>::construct(ec, std::move(ep) ) );

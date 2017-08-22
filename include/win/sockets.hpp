@@ -7,12 +7,16 @@
 #pragma once
 #endif // HAS_PRAGMA_ONCE
 
+#include <mstcpip.h>
 #include <ws2tcpip.h>
+#include <rpc.h>
+#include <ntdsapi.h>
 
 #include <atomic>
 #include <channels.hpp>
 #include "criticalsection.hpp"
 #include "conststring.hpp"
+#include "synch_socket_channel.hpp"
 
 #ifndef BTHPROTO_RFCOMM
 #	define BTHPROTO_RFCOMM 3
@@ -107,6 +111,7 @@ protected:
 public:
 	virtual endpoint get_endpoint() const noexcept = 0;
 	virtual s_read_write_channel connect(std::error_code& ec) const noexcept = 0;
+	virtual s_read_write_channel connect_secured(std::error_code& ec) const noexcept = 0;
 };
 
 DECLARE_IPTR(socket);
@@ -119,6 +124,7 @@ private:
 	static void do_release() noexcept;
 	constexpr socket_factory() noexcept
 	{}
+	static s_socket creatate_tcp_socket(std::error_code& ec, ::addrinfo *addr, uint16_t port) noexcept;
 public:
 	~socket_factory() noexcept;
 	static const socket_factory* instance(std::error_code& ec) noexcept;

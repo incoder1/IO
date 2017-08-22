@@ -25,6 +25,12 @@
 #pragma once
 #endif // HAS_PRAGMA_ONCE
 
+#include <assert.h>
+#include <atomic>
+#include <functional>
+#include <memory>
+#include <system_error>
+
 #if ( defined(_WIN32) || defined(_WIN64) ) && !defined(__CYGWIN__)
 #define __IO_WINDOWS_BACKEND__
 #include "win/winconf.hpp"
@@ -39,12 +45,6 @@
 #include "posix/posixconf.hpp"
 #endif // defined
 
-#include <assert.h>
-#include <atomic>
-#include <functional>
-#include <memory>
-#include <system_error>
-
 #ifndef IO_HAS_BOOST
 #include "config/libs/intrusive_ptr.hpp"
 #else
@@ -52,7 +52,6 @@
 #endif // HAS_BOOST
 
 #include "config/libs/exceptions.hpp"
-#include "config/libs/h_allocator.hpp"
 
 #ifndef DECLARE_IPTR
 #define DECLARE_IPTR(T) typedef boost::intrusive_ptr<T> s_##T

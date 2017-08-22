@@ -10,6 +10,7 @@
 #endif // _WIN32
 
 #include <iostream>
+#include <files.hpp>
 
 #include <network.hpp>
 
@@ -34,33 +35,30 @@ int main()
 	std::cout << url->host() << "resolved to: \n";
 	endpoint ep = tpc_socket->get_endpoint();
 	do {
-		std::cout << "\t" << ep.ip_address();
+		std::cout << "\t" << ep.ip_address() << '\n';
 		ep = ep.next();
 	} while( ep.has_next() );
 	std::cout << std::endl;
-	io::s_read_write_channel sock = tpc_socket->connect(ec);
+	io::s_read_write_channel sock = tpc_socket->connect(ec); //tpc_socket->connect_secured(ec); //
 	io::check_error_code(ec);
 
-	http::request<http::method::get> getreq( url );
-	getreq.add_headers( {
-			{"Accept","text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8"},
-			{"User-Agent", "io library"},
-			{"Accept-Charset","ISO-8859-1,utf-8;q=0.7,*;q=0.7"},
-			{"Connection"," close"}
-		}  );
+	http::s_request rq = http::new_request(
+			ec,
+			http::method::get,
+			url,
+			{
+				{"Accept","text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8"},
+				{"User-Agent", "io library"},
+				{"Accept-Charset","ISO-8859-1,utf-8;q=0.7,*;q=0.7"},
+				{"Connection"," close"}
+			}
+	);
 
-	io::byte_buffer buff = io::byte_buffer::allocate(ec, io::memory_traits::page_size() );
-	io::check_error_code(ec);
-
-	getreq.to_buff(buff);
-	buff.flip();
-
-	std::cout << buff.position().cdata();
-
-	sock->write( ec, buff.position().get(), buff.length() );
+	io::check_error_code( ec );
+	rq->send( ec, sock );
 	io::check_error_code( ec );
 
-	io::scoped_arr<uint8_t> tmp( 1 << 20 ); // 1mb
+	io::scoped_arr<uint8_t> tmp( io::memory_traits::page_size() << 3 );
 	if(!tmp)
 		io::check_error_code( std::make_error_code(std::errc::not_enough_memory) );
 

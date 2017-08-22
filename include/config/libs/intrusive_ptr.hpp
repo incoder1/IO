@@ -90,17 +90,15 @@ public:
     intrusive_ptr(T * p, bool add_ref = true ):
     	px_(p)
     {
-        if(nullptr != px_ && add_ref ) {
+        if(nullptr != px_ && add_ref )
 			intrusive_ptr_add_ref(px_);
-        }
     }
 
 	intrusive_ptr(intrusive_ptr const & rhs):
         	px_( rhs.px_ )
     {
-        if( nullptr != px_ ) {
+        if( nullptr != px_ )
 			intrusive_ptr_add_ref(px_);
-        }
     }
 
     template<class U>
@@ -109,16 +107,14 @@ public:
 				) noexcept:
     	px_(rhs.get())
     {
-    	 if( px_ != nullptr ) {
+    	 if( px_ != nullptr )
 			intrusive_ptr_add_ref(px_);
-    	 }
     }
 
     inline ~intrusive_ptr() noexcept
     {
-        if( px_ != nullptr ) {
+        if( px_ != nullptr )
 			intrusive_ptr_release(px_);
-        }
     }
 
 	intrusive_ptr(intrusive_ptr && rhs) noexcept:

@@ -81,7 +81,7 @@ class IO_PUBLIC_SYMBOL charset_detector:public object {
 	charset_detector& operator=(const charset_detector&) = delete;
 private:
 	friend class nobadalloc<charset_detector>;
-	typedef std::vector<detail::s_prober, h_allocator<detail::s_prober, memory_traits > > v_pobers;
+	typedef std::vector<detail::s_prober, h_allocator<detail::s_prober> > v_pobers;
 	explicit charset_detector(v_pobers&& probers) noexcept;
 public:
 	/// Creates new intrusive pointer on charset_detector object

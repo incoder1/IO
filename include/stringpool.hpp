@@ -38,11 +38,9 @@ namespace detail {
 		void* operator new(std::size_t) = delete;
 	public:
 
-		const char* data() const noexcept {
+		__forceinline const char* data() const noexcept {
 			return data_;
 		}
-
-IO_PUSH_IGNORE_UNUSED_PARAM
 
 		static inline void* operator new(std::size_t, void* p) noexcept
 		{
@@ -50,12 +48,11 @@ IO_PUSH_IGNORE_UNUSED_PARAM
 			return p;
 		}
 
-		static inline void operator delete(void* ptr, std::size_t) noexcept
+		static inline void operator delete(void* const p, std::size_t) noexcept
 		{
-			memory_traits::free(ptr);
+			assert(nullptr != p);
+			memory_traits::free(p);
 		}
-
-IO_POP_IGNORE_UNUSED_PARAM
 
 		~char_holder() noexcept = default;
 	public:
@@ -63,7 +60,7 @@ IO_POP_IGNORE_UNUSED_PARAM
 			ref_count_(1),
 			data_(data)
 		{}
-		static char_holder* alloc(const char* s,const std::size_t len) noexcept;
+		static char_holder* IO_MALLOC_ATTR alloc(const char* s,const std::size_t len) noexcept;
 		static inline void add_ref(char_holder* const hld) noexcept {
            hld->ref_count_.fetch_add(1, std::memory_order_relaxed);
 		}
@@ -103,9 +100,8 @@ public:
 	cached_string(const cached_string& rhs) noexcept:
 			holder_(rhs.holder_)
 	{
-		if( nullptr != holder_ ) {
+		if( nullptr != holder_ )
 			detail::char_holder::add_ref(holder_);
-		}
 	}
 
 	/// Copy assignment operator, just increases string reference count
@@ -118,9 +114,8 @@ public:
 	/// Decrements string reference count, releases string memory when reference count becomes 1
 	inline ~cached_string() noexcept
 	{
-		if(nullptr != holder_) {
+		if(nullptr != holder_)
 			detail::char_holder::release(holder_);
-		}
 	}
 
 	cached_string(cached_string&& rhs) noexcept:
@@ -164,7 +159,7 @@ public:
 	/// Returns string length in bytes
 	/// \return string length in bytes
 	inline std::size_t length() const noexcept {
-		return io_strlen( data() );
+		return traits_type::length( data() );
 	}
 
 	/// Hash this string bytes (murmur3 for 32bit, cityhash for 64 bit)
@@ -293,7 +288,7 @@ private:
 		cached_string,
 		std::hash<std::size_t>,
 		std::equal_to<std::size_t>,
-		io::h_allocator< std::pair<const std::size_t, cached_string>, memory_traits >
+		io::h_allocator< std::pair<const std::size_t, cached_string> >
 		> pool_type;
 	pool_type pool_;
 };

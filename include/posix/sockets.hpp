@@ -15,6 +15,7 @@
 #include <channels.hpp>
 #include "criticalsection.hpp"
 #include "conststring.hpp"
+#include "wsaerror.hpp"
 
 namespace io {
 
