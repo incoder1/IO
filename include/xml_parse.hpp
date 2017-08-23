@@ -219,11 +219,11 @@ private:
 	}
 
 	static __forceinline bool sb_check(const char* sb) noexcept {
-		return nullptr == io_strchr(sb, EOF);
+		return nullptr == io_memchr(sb, EOF, MAX_SCAN_BUFF_SIZE);
 	}
 
 	static __forceinline void sb_clear(const char* sb) noexcept {
-		io_memset(const_cast<char*>(sb),'\0',MAX_SCAN_BUFF_SIZE);
+		io_zerro_mem( const_cast<char*>(sb), MAX_SCAN_BUFF_SIZE);
 	}
 
 	static __forceinline std::size_t sb_len(const char *sb) noexcept {

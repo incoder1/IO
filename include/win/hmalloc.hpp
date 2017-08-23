@@ -23,38 +23,51 @@ namespace win {
 
 #define IO_PREVENT_MACRO
 
+/// memory functions traits concept
 struct memory_traits {
 
+	/// returns OS page size
 	static inline std::size_t page_size()
 	{
-		SYSTEM_INFO si;
-		GetSystemInfo(&si);
+		::SYSTEM_INFO si;
+		::GetSystemInfo(&si);
 		return static_cast<std::size_t>( si.dwPageSize );
 	}
 
+	/// General propose memory allocation
 	static inline void* malloc IO_PREVENT_MACRO (std::size_t bytes) noexcept
 	{
+		// replace this one to use jemalloc/tcmalloc etc
 		return std::malloc(bytes);
 	}
 
+	/// Continues memory block allocation of specific type
+	/// with 0-ro initialization
 	template<typename T>
 	static inline T* malloc_array(std::size_t array_size) noexcept
 	{
 		assert(0 != array_size);
+		// replace this one to use jemalloc/tcmalloc etc
         return static_cast<T*>( std::calloc(array_size, sizeof(T) ) );
 	}
 
+	/// General propose memory block release
+	/// WARN! do not use for memory allocated by calloc_temporary
 	static inline void free IO_PREVENT_MACRO (void * const ptr) noexcept
 	{
+		// replace this one to use jemalloc/tcmalloc etc
 		std::free(ptr);
 	}
 
+	/// Memory block re-allocation
 	static inline void* realloc IO_PREVENT_MACRO (void * const base, std::size_t new_size) noexcept
 	{
 	   assert(new_size > 0);
+		// replace this one to use jemalloc/tcmalloc etc
        return std::realloc(base, new_size);
 	}
 
+	/// Distance between two pointers as unsigned integral type
 	template<typename T>
 	static inline std::size_t distance(const T* less_address,const T* lager_address) noexcept
 	{
@@ -62,18 +75,27 @@ struct memory_traits {
 		return diff > 0 ? static_cast<std::size_t>(diff) : 0;
 	}
 
+	/// Distance between two pointers in bytes as unsigned integral type
 	template<typename T>
 	static inline std::size_t raw_distance(const T* less_address,const T* lager_address) noexcept
 	{
 		return distance<T>(less_address,lager_address) * sizeof(T);
 	}
 
+	/// Temporary propose memory continues memory block allocation of specific type
+	/// with 0-ro initialization
+	/// this implemenation uses additional local application heap
+	/// to avoid process default heap fragmentation because of temporay
+	/// memory blocks allocations/dealocations
+	/// memory allocated by this function must be freed by free_temporary only
+	/// behavior of delete [] or std::free is undefined (sigsev or 0x0....5)
 	template<typename T>
 	static inline T* calloc_temporary(std::size_t count) noexcept
 	{
 		return static_cast<T*>( win::private_heap_alloc( sizeof(T) * count) );
 	}
 
+	/// Temporary propose memory block allocated with calloc_temporary only
 	template<typename T>
 	static inline void free_temporary(T* const ptr) noexcept
 	{
@@ -82,6 +104,7 @@ struct memory_traits {
 
 };
 
+/// STL compatiable allocator which uses memory_traits concept
 template<typename T>
 class h_allocator: public heap_allocator_base <T, memory_traits>
 {

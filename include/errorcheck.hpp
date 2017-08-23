@@ -9,11 +9,10 @@
 
 #include <system_error>
 
+// choose for panic and implementation
 #ifdef __IO_WINDOWS_BACKEND__
 #	include "win/errorcheck.hpp"
-#endif // __IO_WINDOWS_BACKEND__
-
-#ifdef __IO_POSIX_BACKEND__
+#elif defined(__IO_POSIX_BACKEND__)
 #   include "posix/errorcheck.hpp"
 #endif // __IO_POSIX_BACKEND__
 
@@ -23,6 +22,7 @@
 
 #include <exception>
 
+// to be used when we have boost toolchain
 namespace boost
 {
 	inline void throw_exception( std::system_error const & e )
@@ -36,6 +36,13 @@ namespace boost
 
 namespace io {
 
+/// Checks error code variable, if there is an error
+/// prints error message into standard error stream
+/// and do abonormal flow termination by:
+/// 	calling std::terminate when exceptions is off
+/// 	(can be instercepted with terminate handler).
+/// 	throws std::system_error when exceptions is on
+/// \param ec reference to error code variable
 inline void check_error_code(std::error_code const  &ec)
 {
 	if(ec)

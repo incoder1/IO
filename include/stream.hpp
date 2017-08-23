@@ -22,6 +22,7 @@
 
 #include <streambuf>
 #include <ostream>
+#include <istream>
 
 namespace io {
 
@@ -32,10 +33,11 @@ void ios_check_error_code(const char* msg, std::error_code const &ec )
 	if(!ec)
 		return;
 #ifdef IO_NO_EXCEPTIONS
-	std::string message(msg);
-	message.push_back(' ');
-	message.append(ec.message());
-	io::detail::panic(ec.value(), message.c_str() );
+	std::string m = ec.message();
+	std::size_t size = io_strlen(msg) + m.length() + 2;
+	char *errmsg = static_cast<char*>( io_alloca( size) );
+	std::snprintf(errmsg, size, "%s %s", msg, m.data() );
+	io::detail::panic(ec.value(), errmsg );
 #else
 	throw std::ios_base::failure( msg, ec );
 #endif
@@ -76,7 +78,7 @@ public:
 	{
 		// allign buffer on sizeof(char_size)
 		buffer_size = (buffer_size + (sizeof(char_type) - 1) ) & ~( (sizeof(char_type) - 1) );
-		uint8_t *buff = static_cast<uint8_t*>( memory_traits::malloc( buffer_size ) );
+		uint8_t *buff = memory_traits::malloc_array<uint8_t>( buffer_size );
 		if(nullptr == buff) {
 			std::error_code ec = std::make_error_code(std::errc::not_enough_memory);
 			ios_check_error_code( "output stream buff ", ec );

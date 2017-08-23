@@ -14,6 +14,7 @@
 #include <cerrno>
 #include <config.hpp>
 #include <text.hpp>
+#include <string>
 
 #ifdef HAS_PRAGMA_ONCE
 #pragma once
