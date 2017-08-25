@@ -7,10 +7,11 @@
 #pragma once
 #endif // HAS_PRAGMA_ONCE
 
-#include <mstcpip.h>
-#include <ws2tcpip.h>
-#include <rpc.h>
-#include <ntdsapi.h>
+#ifndef SECURITY_WIN32
+#	define SECURITY_WIN32
+#endif // SECURITY_WIN32
+
+//#include <deque>
 
 #include <atomic>
 #include <channels.hpp>
@@ -94,7 +95,6 @@ public:
 	endpoint next() const noexcept {
 		return has_next() ? endpoint( addr_info_->ai_next ) : endpoint();
 	}
-	endpoint(std::shared_ptr<::addrinfo>&& info) noexcept;
 	endpoint(const std::shared_ptr<::addrinfo>& info) noexcept;
 	const_string ip_address() const noexcept;
 	uint16_t port() const noexcept;
@@ -111,7 +111,6 @@ protected:
 public:
 	virtual endpoint get_endpoint() const noexcept = 0;
 	virtual s_read_write_channel connect(std::error_code& ec) const noexcept = 0;
-	virtual s_read_write_channel connect_secured(std::error_code& ec) const noexcept = 0;
 };
 
 DECLARE_IPTR(socket);

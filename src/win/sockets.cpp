@@ -1,3 +1,13 @@
+/*
+ *
+ * Copyright (c) 2017
+ * Viktor Gubin
+ *
+ * Use, modification and distribution are subject to the
+ * Boost Software License, Version 1.0. (See accompanying file
+ * LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
+ *
+ */
 #include "stdafx.hpp"
 #include "sockets.hpp"
 
@@ -7,22 +17,26 @@ namespace net {
 
 #ifdef IO_IS_LITTLE_ENDIAN
 
-static inline uint16_t io_ntohs(uint16_t x) {
-    return io_bswap16( x );
+static inline uint16_t io_ntohs(uint16_t x)
+{
+	return io_bswap16( x );
 }
 
-static inline uint16_t io_htons(uint16_t x) {
-    return io_bswap16( x );
+static inline uint16_t io_htons(uint16_t x)
+{
+	return io_bswap16( x );
 }
 
 #else
 
-static inline uint16_t io_ntohs(uint16_t x) {
-    return x;
+static inline uint16_t io_ntohs(uint16_t x)
+{
+	return x;
 }
 
-static inline uint16_t io_htons(uint16_t x) {
-    return x;
+static inline uint16_t io_htons(uint16_t x)
+{
+	return x;
 }
 
 #endif // IO_IS_LITTLE_ENDIAN
@@ -34,11 +48,6 @@ socket::socket() noexcept:
 {}
 
 // endpoint
-endpoint::endpoint(std::shared_ptr<::addrinfo>&& info) noexcept:
-	addr_info_(std::forward<std::shared_ptr<::addrinfo> >(info))
-{
-}
-
 endpoint::endpoint(const std::shared_ptr<::addrinfo>& info) noexcept:
 	addr_info_(info)
 {}
@@ -46,33 +55,31 @@ endpoint::endpoint(const std::shared_ptr<::addrinfo>& info) noexcept:
 
 uint16_t endpoint::port() const noexcept
 {
-	switch( family() )
-	{
-		case ip_family::ip_v4:
-			 return io_ntohs(
-						reinterpret_cast<::PSOCKADDR_IN>(addr_info_->ai_addr)->sin_port
-					);
-		case ip_family::ip_v6:
-			return io_ntohs(
-						reinterpret_cast<::PSOCKADDR_IN6>(addr_info_->ai_addr)->sin6_port
-					);
-		default:
-			return 0;
+	switch( family() ) {
+	case ip_family::ip_v4:
+		return io_ntohs(
+		           reinterpret_cast<::PSOCKADDR_IN>(addr_info_->ai_addr)->sin_port
+		       );
+	case ip_family::ip_v6:
+		return io_ntohs(
+		           reinterpret_cast<::PSOCKADDR_IN6>(addr_info_->ai_addr)->sin6_port
+		       );
+	default:
+		return 0;
 	}
 }
 
 void endpoint::set_port(uint16_t port) noexcept
 {
-	switch( family() )
-	{
-		case ip_family::ip_v4:
-			reinterpret_cast<::PSOCKADDR_IN>(addr_info_->ai_addr)->sin_port = io_htons(port);
-			break;
-		case ip_family::ip_v6:
-			reinterpret_cast<::PSOCKADDR_IN6>(addr_info_->ai_addr)->sin6_port = io_htons(port);
-			break;
-		default:
-			break;
+	switch( family() ) {
+	case ip_family::ip_v4:
+		reinterpret_cast<::PSOCKADDR_IN>(addr_info_->ai_addr)->sin_port = io_htons(port);
+		break;
+	case ip_family::ip_v6:
+		reinterpret_cast<::PSOCKADDR_IN6>(addr_info_->ai_addr)->sin6_port = io_htons(port);
+		break;
+	default:
+		break;
 	}
 }
 
@@ -91,16 +98,17 @@ const_string endpoint::ip_address() const noexcept
 	char tmp[INET6_ADDRSTRLEN];
 	io_zerro_mem(tmp, INET6_ADDRSTRLEN);
 	const char* ret = ::InetNtopA(
-								addr_info_->ai_family,
-	                             const_cast<void*>(
-	                                 static_cast<const void*>(addr_info_->ai_addr)
-	                             ),
-	                             tmp,
-	                             INET6_ADDRSTRLEN);
+	                      addr_info_->ai_family,
+	                      const_cast<void*>(
+	                          static_cast<const void*>(addr_info_->ai_addr)
+	                      ),
+	                      tmp,
+	                      INET6_ADDRSTRLEN);
 	return (nullptr != ret) ? const_string(tmp) : const_string();
 }
 
 
+// tcp_socket
 class tpc_socket final: public socket {
 public:
 	tpc_socket(endpoint&& ep) noexcept:
@@ -111,32 +119,7 @@ public:
 	{
 		return ep_;
 	}
-	virtual s_read_write_channel connect_secured(std::error_code& ec) const noexcept override
-	{
-		::SOCKET s = create_socket(ec);
-		if(ec)
-			return s_read_write_channel();
-		::SOCKET_SECURITY_SETTINGS sec_set = {
-			SOCKET_SECURITY_PROTOCOL_DEFAULT,
-			SOCKET_SETTINGS_GUARANTEE_ENCRYPTION
-		};
-		int errc = ::WSASetSocketSecurity(s,
-                                   &sec_set, sizeof(::SOCKET_SECURITY_SETTINGS), nullptr, nullptr);
-		if(SOCKET_ERROR == errc) {
-			ec = std::make_error_code( win::wsa_last_error_to_errc() );
-			return s_read_write_channel();
-		}
-		const ::addrinfo *ai = static_cast<const ::addrinfo *>(ep_.native());
 
-		//::SOCKET_PEER_TARGET_NAME ptn;
-		//::WSASetSocketPeerTargetName(s, ptn, len, nullptr, nullptr);
-
-		if(SOCKET_ERROR == ::connect(s, ai->ai_addr, ai->ai_addrlen) ) {
-			ec = std::make_error_code( win::wsa_last_error_to_errc() );
-			return s_read_write_channel();
-		}
-		return s_read_write_channel( nobadalloc<synch_socket_channel>::construct(ec, s ) );
-	}
 	virtual s_read_write_channel connect(std::error_code& ec) const noexcept override
 	{
 		::SOCKET s = create_socket(ec);
@@ -150,18 +133,19 @@ public:
 		return s_read_write_channel( nobadalloc<synch_socket_channel>::construct(ec, s ) );
 	}
 private:
-	::SOCKET create_socket(std::error_code& ec) const noexcept {
+	::SOCKET create_socket(std::error_code& ec) const noexcept
+	{
 		::SOCKET ret = ::WSASocketA( static_cast<int>(
-		                           ep_.family()
-		                       ), SOCK_STREAM, IPPROTO_TCP, nullptr, 0, 0 );
+		                                 ep_.family()
+		                             ), SOCK_STREAM, IPPROTO_TCP, nullptr, 0, 0 );
 		if(ret == INVALID_SOCKET)
 			ec = std::make_error_code( win::wsa_last_error_to_errc() );
 		return ret;
 	}
+
 private:
 	endpoint ep_;
 };
-
 // socket_factory
 std::atomic<socket_factory*> socket_factory::_instance(nullptr);
 critical_section socket_factory::_init_cs;
@@ -218,7 +202,8 @@ static void freeaddrinfo_wrap(void* const p) noexcept
 	::freeaddrinfo( static_cast<::addrinfo*>(p) );
 }
 
-s_socket socket_factory::creatate_tcp_socket(std::error_code& ec, ::addrinfo *addr, uint16_t port) noexcept {
+s_socket socket_factory::creatate_tcp_socket(std::error_code& ec, ::addrinfo *addr, uint16_t port) noexcept
+{
 	endpoint ep( std::shared_ptr<::addrinfo>(addr, freeaddrinfo_wrap ) );
 	ep.set_port( port );
 	return s_socket( nobadalloc<tpc_socket>::construct(ec, std::move(ep) ) );

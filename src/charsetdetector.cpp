@@ -478,7 +478,7 @@ public:
 	}
 };
 
-//single byte prober
+/*
 class single_byte_char_set_prober:public virtual prober {
 public:
 	typedef coding::single_byte::sequence_model sequence_model_t;
@@ -511,11 +511,10 @@ public:
 	{}
 	virtual bool probe(std::error_code& ec,float& confidence,const uint8_t* buff, std::size_t size) const noexcept override
 	{
-		/*typedef byte_buffer::iterator buff_it_t;
+		typedef byte_buffer::iterator buff_it_t;
 		byte_buffer script = byte_buffer::wrap(buff, size);
 		if(script.empty()) {
 		}
-		*/
 		return false;
 	}
 protected:
@@ -554,6 +553,7 @@ private:
 	uint32_t seq_counters_[NUMBER_OF_SEQ_CAT];
 	const sequence_model_t *model_;
 };
+*/
 
 // utf8_prober
 class utf8_prober final: public prober {

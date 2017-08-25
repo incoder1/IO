@@ -22,12 +22,32 @@ namespace io {
 /// \brief A named mapping for the character set code page
 class IO_PUBLIC_SYMBOL charset {
 public:
-	/*
-	charset(const charset& rhs) = default;
-	charset& operator=(const charset& rhs) = default;
-	charset(charset&& rhs) = default;
-	charset& operator=(charset&& rhs) = default;
-	*/
+
+	charset(const charset& rhs) noexcept:
+		unicode_(rhs.unicode_),
+		char_max_(rhs.char_max_),
+		code_(rhs.code_),
+		name_(rhs.name_)
+	{}
+
+	charset& operator=(const charset& rhs) noexcept
+	{
+		charset(rhs).swap( *this );
+		return *this;
+	}
+
+	charset(charset&& rhs) noexcept:
+		unicode_( rhs.unicode_ ),
+		char_max_( rhs.char_max_ ),
+		code_( rhs.code_ ),
+		name_( rhs.name_ )
+	{}
+
+	charset& operator=(charset&& rhs) noexcept
+	{
+		charset( std::forward<charset>(rhs) ).swap( *this );
+		return *this;
+	}
 
 	constexpr charset() noexcept:
 		unicode_(false),
@@ -36,7 +56,7 @@ public:
 		name_(nullptr)
 	{}
 
-	constexpr charset(uint16_t code, const char* name, uint8_t char_max, bool unicode) noexcept:
+	explicit constexpr charset(uint16_t code, const char* name, uint8_t char_max, bool unicode) noexcept:
 		unicode_(unicode),
 		char_max_(char_max),
 		code_(code),
@@ -76,6 +96,14 @@ public:
 
 	bool operator!=(const charset& rhs) const noexcept;
 
+private:
+	inline void swap(charset& with) noexcept
+	{
+        std::swap(unicode_, with.unicode_);
+        std::swap(char_max_, with.char_max_);
+        std::swap(code_, with.code_);
+		std::swap(name_, with.name_);
+	}
 private:
 	bool unicode_;
 	uint8_t char_max_;

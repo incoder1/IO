@@ -26,6 +26,7 @@ int main()
 	using namespace io::net;
 	std::error_code ec;
 	s_uri url = uri::parse(ec, "http://www.springframework.org/schema/beans/spring-beans-4.2.xsd");
+	//s_uri url = uri::parse(ec, "https://www.springframework.org/beans/spring-beans-4.2.xsd");
 	io::check_error_code(ec);
 	const socket_factory* sf = socket_factory::instance(ec);
 	io::check_error_code(ec);
@@ -39,7 +40,7 @@ int main()
 		ep = ep.next();
 	} while( ep.has_next() );
 	std::cout << std::endl;
-	io::s_read_write_channel sock = tpc_socket->connect(ec); //tpc_socket->connect_secured(ec); //
+	io::s_read_write_channel sock = tpc_socket->connect(ec);
 	io::check_error_code(ec);
 
 	http::s_request rq = http::new_request(

@@ -11,9 +11,11 @@
 #include "stdafx.hpp"
 #include "charsets.hpp"
 
-#define DECLARE_CHARSET(ID,code,name,unicode,maxchar) constexpr charset code_pages::ID = charset(code,name,unicode,maxchar);
 
 namespace io {
+
+#define DECLARE_CHARSET(ID,code,name,unicode,maxchar) \
+constexpr charset code_pages::ID = charset(code,name,unicode,maxchar);
 
 // unicode character sets
 DECLARE_CHARSET(UTF_8,65001,"UTF-8",4,true)
@@ -56,6 +58,7 @@ DECLARE_CHARSET(CP_1256,1256,"CP1256",1,false) // ANSI Arabic; Arabic (Windows)
 DECLARE_CHARSET(CP_1257,1257,"CP1257",1,false) // ANSI Baltic; Baltic (Windows)
 DECLARE_CHARSET(CP_1258,1258,"CP1258",1,false) // ANSI/OEM Vietnamese; Vietnamese (Windows)
 
+#undef DECLARE_CHARSET
 
 bool charset::operator==(const charset& rhs) const noexcept
 {
@@ -113,4 +116,4 @@ const charset& code_pages::platform_current() noexcept {
 
 } // namesapce io
 
-#undef DECLARE_CHARSET
+

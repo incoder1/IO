@@ -45,12 +45,13 @@ DECLARE_IPTR(charset_detector);
 /// Constails status of character set detection
 class charset_detect_status {
 public:
-	constexpr charset_detect_status(const charset& ch, float confidence) noexcept:
-		charset_(ch),
-		confidence_(confidence)
-	{}
 	constexpr charset_detect_status() noexcept:
-		charset_detect_status(charset(), 0.0F)
+		charset_(),
+		confidence_(0.0F)
+	{}
+	charset_detect_status(const charset& ch, float confidence) noexcept:
+		charset_( ch ),
+		confidence_(confidence)
 	{}
 	/// Returns true if and only if dector 100% sure about detection accuracy
 	/// \return wether dector 100% sure about accuracy

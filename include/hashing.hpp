@@ -183,7 +183,7 @@ private:
 		return b;
 	}
 
-	static uint64_t hash_len0_to16(const uint8_t *s, std::size_t len) IO_NO_INLINE {
+	static uint64_t IO_NO_INLINE hash_len0_to16(const uint8_t *s, std::size_t len) IO_NO_INLINE {
 	  if (len >= 8) {
 		uint64_t mul = k2 + len * 2;
 		uint64_t a = fetch_64(s) + k2;

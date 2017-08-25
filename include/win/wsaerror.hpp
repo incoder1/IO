@@ -35,42 +35,35 @@ inline std::errc wsa_last_error_to_errc()
 	case WSAEINVAL:
 		return std::errc::invalid_argument; // EINVAL;
 	case WSAEINPROGRESS:
-		//errno = EINPROGRESS;
 		return std::errc::device_or_resource_busy;
 	case WSAEWOULDBLOCK:
-		//errno = EAGAIN;
 		return std::errc::resource_unavailable_try_again;
 	case WSAEOPNOTSUPP:
-		//errno = ENOTSUP;
 		return  std::errc::function_not_supported;
 	case WSAEMSGSIZE:
-		//errno = EFBIG;
-		return std::errc::file_too_large;
+		return std::errc::no_space_on_device;
 	case WSAENOTSOCK:
-		//errno = ENOTSOCK;
-		//break;
 		return std::errc::no_such_device;
 	case WSAENOPROTOOPT:
-		// errno = ENOPROTOOPT;
 		return std::errc::function_not_supported;
 	case WSAECONNREFUSED:
-		// errno = ECONNREFUSED;
-		return std::errc::io_error;
+		return std::errc::permission_denied;
 	case WSAEAFNOSUPPORT:
-		//errno = EAFNOSUPPORT;
-		//break;
-		return std::errc::invalid_argument;
+		return std::errc::function_not_supported;
 	case WSAEBADF:
-		//errno = EBADF;
-		//break;
 		return std::errc::bad_file_descriptor;
 	case WSAENETRESET:
+		return std::errc::interrupted;
 	case WSAENOTCONN:
+		return std::errc::resource_unavailable_try_again;
 	case WSAECONNABORTED:
 	case WSAECONNRESET:
 	case WSAESHUTDOWN:
+		return std::errc::interrupted;
 	case WSAETIMEDOUT:
-		return std::errc::broken_pipe;
+		return std::errc::timed_out;
+	case WSAHOST_NOT_FOUND:
+        return std::errc::no_such_device_or_address;
 	default:
 		return std::errc::io_error;
 	}
