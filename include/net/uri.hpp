@@ -8,7 +8,7 @@
 #endif // HAS_PRAGMA_ONCE
 
 #include <functional>
-
+#include <ostream>
 #include <conststring.hpp>
 
 namespace io {
@@ -32,42 +32,50 @@ private:
 	friend class nobadalloc<uri>;
 
 	uri(
-		const_string&& scheme,
-		uint16_t port,
-		const_string&& host,
-		const_string&& user_info,
-		const_string&& path,
-		const_string&& query,
-		const_string&& fragment) noexcept;
+	    const_string&& scheme,
+	    uint16_t port,
+	    const_string&& host,
+	    const_string&& user_info,
+	    const_string&& path,
+	    const_string&& query,
+	    const_string&& fragment) noexcept;
 public:
 
-	inline const const_string& scheme() const noexcept {
+	inline const const_string& scheme() const noexcept
+	{
 		return scheme_;
 	}
 
-	uint16_t port() const noexcept {
+	uint16_t port() const noexcept
+	{
 		return port_;
 	}
 
-	inline const const_string& host() const noexcept {
+	inline const const_string& host() const noexcept
+	{
 		return host_;
 	}
 
-	inline const const_string& user_info() const noexcept {
+	inline const const_string& user_info() const noexcept
+	{
 		return user_info_;
 	}
 
-	inline const const_string& path() const noexcept {
+	inline const const_string& path() const noexcept
+	{
 		return path_;
 	}
 
-	inline const const_string& query() const noexcept {
+	inline const const_string& query() const noexcept
+	{
 		return query_;
 	}
 
-    inline const const_string& fragment() const noexcept {
-    	return fragment_;
-    }
+	inline const const_string& fragment() const noexcept
+	{
+		return fragment_;
+	}
+	std::size_t hash() const noexcept;
 private:
 	uint16_t port_;
 	const_string scheme_;
@@ -78,36 +86,10 @@ private:
 	const_string fragment_;
 };
 
+std::ostream& IO_PUBLIC_SYMBOL operator<<(std::ostream& ret, const uri& uri);
 
 } // namespace net
 
 } // namespace io
-
-namespace std {
-
-template<>
-struct hash<io::net::s_uri> {
-public:
-	std::size_t operator()(const io::net::s_uri& u) noexcept
-	{
-		static constexpr std::size_t PRIME = 31;
-		std::size_t ret = PRIME + u->scheme().hash();
-		if( !u->host().empty() )
-			ret = PRIME * ret + u->host().hash();
-		if( !u->user_info().empty() )
-			ret = PRIME * ret + u->user_info().hash();
-		if( !u->path().empty() )
-			ret = PRIME * ret + u->path().hash();
-		if( !u->query().empty() )
-			ret = PRIME * ret + u->query().hash();
-		if( !u->fragment().empty() )
-			ret = PRIME * ret + u->fragment().hash();
-		ret = PRIME * ret + u->port();
-		return ret;
-	}
-};
-
-} // namespace std
-
 
 #endif // __URI_HPP_INCLUDED__

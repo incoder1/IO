@@ -150,7 +150,12 @@ uint16_t IO_NO_INLINE uri::default_port_for_scheme(const char* scheme) noexcept
 /// so parse et manually
 s_uri uri::parse(std::error_code& ec, const char* str) noexcept
 {
-	char *normalized = static_cast<char*>( io_alloca( io_strlen(str) ) );
+	char *normalized;
+	std::size_t len = io_strlen(str);
+	if(len <= UCHAR_MAX)
+		normalized = static_cast<char*>( io_alloca( len ) );
+	else
+		normalized = memory_traits::calloc_temporary<char>(len);
 	str_to_lower_a(normalized, str);
 
 	const_string scheme;
@@ -262,6 +267,10 @@ s_uri uri::parse(std::error_code& ec, const char* str) noexcept
 		port = default_port_for_scheme( scheme.data() );
 	if(path.empty())
 		path = const_string("/");
+
+	if(len > UCHAR_MAX)
+		memory_traits::free_temporary(normalized);
+
 	return s_uri( nobadalloc<uri>::construct(ec,
 	              std::move(scheme),
 	              port,
@@ -289,6 +298,46 @@ uri::uri(
 	query_( std::forward<const_string>(query) ),
 	fragment_( std::forward<const_string>(fragment) )
 {}
+
+std::size_t uri::hash() const noexcept
+{
+	static constexpr std::size_t PRIME = 31;
+	std::size_t ret = PRIME + scheme_.hash();
+	if( !host_.empty() )
+		ret = PRIME * ret + host_.hash();
+	if( !user_info_.empty() )
+		ret = PRIME * ret + user_info_.hash();
+	if( !path_.empty() )
+		ret = PRIME * ret + path_.hash();
+	if( !query_.empty() )
+		ret = PRIME * ret + query_.hash();
+	if( !fragment_.empty() )
+		ret = PRIME * ret + fragment_.hash();
+	ret = PRIME * ret + static_cast<std::size_t>(port_);
+	return ret;
+}
+
+std::ostream& IO_PUBLIC_SYMBOL operator<<(std::ostream& ret, const uri& uri)
+{
+	if(!uri.scheme().empty()) {
+		ret << uri.scheme() << ':';
+		ret << "//";
+		ret << uri.host();
+	} else {
+		ret << "//";
+	}
+	if(0 != uri.port() &&
+		uri.port() != uri::default_port_for_scheme( uri.scheme().data() ) )
+		ret << ':'<< uri.port();
+	ret << uri.path();
+	if( !uri.user_info().empty() )
+		ret << '@' << uri.user_info();
+	if( !uri.query().empty() )
+		ret << '?' << uri.query();
+	if( !uri.fragment().empty() )
+		ret << '#' << uri.fragment();
+	return ret;
+}
 
 }  // namespace net
 

@@ -123,7 +123,7 @@ error source::read_more() noexcept
 {
 	if(  !rb_.empty() &&  rb_.capacity() < READ_BUFF_MAXIMAL_SIZE) {
 		rb_.clear();
-		if( !rb_.extend( rb_.capacity() << 1 ) )
+		if( !rb_.exp_grow() )
 			return error::out_of_memory;
 	} else
 		rb_.clear();

@@ -23,6 +23,8 @@ namespace io {
 
 namespace detail {
 
+#ifndef IO_CPU_BITS_64
+
 // murmur3 hashing
 class murmur3
 {
@@ -105,7 +107,9 @@ public:
 	}
 };
 
-// extracted from goole code https://github.com/google/cityhash
+#else // 64 bit istruction set
+
+// Original hash function can be found https://github.com/google/cityhash
 class cityhash
 {
 private:
@@ -114,6 +118,7 @@ private:
 	static constexpr uint64_t k1 = 0xb492b66fbe98f273ULL;
 	static constexpr uint64_t k2 = 0x9ae16a3b2f90404fULL;
 
+	// works better then std::pair
 	struct ullpair {
 		uint64_t first;
 		uint64_t second;
@@ -121,13 +126,13 @@ private:
 
 	static inline uint64_t unaligned_load64(const uint8_t *p) {
 		uint64_t result;
-		io_memmove( static_cast<void*>(&result), p, sizeof(uint64_t) );
+		io_memmove( static_cast<void*>(&result), p, sizeof(result) );
 		return result;
 	}
 
 	static inline uint32_t unaligned_load32(const uint8_t *p) {
 		uint32_t result;
-		io_memmove( static_cast<void*>(&result), p, sizeof(uint32_t) );
+		io_memmove( static_cast<void*>(&result), p, sizeof(result) );
 		return result;
 	}
 
@@ -163,24 +168,24 @@ private:
 
 	static inline uint64_t hash_len16(uint64_t u, uint64_t v) {
 		// Murmur-inspired hashing.
-		static const uint64_t kMul = 0x9DDFEA08EB382D69ULL;
-		uint64_t a = (u ^ v) * kMul;
+		static constexpr uint64_t K_MUL = 0x9DDFEA08EB382D69ULL;
+		uint64_t a = (u ^ v) * K_MUL;
 		a ^= (a >> 47);
-		uint64_t b = (v ^ a) * kMul;
+		uint64_t b = (v ^ a) * K_MUL;
 		b ^= (b >> 47);
-		b *= kMul;
+		b *= K_MUL;
 		return b;
 	}
 
 	// mur
-	static inline uint64_t hash_len16(uint64_t u, uint64_t v, uint64_t mul) {
+	static inline uint64_t hash_len16(const uint64_t u,const uint64_t v,const uint64_t mul) {
 		// Murmur-inspired hashing.
-		uint64_t a = (u ^ v) * mul;
-		a ^= (a >> 47);
-		uint64_t b = (v ^ a) * mul;
-		b ^= (b >> 47);
-		b *= mul;
-		return b;
+		uint64_t mur_a = (u ^ v) * mul;
+		mur_a ^= (mur_a >> 47);
+		uint64_t ret = (v ^ mur_a) * mul;
+		ret ^= (ret >> 47);
+		ret *= mul;
+		return ret;
 	}
 
 	static uint64_t IO_NO_INLINE hash_len0_to16(const uint8_t *s, std::size_t len) IO_NO_INLINE {
@@ -298,6 +303,7 @@ public:
 	}
 };
 
+#endif // IO_CPU_BITS_64
 
 } // namesapce detail
 

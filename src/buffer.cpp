@@ -83,6 +83,11 @@ bool byte_buffer::extend(std::size_t extend_size) noexcept
 	return true;
 }
 
+bool byte_buffer::exp_grow() noexcept
+{
+	return extend ( (capacity_ << 1) - capacity_ );
+}
+
 byte_buffer byte_buffer::allocate(std::error_code& ec, std::size_t capacity) noexcept
 {
 	detail::mem_block block( detail::mem_block::allocate(capacity) );

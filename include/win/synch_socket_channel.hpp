@@ -17,13 +17,13 @@
 #pragma once
 #endif // HAS_PRAGMA_ONCE
 
-#include <windows.h>
-#include <fwpmu.h>
+#ifndef SECURITY_WIN32
+#	define SECURITY_WIN32
+#endif // SECURITY_WIN32
+
 #include <winsock2.h>
-#include <mstcpip.h>
+#include <windows.h>
 #include <ws2tcpip.h>
-#include <ntdsapi.h>
-#include <nldef.h>
 
 #include "channels.hpp"
 #include "wsaerror.hpp"

@@ -288,37 +288,6 @@ private:
 	 s_random_access_channel ch_;
 };
 
-/// Transfers all read channels data to destination write channel
-/// \param ec opration error code, contains error when io error
-/// \param src source read channel
-/// \param dst destination write channel
-/// \param buff memory buffer size, will be alligned up to 4 bytes
-/// \return count of bytes transfered
-/// \throw never throws
-inline std::size_t transfer(std::error_code& ec,const s_read_channel& src, const s_write_channel& dst, uint16_t buff) noexcept
-{
-	std::size_t result = 0;
-	// allign size up to 4
-	scoped_arr<uint8_t> rbuf( (buff + 3) & 0xFC );
-	if( !rbuf ) {
-		ec = std::make_error_code(std::errc::not_enough_memory);
-		return 0;
-	}
-	std::size_t written = 0;
-	std::size_t read = src->read(ec, rbuf.get(), rbuf.len());
-	while( 0 != read && !ec ) {
-		do {
-			written = dst->write(ec, rbuf.get(), read);
-			if(ec)
-				return result;
-			read -= written;
-			result += written;
-		} while( read > 0 );
-		read = src->read(ec, rbuf.get(), buff);
-	}
-	return result;
-}
-
 typedef std::function<void(std::error_code&,std::size_t,byte_buffer&&)>
 		asynch_callback;
 
@@ -373,6 +342,37 @@ public:
 };
 
 DECLARE_IPTR(asynch_read_write_channel);
+
+/// Transfers all read channels data to destination write channel
+/// \param ec opration error code, contains error when io error
+/// \param src source read channel
+/// \param dst destination write channel
+/// \param buff memory buffer size, will be alligned up to 4 bytes
+/// \return count of bytes transfered
+/// \throw never throws
+inline std::size_t transfer(std::error_code& ec,const s_read_channel& src, const s_write_channel& dst, uint16_t buff) noexcept
+{
+	std::size_t result = 0;
+	// allign size up to 4
+	scoped_arr<uint8_t> rbuf( (buff + 3) & 0xFC );
+	if( !rbuf ) {
+		ec = std::make_error_code(std::errc::not_enough_memory);
+		return 0;
+	}
+	std::size_t written = 0;
+	std::size_t read = src->read(ec, rbuf.get(), rbuf.len());
+	while( 0 != read && !ec ) {
+		do {
+			written = dst->write(ec, rbuf.get(), read);
+			if(ec)
+				return result;
+			read -= written;
+			result += written;
+		} while( read > 0 );
+		read = src->read(ec, rbuf.get(), buff);
+	}
+	return result;
+}
 
 } // namespace io
 

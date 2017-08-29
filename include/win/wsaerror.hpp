@@ -25,17 +25,10 @@ inline std::errc wsa_last_error_to_errc()
 		return  std::errc::permission_denied; // EACCES;
 	case WSANOTINITIALISED:
 		return  std::errc::operation_not_permitted;  // EPERM;
-	case WSAEHOSTUNREACH:
-	case WSAENETDOWN:
-		return  std::errc::io_error; // EIO;
 	case WSAEFAULT:
 		return  std::errc::bad_address; // EFAULT;
-	case WSAEINTR:
-		return std::errc::interrupted;
 	case WSAEINVAL:
 		return std::errc::invalid_argument; // EINVAL;
-	case WSAEINPROGRESS:
-		return std::errc::device_or_resource_busy;
 	case WSAEWOULDBLOCK:
 		return std::errc::resource_unavailable_try_again;
 	case WSAEOPNOTSUPP:
@@ -44,6 +37,7 @@ inline std::errc wsa_last_error_to_errc()
 		return std::errc::no_space_on_device;
 	case WSAENOTSOCK:
 		return std::errc::no_such_device;
+	case WSAVERNOTSUPPORTED:
 	case WSAENOPROTOOPT:
 		return std::errc::function_not_supported;
 	case WSAECONNREFUSED:
@@ -52,10 +46,14 @@ inline std::errc wsa_last_error_to_errc()
 		return std::errc::function_not_supported;
 	case WSAEBADF:
 		return std::errc::bad_file_descriptor;
+	case WSAEINTR:
 	case WSAENETRESET:
 		return std::errc::interrupted;
 	case WSAENOTCONN:
 		return std::errc::resource_unavailable_try_again;
+	case WSAEPROCLIM:
+	case WSAEINPROGRESS:
+		return std::errc::device_or_resource_busy;
 	case WSAECONNABORTED:
 	case WSAECONNRESET:
 	case WSAESHUTDOWN:
@@ -64,6 +62,9 @@ inline std::errc wsa_last_error_to_errc()
 		return std::errc::timed_out;
 	case WSAHOST_NOT_FOUND:
         return std::errc::no_such_device_or_address;
+	case WSAEHOSTUNREACH:
+	case WSAENETDOWN:
+	case WSASYSNOTREADY:
 	default:
 		return std::errc::io_error;
 	}

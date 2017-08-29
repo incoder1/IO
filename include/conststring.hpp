@@ -143,17 +143,17 @@ public:
 		data_ = memory_traits::malloc_array<uint8_t>( len );
 		// set initial intrusive atomic reference count
 		intrusive_add_ref( data_ );
-		uint8_t *b = data_ + sizeof(std::size_t);
-		io_memmove(b, str, length);
+		// copy data
+		char *b = reinterpret_cast<char*>( data_ + sizeof(std::size_t) );
+		traits_type::copy(b, str, length);
 	}
 
 	/// Decrement this string refference count, release allocated memory when
 	/// reference count bring to 0
 	~const_string() noexcept
 	{
-		if(nullptr != data_ && intrusive_release(data_) ) {
+		if(nullptr != data_ && intrusive_release(data_) )
 			memory_traits::free(data_);
-		}
 	}
 
 	/// Deep copy a continues memory block (character array)
@@ -166,6 +166,12 @@ public:
 	/// Deep copies a zero ending C string
 	const_string(const char* str) noexcept:
 		const_string(str, traits_type::length(str) )
+	{}
+
+	/// Deep copy STD lib string
+	/// \param str STD lib string to be copied
+	const_string(const std::string& str) noexcept:
+		const_string( str.data(), str.length() )
 	{}
 
 	/// Swaps two const_string objects
@@ -227,6 +233,35 @@ public:
 	{
 		return empty() ? io::hash_bytes( data(), length() ) : 0;
 	}
+
+	/// Lexico-graphichally compares this string with another
+	bool operator==(const const_string& rhs) const noexcept
+	{
+		return 0 == compare( rhs );
+	}
+
+	bool operator<(const const_string& rhs) const noexcept
+	{
+		return 0 > compare( rhs );
+	}
+
+	bool operator>(const const_string& rhs) const noexcept
+	{
+		return 0 < compare( rhs );
+	}
+
+private:
+    inline int compare(const const_string& rhs) const noexcept
+    {
+        if(data_ == rhs.data_)
+			return 0;
+		else if( empty() && !rhs.empty() )
+			return -1;
+		else if( !empty() && rhs.empty() )
+			return 1;
+		else
+ 			return std::strcmp( data(), rhs.data() );
+    }
 private:
 	uint8_t* data_;
 };
@@ -253,17 +288,5 @@ inline std::basic_ostream<char32_t>& operator<<(std::basic_iostream<char32_t>& o
 
 } // namespace io
 
-namespace std {
-
-template<>
-struct hash<io::const_string> {
-public:
-	std::size_t operator()(const io::const_string& str)
-	{
-		return str.hash();
-	}
-};
-
-} // namespace std
 
 #endif // __IO_CONSTSTRING_HPP_INCLUDED__

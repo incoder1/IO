@@ -41,9 +41,8 @@ public:
 	{}
 
 	~mem_block() noexcept {
-		if(nullptr != px_) {
+		if(nullptr != px_)
 			memory_traits::free( px_ );
-		}
 	}
 
 	mem_block(mem_block&& other) noexcept:
@@ -568,6 +567,12 @@ public:
 	/// \return true buffer was extended, false if not enoeth available memory
 	/// \throw never throws
 	bool extend(std::size_t extend_size) noexcept;
+
+	/// Exponentially grow this buffer by sq this buffer capacity
+	/// If not anoeth memory, buffer will be keept in memory as is
+	/// \return true buffer was extended, false if not enoeth available memory
+	/// \throw never throws
+	bool exp_grow() noexcept;
 
 private:
 

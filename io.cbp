@@ -34,9 +34,8 @@
 					<Add option="-shared-libgcc" />
 					<Add library="iconv.dll" />
 					<Add library="Ws2_32" />
-					<Add library="fwpuclnt" />
-					<Add library="ntdsapi" />
-					<Add library="security" />
+					<Add library="crypt32" />
+					<Add library="secur32" />
 					<Add directory="deps/lib" />
 					<Add directory="../boost_1_60_0/stage/gcc64/lib" />
 				</Linker>
@@ -282,6 +281,12 @@
 			<Option target="debug-win-gcc-dll-x64" />
 			<Option target="release-win-gcc-dll-x64" />
 		</Unit>
+		<Unit filename="include/win/secure_socket.hpp">
+			<Option target="debug-win-gcc-dll-x64" />
+			<Option target="release-win-gcc-static-x64" />
+			<Option target="debug-win-gcc-static-x64" />
+			<Option target="release-win-gcc-dll-x64" />
+		</Unit>
 		<Unit filename="include/win/sockets.hpp">
 			<Option target="debug-win-gcc-dll-x64" />
 			<Option target="release-win-gcc-static-x64" />
@@ -367,6 +372,12 @@
 			<Option target="release-win-gcc-dll-x64" />
 		</Unit>
 		<Unit filename="src/win/memory_traits.cpp">
+			<Option target="debug-win-gcc-dll-x64" />
+			<Option target="release-win-gcc-static-x64" />
+			<Option target="debug-win-gcc-static-x64" />
+			<Option target="release-win-gcc-dll-x64" />
+		</Unit>
+		<Unit filename="src/win/secure_socket.cpp">
 			<Option target="debug-win-gcc-dll-x64" />
 			<Option target="release-win-gcc-static-x64" />
 			<Option target="debug-win-gcc-static-x64" />

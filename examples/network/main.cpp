@@ -13,6 +13,7 @@
 #include <files.hpp>
 
 #include <network.hpp>
+#include <win/secure_socket.hpp>
 
 #include <net/uri.hpp>
 #include <net/http_client.hpp>
@@ -26,6 +27,7 @@ int main()
 	using namespace io::net;
 	std::error_code ec;
 	s_uri url = uri::parse(ec, "http://www.springframework.org/schema/beans/spring-beans-4.2.xsd");
+	std::cout << *url << std::endl;
 	//s_uri url = uri::parse(ec, "https://www.springframework.org/beans/spring-beans-4.2.xsd");
 	io::check_error_code(ec);
 	const socket_factory* sf = socket_factory::instance(ec);

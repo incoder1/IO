@@ -146,6 +146,7 @@ private:
 private:
 	endpoint ep_;
 };
+
 // socket_factory
 std::atomic<socket_factory*> socket_factory::_instance(nullptr);
 critical_section socket_factory::_init_cs;
@@ -154,8 +155,8 @@ static void initialize_winsocks2(std::error_code& ec) noexcept
 {
 	::WSADATA wsadata;
 	::DWORD err = ::WSAStartup( MAKEWORD(2,2), &wsadata );
-	if (err != 0) {
-		ec.assign( ::WSAGetLastError(), std::system_category() );
+	if (ERROR_SUCCESS != err) {
+		ec = std::make_error_code( win::wsa_last_error_to_errc() );
 		::WSACleanup();
 	}
 }
@@ -181,15 +182,10 @@ const socket_factory* socket_factory::instance(std::error_code& ec) noexcept
 		ret = _instance.load(std::memory_order_acquire);
 		if(nullptr == ret) {
 			initialize_winsocks2(ec);
-			if(ec) {
+			if(!ec) {
+				std::atexit(&socket_factory::do_release);
+				ret = nobadalloc<socket_factory>::construct(ec);
 				_instance.store(ret, std::memory_order_release);
-				return nullptr;
-			}
-			std::atexit(&socket_factory::do_release);
-			ret = nobadalloc<socket_factory>::construct(ec);
-			if(ec) {
-				_instance.store(ret, std::memory_order_release);
-				return nullptr;
 			}
 			_instance.store(ret, std::memory_order_release);
 		}

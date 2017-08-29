@@ -214,10 +214,6 @@ const socket_factory* socket_factory::instance(std::error_code& ec) noexcept
 		if(nullptr == ret) {
 			std::atexit(&socket_factory::do_release);
 			ret = nobadalloc<socket_factory>::construct(ec);
-			if(ec) {
-				_instance.store(ret, std::memory_order_release);
-				return nullptr;
-			}
 			_instance.store(ret, std::memory_order_release);
 		}
 	}
