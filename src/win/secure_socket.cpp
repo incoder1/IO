@@ -138,7 +138,222 @@ const_string certificate::info(std::error_code &ec) noexcept
 	return const_string();
 }
 
-// secure_socket
+// encryptor
+static constexpr bool check_context_initialized(::SECURITY_STATUS ss) noexcept {
+	return ss != SEC_I_CONTINUE_NEEDED &&
+		   ss != SEC_E_INCOMPLETE_MESSAGE &&
+		   ss != SEC_I_INCOMPLETE_CREDENTIALS;
+}
+
+static std::size_t write_all(std::error_code& ec, const s_read_write_channel& ch, const void* b, std::size_t s) noexcept
+{
+	const uint8_t *i = static_cast<const uint8_t*>(b);
+	std::size_t left = s;
+	std::size_t ret = 0, written;
+	while(!ec) {
+		written = ch->write(ec, i, left);
+		if(ec || 0 == written)
+			break;
+		ret += written;
+		left -= written;
+		i += written;
+	}
+	return ret;
+}
+
+static std::size_t read_all(std::error_code& ec, const s_read_write_channel& ch, void* const b, std::size_t s) noexcept
+{
+	uint8_t *i = static_cast<uint8_t*>(b);
+	std::size_t left = s;
+	std::size_t ret = 0, read;
+	while(!ec) {
+        read = ch->read(ec, i, left);
+        if(ec || 0 == read)
+			break;
+        ret += read;
+		left -= read;
+		i += read;
+	}
+	return ret;
+}
+
+s_encryptor encryptor::create(std::error_code &ec,
+							const s_certificate& cert,
+							s_read_write_channel&& socket) noexcept
+{
+	::CredHandle h_cred;
+	::SCHANNEL_CRED schannel_cred;
+	std::memset(&schannel_cred, 0, sizeof(schannel_cred) );
+	schannel_cred.dwVersion = SCHANNEL_CRED_VERSION;
+	//schannel_cred.dwFlags = SCH_CRED_NO_DEFAULT_CREDS;
+	schannel_cred.dwFlags = SCH_CRED_NO_DEFAULT_CREDS |
+							SCH_CRED_NO_SYSTEM_MAPPER |
+							SCH_CRED_REVOCATION_CHECK_CHAIN;
+	::PCCERT_CONTEXT cert_context = cert->get_context();
+	schannel_cred.cCreds     = 1;
+	schannel_cred.paCred = &cert_context;
+	::SECURITY_STATUS ss = ::AcquireCredentialsHandleW(
+							   nullptr,
+							   const_cast<SEC_WCHAR*>(SCHANNEL_NAME_W),
+							   SECPKG_CRED_OUTBOUND,
+							   0,&schannel_cred,0,0,&h_cred,0
+							);
+	if (FAILED(ss)) {
+		ec = std::make_error_code( std::errc::not_supported);
+		return s_encryptor();
+	}
+	// initalize context
+	ss = SEC_I_CONTINUE_NEEDED;
+	scoped_arr<uint8_t> t(0x11000);
+	scoped_arr<::SecBuffer> bufsi(100);
+	scoped_arr<::SecBuffer> bufso(100);
+	static constexpr ::DWORD INIT_SSPI_FLAGS =
+				  ISC_REQ_SEQUENCE_DETECT   |
+                  ISC_REQ_REPLAY_DETECT     |
+                  ISC_REQ_CONFIDENTIALITY   |
+                  ISC_RET_EXTENDED_ERROR    |
+                  ISC_REQ_ALLOCATE_MEMORY   |
+                  ISC_REQ_STREAM            |
+                  ISC_REQ_MANUAL_CRED_VALIDATION;
+	::SecBufferDesc sb_in = {0,0,nullptr};
+	::SecBufferDesc sb_out = {0,0,nullptr};
+	std::size_t transfered = 0;
+	bool init_context = false;
+	::DWORD SSPI_flags, SSPI_out_flags;
+	::CtxtHandle h_context = {0,0};
+	std::size_t pt = 0;
+	wchar_t target_name[1024]; // 2k
+	std::memset(target_name, 0, sizeof(target_name) );
+	while( !check_context_initialized(ss) ) {
+		SSPI_flags = INIT_SSPI_FLAGS;
+		if(init_context) {
+			transfered = socket->read(ec, t.get(), t.len() );
+			if(ec || 0 == transfered) {
+				if(!ec)
+					ec = std::make_error_code( std::errc::io_error);
+				return s_encryptor();
+			}
+			pt += transfered;
+			// Put this data into the InitializeSecurityContex buffer
+			bufsi[0].BufferType = SECBUFFER_TOKEN;
+			bufsi[0].cbBuffer = pt;
+			bufsi[0].pvBuffer = t.get();
+			bufsi[1].BufferType = SECBUFFER_EMPTY;
+			bufsi[1].cbBuffer = 0;
+			bufsi[1].pvBuffer = 0;
+			sb_in.ulVersion = SECBUFFER_VERSION;
+			sb_in.pBuffers = bufsi.get();
+			sb_in.cBuffers = 2;
+			bufso[0].pvBuffer  = NULL;
+			bufso[0].BufferType= SECBUFFER_TOKEN;
+			bufso[0].cbBuffer  = 0;
+			sb_out.cBuffers      = 1;
+			sb_out.pBuffers      = bufso.get();
+			sb_out.ulVersion     = SECBUFFER_VERSION;
+		} else {
+			// Initialize sbout
+		    bufso[0].pvBuffer   = nullptr;
+			bufso[0].BufferType = SECBUFFER_TOKEN;
+			bufso[0].cbBuffer   = 0;
+			sb_out.ulVersion = SECBUFFER_VERSION;
+			sb_out.cBuffers = 1;
+			sb_out.pBuffers = bufso.get();
+		}
+		SSPI_out_flags = 0;
+		ss = ::InitializeSecurityContextW(
+			&h_cred,
+			init_context ? &h_context : nullptr,
+			target_name,
+			SSPI_flags,
+			0,
+			0,//SECURITY_NATIVE_DREP,
+			init_context ? &sb_in : nullptr,
+			0,
+			init_context ? 0 : &h_context,
+			&sb_out,
+			&SSPI_out_flags,
+			0);
+		// allow more
+		if (ss == SEC_E_INCOMPLETE_MESSAGE)
+			continue;
+		pt = 0;
+		if (FAILED(ss)) {
+			ec = std::make_error_code(std::errc::io_error);
+			return s_encryptor();
+		}
+		if( !init_context && ss != SEC_I_CONTINUE_NEEDED) {
+			ec = std::make_error_code( std::errc::function_not_supported );
+			return s_encryptor();
+ 		}
+		// Send the data we got to the remote part
+		if (!init_context) {
+			transfered = write_all(ec,socket,bufso[0].pvBuffer,bufso[0].cbBuffer);
+			::FreeContextBuffer(bufso[0].pvBuffer);
+			if (ec || transfered != bufso[0].cbBuffer) {
+				ec = std::make_error_code( std::errc::io_error );
+				return s_encryptor();
+			}
+			init_context = true;
+			continue;
+		}
+		// Pass data to the remote site
+		transfered = write_all(ec,socket,bufso[0].pvBuffer,bufso[0].cbBuffer);
+		if( ec || transfered != bufso[0].cbBuffer) {
+			::FreeContextBuffer(bufso[0].pvBuffer);
+			return s_encryptor();
+		}
+		::FreeContextBuffer(bufso[0].pvBuffer);
+		if (ss == S_OK)
+			break;
+	}
+	encryptor* ret = nobadalloc<encryptor>::construct(ec,
+						h_context,
+						sb_in,
+						sb_out,
+						std::forward<s_read_write_channel>( socket )
+					);
+	return nullptr != ret ? s_encryptor(ret) : s_encryptor();
+}
+
+encryptor::encryptor(::CtxtHandle h_context,
+			::SecBufferDesc in,
+			::SecBufferDesc out,
+			s_read_write_channel&& socket) noexcept:
+	read_write_channel(),
+	h_context_(h_context),
+	in_buf_desc_(in),
+	out_buf_desc_(out),
+	socket_( std::forward<s_read_write_channel>(socket) )
+{
+}
+
+std::size_t encryptor::read(std::error_code& ec,uint8_t* const buff, std::size_t bytes) const noexcept
+{
+	::SecPkgContext_StreamSizes sizes;
+	::SECURITY_STATUS ss = ::QueryContextAttributes(&h_context_, SECPKG_ATTR_STREAM_SIZES, &sizes);
+	if ( FAILED(ss) ) {
+		ec = std::make_error_code( std::errc::io_error );
+		return 0;
+	}
+	std::size_t ret = 0;
+	std::size_t encrypted = 0;
+	::SecBuffer buffers[5];
+	std::memset(buffers, 0 , sizeof(buffers) );
+	::SecBuffer* data_buffer;
+	scoped_arr<uint8_t> mmsg( sizes.cbMaximumMessage * 10);
+	if(!mmsg) {
+		ec = std::make_error_code( std::errc::not_enough_memory );
+		return 0;
+	}
+	unsigned int dw_message = sizes.cbMaximumMessage;
+
+	return 0;
+}
+
+std::size_t encryptor::write(std::error_code& ec, const uint8_t* buff,std::size_t size) const noexcept
+{
+	return 0;
+}
 
 
 } // namespace net

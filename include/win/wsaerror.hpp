@@ -55,7 +55,9 @@ inline std::errc wsa_last_error_to_errc()
 	case WSAEINPROGRESS:
 		return std::errc::device_or_resource_busy;
 	case WSAECONNABORTED:
+		return std::errc::interrupted;
 	case WSAECONNRESET:
+		return std::errc::interrupted;
 	case WSAESHUTDOWN:
 		return std::errc::interrupted;
 	case WSAETIMEDOUT:
