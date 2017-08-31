@@ -17,8 +17,7 @@ io::s_write_channel prepare_file() {
 	using namespace io;
 	// Open a file to write results
 	std::error_code ec;
-	file f = file::get(ec, "result.txt");
-	io::check_error_code(ec);
+	file f("result.txt");
 	s_write_channel fch = f.open_for_write(ec, write_open_mode::overwrite);
 	io::check_error_code(ec);
 	// write byte order mark
@@ -33,8 +32,8 @@ io::s_write_channel prepare_file() {
 	return ret;
 }
 
-const char* umessage = "Hello!\nПривет!\nПривіт!\nΧαιρετίσματα!\nHelló!\nHallå!\nこんにちは!\n您好!\n";
-const wchar_t* wmessage = L"Hello!\nПривет!\nПривіт!\nΧαιρετίσματα!\nHelló!\nHallå!\nこんにちは!\n您好!\n";
+const char* umessage = "Hello!\nПривет!\nПривіт!\nΧαιρετίσματα!\nHelló!\nHallå!\n";
+const wchar_t* wmessage = L"Hello!\nПривет!\nПривіт!\nΧαιρετίσματα!\nHelló!\nHallå!\n";
 
 int main()
 {

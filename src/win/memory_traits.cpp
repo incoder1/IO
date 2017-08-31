@@ -19,6 +19,11 @@ namespace io {
 
 namespace win {
 
+#ifdef IO_NO_EXCEPTIONS
+
+#else
+#endif // IO_NO_EXCEPTIONS
+
 class heap_allocator {
 private:
 	constexpr heap_allocator(::HANDLE heap) noexcept:

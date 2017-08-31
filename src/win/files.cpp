@@ -64,40 +64,29 @@ std::size_t synch_file_channel::position(std::error_code& err) noexcept
 
 
 // file
-
-
-file file::get(std::error_code& ec,const char* name) noexcept {
-	if(nullptr == name || '\0' == *(name) ) {
-		return file(nullptr);
-	}
-	// this size is in bytes
-	std::size_t len = std::char_traits<char>::length(name) + 1;
-	char16_t *uname = static_cast<char16_t*> ( memory_traits::malloc( len * sizeof(char16_t) ) );
-	if(nullptr == uname) {
-		ec = std::make_error_code(std::errc::not_enough_memory);
-		return file();
-	}
-	std::char_traits<char16_t>::assign(uname, u'\0', len);
-	transcode(ec, reinterpret_cast<const uint8_t*>(name), len, uname, len);
-	return file( reinterpret_cast<wchar_t*>(uname) );
-}
-
-file file::get(std::error_code& ec,const wchar_t* name) noexcept
+file::file(const char* name) noexcept:
+	name_()
 {
-	if(nullptr == name) {
-		return file(nullptr);
+	typedef std::char_traits<char> c8tr;
+	assert(nullptr != name);
+	const int alen = c8tr::length(name);
+	assert( alen <= MAX_PATH );
+	if(alen != 0) {
+		int wlen = ::MultiByteToWideChar(CP_UTF8, 0, name, alen, nullptr, 0);
+		if(0 != wlen) {
+			scoped_arr<wchar_t> tmp( static_cast<std::size_t>(wlen+1) );
+			::MultiByteToWideChar(CP_UTF8, 0, name, alen, tmp.get(), wlen);
+			name_ = std::move(tmp);
+		}
 	}
-	typedef std::char_traits<wchar_t> wtr;
-	std::size_t len = wtr::length(name) + 1;
-	wchar_t *ncpy = static_cast<wchar_t*>( memory_traits::malloc( len * sizeof(wchar_t) ) );
-	if(nullptr == ncpy) {
-		ec = std::make_error_code(std::errc::not_enough_memory);
-		return file();
-	}
-	wtr::move(ncpy, name, len);
-	return file(ncpy);
 }
 
+file::file(const wchar_t* name) noexcept:
+		name_( std::char_traits<wchar_t>::length(name) + 1 )
+{
+	if(name_)
+		std::char_traits<wchar_t>::move(name_.get(), name, name_.len()-1 );
+}
 
 static inline win::synch_file_channel* new_channel(std::error_code& ec, ::HANDLE hnd) noexcept {
 win::synch_file_channel *result = nullptr;
@@ -129,10 +118,10 @@ static inline win::synch_file_channel* create_file_channel(std::error_code& err,
 
 bool file::exist() noexcept
 {
-	if(name_.empty())
+	if( !name_ )
 		return false;
    ::WIN32_FIND_DATAW fdata;
-   ::HANDLE handle = ::FindFirstFileW(name_.data(), &fdata);
+   ::HANDLE handle = ::FindFirstFileW(name_.get(), &fdata);
    bool result = handle != INVALID_HANDLE_VALUE;
    if(result) {
        ::FindClose(handle);
@@ -142,10 +131,10 @@ bool file::exist() noexcept
 
 bool file::create() noexcept
 {
-	if(name_.empty())
+	if(!name_)
 		return false;
 	::HANDLE hnd = ::CreateFileW(
-						name_.c_str(),
+						name_.get(),
 						GENERIC_READ | GENERIC_WRITE, 0,
 						nullptr,
 						CREATE_NEW,
@@ -158,12 +147,12 @@ bool file::create() noexcept
 }
 
 s_read_channel file::open_for_read(std::error_code& ec) noexcept {
-	if(name_.empty()) {
+	if( !name_ ) {
 		ec = std::make_error_code(std::errc::no_such_file_or_directory);
 		return s_read_channel();
 	}
 	::HANDLE hnd = ::CreateFileW(
-						name_.c_str(),
+						name_.get(),
 						GENERIC_READ, 0,
 						nullptr,
 						OPEN_EXISTING,
@@ -178,12 +167,12 @@ s_read_channel file::open_for_read(std::error_code& ec) noexcept {
 
 s_write_channel file::open_for_write(std::error_code& ec,write_open_mode mode) noexcept
 {
-	if(name_.empty()) {
+	if( !name_ ) {
 		ec = std::make_error_code(std::errc::no_such_file_or_directory);
 		return s_write_channel();
 	}
 	::HANDLE hnd = ::CreateFileW(
-						name_.c_str(),
+						name_.get(),
 						GENERIC_WRITE, 0,
 						nullptr,
 						static_cast<::DWORD>(mode),
@@ -198,12 +187,12 @@ s_write_channel file::open_for_write(std::error_code& ec,write_open_mode mode) n
 
 s_random_access_channel file::open_for_random_access(std::error_code& ec,write_open_mode mode) noexcept
 {
-	if(name_.empty()) {
+	if(!name_) {
 		ec = std::make_error_code(std::errc::no_such_file_or_directory);
 		return s_random_access_channel();
 	}
 	::HANDLE hnd = ::CreateFileW(
-						name_.c_str(),
+						name_.get(),
 						GENERIC_READ | GENERIC_WRITE, 0,
 						nullptr,
 						static_cast<::DWORD>(mode),

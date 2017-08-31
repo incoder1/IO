@@ -16,9 +16,9 @@ namespace net {
 
 namespace win {
 
-inline std::errc wsa_last_error_to_errc()
+inline std::errc wsa_last_error_to_errc(int wsa_err) noexcept
 {
-	switch ( ::WSAGetLastError() ) {
+	switch(wsa_err) {
 	case WSAENOBUFS:
 		return  std::errc::not_enough_memory ; //ENOMEM;
 	case WSAEACCES:
@@ -70,6 +70,11 @@ inline std::errc wsa_last_error_to_errc()
 	default:
 		return std::errc::io_error;
 	}
+}
+
+inline std::errc wsa_last_error_to_errc() noexcept
+{
+	return wsa_last_error_to_errc( ::WSAGetLastError() );
 }
 
 } // namespace win

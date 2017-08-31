@@ -10,13 +10,14 @@
  */
 #include "stdafx.hpp"
 #include "charsetcvt.hpp"
+#include "strings.hpp"
 
 #include <iconv.h>
 
 #ifdef __linux__
 
 #define ICONV_SET_DISCARD_ILSEQ   4  /* const int *argument */
-int iconvctl (iconv_t cd, int request, void* argument)
+static int iconvctl (iconv_t cd, int request, void* argument)
 {
     return 1;
 }
@@ -24,6 +25,34 @@ int iconvctl (iconv_t cd, int request, void* argument)
 #endif // __linux__
 
 namespace io {
+
+/*
+template<typename __char_type>
+struct blob
+{
+	__char_type *data;
+	std::size_t size;
+};
+
+typedef std::char_traits<char> ch8_tr;
+typedef std::char_traits<char16_t> ch16_tr;
+typedef std::char_traits<char32_t> ch32_tr;
+
+static converrc utf8_to_utf32(blob<char>& src, blob<char32_t>& dst) noexcept
+{
+	const char* src_end = src.data + src.size;
+	const char32_t* dst_end = dst.data + dst.size;
+	char *c8 = src.data;
+	char32_t *c32 = dst.data;
+	uint8_t s = u8_char_size(*c8);
+
+	src.size = memory_traits::distance(c8, src_end);
+	src.data = c8;
+	dst.size = memory_traits::distance(c32, dst_end);
+	dst.data = c32;
+	return converrc::success;
+}
+*/
 
 namespace detail {
 

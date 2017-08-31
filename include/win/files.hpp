@@ -12,14 +12,15 @@
 #define __IO_WINDOWS_FILES_HPP_INCLUDED__
 
 #include <config.hpp>
-#include <channels.hpp>
-#include <text.hpp>
-
-#include "handlechannel.hpp"
 
 #ifdef HAS_PRAGMA_ONCE
 #pragma once
 #endif // HAS_PRAGMA_ONCE
+
+#include <channels.hpp>
+#include <conststring.hpp>
+
+#include "handlechannel.hpp"
 
 namespace io {
 
@@ -73,29 +74,15 @@ private:
 	explicit file() noexcept:
 		name_()
 	{}
-	explicit file(std::wstring&& name) noexcept:
-		name_( std::forward<std::wstring>(name) )
-	{}
+
 public:
-	/// Returns file object by OS specific file path
-	/// \param ec
-	///		operation error code, contains error when out of memory
-	/// 		or character set transcoding error
-	/// \param name a UTF-8 or national code page file path
-	/// \return a file object
-	/// \throw never throws
-	static file get(std::error_code& ec,const char* name) noexcept;
-	/// Returns file object by OS specific file path
-	/// \param ec
-	///		operation error code, contains error when out of memory
-	/// 		or character set transcoding error
-	/// \param name a UTF-16LE encoded file path
-	/// \return a file object
-	/// \throw never throws
-	static file get(std::error_code& ec,const wchar_t* name) noexcept;
+
+	explicit file(const char* name) noexcept;
+
+	explicit file(const wchar_t* name) noexcept;
 
 	file(file&& oth) noexcept:
-		name_( std::move<std::wstring&>(oth.name_) )
+		name_( std::move(oth.name_) )
 	{}
 
 	file& operator=(file&& rhs) noexcept {
@@ -104,7 +91,7 @@ public:
 	}
 
 	inline void swap(file& oth) noexcept {
-		std::swap(name_, oth.name_);
+		name_.swap( oth.name_ );
 	}
 
 	~file() noexcept = default;
@@ -118,13 +105,28 @@ public:
 	bool create() noexcept;
 
 	/// Returns UCS-2 encoded file path
-	inline std::wstring wpath()  {
-        return name_;
+	inline std::wstring wpath() const  {
+        return std::wstring( name_.get() );
 	}
 
-	/// Returns system code page file path
-	inline std::string path() {
-		return transcode( name_.c_str() );
+	/// Returns UTF-8 encoded file path
+	inline std::string path() const {
+		int asize = ::WideCharToMultiByte(
+							CP_UTF8, 0,
+							name_.get(), name_.len()-1,
+							nullptr, 0,
+							nullptr, nullptr);
+		if(asize) {
+            char* ret = static_cast<char*>( io_alloca(asize) );
+            io_zerro_mem(ret, asize);
+            ::WideCharToMultiByte(
+							CP_UTF8, 0,
+							name_.get(), name_.len()-1,
+							ret, asize,
+							nullptr, nullptr);
+			return std::string(ret, ret + asize);
+		}
+		return std::string();
 	}
 
 	/// Opens blocking read channel from this file
@@ -152,7 +154,7 @@ public:
 	/// \throw never throws
 	s_random_access_channel open_for_random_access(std::error_code& ec, write_open_mode mode) noexcept;
 private:
-	std::wstring name_;
+	scoped_arr<wchar_t> name_;
 };
 
 } // namespce io

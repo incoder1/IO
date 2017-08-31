@@ -149,8 +149,7 @@ int main(int argc, const char** argv)
 	// error code variable
 	std::error_code ec;
 	// obtain file descriptor
-	file sf = file::get(ec, argv[1] );
-	io::check_error_code( ec );
+	file sf( argv[1] );
 	if( !sf.exist() ) {
 		cerr << sf.path() << " can not be found" << std::endl;
 		return ec.value();

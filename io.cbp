@@ -34,8 +34,6 @@
 					<Add option="-shared-libgcc" />
 					<Add library="iconv.dll" />
 					<Add library="Ws2_32" />
-					<Add library="crypt32" />
-					<Add library="secur32" />
 					<Add directory="deps/lib" />
 					<Add directory="../boost_1_60_0/stage/gcc64/lib" />
 				</Linker>
@@ -107,6 +105,7 @@
 					<Add option="-pg -lgmon" />
 					<Add option="-pg" />
 					<Add library="iconv.dll" />
+					<Add library="Ws2_32" />
 					<Add directory="deps/lib" />
 				</Linker>
 			</Target>
@@ -168,24 +167,28 @@
 				<Option compiler="gcc" />
 				<Option createDefFile="1" />
 				<Option createStaticLib="1" />
-				<Option projectLinkerOptionsRelation="2" />
-				<Option projectIncludeDirsRelation="2" />
 				<Compiler>
-					<Add option="-Weffc++" />
+					<Add option="-Wnon-virtual-dtor" />
+					<Add option="-Winline" />
 					<Add option="-pedantic" />
-					<Add option="-Wall" />
-					<Add option="-std=c++14" />
-					<Add option="-pg" />
+					<Add option="-std=c++11" />
 					<Add option="-g" />
-					<Add option="-fPIC" />
+					<Add option="-fexceptions" />
 					<Add option="-Og" />
-					<Add option="-DIO_BUILD" />
 					<Add option="-DIO_SHARED_LIB" />
-					<Add directory="src/posix" />
-					<Add directory="include/posix" />
+					<Add option="-DIO_HAS_BOOST" />
+					<Add option="-DBOOST_SYSTEM_NO_DEPRECATED" />
+					<Add directory="include" />
+					<Add directory="deps/include" />
+					<Add directory="include/win" />
+					<Add directory="../boost_1_60_0" />
 				</Compiler>
 				<Linker>
-					<Add option="-pg" />
+					<Add option="-shared-libgcc" />
+					<Add library="iconv.dll" />
+					<Add library="Ws2_32" />
+					<Add directory="deps/lib" />
+					<Add directory="../boost_1_60_0/stage/gcc64/lib" />
 				</Linker>
 			</Target>
 		</Build>

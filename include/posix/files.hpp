@@ -11,14 +11,15 @@
 #ifndef __IO_POSIX_FILES_HPP_INCLUDED__
 #define __IO_POSIX_FILES_HPP_INCLUDED__
 
-#include <cerrno>
 #include <config.hpp>
-#include <text.hpp>
-#include <string>
 
 #ifdef HAS_PRAGMA_ONCE
 #pragma once
 #endif // HAS_PRAGMA_ONCE
+
+#include <cerrno>
+#include <text.hpp>
+#include <string>
 
 #ifdef __LP64__
 
@@ -91,28 +92,12 @@ enum class write_open_mode
 /// \brief Filesystem file operations interface, POSIX implementation
 class IO_PUBLIC_SYMBOL file
 {
-private:
-	explicit file(std::string&& name) noexcept:
-        name_( std::forward<std::string>(name) )
-	{}
-public:
-	/// Returns file object by OS specific file path
-	/// \param ec
-	///		operation error code, contains error when out of memory
-	/// 		or character set transcoding error
-	/// \param name a UTF-8 or national code page file path
-	/// \return a file object
-	/// \throw never throws
-	static file get(std::error_code& ec,const char* name) noexcept;
-	/// Returns file object by OS specific file path
-	/// \param ec
-	///		operation error code, contains error when out of memory
-	/// 		or character set transcoding error
-	/// \param name a USC-4 encoded file path
-	/// \return a file object
-	/// \throw never throws
-	static file get(std::error_code& ec,const wchar_t* name) noexcept;
 
+public:
+
+	explicit file(const char* name) noexcept;
+
+	explicit file(const wchar_t* name) noexcept;
 
     file(file&& oth) noexcept:
 		name_( std::move(oth.name_) )
@@ -137,7 +122,7 @@ public:
 
 	/// Returns UCS-4 encoded file path
 	inline std::wstring wpath()  {
-        return transcode_to_ucs(name_.c_str());
+        return transcode_to_ucs( name_, std::strlen(name_) );
 	}
 
 	inline std::string path() {
@@ -169,7 +154,7 @@ public:
 	/// \throw never throws
 	s_random_access_channel open_for_random_access(std::error_code& ec, write_open_mode mode) noexcept;
 private:
-	std::string name_;
+	scoped_arr<char> name_;
 };
 
 } // namespace io

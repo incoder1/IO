@@ -15,7 +15,7 @@
 namespace io {
 
 #define DECLARE_CHARSET(ID,code,name,unicode,maxchar) \
-constexpr charset code_pages::ID = charset(code,name,unicode,maxchar);
+const charset code_pages::ID(code,name,unicode,maxchar);
 
 // unicode character sets
 DECLARE_CHARSET(UTF_8,65001,"UTF-8",4,true)

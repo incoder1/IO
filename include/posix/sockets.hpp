@@ -15,7 +15,6 @@
 #include <channels.hpp>
 #include "criticalsection.hpp"
 #include "conststring.hpp"
-#include "wsaerror.hpp"
 
 namespace io {
 
@@ -25,7 +24,7 @@ enum class transport_prot {
 	tcp = IPPROTO_TCP,
 	udp = IPPROTO_UDP,
 	icmp = IPPROTO_ICMP,
-	icmp6 = IPPROTO_ICMPV6,
+	icmp6 = IPPROTO_ICMPV6
 };
 
 enum class ip_family {
@@ -95,6 +94,8 @@ class IO_PUBLIC_SYMBOL socket:public virtual object {
 protected:
 	socket() noexcept;
 public:
+	virtual bool connected() const noexcept = 0;
+	virtual transport transport_protocol() const noexcept = 0;
 	virtual endpoint get_endpoint() const noexcept = 0;
 	virtual s_read_write_channel connect(std::error_code& ec) const noexcept = 0;
 };
@@ -112,7 +113,8 @@ private:
 public:
 	~socket_factory() noexcept;
 	static const socket_factory* instance(std::error_code& ec) noexcept;
-	s_socket client_socket(std::error_code& ec, const char* host, uint16_t port) const noexcept;
+	s_socket client_tcp_socket(std::error_code& ec, const char* host, uint16_t port) const noexcept;
+	s_socket client_udp_socket(std::error_code& ec, const char* host, uint16_t port) const noexcept;
 private:
 	static std::atomic<socket_factory*> _instance;
 	static critical_section _init_cs;

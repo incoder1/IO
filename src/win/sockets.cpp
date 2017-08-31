@@ -108,42 +108,100 @@ const_string endpoint::ip_address() const noexcept
 }
 
 
-// tcp_socket
-class tpc_socket final: public socket {
+static ::SOCKET new_scoket(std::error_code& ec, ip_family af, transport prot) noexcept
+{
+	int type = 0;
+	switch(prot) {
+	case transport::tcp:
+		type = SOCK_STREAM;
+		break;
+	case transport::udp:
+		type = SOCK_DGRAM;
+		break;
+	case transport::icmp:
+	case transport::icmp6:
+		type = SOCK_RAW;
+		break;
+	}
+
+	::SOCKET ret = ::WSASocketW(
+	                   static_cast<int>(af),
+	                   type,
+	                   static_cast<int>(prot),
+	                   nullptr, 0, 0 );
+	if(ret == INVALID_SOCKET)
+		ec = std::make_error_code( win::wsa_last_error_to_errc() );
+	if(ip_family::ip_v6 == af) {
+		int off = 0;
+		::setsockopt(
+		    ret,
+		    IPPROTO_IPV6,
+		    IPV6_V6ONLY,
+		    reinterpret_cast<const char*>(&off),
+		    sizeof(off)
+		);
+	}
+	return ret;
+}
+
+// inet_socket
+class inet_socket final: public socket {
 public:
-	tpc_socket(endpoint&& ep) noexcept:
+	inet_socket(endpoint&& ep, transport t_prot) noexcept:
 		socket(),
+		transport_(t_prot),
+		connected_(false),
 		ep_( std::forward<endpoint>(ep) )
 	{}
-	virtual endpoint get_endpoint() const noexcept
+
+	virtual endpoint get_endpoint() const noexcept override
 	{
 		return ep_;
 	}
 
+	virtual transport transport_protocol() const noexcept override
+	{
+		return transport_;
+	}
+
+	virtual bool connected() const noexcept override
+	{
+		return connected_.load( std::memory_order_seq_cst );
+	}
+
 	virtual s_read_write_channel connect(std::error_code& ec) const noexcept override
 	{
-		::SOCKET s = create_socket(ec);
-		if(ec)
-			return s_read_write_channel();
-		const ::addrinfo *ai = static_cast<const ::addrinfo *>(ep_.native());
-		if(SOCKET_ERROR == ::connect(s, ai->ai_addr, ai->ai_addrlen) ) {
-			ec = std::make_error_code( win::wsa_last_error_to_errc() );
+		bool tmp = connected_.load( std::memory_order_relaxed );
+		if( tmp ||
+		        !connected_.compare_exchange_strong(
+						tmp, true,
+						std::memory_order_acquire,
+						std::memory_order_relaxed
+		            )
+		) {
+			ec = std::make_error_code( std::errc::device_or_resource_busy );
 			return s_read_write_channel();
 		}
+		::SOCKET s = new_scoket(ec, ep_.family(), transport_);
+		             if(ec)
+		             return s_read_write_channel();
+		             const ::addrinfo *ai = static_cast<const ::addrinfo *>(ep_.native());
+		             if(
+			                 SOCKET_ERROR == ::WSAConnect(s,
+			                         ai->ai_addr, ai->ai_addrlen,
+			                         nullptr,nullptr,nullptr,nullptr
+			                                             )
+			) {
+			ec = std::make_error_code( win::wsa_last_error_to_errc() );
+				connected_.store(false, std::memory_order_release );
+				return s_read_write_channel();
+			}
+		connected_.store(true, std::memory_order_release );
 		return s_read_write_channel( nobadalloc<synch_socket_channel>::construct(ec, s ) );
 	}
 private:
-	::SOCKET create_socket(std::error_code& ec) const noexcept
-	{
-		::SOCKET ret = ::WSASocketA( static_cast<int>(
-		                                 ep_.family()
-		                             ), SOCK_STREAM, IPPROTO_TCP, nullptr, 0, 0 );
-		if(ret == INVALID_SOCKET)
-			ec = std::make_error_code( win::wsa_last_error_to_errc() );
-		return ret;
-	}
-
-private:
+	transport transport_;
+	mutable std::atomic_bool connected_;
 	endpoint ep_;
 };
 
@@ -202,10 +260,10 @@ s_socket socket_factory::creatate_tcp_socket(std::error_code& ec, ::addrinfo *ad
 {
 	endpoint ep( std::shared_ptr<::addrinfo>(addr, freeaddrinfo_wrap ) );
 	ep.set_port( port );
-	return s_socket( nobadalloc<tpc_socket>::construct(ec, std::move(ep) ) );
+	return s_socket( nobadalloc<inet_socket>::construct(ec, std::move(ep), transport::tcp ) );
 }
 
-s_socket socket_factory::client_socket(std::error_code& ec, const char* host, uint16_t port) const noexcept
+s_socket socket_factory::client_tcp_socket(std::error_code& ec, const char* host, uint16_t port) const noexcept
 {
 	::addrinfo *addr = nullptr;
 	int err = ::getaddrinfo(host, nullptr, nullptr, &addr);
@@ -221,12 +279,19 @@ s_socket socket_factory::client_socket(std::error_code& ec, const char* host, ui
 	case AF_INET6:
 		return creatate_tcp_socket(ec, addr, port);
 	default:
-		if(nullptr != addr)
-			::freeaddrinfo(addr);
-		ec = std::make_error_code(std::errc::operation_not_permitted);
+		break;
 	}
+	if(nullptr != addr)
+		::freeaddrinfo(addr);
+	ec = std::make_error_code(std::errc::operation_not_permitted);
 	return s_socket();
 }
+
+s_socket socket_factory::client_udp_socket(std::error_code& ec, const char* host, uint16_t port) const noexcept
+{
+	return s_socket();
+}
+
 
 } // namespace net
 

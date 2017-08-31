@@ -13,6 +13,7 @@
 
 #include <unistd.h>
 #include <fcntl.h>
+#include <cwchar>
 
 namespace io {
 
@@ -85,6 +86,27 @@ std::size_t synch_file_channel::position(std::error_code& ec) noexcept
 
 } // namesapace posix
 
+// file
+file::file(const char* name) noexcept:
+	name_( io_strlen(name) + 1 )
+{
+    io_memmove( name_.get(), name, name_.len() - 1 );
+}
+
+file::file(const wchar_t* name) noexcept:
+	name_()
+{
+	std::char_traits<wchar_t>;
+	if(nullptr != name && L'\0' != *name) {
+		scoped_arr<char> tmp( std::wcslen(name) + 1 );
+		std::mbstate_t mbs;
+		std::mbrlen(nullptr, 0, &mbs);
+		wchar_t* n[1] = { const_cast<wchar_t*>(name) };
+		std::mbstowcs(n, tmp.len()-1, tmp.get(), tmp.len()-1, &mbs);
+		name_ = std::move(tmp);
+	}
+}
+
 bool file::exist() noexcept
 {
 	return -1 != ::access( name_.c_str(), F_OK );
@@ -104,24 +126,6 @@ bool file::create() noexcept
     }
     return false;
 
-}
-
-file file::get(std::error_code& ec,const char* name) noexcept
-{
-	if(nullptr == name || '\0' == *(name) )
-		return file(std::string());
-	return file( name );
-}
-
-file file::get(std::error_code& ec,const wchar_t* wname) noexcept
-{
-	if(nullptr == wname)
-		return file(std::string());
-	scoped_arr<uint8_t> u8n(std::char_traits<wchar_t> ::length(wname)*sizeof(char));
-	transcode(ec, reinterpret_cast<const char32_t*>(wname), u8n.len(),  u8n.get(), u8n.len());
-	if(ec)
-		return file(std::string());
-	return file( std::string(reinterpret_cast<const char*>(u8n.get()) )  );
 }
 
 s_read_channel file::open_for_read(std::error_code& ec) noexcept

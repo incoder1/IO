@@ -38,7 +38,7 @@ public:
 		other.rf_ = nullptr;
 	}
 
-	scoped_arr operator=(scoped_arr&& rhs) noexcept
+	scoped_arr& operator=(scoped_arr&& rhs) noexcept
 	{
 		scoped_arr( std::forward<scoped_arr>(rhs) ).swap( *this );
 		return *this;

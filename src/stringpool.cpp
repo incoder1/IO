@@ -31,9 +31,8 @@ char_holder* IO_MALLOC_ATTR char_holder::alloc(const char* s,const std::size_t l
 cached_string::cached_string(const char* s, std::size_t count) noexcept:
 	holder_(nullptr)
 {
-	if(nullptr != s && count >= 0) {
+	if(nullptr != s && count >= 0)
 		holder_ = detail::char_holder::alloc(s,count);
-	}
 }
 
 

@@ -183,7 +183,7 @@ public:
 
 
 template<typename __char_type>
-class channel_ostream:public std::basic_ostream<__char_type, std::char_traits<__char_type> > {
+class channel_ostream final:public std::basic_ostream<__char_type, std::char_traits<__char_type> > {
 	channel_ostream(const channel_ostream&) = delete;
 	channel_ostream& operator=(const channel_ostream&) = delete;
 private:
@@ -387,7 +387,6 @@ typedef channel_ostream<char> cnl_ostream;
 typedef channel_ostream<wchar_t> cnl_wostream;
 typedef channel_ostream<char16_t> cnl_u16ostream;
 typedef channel_ostream<char32_t> cnl_u32ostream;
-
 
 typedef channel_istream<char> cnl_istream;
 typedef channel_istream<wchar_t> cnl_wistream;

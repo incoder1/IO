@@ -1,6 +1,6 @@
 /*
  *
- * Copyright (c) 2016
+ * Copyright (c) 2016-2017
  * Viktor Gubin
  *
  * Use, modification and distribution are subject to the
@@ -87,5 +87,52 @@ asynch_read_write_channel::asynch_read_write_channel(const asynch_callback& rc, 
 
 asynch_read_write_channel::~asynch_read_write_channel() noexcept
 {}
+
+// Free functions
+
+std::size_t IO_PUBLIC_SYMBOL transmit_buffer(std::error_code& ec,
+				const s_write_channel& ch,
+				const uint8_t* buffer, std::size_t size) noexcept
+{
+	if(!ch || nullptr == buffer || size == 0) {
+		ec = std::make_error_code( std::errc::invalid_argument );
+		return 0;
+	}
+	const uint8_t *b = static_cast<const uint8_t*>(buffer);
+	const uint8_t *e = b + size;
+	std::size_t ret = 0, written;
+	do {
+		written = ch->write(ec, b, memory_traits::distance(b,e) );
+		ret += written;
+		b += written;
+	} while(!ec && b < e);
+	return ret;
+}
+
+std::size_t IO_PUBLIC_SYMBOL transmit(std::error_code& ec,const s_read_channel& src, const s_write_channel& dst, uint16_t buff_size) noexcept
+{
+	if(!src || !dst || buff_size < 2 ) {
+		ec = std::make_error_code( std::errc::invalid_argument );
+		return 0;
+	}
+	// allign size up to 4
+	const std::size_t al_bs = (buff_size + 0x0003) & 0xFFFC;
+	scoped_arr<uint8_t> rbuf( al_bs );
+	if( !rbuf ) {
+		ec = std::make_error_code(std::errc::not_enough_memory);
+		return 0;
+	}
+	std::size_t result = 0;
+	std::size_t read = 0;
+	do {
+		read = src->read(ec, rbuf.get(), rbuf.len() );
+		if(read > 0 && !ec)
+			result += transmit_buffer(ec, dst, rbuf.get(), read);
+		else
+			break;
+	} while( !ec );
+	return result;
+}
+
 
 } // namespace io

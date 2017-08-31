@@ -18,6 +18,7 @@
 
 #include <functional>
 #include <system_error>
+#include <type_traits>
 
 #include "object.hpp"
 #include "buffer.hpp"
@@ -41,8 +42,8 @@ protected:
 };
 
 template <class C>
-class unsafe
-{};
+class unsafe {
+};
 
 /**
   General interface to input operations on an resource like a: file, socket, std in device, named pipe, shared memory blocks etc.
@@ -66,24 +67,24 @@ public:
 DECLARE_IPTR(read_channel);
 
 template <>
-class unsafe<s_read_channel>
-{
+class unsafe<s_read_channel> {
 public:
 	unsafe(s_read_channel&& ch) noexcept:
+		ec_(),
 		ch_( std::forward<s_read_channel>(ch) )
 	{}
 	unsafe(const s_read_channel& ch) noexcept:
+		ec_(),
 		ch_(ch)
 	{}
 	std::size_t read(uint8_t* const buff, std::size_t bytes) const
 	{
-		std::size_t ret;
-		std::error_code ec;
-		ret = ch_->read( ec, buff, bytes);
-		io::check_error_code( ec );
+		std::size_t ret = ch_->read( ec_, buff, bytes);
+		io::check_error_code( ec_ );
 		return ret;
 	}
 private:
+	mutable std::error_code ec_;
 	s_read_channel ch_;
 };
 
@@ -110,24 +111,24 @@ public:
 DECLARE_IPTR(write_channel);
 
 template <>
-class unsafe<s_write_channel>
-{
+class unsafe<s_write_channel> {
 public:
 	unsafe(s_write_channel&& ch) noexcept:
+		ec_(),
 		ch_( std::forward<s_write_channel>(ch) )
 	{}
-	unsafe(s_write_channel& ch) noexcept:
+	unsafe(const s_write_channel& ch) noexcept:
+		ec_(),
 		ch_(ch)
 	{}
 	std::size_t write(const uint8_t* buff,std::size_t size) const
 	{
-		std::size_t ret;
-		std::error_code ec;
-		ret = ch_->write( ec, buff, size);
-		io::check_error_code( ec );
+		std::size_t ret = ch_->write(ec_, buff, size);
+		io::check_error_code( ec_ );
 		return ret;
 	}
 private:
+	mutable std::error_code ec_;
 	s_write_channel ch_;
 };
 
@@ -148,32 +149,30 @@ public:
 DECLARE_IPTR(read_write_channel);
 
 template <>
-class unsafe<s_read_write_channel>
-{
+class unsafe<s_read_write_channel> {
 public:
 	unsafe(s_read_write_channel&& ch) noexcept:
+		ec_(),
 		ch_( std::forward<s_read_write_channel>(ch) )
 	{}
-	unsafe(s_read_write_channel& ch) noexcept:
+	unsafe(const s_read_write_channel& ch) noexcept:
+		ec_(),
 		ch_(ch)
 	{}
 	std::size_t read(uint8_t* const buff, std::size_t bytes) const
 	{
-		std::size_t ret;
-		std::error_code ec;
-		ret = ch_->read( ec, buff, bytes);
-		io::check_error_code( ec );
+		std::size_t ret = ch_->read( ec_, buff, bytes);
+		io::check_error_code( ec_ );
 		return ret;
 	}
 	std::size_t write(const uint8_t* buff,std::size_t size) const
 	{
-		std::size_t ret;
-		std::error_code ec;
-		ret = ch_->write( ec, buff, size);
-		io::check_error_code( ec );
+		std::size_t ret = ch_->write( ec_, buff, size);
+		io::check_error_code( ec_ );
 		return ret;
 	}
 private:
+	mutable std::error_code ec_;
 	s_read_write_channel ch_;
 };
 
@@ -219,80 +218,66 @@ public:
 DECLARE_IPTR(random_access_channel);
 
 template <>
-class unsafe<s_random_access_channel>
-{
+class unsafe<s_random_access_channel> {
 public:
 	unsafe(s_random_access_channel&& ch) noexcept:
+		ec_(),
 		ch_( std::forward<s_random_access_channel>(ch) )
 	{}
 	unsafe(const s_random_access_channel& ch) noexcept:
+		ec_(),
 		ch_( ch )
 	{}
 	std::size_t read(uint8_t* const buff, std::size_t bytes) const
 	{
-		std::size_t ret;
-		std::error_code ec;
-		ret = ch_->read( ec, buff, bytes);
-		io::check_error_code( ec );
+		std::size_t ret = ch_->read( ec_, buff, bytes);
+		io::check_error_code( ec_ );
 		return ret;
 	}
 	std::size_t write(const uint8_t* buff,std::size_t size) const
 	{
-		std::size_t ret;
-		std::error_code ec;
-		ret = ch_->write( ec, buff, size);
-		io::check_error_code( ec );
+		std::size_t ret = ch_->write( ec_, buff, size);
+		io::check_error_code( ec_ );
 		return ret;
 	}
 	std::size_t forward(std::size_t size)
 	{
-		std::size_t ret;
-		std::error_code ec;
-		ret = ch_->forward(ec, size);
-		io::check_error_code( ec );
+		std::size_t ret = ch_->forward(ec_, size);
+		io::check_error_code( ec_ );
 		return ret;
 	}
 	std::size_t backward(std::size_t size)
 	{
-		std::size_t ret;
-		std::error_code ec;
-		ret = ch_->forward(ec, size);
-		io::check_error_code( ec );
+		std::size_t ret = ch_->forward(ec_, size);
+		io::check_error_code( ec_ );
 		return ret;
 	}
 	std::size_t from_begin(std::size_t size)
 	{
-		std::size_t ret;
-		std::error_code ec;
-		ret = ch_->from_begin(ec, size);
-		io::check_error_code( ec );
+		std::size_t ret = ch_->from_begin(ec_, size);
+		io::check_error_code( ec_ );
 		return ret;
 	}
 	std::size_t from_end(std::size_t size)
 	{
-		std::size_t ret;
-		std::error_code ec;
-		ret = ch_->from_end(ec, size);
-		io::check_error_code( ec );
+		std::size_t ret = ch_->from_end(ec_, size);
+		io::check_error_code( ec_ );
 		return ret;
 	}
 	std::size_t position()
 	{
-		std::size_t ret;
-		std::error_code ec;
-		ret = ch_->position(ec);
-		io::check_error_code( ec );
+		std::size_t ret = ch_->position(ec_);
+		io::check_error_code( ec_ );
 		return ret;
 	}
 private:
-	 s_random_access_channel ch_;
+	mutable std::error_code ec_;
+	s_random_access_channel ch_;
 };
 
-typedef std::function<void(std::error_code&,std::size_t,byte_buffer&&)>
-		asynch_callback;
+typedef std::function<void(std::error_code&,std::size_t,byte_buffer&&)> asynch_callback;
 
-class IO_PUBLIC_SYMBOL asynch_channel:public channel
-{
+class IO_PUBLIC_SYMBOL asynch_channel:public channel {
 protected:
 	asynch_channel() noexcept;
 public:
@@ -328,9 +313,8 @@ private:
 DECLARE_IPTR(asynch_write_channel);
 
 class IO_PUBLIC_SYMBOL asynch_read_write_channel:public virtual asynch_channel,
-								public asynch_read_channel,
-								public asynch_write_channel
-{
+	public asynch_read_channel,
+	public asynch_write_channel {
 protected:
 	asynch_read_write_channel(const asynch_callback& rc, const asynch_callback& wc) noexcept;
 public:
@@ -343,36 +327,66 @@ public:
 
 DECLARE_IPTR(asynch_read_write_channel);
 
-/// Transfers all read channels data to destination write channel
+/// Transmits a buffer data into a write channel
+/// function will re-attemt to write unless
+/// size bytes from buffer will be written to the destination
+/// channel, or an io_error occured
 /// \param ec opration error code, contains error when io error
+/// \param buff memory buffer, must not be nullptr
+/// \param size count of bytes to transmit,
+///				must be gretter then 0 and less or equals to memory buffer size
+/// \param dst destination write channel
+std::size_t IO_PUBLIC_SYMBOL transmit_buffer(
+    std::error_code& ec,
+    const s_write_channel& dst,
+    const uint8_t* buffer,
+    std::size_t size) noexcept;
+
+inline void trasmit_buffer(std::error_code& ec, const s_write_channel& dst, byte_buffer& bb) noexcept
+{
+	const uint8_t* b = bb.position().get();
+	const std::size_t len = bb.length();
+	std::size_t transmited = transmit_buffer(ec, dst, b, len );
+	if(!ec)
+		bb.shift( transmited );
+}
+
+/// Unsafe version of transmit_buffer, throws an std::system_error in case of error
+/// when exceptions are on, otherwise call std::terminate
+inline std::size_t transmit_buffer(const s_write_channel& dst, const uint8_t* buffer,std::size_t size)
+{
+	std::error_code ec;
+	std::size_t ret = transmit_buffer(ec, dst, buffer, size);
+	check_error_code( ec );
+	return ret;
+}
+
+/// Transmits buffer of any literal of primitive type into channel
+template<typename T>
+inline std::size_t transmit_buffer(std::error_code& ec,
+                                   const s_write_channel& dst,const T* buffer, std::size_t size) noexcept
+{
+	static_assert( std::is_literal_type<T>::value ||
+	               std::is_trivial<T>::value
+	               ,"Literal or trivial type expected");
+	std::size_t ret = transmit_buffer(ec,
+	                                  dst,
+	                                  reinterpret_cast<const uint8_t*>(buffer),
+	                                  (size * sizeof(T) )
+	                                 );
+	return ret / sizeof(T);
+}
+
+/// Transmits all read channels data to destination write channel
+/// \param ec opration error code, contains error
+///				when io error or not anoegth memory for allocating buffer
 /// \param src source read channel
 /// \param dst destination write channel
 /// \param buff memory buffer size, will be alligned up to 4 bytes
 /// \return count of bytes transfered
 /// \throw never throws
-inline std::size_t transfer(std::error_code& ec,const s_read_channel& src, const s_write_channel& dst, uint16_t buff) noexcept
-{
-	std::size_t result = 0;
-	// allign size up to 4
-	scoped_arr<uint8_t> rbuf( (buff + 3) & 0xFC );
-	if( !rbuf ) {
-		ec = std::make_error_code(std::errc::not_enough_memory);
-		return 0;
-	}
-	std::size_t written = 0;
-	std::size_t read = src->read(ec, rbuf.get(), rbuf.len());
-	while( 0 != read && !ec ) {
-		do {
-			written = dst->write(ec, rbuf.get(), read);
-			if(ec)
-				return result;
-			read -= written;
-			result += written;
-		} while( read > 0 );
-		read = src->read(ec, rbuf.get(), buff);
-	}
-	return result;
-}
+std::size_t IO_PUBLIC_SYMBOL transmit(std::error_code& ec,const s_read_channel& src, const s_write_channel& dst, uint16_t buff) noexcept;
+
 
 } // namespace io
 

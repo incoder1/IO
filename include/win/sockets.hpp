@@ -17,6 +17,7 @@
 #include <channels.hpp>
 #include "criticalsection.hpp"
 #include "conststring.hpp"
+#include "secure_socket.hpp"
 #include "synch_socket_channel.hpp"
 
 #ifndef BTHPROTO_RFCOMM
@@ -27,18 +28,16 @@ namespace io {
 
 namespace net {
 
-enum class transport_prot {
+enum class transport {
 	tcp = IPPROTO_TCP,
 	udp = IPPROTO_UDP,
 	icmp = IPPROTO_ICMP,
-	icmp6 = IPPROTO_ICMPV6,
-	rfcomm = BTHPROTO_RFCOMM
+	icmp6 = IPPROTO_ICMPV6
 };
 
 enum class ip_family {
 	ip_v4 = AF_INET,
 	ip_v6 = AF_INET6,
-	bluetooth = AF_BTH
 };
 
 inline std::ostream& operator<<(std::ostream& os, ip_family ipf)
@@ -50,28 +49,22 @@ inline std::ostream& operator<<(std::ostream& os, ip_family ipf)
 	case ip_family::ip_v6:
 		os << "TCP/IP version 6";
 		break;
-	case ip_family::bluetooth:
-		os << "Bluetooth";
-		break;
 	}
 	return os;
 }
 
-inline std::ostream& operator<<(std::ostream& os, transport_prot prot)
+inline std::ostream& operator<<(std::ostream& os, transport prot)
 {
 	switch(prot) {
-	case transport_prot::tcp:
+	case transport::tcp:
 		os << "TCP";
 		break;
-	case transport_prot::udp:
+	case transport::udp:
 		os << "UDP";
 		break;
-	case transport_prot::icmp:
-	case transport_prot::icmp6:
+	case transport::icmp:
+	case transport::icmp6:
 		os << "ICMP";
-		break;
-	case transport_prot::rfcomm:
-		os << "Bluetooth RFCOMM";
 		break;
 	}
 	return os;
@@ -109,6 +102,8 @@ class IO_PUBLIC_SYMBOL socket:public virtual object {
 protected:
 	socket() noexcept;
 public:
+	virtual bool connected() const noexcept = 0;
+	virtual transport transport_protocol() const noexcept = 0;
 	virtual endpoint get_endpoint() const noexcept = 0;
 	virtual s_read_write_channel connect(std::error_code& ec) const noexcept = 0;
 };
@@ -127,7 +122,8 @@ private:
 public:
 	~socket_factory() noexcept;
 	static const socket_factory* instance(std::error_code& ec) noexcept;
-	s_socket client_socket(std::error_code& ec, const char* host, uint16_t port) const noexcept;
+	s_socket client_tcp_socket(std::error_code& ec, const char* host, uint16_t port) const noexcept;
+	s_socket client_udp_socket(std::error_code& ec, const char* host, uint16_t port) const noexcept;
 private:
 	static std::atomic<socket_factory*> _instance;
 	static critical_section _init_cs;

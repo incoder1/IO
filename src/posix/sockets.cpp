@@ -17,22 +17,26 @@ namespace net {
 
 #ifdef IO_IS_LITTLE_ENDIAN
 
-static inline uint16_t io_ntohs(uint16_t x) {
-    return io_bswap16( x );
+static inline uint16_t io_ntohs(uint16_t x)
+{
+	return io_bswap16( x );
 }
 
-static inline uint16_t io_htons(uint16_t x) {
-    return io_bswap16( x );
+static inline uint16_t io_htons(uint16_t x)
+{
+	return io_bswap16( x );
 }
 
 #else
 
-static inline uint16_t io_ntohs(uint16_t x) {
-    return x;
+static inline uint16_t io_ntohs(uint16_t x)
+{
+	return x;
 }
 
-static inline uint16_t io_htons(uint16_t x) {
-    return x;
+static inline uint16_t io_htons(uint16_t x)
+{
+	return x;
 }
 
 #endif // IO_IS_LITTLE_ENDIAN
@@ -50,33 +54,31 @@ endpoint::endpoint(const std::shared_ptr<::addrinfo>& info) noexcept:
 
 uint16_t endpoint::port() const noexcept
 {
-	switch( family() )
-	{
-		case ip_family::ip_v4:
-			 return io_ntohs(
-						reinterpret_cast<::sockaddr_in*>(addr_info_->ai_addr)->sin_port
-					);
-		case ip_family::ip_v6:
-			return io_ntohs(
-						reinterpret_cast<::sockaddr_in6*>(addr_info_->ai_addr)->sin6_port
-					);
-		default:
-			return 0;
+	switch( family() ) {
+	case ip_family::ip_v4:
+		return io_ntohs(
+		           reinterpret_cast<::sockaddr_in*>(addr_info_->ai_addr)->sin_port
+		       );
+	case ip_family::ip_v6:
+		return io_ntohs(
+		           reinterpret_cast<::sockaddr_in6*>(addr_info_->ai_addr)->sin6_port
+		       );
+	default:
+		return 0;
 	}
 }
 
 void endpoint::set_port(uint16_t port) noexcept
 {
-	switch( family() )
-	{
-		case ip_family::ip_v4:
-			reinterpret_cast<::sockaddr_in*>(addr_info_->ai_addr)->sin_port = io_htons(port);
-			break;
-		case ip_family::ip_v6:
-			reinterpret_cast<::sockaddr_in6*>(addr_info_->ai_addr)->sin6_port = io_htons(port);
-			break;
-		default:
-			break;
+	switch( family() ) {
+	case ip_family::ip_v4:
+		reinterpret_cast<::sockaddr_in*>(addr_info_->ai_addr)->sin_port = io_htons(port);
+		break;
+	case ip_family::ip_v6:
+		reinterpret_cast<::sockaddr_in6*>(addr_info_->ai_addr)->sin6_port = io_htons(port);
+		break;
+	default:
+		break;
 	}
 }
 
@@ -94,13 +96,13 @@ const_string endpoint::ip_address() const noexcept
 {
 	char tmp[INET6_ADDRSTRLEN];
 	io_zerro_mem(tmp, INET6_ADDRSTRLEN);
- 	const char* ret = ::inet_ntop(
-                                 addr_info_->ai_family,
-	                             const_cast<void*>(
-	                                 static_cast<const void*>(addr_info_->ai_addr)
-	                             ),
-	                             tmp,
-	                             INET6_ADDRSTRLEN);
+	const char* ret = ::inet_ntop(
+	                      addr_info_->ai_family,
+	                      const_cast<void*>(
+	                          static_cast<const void*>(addr_info_->ai_addr)
+	                      ),
+	                      tmp,
+	                      INET6_ADDRSTRLEN);
 
 	return nullptr != ret ? const_string(tmp) : const_string() ;
 }
@@ -108,13 +110,13 @@ const_string endpoint::ip_address() const noexcept
 
 // socket
 socket::socket() noexcept:
-    object()
+	object()
 {}
 
 // synch_socket_channel
 class synch_socket_channel final:public read_write_channel {
 private:
-    static constexpr int SOCKET_ERROR = -1;
+	static constexpr int SOCKET_ERROR = -1;
 	friend class nobadalloc<synch_socket_channel>;
 	synch_socket_channel(int socket) noexcept:
 		read_write_channel(),
@@ -127,7 +129,7 @@ public:
 	}
 	virtual std::size_t read(std::error_code& ec,uint8_t* const buff, std::size_t bytes) const noexcept override
 	{
-        ::ssize_t ret = ::recv(socket_, static_cast<void*>(buff), bytes, 0);
+		::ssize_t ret = ::recv(socket_, static_cast<void*>(buff), bytes, 0);
 		if(SOCKET_ERROR == ret) {
 			ec.assign( errno, std::system_category() );
 			return 0;
@@ -136,7 +138,7 @@ public:
 	}
 	virtual std::size_t write(std::error_code& ec, const uint8_t* buff,std::size_t size) const noexcept override
 	{
-        ::ssize_t ret = ::send(socket_, static_cast<const void*>(buff), size,  0);
+		::ssize_t ret = ::send(socket_, static_cast<const void*>(buff), size,  0);
 		if(SOCKET_ERROR ==  ret ) {
 			ec.assign( errno, std::system_category() );
 			return 0;
@@ -147,35 +149,98 @@ public:
 	int socket_;
 };
 
-// tpc_socket
-class tpc_socket final: public socket {
+static int new_socket(int af, transport prot) noexcept
+{
+	int type = 0;
+	switch(prot) {
+	case transport::tcp:
+		type = SOCK_STREAM;
+		break;
+	case transport::udp:
+		type = SOCK_DGRAM;
+		break;
+	case transport::icmp:
+	case transport::icmp6:
+		type = SOCK_RAW;
+		break;
+	}
+	int ret = ::socket(af,type,static_cast<int>(prot));
+	if(INVALID_SOCKET != ret) {
+		if(ip_family::ip_v6 == af) {
+			int off = 0;
+			::setsockopt(
+			    ret,
+			    IPPROTO_IPV6,
+			    IPV6_V6ONLY,
+			    reinterpret_cast<const char*>(&off),
+			    sizeof(off)
+			);
+		}
+	}
+	return ret;
+}
+
+// intet_socket
+class intet_socket final: public socket {
 private:
-    static constexpr int INVALID_SOCKET = -1;
-    static constexpr int SOCKET_ERROR = -1;
+	static constexpr int INVALID_SOCKET = -1;
+	static constexpr int SOCKET_ERROR = -1;
 public:
-	tpc_socket(endpoint&& ep) noexcept:
+
+	inet_socket(endpoint&& ep, transport t_prot) noexcept:
 		socket(),
+		transport_(t_prot),
+		connected_(false),
 		ep_( std::forward<endpoint>(ep) )
 	{}
-	virtual endpoint get_endpoint() const noexcept
+
+	virtual endpoint get_endpoint() const noexcept override
 	{
 		return ep_;
 	}
+
+	virtual transport transport_protocol() const noexcept override
+	{
+		return transport_;
+	}
+
+	virtual bool connected() const noexcept override
+	{
+		return connected_.load( std::memory_order_seq_cst );
+	}
+
 	virtual s_read_write_channel connect(std::error_code& ec) const noexcept override
 	{
-		int s = ::socket( static_cast<int>(ep_.family()), SOCK_STREAM, IPPROTO_TCP);
-		if(INVALID_SOCKET == s ) {
-			ec.assign( errno , std::system_category() );
+		bool tmp = connected_.load( std::memory_order_relaxed );
+		if( tmp ||
+		        !connected_.compare_exchange_strong(
+		            tmp, true,
+		            std::memory_order_acquire,
+		            std::memory_order_relaxed
+		        )
+		  ) {
+			ec = std::make_error_code( std::errc::device_or_resource_busy );
 			return s_read_write_channel();
 		}
 		const ::addrinfo *ai = static_cast<const ::addrinfo *>(ep_.native());
-		if(SOCKET_ERROR == ::connect(s, ai->ai_addr, ai->ai_addrlen) ) {
-			ec.assign( errno , std::system_category() );
+		int s = new_socket( ai->ai_family, transport_);
+		if(INVALID_SOCKET == s ) {
+			connected_.store(false, std::memory_order_release );
+			ec.assign( errno, std::system_category() );
 			return s_read_write_channel();
 		}
+		if(SOCKET_ERROR == ::connect(s, ai->ai_addr, ai->ai_addrlen) ) {
+			connected_.store(false, std::memory_order_release );
+			ec.assign( errno, std::system_category() );
+			return s_read_write_channel();
+		}
+		connected_.store(true, std::memory_order_release );
 		return s_read_write_channel( nobadalloc<synch_socket_channel>::construct(ec, s ) );
 	}
+
 private:
+	transport transport_;
+	mutable std::atomic_bool connected_;
 	endpoint ep_;
 };
 
@@ -188,10 +253,11 @@ static void freeaddrinfo_wrap(void* const p) noexcept
 	::freeaddrinfo( static_cast<::addrinfo*>(p) );
 }
 
-static s_socket creatate_tcp_socket(std::error_code& ec, ::addrinfo *addr, uint16_t port) noexcept {
+static s_socket creatate_tcp_socket(std::error_code& ec, ::addrinfo *addr, uint16_t port) noexcept
+{
 	endpoint ep( std::shared_ptr<::addrinfo>(addr, freeaddrinfo_wrap ) );
 	ep.set_port( port );
-	return s_socket( nobadalloc<tpc_socket>::construct(ec, std::move(ep) ) );
+	return s_socket( nobadalloc<intet_socket>::construct(ec, std::move(ep), transport::tcp ) );
 }
 
 socket_factory::~socket_factory() noexcept
@@ -220,11 +286,10 @@ const socket_factory* socket_factory::instance(std::error_code& ec) noexcept
 	return ret;
 }
 
-s_socket socket_factory::client_socket(std::error_code& ec, const char* host, uint16_t port) const noexcept
+s_socket socket_factory::client_tcp_socket(std::error_code& ec, const char* host, uint16_t port) const noexcept
 {
 	::addrinfo *addr = nullptr;
 	int err = ::getaddrinfo(host, nullptr, nullptr, &addr);
-	// TODO: should be custom error code
 	if(0 != err) {
 		ec = std::make_error_code(std::errc::no_such_device_or_address);
 		if(nullptr != addr)
@@ -242,6 +307,13 @@ s_socket socket_factory::client_socket(std::error_code& ec, const char* host, ui
 	}
 	return s_socket();
 }
+
+s_socket socket_factory::client_udp_socket(std::error_code& ec, const char* host, uint16_t port) const noexcept
+{
+	return s_socket();
+}
+
+
 
 
 } // namespace net

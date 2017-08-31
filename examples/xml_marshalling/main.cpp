@@ -10,11 +10,9 @@
 
 static const char* PROLOGUE = "<?xml version=\"1.0\" encoding=\"UTF-8\" ?>";
 
-
 static io::s_write_channel create_file_channel(const char* path) {
+	io::file f( path );
 	std::error_code ec;
-	io::file f = io::file::get(ec,  path );
-	io::check_error_code(ec);
 	io::s_write_channel ret = f.open_for_write(ec, io::write_open_mode::overwrite);
 	io::check_error_code(ec);
 	return ret;
@@ -24,7 +22,7 @@ static io::s_write_channel create_file_channel(const char* path) {
 static const char* SCHEMA_BEGIN = "<xs:schema xmlns:xs=\"http://www.w3.org/2001/XMLSchema\">";
 
 void generate_xsd(app_settings& root, std::ostream& cout) {
-	io::channel_ostream<char> xsd( create_file_channel("generated-app-config.xsd") );
+	io::cnl_ostream xsd( create_file_channel("generated-app-config.xsd") );
 	xsd << io::unicode_cp::utf8;
 	xsd << PROLOGUE;
 	xsd << SCHEMA_BEGIN;
@@ -53,7 +51,6 @@ void generate_xsd(app_settings& root, std::ostream& cout) {
 int main()
 {
 	io::console::reset_err_color( io::text_color::light_red);
-	std::ostream& cout = io::console::out_stream();
 
 	app_settings root( primary_conf(1) );
 
@@ -71,6 +68,7 @@ int main()
 	xt.marshal(xml,0);
 	xml.flush();
 
+	std::ostream& cout = io::console::out_stream();
 #if IO_XML_HAS_TO_XSD
 	generate_xsd(root,cout);
 #endif // IO_XML_HAS_TO_XSD
