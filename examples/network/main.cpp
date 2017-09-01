@@ -12,11 +12,9 @@
 #include <iostream>
 #include <files.hpp>
 
-#include <network.hpp>
-#include <win/secure_socket.hpp>
-
 #include <net/uri.hpp>
 #include <net/http_client.hpp>
+#include <net/secure_channel.hpp>
 
 #include <errorcheck.hpp>
 #include <stream.hpp>
@@ -26,25 +24,30 @@ int main()
 {
 	using namespace io::net;
 	std::error_code ec;
-	s_uri url = uri::parse(ec, "http://www.springframework.org/schema/beans/spring-beans-4.2.xsd");
-	//s_uri url = uri::parse(ec, "https://www.springframework.org/beans/spring-beans-4.2.xsd");
+	//s_uri url = uri::parse(ec, "http://www.springframework.org/schema/beans/spring-beans-4.2.xsd");
+	s_uri url = uri::parse(ec, "https://www.springframework.org/beans/spring-beans-4.2.xsd");
 	io::check_error_code(ec);
-	const socket_factory* sf = socket_factory::instance(ec);
-	io::check_error_code(ec);
+	//const socket_factory* sf = socket_factory::instance(ec);
+	//io::check_error_code(ec);
 	std::cout << "connectig to: " << url->host() << std::endl;
-	s_socket tpc_socket = sf->client_tcp_socket(ec, url->host().data(),url->port() );
-	io::check_error_code(ec);
 
-	std::cout << url->host() << "\tresolved to: \n";
-	endpoint ep = tpc_socket->get_endpoint();
-	do {
-		std::cout << "\t\t" << ep.ip_address() << '\n';
-		ep = ep.next();
-	} while( ep.has_next() );
-	std::cout << std::endl;
+	//s_socket tpc_socket = sf->client_tcp_socket(ec, url->host().data(),url->port() );
+	//io::check_error_code(ec);
 
-	io::s_read_write_channel sock = tpc_socket->connect(ec);
-	io::check_error_code(ec);
+	//std::cout << url->host() << "\tresolved to: \n";
+	//endpoint ep = tpc_socket->get_endpoint();
+	//do {
+	//	std::cout << "\t\t" << ep.ip_address() << '\n';
+	//	ep = ep.next();
+	//} while( ep.has_next() );
+	// std::cout << std::endl;
+	io::s_read_write_channel sock = secure::channel::tcp_tls_channel(ec,
+												url->host().data(),
+												url->port(),
+												true);
+
+	//io::s_read_write_channel sock = tpc_socket->connect(ec);
+	//io::check_error_code(ec);
 
 	http::s_request rq = http::new_request(
 			ec,
@@ -62,7 +65,7 @@ int main()
 	rq->send( ec, sock );
 	io::check_error_code( ec );
 
-	io::scoped_arr<uint8_t> tmp( io::memory_traits::page_size() << 3 );
+	io::scoped_arr<uint8_t> tmp( 1 << 20 );
 	if(!tmp)
 		io::check_error_code( std::make_error_code(std::errc::not_enough_memory) );
 

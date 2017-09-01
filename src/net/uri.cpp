@@ -147,11 +147,11 @@ uint16_t IO_NO_INLINE uri::default_port_for_scheme(const char* scheme) noexcept
 
 
 /// std::regexp can throw an exepteon, and no PCRE
-/// so parse et manually
+/// so parse it manually
 s_uri uri::parse(std::error_code& ec, const char* str) noexcept
 {
 	char *normalized;
-	std::size_t len = io_strlen(str);
+	const std::size_t len = io_strlen(str) + 1;
 	if(len <= UCHAR_MAX)
 		normalized = static_cast<char*>( io_alloca( len ) );
 	else
@@ -271,7 +271,7 @@ s_uri uri::parse(std::error_code& ec, const char* str) noexcept
 	if(len > UCHAR_MAX)
 		memory_traits::free_temporary(normalized);
 
-	return s_uri( nobadalloc<uri>::construct(ec,
+	uri *ret = nobadalloc<uri>::construct(ec,
 	              std::move(scheme),
 	              port,
 	              std::move(host),
@@ -279,7 +279,8 @@ s_uri uri::parse(std::error_code& ec, const char* str) noexcept
 	              std::move(path),
 	              std::move(query),
 	              std::move(fragment)
-	                                        ));
+					);
+	return nullptr != ret ? s_uri(ret) : s_uri();
 }
 
 uri::uri(
@@ -299,23 +300,6 @@ uri::uri(
 	fragment_( std::forward<const_string>(fragment) )
 {}
 
-std::size_t uri::hash() const noexcept
-{
-	static constexpr std::size_t PRIME = 31;
-	std::size_t ret = PRIME + scheme_.hash();
-	if( !host_.empty() )
-		ret = PRIME * ret + host_.hash();
-	if( !user_info_.empty() )
-		ret = PRIME * ret + user_info_.hash();
-	if( !path_.empty() )
-		ret = PRIME * ret + path_.hash();
-	if( !query_.empty() )
-		ret = PRIME * ret + query_.hash();
-	if( !fragment_.empty() )
-		ret = PRIME * ret + fragment_.hash();
-	ret = PRIME * ret + static_cast<std::size_t>(port_);
-	return ret;
-}
 
 
 }  // namespace net

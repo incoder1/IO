@@ -26,6 +26,10 @@
 
 #ifndef  _CPPUNWIND
 #	define IO_NO_EXCEPTIONS
+// use static STL and stdlib C++ when exeptions off
+// to avoid std::unxpected, when exeptions off
+#	define _HAS_EXCEPTIONS 0
+#	define _STATIC_CPPLIB
 #endif // exception
 
 #if defined(_M_IX86) || defined(_M_AMD64)

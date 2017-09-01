@@ -17,7 +17,6 @@
 #include <channels.hpp>
 #include "criticalsection.hpp"
 #include "conststring.hpp"
-#include "secure_socket.hpp"
 #include "synch_socket_channel.hpp"
 
 #ifndef BTHPROTO_RFCOMM
@@ -118,6 +117,7 @@ private:
 	static void do_release() noexcept;
 	constexpr socket_factory() noexcept
 	{}
+	std::shared_ptr<::addrinfo> get_host_by_name(std::error_code& ec, const char* host) const noexcept;
 	static s_socket creatate_tcp_socket(std::error_code& ec, ::addrinfo *addr, uint16_t port) noexcept;
 public:
 	~socket_factory() noexcept;

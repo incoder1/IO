@@ -192,7 +192,7 @@ public:
 			                         nullptr,nullptr,nullptr,nullptr
 			                                             )
 			) {
-			ec = std::make_error_code( win::wsa_last_error_to_errc() );
+				ec = std::make_error_code( win::wsa_last_error_to_errc() );
 				connected_.store(false, std::memory_order_release );
 				return s_read_write_channel();
 			}
@@ -256,41 +256,35 @@ static void freeaddrinfo_wrap(void* const p) noexcept
 	::freeaddrinfo( static_cast<::addrinfo*>(p) );
 }
 
-s_socket socket_factory::creatate_tcp_socket(std::error_code& ec, ::addrinfo *addr, uint16_t port) noexcept
+std::shared_ptr<::addrinfo> socket_factory::get_host_by_name(std::error_code& ec, const char* host) const noexcept
 {
-	endpoint ep( std::shared_ptr<::addrinfo>(addr, freeaddrinfo_wrap ) );
-	ep.set_port( port );
-	return s_socket( nobadalloc<inet_socket>::construct(ec, std::move(ep), transport::tcp ) );
+	::addrinfo *ret = nullptr;
+	if(0 != ::getaddrinfo(host, nullptr, nullptr, &ret) ) {
+		ec = std::make_error_code(std::errc::no_such_device_or_address);
+		if(nullptr != ret)
+			::freeaddrinfo(ret);
+	}
+	return std::shared_ptr<::addrinfo>(ret, freeaddrinfo_wrap );
 }
 
 s_socket socket_factory::client_tcp_socket(std::error_code& ec, const char* host, uint16_t port) const noexcept
 {
-	::addrinfo *addr = nullptr;
-	int err = ::getaddrinfo(host, nullptr, nullptr, &addr);
-	// TODO: should be custom error code
-	if(0 != err) {
-		ec = std::make_error_code(std::errc::no_such_device_or_address);
-		if(nullptr != addr)
-			::freeaddrinfo(addr);
+	endpoint ep( get_host_by_name(ec, host) );
+	ep.set_port( port );
+	if(ec)
 		return s_socket();
-	}
-	switch(addr[0].ai_family) {
-	case AF_INET:
-	case AF_INET6:
-		return creatate_tcp_socket(ec, addr, port);
-	default:
-		break;
-	}
-	if(nullptr != addr)
-		::freeaddrinfo(addr);
-	ec = std::make_error_code(std::errc::operation_not_permitted);
-	return s_socket();
+	return nobadalloc<inet_socket>::construct( ec, std::move(ep), transport::tcp );
 }
 
 s_socket socket_factory::client_udp_socket(std::error_code& ec, const char* host, uint16_t port) const noexcept
 {
-	return s_socket();
+	endpoint ep( get_host_by_name(ec, host) );
+	ep.set_port( port );
+	if(ec)
+		return s_socket();
+	return nobadalloc<inet_socket>::construct( ec, std::move(ep), transport::udp );
 }
+
 
 
 } // namespace net

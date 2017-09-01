@@ -19,7 +19,7 @@ namespace net {
 class uri;
 DECLARE_IPTR(uri);
 
-class IO_PUBLIC_SYMBOL uri:public object {
+class IO_PUBLIC_SYMBOL uri final:public object {
 public:
 
 	static s_uri parse(std::error_code& ec, const char* str) noexcept;
@@ -75,7 +75,19 @@ public:
 	{
 		return fragment_;
 	}
-	std::size_t hash() const noexcept;
+
+	std::size_t hash() const noexcept
+	{
+		static constexpr std::size_t PRIME = 31;
+		std::size_t ret = PRIME + scheme_.hash();
+		ret = PRIME * ret + host_.hash();
+		ret = PRIME * ret + user_info_.hash();
+		ret = PRIME * ret + path_.hash();
+		ret = PRIME * ret + query_.hash();
+		ret = PRIME * ret + fragment_.hash();
+		return PRIME * ret + static_cast<std::size_t>(port_);
+	}
+
 private:
 	uint16_t port_;
 	const_string scheme_;

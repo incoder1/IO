@@ -682,11 +682,16 @@ start_element_event event_stream_parser::parse_start_element() noexcept
 	char *left = const_cast<char*>( buff.position().cdata() + len );
 	if( is_whitespace(*left) ) {
 		std::size_t offset = 0;
-		attribute attr = extract_attribute(left,offset);
+		attribute attr( extract_attribute(left,offset) );
 		while(offset != 0) {
-			if( !validate_xml_name( attr.name(), true ) )
+			if( !validate_xml_name( attr.name(), true ) ) {
+				assign_error( error::illegal_chars );
 				return start_element_event();
-			result.add_attribute( std::move(attr) );
+			}
+			if( ! result.add_attribute( std::move(attr) ) ) {
+				assign_error( error::out_of_memory );
+				return start_element_event();
+			}
 			left += offset;
 			attr = extract_attribute(left,offset);
 		}

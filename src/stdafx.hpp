@@ -16,6 +16,7 @@
 
 #include "config.hpp"
 #include "errorcheck.hpp"
+#include "threading.hpp"
 
 #include "buffer.hpp"
 #include "channels.hpp"

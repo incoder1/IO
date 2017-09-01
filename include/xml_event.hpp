@@ -60,7 +60,7 @@ private:
 
 class IO_PUBLIC_SYMBOL instruction_event final {
 public:
-	constexpr instruction_event():
+	constexpr instruction_event() noexcept:
 		target_(),
 		data_()
 	{}
@@ -69,12 +69,6 @@ public:
 		target_( std::move(target) ),
 		data_( std::move(data) )
 	{}
-
-	instruction_event(const instruction_event& ) = delete;
-	instruction_event& operator=(const instruction_event&) = delete;
-
-	instruction_event(instruction_event&&) = default;
-	instruction_event& operator=(instruction_event&&) = default;
 
 	inline const_string target() const {
 		return target_;
@@ -90,29 +84,21 @@ private:
 
 class event_stream_parser;
 
-class IO_PUBLIC_SYMBOL attribute final
+class IO_PUBLIC_SYMBOL attribute
 {
 public:
+
+	attribute(const attribute&) noexcept = default;
+	attribute& operator=(const attribute&) noexcept = default;
+	attribute(attribute&&) noexcept = default;
+	attribute& operator=(attribute&&) noexcept = default;
 
 	constexpr attribute() noexcept:
 		name_(),
 		value_()
 	{}
 
-	attribute(attribute&& attr) noexcept:
-		name_( std::move(attr.name_) ),
-		value_( std::move(attr.value_) )
-	{}
-
-	attribute& operator=(attribute&& rhs) noexcept {
-		attribute( std::forward<attribute>(rhs) ).swap( *this );
-		return *this;
-	}
-
-	attribute(cached_string&& name,const_string&& value) noexcept:
-		name_( std::forward<cached_string>(name) ),
-		value_( std::forward<const_string>(value) )
-	{}
+	attribute(cached_string&& name,const_string&& value) noexcept;
 
 	~attribute() noexcept;
 
@@ -124,7 +110,7 @@ public:
 		return value_;
 	}
 
-	void swap(attribute& rhs) {
+	void swap(attribute& rhs) noexcept {
 		name_.swap(rhs.name_);
 		value_.swap(rhs.value_);
 	}
@@ -134,35 +120,28 @@ private:
 	const_string value_;
 };
 
-class IO_PUBLIC_SYMBOL qname final
+class qname final
 {
 public:
+	qname(const qname&) noexcept = default;
+	qname& operator=(const qname&) noexcept = default;
+	qname(qname&&) noexcept = default;
+	qname& operator=(qname&&) noexcept = default;
+
 	constexpr qname() noexcept:
 		prefix_(),
 		local_name_()
 	{}
 
+	qname(cached_string&& p,cached_string&& n) noexcept:
+		prefix_(std::forward<cached_string>(p)),
+		local_name_(std::forward<cached_string>(n))
+	{}
+
 	~qname() noexcept = default;
 
-	qname(cached_string&& p,cached_string&& n) noexcept;
-
-	qname(const qname& cp) noexcept;
-	qname& operator=(const qname& rhs) noexcept;
-
-	qname(qname&& mv) noexcept:
-		prefix_(std::move(mv.prefix_)),
-		local_name_(std::move(mv.local_name_))
-	{
-	}
-
-	qname& operator=(qname&& rhs) noexcept
-	{
-		qname(std::forward<qname>(rhs)).swap(*this);
-		return *this;
-	}
-
-	inline void swap(qname& other) noexcept {
-		prefix_.swap(other.prefix_),
+	void swap(qname& other) noexcept {
+		prefix_.swap(other.prefix_);
 		local_name_.swap(other.local_name_);
 	}
 
@@ -186,8 +165,10 @@ private:
 
 class IO_PUBLIC_SYMBOL start_element_event final
 {
+private:
+	typedef std::vector<attribute, h_allocator<attribute> > attrs_storage;
 public:
-	typedef std::vector<attribute, h_allocator<attribute> >::const_iterator iterator;
+	typedef attrs_storage::const_iterator iterator;
 
 	start_element_event(const start_element_event& rhs) = delete;
 	start_element_event& operator=(const start_element_event& rhs) = delete;
@@ -202,21 +183,23 @@ public:
 
 	start_element_event(qname&& name, bool empty_element) noexcept;
 
-	start_element_event(start_element_event&& rhs):
+	start_element_event(start_element_event&& rhs) noexcept:
 		name_( std::move(rhs.name_) ),
 		attributes_( std::move(rhs.attributes_) ),
 		empty_element_(rhs.empty_element_)
 	{}
 
-	start_element_event& operator=(start_element_event&& rhs) {
+	start_element_event& operator=(start_element_event&& rhs) noexcept {
 		name_ = rhs.name_;
 		attributes_ = std::move(rhs.attributes_);
 		empty_element_ = rhs.empty_element_;
 		return *this;
 	}
 
-	void add_attribute(attribute&& attr) {
+	bool add_attribute(attribute&& attr) {
+		std::size_t ps = attributes_.size();
 		attributes_.emplace_back( std::forward<attribute>( attr ) );
+		return (ps+1) == attributes_.size();
 	}
 
 	inline bool empty_element() const noexcept {
@@ -241,7 +224,7 @@ public:
 
 private:
 	qname name_;
-	std::vector<attribute, h_allocator<attribute> > attributes_;
+	attrs_storage attributes_;
 	bool empty_element_;
 };
 
@@ -254,6 +237,7 @@ public:
 	constexpr end_element_event() noexcept:
 		name_()
 	{}
+
 	~end_element_event() noexcept = default;
 
 	end_element_event(qname&& cp) noexcept:

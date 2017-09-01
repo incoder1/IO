@@ -29,11 +29,13 @@
 					<Add directory="deps/include" />
 					<Add directory="include/win" />
 					<Add directory="../boost_1_60_0" />
+					<Add directory="include/net" />
 				</Compiler>
 				<Linker>
 					<Add option="-shared-libgcc" />
 					<Add library="iconv.dll" />
 					<Add library="Ws2_32" />
+					<Add library="tls-15.dll" />
 					<Add directory="deps/lib" />
 					<Add directory="../boost_1_60_0/stage/gcc64/lib" />
 				</Linker>
@@ -69,6 +71,7 @@
 					<Add directory="include" />
 					<Add directory="deps/include" />
 					<Add directory="include/win" />
+					<Add directory="include/net" />
 				</Compiler>
 				<Linker>
 					<Add option="-s" />
@@ -100,6 +103,7 @@
 					<Add directory="deps/include" />
 					<Add directory="include/win" />
 					<Add directory="../boost_1_60_0" />
+					<Add directory="include/net" />
 				</Compiler>
 				<Linker>
 					<Add option="-pg -lgmon" />
@@ -142,6 +146,7 @@
 					<Add directory="include" />
 					<Add directory="deps/include" />
 					<Add directory="include/win" />
+					<Add directory="include/net" />
 				</Compiler>
 				<Linker>
 					<Add option="-s" />
@@ -179,6 +184,7 @@
 					<Add option="-DIO_SHARED_LIB" />
 					<Add directory="include" />
 					<Add directory="include/posix" />
+					<Add directory="include/net" />
 				</Compiler>
 				<Linker>
 					<Add option="-shared-libgcc" />
@@ -209,10 +215,14 @@
 		<Unit filename="include/files.hpp" />
 		<Unit filename="include/hashing.hpp" />
 		<Unit filename="include/net/http_client.hpp" />
+		<Unit filename="include/net/secure_channel.hpp" />
 		<Unit filename="include/net/uri.hpp" />
 		<Unit filename="include/network.hpp" />
 		<Unit filename="include/object.hpp" />
 		<Unit filename="include/posix/console.hpp">
+			<Option target="debug-unix-gcc-so-x64" />
+		</Unit>
+		<Unit filename="include/posix/criticalsection.hpp">
 			<Option target="debug-unix-gcc-so-x64" />
 		</Unit>
 		<Unit filename="include/posix/errorcheck.hpp">
@@ -234,6 +244,7 @@
 		<Unit filename="include/stream.hpp" />
 		<Unit filename="include/stringpool.hpp" />
 		<Unit filename="include/text.hpp" />
+		<Unit filename="include/threading.hpp" />
 		<Unit filename="include/tuple_meta_reflect.hpp" />
 		<Unit filename="include/unicode_bom.hpp" />
 		<Unit filename="include/win/asynch_channel.hpp">
@@ -278,12 +289,6 @@
 			<Option target="debug-win-gcc-dll-x64" />
 			<Option target="release-win-gcc-dll-x64" />
 		</Unit>
-		<Unit filename="include/win/secure_socket.hpp">
-			<Option target="debug-win-gcc-dll-x64" />
-			<Option target="release-win-gcc-static-x64" />
-			<Option target="debug-win-gcc-static-x64" />
-			<Option target="release-win-gcc-dll-x64" />
-		</Unit>
 		<Unit filename="include/win/sockets.hpp">
 			<Option target="debug-win-gcc-dll-x64" />
 			<Option target="release-win-gcc-static-x64" />
@@ -321,6 +326,7 @@
 		<Unit filename="src/charsetdetector.cpp" />
 		<Unit filename="src/charsets.cpp" />
 		<Unit filename="src/net/http_client.cpp" />
+		<Unit filename="src/net/secure_channel.cpp" />
 		<Unit filename="src/net/uri.cpp" />
 		<Unit filename="src/posix/console.cpp">
 			<Option target="debug-unix-gcc-so-x64" />
@@ -369,12 +375,6 @@
 			<Option target="release-win-gcc-dll-x64" />
 		</Unit>
 		<Unit filename="src/win/memory_traits.cpp">
-			<Option target="debug-win-gcc-dll-x64" />
-			<Option target="release-win-gcc-static-x64" />
-			<Option target="debug-win-gcc-static-x64" />
-			<Option target="release-win-gcc-dll-x64" />
-		</Unit>
-		<Unit filename="src/win/secure_socket.cpp">
 			<Option target="debug-win-gcc-dll-x64" />
 			<Option target="release-win-gcc-static-x64" />
 			<Option target="debug-win-gcc-static-x64" />

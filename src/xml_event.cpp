@@ -16,25 +16,13 @@ namespace io {
 namespace xml {
 
 //attribute
+attribute::attribute(cached_string&& name,const_string&& value) noexcept:
+		name_( std::forward<cached_string>(name) ),
+		value_( std::forward<const_string>(value) )
+{}
+
 attribute::~attribute() noexcept
 {}
-
-// qname
-qname::qname(cached_string&& p,cached_string&& n) noexcept:
-	prefix_(std::forward<cached_string>(p)),
-	local_name_(std::forward<cached_string>(n))
-{}
-
-qname::qname(const qname& cp) noexcept:
-	prefix_(cp.prefix_),
-	local_name_(cp.local_name_)
-{}
-
-qname& qname::operator=(const qname& rhs) noexcept {
-	qname(rhs).swap(*this);
-	return *this;
-}
-
 
 //start_element_event
 start_element_event::start_element_event(qname&& name, bool empty_element) noexcept:

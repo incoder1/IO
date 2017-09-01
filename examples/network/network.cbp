@@ -38,8 +38,7 @@
 					<Add option="-s" />
 					<Add library="iconv.dll" />
 					<Add library="Ws2_32" />
-					<Add library="fwpuclnt" />
-					<Add library="ntdsapi" />
+					<Add library="tls-15.dll" />
 					<Add directory="../../deps/lib" />
 					<Add directory="../../bin/release-win-gcc-static-x64" />
 				</Linker>
