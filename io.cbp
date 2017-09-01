@@ -175,20 +175,14 @@
 					<Add option="-g" />
 					<Add option="-fexceptions" />
 					<Add option="-Og" />
+					<Add option="-fPIC" />
 					<Add option="-DIO_SHARED_LIB" />
-					<Add option="-DIO_HAS_BOOST" />
-					<Add option="-DBOOST_SYSTEM_NO_DEPRECATED" />
 					<Add directory="include" />
-					<Add directory="deps/include" />
-					<Add directory="include/win" />
-					<Add directory="../boost_1_60_0" />
+					<Add directory="include/posix" />
 				</Compiler>
 				<Linker>
 					<Add option="-shared-libgcc" />
-					<Add library="iconv.dll" />
-					<Add library="Ws2_32" />
-					<Add directory="deps/lib" />
-					<Add directory="../boost_1_60_0/stage/gcc64/lib" />
+					<Add library="pthread" />
 				</Linker>
 			</Target>
 		</Build>

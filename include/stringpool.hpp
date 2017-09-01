@@ -60,7 +60,7 @@ namespace detail {
 			ref_count_(1),
 			data_(data)
 		{}
-		static char_holder* IO_MALLOC_ATTR alloc(const char* s,const std::size_t len) noexcept;
+		static char_holder* alloc(const char* s,const std::size_t len) noexcept;
 		static inline void add_ref(char_holder* const hld) noexcept {
            hld->ref_count_.fetch_add(1, std::memory_order_relaxed);
 		}

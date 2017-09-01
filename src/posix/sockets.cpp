@@ -149,6 +149,9 @@ public:
 	int socket_;
 };
 
+static constexpr int SOCKET_ERROR = -1;
+static constexpr int INVALID_SOCKET = -1;
+
 static int new_socket(int af, transport prot) noexcept
 {
 	int type = 0;
@@ -166,7 +169,7 @@ static int new_socket(int af, transport prot) noexcept
 	}
 	int ret = ::socket(af,type,static_cast<int>(prot));
 	if(INVALID_SOCKET != ret) {
-		if(ip_family::ip_v6 == af) {
+		if(AF_INET6 == af) {
 			int off = 0;
 			::setsockopt(
 			    ret,
@@ -181,10 +184,7 @@ static int new_socket(int af, transport prot) noexcept
 }
 
 // intet_socket
-class intet_socket final: public socket {
-private:
-	static constexpr int INVALID_SOCKET = -1;
-	static constexpr int SOCKET_ERROR = -1;
+class inet_socket final: public socket {
 public:
 
 	inet_socket(endpoint&& ep, transport t_prot) noexcept:
@@ -257,7 +257,7 @@ static s_socket creatate_tcp_socket(std::error_code& ec, ::addrinfo *addr, uint1
 {
 	endpoint ep( std::shared_ptr<::addrinfo>(addr, freeaddrinfo_wrap ) );
 	ep.set_port( port );
-	return s_socket( nobadalloc<intet_socket>::construct(ec, std::move(ep), transport::tcp ) );
+	return s_socket( nobadalloc<inet_socket>::construct(ec, std::move(ep), transport::tcp ) );
 }
 
 socket_factory::~socket_factory() noexcept

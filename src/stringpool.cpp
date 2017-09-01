@@ -15,7 +15,7 @@ namespace io {
 
 namespace detail {
 
-char_holder* IO_MALLOC_ATTR char_holder::alloc(const char* s,const std::size_t len) noexcept {
+char_holder* char_holder::alloc(const char* s,const std::size_t len) noexcept {
 	std::size_t bytes = ('\0'!=*(s+len)) ? len+1 : len;
 	uint8_t *raw = memory_traits::malloc_array<uint8_t>( sizeof(char_holder) + bytes );
 	if(nullptr == raw)

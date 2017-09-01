@@ -180,6 +180,7 @@ s_write_channel console::conv_channel(const s_write_channel& ch)
 }
 
 
+
 std::atomic<console*> console::_instance( nullptr );
 io::critical_section  console::_cs;
 

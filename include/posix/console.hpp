@@ -121,15 +121,7 @@ public:
     /// Returns std::basic_stream<wchar_t> stream to constole error stream
     static std::wostream& error_wstream();
 
-    /// Returns console character set, always UTF-16LE for Windows
-    /// \return current console character set
-    /// \throw never throws
-    /* static inline const charset charset() noexcept
-    {
-        static charset __default = code_pages::UTF_8;
-    	return __default;
-    }
-    */
+    static std::wistream& in_wstream();
 
 private:
     posix::s_console_channel in_;

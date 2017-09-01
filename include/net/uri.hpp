@@ -86,7 +86,27 @@ private:
 	const_string fragment_;
 };
 
-std::ostream& IO_PUBLIC_SYMBOL operator<<(std::ostream& ret, const uri& uri);
+inline std::ostream& operator<<(std::ostream& ret, const uri& uri)
+{
+	if(!uri.scheme().empty()) {
+		ret << uri.scheme() << ':';
+		ret << "//";
+		ret << uri.host();
+	} else {
+		ret << "//";
+	}
+	if(0 != uri.port() &&
+		uri.port() != uri::default_port_for_scheme( uri.scheme().data() ) )
+		ret << ':'<< uri.port();
+	ret << uri.path();
+	if( !uri.user_info().empty() )
+		ret << '@' << uri.user_info();
+	if( !uri.query().empty() )
+		ret << '?' << uri.query();
+	if( !uri.fragment().empty() )
+		ret << '#' << uri.fragment();
+	return ret;
+}
 
 } // namespace net
 

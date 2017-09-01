@@ -20,7 +20,7 @@ namespace io {
 
 namespace net {
 
-enum class transport_prot {
+enum class transport {
 	tcp = IPPROTO_TCP,
 	udp = IPPROTO_UDP,
 	icmp = IPPROTO_ICMP,
@@ -45,17 +45,17 @@ inline std::ostream& operator<<(std::ostream& os, ip_family ipf)
 	return os;
 }
 
-inline std::ostream& operator<<(std::ostream& os, transport_prot prot)
+inline std::ostream& operator<<(std::ostream& os, transport prot)
 {
 	switch(prot) {
-	case transport_prot::tcp:
+	case transport::tcp:
 		os << "TCP";
 		break;
-	case transport_prot::udp:
+	case transport::udp:
 		os << "UDP";
 		break;
-	case transport_prot::icmp:
-	case transport_prot::icmp6:
+	case transport::icmp:
+	case transport::icmp6:
 		os << "ICMP";
 		break;
 	}

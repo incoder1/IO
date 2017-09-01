@@ -96,29 +96,25 @@ file::file(const char* name) noexcept:
 file::file(const wchar_t* name) noexcept:
 	name_()
 {
-	std::char_traits<wchar_t>;
 	if(nullptr != name && L'\0' != *name) {
 		scoped_arr<char> tmp( std::wcslen(name) + 1 );
-		std::mbstate_t mbs;
-		std::mbrlen(nullptr, 0, &mbs);
-		wchar_t* n[1] = { const_cast<wchar_t*>(name) };
-		std::mbstowcs(n, tmp.len()-1, tmp.get(), tmp.len()-1, &mbs);
+		std::wcstombs( tmp.get(), const_cast<wchar_t*>(name), tmp.len()-1);
 		name_ = std::move(tmp);
 	}
 }
 
 bool file::exist() noexcept
 {
-	return -1 != ::access( name_.c_str(), F_OK );
+	return -1 != ::access( name_.get(), F_OK );
 }
 
 static constexpr int DEFAULT_FILE_PERMS = S_IRUSR | S_IWUSR | S_IRGRP | S_IWGRP | S_IROTH;
 
 bool file::create() noexcept
 {
-	if(name_.empty() || exist() )
+	if(!name_ || exist() )
 		return false;
-    int fd = ::open( name_.c_str(), O_WRONLY | O_CREAT | O_TRUNC | O_SYNC,
+    int fd = ::open( name_.get(), O_WRONLY | O_CREAT | O_TRUNC | O_SYNC,
             DEFAULT_FILE_PERMS);
     if(-1 != fd) {
         ::close(fd);
@@ -130,11 +126,11 @@ bool file::create() noexcept
 
 s_read_channel file::open_for_read(std::error_code& ec) noexcept
 {
-	if(name_.empty()) {
+	if(!name_) {
 		ec = std::make_error_code(std::errc::no_such_file_or_directory);
 		return s_read_channel();
 	}
-	int fd = ::open( name_.c_str(), O_RDONLY, O_SYNC);
+	int fd = ::open( name_.get(), O_RDONLY, O_SYNC);
 	if(-1 == fd) {
 		ec.assign( errno, std::system_category() );
 		return s_read_channel();
@@ -144,21 +140,21 @@ s_read_channel file::open_for_read(std::error_code& ec) noexcept
 
 s_write_channel file::open_for_write(std::error_code& ec,write_open_mode mode) noexcept
 {
-	if(name_.empty()) {
+	if(!name_) {
 		ec = std::make_error_code(std::errc::no_such_file_or_directory);
 		return s_write_channel();
 	}
 	int fd = -1;
 	switch(mode) {
 	case  write_open_mode::append:
-		fd = ::open( name_.c_str(), O_WRONLY | O_APPEND | O_SYNC);
+		fd = ::open( name_.get(), O_WRONLY | O_APPEND | O_SYNC);
 		break;
 	case  write_open_mode::create_if_not_exist:
 	case  write_open_mode::overwrite:
         if(!exist())
-            fd = ::open( name_.c_str(), (O_WRONLY | O_CREAT | O_TRUNC | O_SYNC), DEFAULT_FILE_PERMS);
+            fd = ::open( name_.get(), (O_WRONLY | O_CREAT | O_TRUNC | O_SYNC), DEFAULT_FILE_PERMS);
         else
-            fd = ::open( name_.c_str(), (O_WRONLY | O_TRUNC | O_SYNC) );
+            fd = ::open( name_.get(), (O_WRONLY | O_TRUNC | O_SYNC) );
 		break;
 	}
 	if(-1 == fd) {
@@ -170,11 +166,11 @@ s_write_channel file::open_for_write(std::error_code& ec,write_open_mode mode) n
 
 s_random_access_channel file::open_for_random_access(std::error_code& ec,write_open_mode mode) noexcept
 {
-	if(name_.empty()) {
+	if(!name_) {
 		ec = std::make_error_code(std::errc::no_such_file_or_directory);
 		return s_random_access_channel();
 	}
-	int fd = ::open( name_.c_str(), O_RDWR, O_SYNC);
+	int fd = ::open( name_.get(), O_RDWR, O_SYNC);
 	if(-1 == fd) {
 		ec.assign( errno, std::system_category() );
 		return s_random_access_channel();

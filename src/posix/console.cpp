@@ -200,15 +200,14 @@ std::ostream& console::error_stream()
 	return _cout;
 }
 
-
-
-static s_write_channel conv_channel(const s_write_channel& ch)
-{
 #ifdef IO_IS_LITTLE_ENDIAN
 	static const charset SYSTEM_WIDE = code_pages::UTF_32LE;
 #else
 	static const charset SYSTEM_WIDE = code_pages::UTF_32BE;
 #endif // IO_IS_LITTLE_ENDIAN
+
+static s_write_channel conv_w_channel(const s_write_channel& ch)
+{
 	std::error_code ec;
 	s_code_cnvtr conv = code_cnvtr::open(ec,
 										SYSTEM_WIDE,
@@ -220,16 +219,35 @@ static s_write_channel conv_channel(const s_write_channel& ch)
 	return result;
 }
 
+static s_read_channel conv_r_channel(const s_read_channel& ch)
+{
+    std::error_code ec;
+	s_code_cnvtr conv = code_cnvtr::open(ec,
+                                        code_pages::UTF_8,
+										SYSTEM_WIDE,
+										cnvrt_control::discard_on_failing_chars);
+	io::check_error_code( ec );
+    s_read_channel result = conv_read_channel::open(ec, ch, conv);
+	io::check_error_code( ec );
+	return result;
+}
+
 std::wostream& console::out_wstream()
 {
-	static io::channel_ostream<wchar_t> _wcout( conv_channel( get()->out_ ) );
+	static io::channel_ostream<wchar_t> _wcout( conv_w_channel( get()->out_ ) );
 	return _wcout;
 }
 
 std::wostream& console::error_wstream()
 {
-	static io::channel_ostream<wchar_t> _wcerr( conv_channel( get()->err_ ) );
+	static io::channel_ostream<wchar_t> _wcerr( conv_w_channel( get()->err_ ) );
 	return _wcerr;
+}
+
+std::wistream& console::in_wstream()
+{
+	static io::channel_istream<wchar_t> _wcins( conv_r_channel( get()->in_ ) );
+	return _wcins;
 }
 
 } // namespace io
