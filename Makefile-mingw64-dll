@@ -13,7 +13,7 @@ SHARED_EXT=dll
 
 PLATFORM_SHARED_LINK_OPTIONS?=-shared -Wl,--dll -Wl,--output-def=$(TARGET)/libio.def -Wl,--out-implib=$(TARGET)/libio.a
 
-LIBS?=-L./deps/lib -liconv.dll -lWs2_32
+LIBS?=-L./deps/lib -liconv.dll -lWs2_32 -lssl-43.dll -ltls-15.dll
 INCLUEDS?=-Iinclude -Iinclude/win -Iinclude/net -Isrc -Ideps/include
 
 MMX_AND_SSE?= -mmmx -msse -msse2 -mssse3 -msse3 -msse4 -mavx
