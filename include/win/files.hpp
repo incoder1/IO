@@ -109,6 +109,8 @@ public:
         return std::wstring( name_.get() );
 	}
 
+    std::size_t size() const noexcept;
+
 	/// Returns UTF-8 encoded file path
 	inline std::string path() const {
 		int asize = ::WideCharToMultiByte(

@@ -16,6 +16,8 @@ namespace io {
 
 namespace net {
 
+// FIXME: Implementation should be changes to library with better license
+
 namespace secure {
 
 class encryption {
@@ -142,24 +144,24 @@ std::size_t channel::read(std::error_code& ec,uint8_t* const buff, std::size_t b
 {
 	ssize_t ret = ::tls_read( tls_context_.get(), buff, bytes );
 	if(ret < 0) {
+			// fix this
 		std::printf( ::tls_error(tls_context_.get()) );
 		ec = std::make_error_code( std::errc::broken_pipe );
 		return 0;
 	}
 	return static_cast<std::size_t>( ret );
-	//return pure_->read(ec, buff, bytes);
 }
 
 std::size_t channel::write(std::error_code& ec, const uint8_t* buff,std::size_t size) const noexcept
 {
 	ssize_t ret = ::tls_write(tls_context_.get(), buff, size);
 	if(ret < 0) {
+			// fix this
 		std::printf( ::tls_error(tls_context_.get()) );
 		ec = std::make_error_code( std::errc::broken_pipe );
 		return 0;
 	}
 	return static_cast<std::size_t>( ret );
-	//return pure_->write(ec, buff, size);
 }
 
 } // namespace secure

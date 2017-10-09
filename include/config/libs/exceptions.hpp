@@ -36,7 +36,7 @@ namespace io {
 	  template<typename... _Args>
 	  static inline T* construct(std::error_code& ec,_Args&&... __args) noexcept( noexcept( T(std::forward<_Args>(__args)...) ) ) {
 			try {
-				return new T( std::forward<_Args>(__args)... );
+				return new T( std::forward<_Args>(__args)...);
 			} catch(std::bad_alloc& exc) {
 				ec = std::make_error_code(std::errc::not_enough_memory);
 				return nullptr;
@@ -45,7 +45,7 @@ namespace io {
 #else
 	  template<typename... _Args>
 	  static inline T* construct(std::error_code& ec,_Args&&... __args) noexcept( noexcept( T(std::forward<_Args>(__args)...) ) ) {
-			T* result = new T( std::forward<_Args>(__args)... );
+			T* result = new (std::nothrow) T( std::forward<_Args>(__args)... );
 			if(nullptr == result)
 				ec = std::make_error_code(std::errc::not_enough_memory);
 			return result;

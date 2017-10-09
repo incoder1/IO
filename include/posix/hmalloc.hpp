@@ -33,27 +33,76 @@ struct memory_traits {
 		return static_cast<std::size_t>( ::sysconf(_SC_PAGESIZE) );
 	}
 
-	static inline void* malloc IO_PREVENT_MACRO (std::size_t count) noexcept
+    /// General propose memory allocation
+	static inline void* malloc IO_PREVENT_MACRO (std::size_t bytes) noexcept
 	{
-		return std::malloc(count);
+	    void *ret = nullptr;
+#ifdef __GNUG__
+        while( __builtin_expect( nullptr == (ret = std::malloc(bytes) ) , false ) )
+#else
+		while( nullptr == (ret = std::malloc(bytes) ) )
+#endif // __GNUG__
+        {
+            std::new_handler handler = std::get_new_handler();
+            if( nullptr == handler )
+                break;
+            handler();
+		}
+        return ret;
 	}
 
-	static inline void* realloc IO_PREVENT_MACRO (void * const base, std::size_t new_size) noexcept
-	{
-	   assert(new_size > 0);
-       return std::realloc(base, new_size);
-	}
-
+	/// Continues memory block allocation of specific type
+	/// with 0-ro initialization
 	template<typename T>
 	static inline T* malloc_array(std::size_t array_size) noexcept
 	{
 		assert(0 != array_size);
-        return static_cast<T*>( std::calloc(array_size, sizeof(T) ) );
+		T *ret = nullptr;
+#ifdef __GNUG__
+        while( __builtin_expect( nullptr == (ret = std::calloc(array_size, sizeof(T) ) ) , false ) )
+#else
+		while( nullptr == (ret = std::calloc(array_size, sizeof(T) ) ) )
+ #endif // __GNUG__
+        {
+            std::new_handler handler = std::get_new_handler();
+            if( nullptr == handler )
+                break;
+            handler();
+		}
+        return static_cast<T*>( ret );
 	}
 
+	/// General propose memory block release
+	/// WARN! do not use for memory allocated by calloc_temporary
 	static inline void free IO_PREVENT_MACRO (void * const ptr) noexcept
 	{
+		// replace this one to use jemalloc/tcmalloc etc
 		std::free(ptr);
+	}
+
+	/// Memory block re-allocation
+	static inline void* realloc IO_PREVENT_MACRO (void * const base, std::size_t new_size) noexcept
+	{
+	   assert(new_size > 0);
+		// replace this one to use jemalloc/tcmalloc etc
+       return std::realloc(base, new_size);
+	}
+
+
+	/// General propose memory block release
+	/// WARN! do not use for memory allocated by calloc_temporary
+	static inline void free IO_PREVENT_MACRO (void * const ptr) noexcept
+	{
+		// replace this one to use jemalloc/tcmalloc etc
+		std::free(ptr);
+	}
+
+	/// Memory block re-allocation
+	static inline void* realloc IO_PREVENT_MACRO (void * const base, std::size_t new_size) noexcept
+	{
+	   assert(new_size > 0);
+		// replace this one to use jemalloc/tcmalloc etc
+       return std::realloc(base, new_size);
 	}
 
 	template<typename T>
@@ -72,7 +121,7 @@ struct memory_traits {
 	template<typename T>
 	static inline T* calloc_temporary(std::size_t count) noexcept
 	{
-		return static_cast<T*>( std::calloc(count,sizeof(T)) );
+		return malloc_array<T>(count);
 	}
 
 	template<typename T>
@@ -95,6 +144,8 @@ public:
 	typedef T&  reference;
 	typedef const T& const_reference;
 	typedef T value_type;
+
+	typedef std::true_type propagate_on_container_move_assignment;
 
 	template<typename T1>
 	struct rebind {

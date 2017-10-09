@@ -28,7 +28,7 @@ namespace io {
 
 namespace {
 
-void ios_check_error_code(const char* msg, std::error_code const &ec )
+inline void ios_check_error_code(const char* msg, std::error_code const &ec )
 {
 	if(!ec)
 		return;

@@ -4,6 +4,7 @@
 #include <assert.h>
 #include <memory>
 #include <new>
+#include <type_traits>
 #include <utility>
 
 namespace io {
@@ -26,14 +27,11 @@ public:
 
 } // namesapace
 
+
 template<typename T, class __memory_traits>
 class heap_allocator_base {
 private:
-	template<typename _Tp>
-	static constexpr inline _Tp* address_of(_Tp& __r) noexcept
-	{
-		return std::addressof( __r );
-	}
+
 	template< typename _T>
 	static constexpr _T* uncast_void(void * const ptr) {
 #ifdef __GNUC__
@@ -42,7 +40,10 @@ private:
 		return static_cast<_T*>( ptr );
 #endif
 	}
+
 public:
+
+
 	typedef std::size_t size_type;
 	typedef ptrdiff_t difference_type;
 	typedef T* pointer;
@@ -56,38 +57,27 @@ public:
 
 	constexpr pointer address(reference __x) const noexcept
 	{
-		return address_of<pointer>(__x);
+		return std::addressof(__x);
 	}
 
 	constexpr const_pointer address(const_reference __x) const noexcept
 	{
-		return address_of<const_pointer>(__x);
+		return std::addressof(__x);
 	}
 
 	pointer allocate(size_type __n, const void* = 0) noexcept(no_exept_mode::is_nothrow)
 	{
 		assert( 0 != __n );
-		void *result;
-		const size_t bytes_size = sizeof(value_type) * __n;
-		result = __memory_traits::malloc(bytes_size);
-		if(nullptr != result)
-			return uncast_void<value_type>(result);
-#ifdef __GNUC__
-		while ( __builtin_expect( (result = __memory_traits::malloc(bytes_size) ) == nullptr, false) )
-#else
-		while( nullptr == (result = __memory_traits::malloc(bytes_size) ) )
-#endif // __GNUC__
-		{
-			std::new_handler handler = std::get_new_handler();
-			if (nullptr == handler)
-#ifdef IO_NO_EXCEPTIONS
-				return nullptr;
-#else
-				throw std::bad_alloc();
+		if(__n > 1) {
+            void *ret = __memory_traits::malloc( __n  * sizeof(value_type) );
+#ifndef IO_NO_EXCEPTIONS
+            if(nullptr == ret)
+                throw std::bad_array_new_length();
 #endif // IO_NO_EXCEPTIONS
-			handler();
+            return uncast_void<value_type>( ret );
+		} else {
+            return uncast_void<value_type>( __memory_traits::malloc( sizeof(value_type) ) );
 		}
-		return uncast_void<value_type>(result);
 	}
 
 	// __p is not permitted to be a null pointer.
@@ -97,7 +87,6 @@ public:
 		__memory_traits::free(__p);
 	}
 
-	// addon to std::allocator make this noexcept(true) if constructor is also noexcept
 	template<typename _Up, typename... _Args>
 	__forceinline void construct(_Up* __p, _Args&&... __args) noexcept( noexcept( _Up(std::forward<_Args>(__args)...) ) )
 	{

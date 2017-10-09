@@ -41,36 +41,39 @@ public:
 #ifdef IO_SHARED_LIB
 
 #ifdef IO_NO_EXCEPTIONS
+
 	void* operator new(std::size_t size) noexcept
-#else
-	void* operator new(std::size_t size)
-#endif // IO_NO_EXCEPTIONS
 	{
-		void *result;
-		result = memory_traits::malloc( size );
-		if(NULL != result)
-			return result;
-#ifdef __GNUC__
-		while ( __builtin_expect( (result = std::malloc(size) ) == nullptr, false) ) {
+	    return memory_traits::malloc(size);
+	}
+
 #else
-		while( nullptr == ( result = __memory_traits::malloc(size) ) ) {
-#endif // __GNUC__
-			std::new_handler handler = std::get_new_handler();
-			if (nullptr == handler)
-#ifdef IO_NO_EXCEPTIONS
-				return nullptr;
-#else
-				throw std::bad_alloc();
+
+	void* operator new(std::size_t size)
+	{
+		void *ret = nullptr;
+#       ifdef __GNUG__
+            if(  __builtin_expect( nullptr == ( ret = memory_traits::malloc(size) ) , false) )
+#       else
+            if( nullptr == ( ret = memory_traits::malloc(size) ) )
+#       endif // __GNUG__
+            throw std::bad_alloc();
+		return ret;
+	}
+
 #endif // IO_NO_EXCEPTIONS
-			handler();
-		}
-		return result;
+
+	void* operator new(std::size_t size, const std::nothrow_t&) noexcept
+	{
+		return memory_traits::malloc(size);
 	}
 
 	void operator delete(void* const ptr) noexcept {
 		assert(nullptr != ptr);
 		memory_traits::free(ptr);
 	}
+
+
 #endif // IO_SHARED_LIB
 
 private:

@@ -37,8 +37,19 @@ struct memory_traits {
 	/// General propose memory allocation
 	static inline void* malloc IO_PREVENT_MACRO (std::size_t bytes) noexcept
 	{
-		// replace this one to use jemalloc/tcmalloc etc
-		return std::malloc(bytes);
+	    void *ret = nullptr;
+#ifdef __GNUG__
+        while( __builtin_expect( nullptr == (ret = std::malloc(bytes) ) , false ) )
+#else
+		while( nullptr == (ret = std::malloc(bytes) ) )
+#endif // __GNUG__
+        {
+            std::new_handler handler = std::get_new_handler();
+            if( nullptr == handler )
+                break;
+            handler();
+		}
+        return ret;
 	}
 
 	/// Continues memory block allocation of specific type
@@ -47,8 +58,19 @@ struct memory_traits {
 	static inline T* malloc_array(std::size_t array_size) noexcept
 	{
 		assert(0 != array_size);
-		// replace this one to use jemalloc/tcmalloc etc
-        return static_cast<T*>( std::calloc(array_size, sizeof(T) ) );
+		void *ret = nullptr;
+#ifdef __GNUG__
+        while( __builtin_expect( nullptr == (ret = std::calloc(array_size, sizeof(T) ) ) , false ) )
+#else
+		while( nullptr == (ret = std::calloc(array_size, sizeof(T) ) ) )
+ #endif // __GNUG__
+        {
+            std::new_handler handler = std::get_new_handler();
+            if( nullptr == handler )
+                break;
+            handler();
+		}
+        return static_cast<T*>( ret );
 	}
 
 	/// General propose memory block release
@@ -92,7 +114,19 @@ struct memory_traits {
 	template<typename T>
 	static inline T* calloc_temporary(std::size_t count) noexcept
 	{
-		return static_cast<T*>( win::private_heap_alloc( sizeof(T) * count) );
+		void *ret = nullptr;
+#ifdef __GNUG__
+        while( __builtin_expect( nullptr == (ret = static_cast<T*>( win::private_heap_alloc( sizeof(T) * count) ) ), false ) )
+#else
+		while( nullptr == (ret = static_cast<T*>( win::private_heap_alloc( sizeof(T) * count) ) ) )
+#endif // __GNUG__
+        {
+            std::new_handler handler = std::get_new_handler();
+            if( nullptr == handler )
+                break;
+            handler();
+		}
+        return static_cast<T*>( ret );
 	}
 
 	/// Temporary propose memory block allocated with calloc_temporary only
@@ -117,6 +151,8 @@ public:
 	typedef T&  reference;
 	typedef const T& const_reference;
 	typedef T value_type;
+
+    typedef std::true_type propagate_on_container_move_assignment;
 
 	template<typename T1>
 	struct rebind {

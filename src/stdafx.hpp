@@ -11,19 +11,19 @@
 #ifndef __STDAFX_HPP_INCLUDED__
 #define __STDAFX_HPP_INCLUDED__
 
+#include "config.hpp"
+
 #include <ostream>
 #include <system_error>
 
-#include "config.hpp"
 #include "errorcheck.hpp"
-#include "threading.hpp"
-
 #include "buffer.hpp"
 #include "channels.hpp"
-
 #include "charsets.hpp"
 #include "charsetcvt.hpp"
 #include "conststring.hpp"
+#include "strings.hpp"
 #include "text.hpp"
+#include "threading.hpp"
 
 #endif // __STDAFX_HPP_INCLUDED__

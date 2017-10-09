@@ -47,27 +47,17 @@ const cached_string string_pool::get(const char* s, std::size_t count) noexcept
 {
 	if(nullptr == s || '\0' == *s || count == 0)
 		return cached_string();
-	uint32_t h = io::hash_bytes(s,count);
-	pool_type::const_iterator i = pool_.find(h);
-	if(i == pool_.end()) {
-#ifndef IO_NO_EXCEPTIONS
-		try {
-#endif // IO_NO_EXCEPTIONS
-			i = pool_.emplace( h, cached_string(s,count) ).first;
-#ifndef IO_NO_EXCEPTIONS
-		} catch (std::exception& exc) {
-#else
-		if(i == pool_.end()) {
-#endif // IO_NO_EXCEPTIONS
-			return cached_string();
-		}
-		return i->second;
+	const std::size_t str_hash = io::hash_bytes(s,count);
+	pool_type::const_iterator i = pool_.find( str_hash );
+	if( i == pool_.end() ) {
+        cached_string new_str(s, count);
+        if( new_str.empty() )
+            return cached_string(); // an error
+        auto ret = pool_.emplace( str_hash, std::move( new_str ) );
+        return ret.second ? ret.first->second : new_str;
 	} else {
-		// hash miss (collision) check
-		if( !i->second.eq(s,count) ) {
-			return cached_string(s,count);
-		}
-		return i->second;
+	    // hash miss (collision) check
+		return i->second.eq(s, count) ? i->second : cached_string(s, count);
 	}
 	return cached_string();
 }

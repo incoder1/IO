@@ -46,12 +46,12 @@ void asynch_channel::write(byte_buffer&& buff, std::size_t pos) const noexcept
 
 bool asynch_channel::cancel_pending() const noexcept
 {
-	return TRUE == ::CancelIo( hch_.hnd() );
+	return TRUE == ::CancelIo( hch_ );
 }
 
 bool asynch_channel::cancel_all() const noexcept
 {
-	return TRUE == ::CancelIoEx( hch_.hnd(), nullptr);
+	return TRUE == ::CancelIoEx( hch_, nullptr);
 }
 
 

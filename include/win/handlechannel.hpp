@@ -100,7 +100,7 @@ public:
 		return li.QuadPart;
 	}
 
-	inline ::HANDLE hnd() const noexcept
+	operator HANDLE () const noexcept
 	{
 		return hnd_;
 	}

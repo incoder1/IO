@@ -21,7 +21,7 @@ synch_file_channel::synch_file_channel(::HANDLE hnd) noexcept:
 
 synch_file_channel::~synch_file_channel() noexcept
 {
-	::FlushFileBuffers( hch_.hnd() );
+	::FlushFileBuffers( hch_ );
 }
 
 std::size_t synch_file_channel::read(std::error_code& err,uint8_t* const buff, std::size_t bytes) const noexcept
@@ -89,6 +89,8 @@ file::file(const wchar_t* name) noexcept:
 }
 
 static inline win::synch_file_channel* new_channel(std::error_code& ec, ::HANDLE hnd) noexcept {
+    return nobadalloc<win::synch_file_channel>::construct( ec, hnd);
+/*
 win::synch_file_channel *result = nullptr;
 #ifndef IO_NO_EXCEPTIONS
 	try {
@@ -103,6 +105,7 @@ win::synch_file_channel *result = nullptr;
 		return result;
 	}
 	return result;
+*/
 }
 
 static inline win::synch_file_channel* create_file_channel(std::error_code& err, ::HANDLE hnd, write_open_mode mode) {
