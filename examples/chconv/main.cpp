@@ -31,7 +31,7 @@ int main()
 
 	s_code_cnvtr cvn = code_cnvtr::open(ec,
 							code_pages::UTF_16LE,
-							code_pages::UTF_8,
+							code_pages::for_name("UTF-8").second,
 							cnvrt_control::failure_on_failing_chars
 						);
 	check_error_code(ec);

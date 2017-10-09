@@ -116,6 +116,8 @@ private:
 /// Holds constants on supported character sets
 /// And provides an OS/Locale retriving charsets functions
 class IO_PUBLIC_SYMBOL code_pages {
+    code_pages(const code_pages&) = delete;
+    code_pages& operator=(code_pages&) = delete;
 // to avoid externs, enums etc
 public:
 	/** unicode representations **/
@@ -158,6 +160,10 @@ public:
 	DECLARE_CHARSET(CP_1256)
 	DECLARE_CHARSET(CP_1257)
 	DECLARE_CHARSET(CP_1258)
+
+	/// Returns a character set for a name
+    static std::pair<bool, charset> for_name(const char* name) noexcept;
+
 	/// Returns character set wich is default for current operating system API
 	/// I.e. UTF-16LE for Winfows or UTF-8 for Linux
 	/// \return operating system API default charset
@@ -166,6 +172,9 @@ public:
 	/// i.e. current user locale charset
 	/// \return current locale charset
 	static const charset& platform_current() noexcept;
+private:
+    constexpr code_pages() noexcept
+    {}
 };
 
 #undef DECLARE_CHARSET

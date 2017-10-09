@@ -11,7 +11,9 @@
 #include "stdafx.hpp"
 #include "files.hpp"
 
-namespace io { namespace win {
+namespace io {
+
+namespace win {
 
 // synch_file_channel
 synch_file_channel::synch_file_channel(::HANDLE hnd) noexcept:
@@ -90,22 +92,6 @@ file::file(const wchar_t* name) noexcept:
 
 static inline win::synch_file_channel* new_channel(std::error_code& ec, ::HANDLE hnd) noexcept {
     return nobadalloc<win::synch_file_channel>::construct( ec, hnd);
-/*
-win::synch_file_channel *result = nullptr;
-#ifndef IO_NO_EXCEPTIONS
-	try {
-#endif // IO_NO_EXCEPTIONS
-	result = new win::synch_file_channel(hnd);
-#ifndef IO_NO_EXCEPTIONS
-	} catch (std::exception& exc) {
-#else
-	if(nullptr == result) {
-#endif // IO_NO_EXCEPTIONS
-		ec = std::make_error_code(std::errc::not_enough_memory);
-		return result;
-	}
-	return result;
-*/
 }
 
 static inline win::synch_file_channel* create_file_channel(std::error_code& err, ::HANDLE hnd, write_open_mode mode) {
