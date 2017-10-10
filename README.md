@@ -1,10 +1,10 @@
-#IO
+# IO
 
 IO is modern C++ (C++ 11 +) library for general propose input/output and XML processing
 
-LIBRARY FUTURES (Sub libraries)
+## LIBRARY FUTURES (Sub libraries)
 
-GENEGIC INPUT/OUTPUT interface.
+### GENEGIC INPUT/OUTPUT interface.
 
 Generic input/output interface for low-level binary synchronous and asynchronous input/output operations,
 implemented on top of system calls and without Libc FILE or lib std C++ file buffer. 
@@ -18,27 +18,28 @@ API is always the same.
 Currently implemented channels for Windows and UNIX files and standard streams (terminal/console).
 Network and pipes support in progress.
 
-C++ IOSTREAMS COMPATIBILITY
+### C++ IOSTREAMS COMPATIBILITY
 
 C++ iostreams compatibility library – provides input and output streams which works on top of channel, so you don’t need 
 to create your own streams & stream buffers depending on files/shared memory/named and unnamed pipes/network sockets each time.
 
-CHARACTER SET LIBRARY
+### CHARACTER SET LIBRARY
 
 Character set library for detecting and converting between characters sets (code pages) without depending on current C/C++ 
 locale. Library designed to be useful for applications, which should work in worldwide like a web server or web browser 
 for example. Conversion between character sets based on iconv library standardized by POSIX. Microsoft Windows version 
 uses port of GNU iconv. There are minimal port of Mozilla universal character detector, which can detect latin1 
 or UNICODE representation from a sort of raw bytes. As whell as byte order mark ( BOM ) utility classes bundled.
+ 
 
-CONSOLE
+### CONSOLE
 
 Console mode input/output and color manipulation library. Allows input and output into system console/terminal without 
 back effect of C/C++ locale library, and in full UNICODE mode. Unix and Windows versions supports full UNICODE console
 including UTF-8 and system WCHAR mode. Library have possibility to define console colors, in respect to portability only 
 16 standard colors used so that it should work with most terminals.
 
-STRINGS
+### STRINGS
 
 Constant string class and string poll support.
 Io::const_string a constant string which work like a intrusive smart pointer, e.g. not copy background character array each 
@@ -49,12 +50,12 @@ io::string_pool and io::cached_string is a pool to reduce memory usage for binar
 hash function. For example GNU lib std++ uses MurMur2 hash function, which is legacy now days. IO provides MurMur3 hash function
 for 32 bit CPUs and Google CityHash function for 64 bit CPUS.
 
-StAX XML PARSER
+### StAX XML PARSER
 
 Streaming API for XML parsing – a non-validating (except for XML syntax) parser for XML document with StAX API. 
 Exceptions and RTTI off mode supported. Errors including out of memory can be handled by error code.
 
-XML MARSHALLER
+### XML MARSHALLER
 
 A reflection like XML marshaller (XML serialize) – a library for serialize Plain Old CLR Object (POCO)
 into XML of specific format. You can save a value as XML tag or like a XML tag attribute. 
@@ -64,7 +65,7 @@ std::tuple.  When you have RTTI on, you also able to generate XSD from plain old
 XML un-marshalling (deserialization) implementation is in progress.
 Serialization is based on std::ostream, so it is not exeption safe, e.g. you need some custom unexpected/terminate handlers.
 
-DEPENDENCIES 
+### DEPENDENCIES 
 
 You should have C++ 11 compatible compiler with STD C++ library. Optionally you can use Boost library in order to have 
 fully compatible boost::intrusive_ptr.
@@ -76,61 +77,66 @@ Lib iconv with support of the following character sets (code pages):
 	
 	GNU iconv and iconv from GLIB C tested as fully compatible. 
 
-SUPPORTED OPERATING SYSTEMS AND COMPILERS
+## SUPPORTED OPERATING SYSTEMS AND COMPILERS
 
 Generally library should work with Micosoft Windows Vista + and any POSIX compliant (Unix like GNU/Linux FreeBSD or Mac OS X) 
-operating system with any C++ 11 compatible (or partial compatible) compiler with support of:
+operating system with any C++ 11 compatible (or partial compatible) compiler. C++ standard library must provide:
 
-	rvalue references and move semantic
-	noexept
-	variadic template arguments
-	C++ standard library must provide 
-		<functional>
-		<system_error>
-		<tuple>
-		<type_traits>
-		<utility>
+	* <functional>
+	* <system_error>
+	* <tuple>
+	* <type_traits>
+	* <utility>
 	
-TESTED COMPILERS AND PLATFIRMS
+### TESTED COMPILERS AND PLATFORMS
 
-Microsoft Windows (Windows 7)
-		GCC/G++ 5.1 -  MinGW64 (TDM) 
-		(MS Visual C++ 15 should work [there is specific code] but not yet tested.
+#### Microsoft Windows 
+			- Windows 7
+			- Windows 10
+		GCC/G++ 5.1 -  MinGW64 (TDM build)
+		GCC/G++ 7.2.0 MinGW64 (MSYS2 build)
+	
+(MS Visual C++ 15 should work [there is specific code] but not yet tested.
 		
-GNU/Lunux (Fedora 26)
+#### GNU/Lunux (Fedora 26)
 		GCC/GC++ 7.1 
 
-BUILDING
+## BUILDING
 
-Building currently build system is in progress. However, to build MinGW32/64 version of static or runtime library you can use  
+Currently build system is in progress. However, to build MinGW32/64 version of static or runtime library you can use  
 MinGW64 TDM and Msys or Msys2 (make sure configured properly to use your compiler).  
 This builds have no configure state, i.e. you can build release only static library or DLL with exceptions and RTTI off. 
 Cmake and boost JAM builds support is in progress.
 
 In any case, you can use open source Code::Blocks IDE to build binaries. IDE project files bundled. 
 
-To build static release library use:
+### To build static release library use:
 		
-		make –f   Makefile-mingw64-static
+>		make –f   Makefile-mingw64-static
 		
 		build result available in lib/release-win-gcc-static-x64 subfolder
 		
-To build DLL release library use:
+### To build DLL release library use:
 
-		make –f Makefile-mingw64-dll
+>	 	make –f Makefile-mingw64-dll
 		
 		build result available in lib/release-win-gcc-dll-x64 subfolder
 
-EXAMPLE CODE
+### To build UNIX release shared library use:
+
+>	 	make –f Makefile-unix-shared
+
+		build result available in lib/release-unix-gcc-so-x86_64
+
+### EXAMPLE CODE
 
 Example applications located in examples sub-folder
 	
-	chconv – character set (code pages) converting example 
-	iostreams – C++ input streams and console compatibility example
-	stringpool – string pool example
-	text – universal character set detector example
-	xml_marshalling – compile time reflection plain C object XML marshalling and XSD generation example
-	xmlparse – StAX XML parser example 
+	- chconv – character set (code pages) converting example 
+	- iostreams – C++ input streams and console compatibility example
+	- stringpool – string pool example
+	- text – universal character set detector example
+	- xml_marshalling – compile time reflection plain C object XML marshalling and XSD generation example
+	- xmlparse – StAX XML parser example 
 
-ANY HELP IS WELCOME
 
