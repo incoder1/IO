@@ -1,31 +1,35 @@
 cmake_minimum_required(VERSION 3.5)
 
-project(libio)
+project(io)
 
 include_directories(include)
+include_directories(include/net)
 
-file(GLOB_RECURSE libio_SOURCES "src/*.cpp")
+file(GLOB PROJECT_SOURCE_DIR src)
+file(GLOB COMMON_SRC ${PROJECT_SOURCE_DIR}/*.cpp)
+file(GLOB COMMON_SRC ${PROJECT_SOURCE_DIR}/net/*.cpp)
 
-if(WIN32)
-	file(GLOB_RECURSE libio_platform_SOURCES "src/win/*.cpp")
-else()
-	file(GLOB_RECURSE libio_platform_SOURCES "src/posix/*.cpp")
+if( WIN32 OR MSYS OR CYGWIN)
+	message( STATUS "Building IO for Microsoft Windows")
+	include_directories(include/win)
+	file(GLOB PLATFORM_SRC ${PROJECT_SOURCE_DIR}/win/*.cpp)
 endif()
 
-find_package(Boost)
+if( UNIX AND NOT WIN32 AND NOT MSYS AND NOT CYGWIN)
+	message( STATUS "Building IO for UNIX/POSIX ")
+	include_directories(include/posix)
+	file(GLOB PLATFORM_SRC ${PROJECT_SOURCE_DIR}/posix/*.cpp)
+endif()
+
+find_package(Boost 1.23.0)
 if(Boost_FOUND)
 	include_directories(${Boost_INCLUDE_DIRS})
 	add_definitions(-DIO_HAS_BOOST)
 endif()
 
-
-
-set(CMAKE_BUILD_TYPE release)
-set(CMAKE_BUILD_TYPE debug)
-
-add_library(libio ${libio_SOURCES} ${libio_platform_SOURCES} )
-
 set(DESTDIR lib)
+
+add_library(io ${COMMON_SRC} ${PLATFORM_SRC} )
 
 if(CMAKE_CXX_CREATE_SHARED_LIBRARY)
   add_definitions(-DIO_SHARED_LIB -DIO_BUILD)
@@ -34,25 +38,30 @@ endif()
 
 if(CMAKE_COMPILER_IS_GNUCXX)
 	if(CMAKE_CXX_CREATE_SHARED_LIBRARY)
-	  set_target_properties(libio PROPERTIES LINKER_LANGUAGE CXX)
+		set_target_properties(io PROPERTIES LINKER_LANGUAGE CXX)
 	else()
-		 set_target_properties(libio PROPERTIES LINKER_LANGUAGE AR)
+		set_target_properties(io PROPERTIES LINKER_LANGUAGE AR)
 	endif()
 	include_directories(src) # for precompiled headers
-	if(MINGW)
+	if(MSYS OR MINGW)
 		include_directories(deps/include)
 		link_directories(deps/lib)
 		add_library(iconv.dll SHARED IMPORTED)
-		# set(CMAKE_SHARED_LINKER_FLAGS_RELEASE "${CMAKE_SHARED_LINKER_FLAGS_RELEASE} -shared -Wl,--dll -Wl,--output-def=$(TARGET)/libio.def -Wl,--out-implib=$(CMAKE+)/libio.a")
+		add_library(tls-15.dll SHARED IMPORTED)
+		add_library(ssl-43.dll SHARED IMPORTED)
+		add_library(crypto-41.dll SHARED IMPORTED)
+		add_library(Ws2_32 SHARED IMPORTED)
 	else()
 		set(CMAKE_SHARED_LINKER_FLAGS "${CMAKE_SHARED_LINKER_FLAGS} -pthread")
+		find_package(LibreSSL C REQUIRED)
 	endif()
 	
-	set(MMX_AND_SSE_FLAGS "-mmmx -msse -msse2 -msse3 -mssse3 -msse4" INTERNAL)
-	set(RELEASE_OPTIMIZE_FLAGS "-mtune=generic -O3 -fno-exceptions -fno-rtti -minline-stringops-dynamically -fdeclone-ctor-dtor -fdevirtualize-at-ltrans -mmovbe" INTERNAL)
+	set(MMX_AND_SSE_FLAGS "-mmmx -msse -msse2 -mssse3 -msse3 -msse4 -mavx" INTERNAL)
+	set(RELEASE_OPTIMIZE_FLAGS "-mtune=generic -s -O3 -fno-exceptions -fno-rtti -minline-stringops-dynamically -fdeclone-ctor-dtor -fdevirtualize-at-ltrans -mmovbe" INTERNAL)
 	
-	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=gnu++14" )
+	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=gnu++14 " )
 	set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS} -DNDEBUG ${RELEASE_OPTIMIZE_FLAGS} ${MMX_AND_SSE_FLAGS}" )
 	set(CMAKE_SHARED_LINKER_FLAGS_RELEASE "${CMAKE_SHARED_LINKER_FLAGS} -O3 -s")
 	set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS} -g -Og" )
 endif()
+

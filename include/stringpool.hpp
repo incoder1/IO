@@ -11,6 +11,11 @@
 #define __IO_STRINGPOOL_HPP_INCLUDED__
 
 #include "config.hpp"
+
+#ifdef HAS_PRAGMA_ONCE
+#pragma once
+#endif // HAS_PRAGMA_ONCE
+
 #include "text.hpp"
 
 #include <atomic>
@@ -20,10 +25,6 @@
 
 #include "hashing.hpp"
 #include "object.hpp"
-
-#ifdef HAS_PRAGMA_ONCE
-#pragma once
-#endif // HAS_PRAGMA_ONCE
 
 namespace io {
 

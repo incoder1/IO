@@ -31,19 +31,14 @@ public:
 			ret = _instance.load(std::memory_order_acquire);
 			if(nullptr == ret) {
 				::tls_init();
-				std::shared_ptr<tls_config> cnf = configure();
-				if(!cnf) {
+				std::shared_ptr<::tls_config> cnf = configure();
+				if(!cnf)
 					ec = std::make_error_code( std::errc::inappropriate_io_control_operation );
-					_instance.store(nullptr, std::memory_order_release);
-					return nullptr;
-				}
-				void *p = memory_traits::malloc( sizeof(encryption) );
-				if(nullptr == p) {
-					_instance.store(nullptr, std::memory_order_release);
-					ec = std::make_error_code(std::errc::not_enough_memory);
-					return nullptr;
-				}
-				ret = new (p) encryption( std::move(cnf) );
+				else
+					ret  =  new (std::nothrow) encryption( std::move(cnf) );
+					if(nullptr == ret)
+						ec = std::make_error_code(std::errc::not_enough_memory);
+				_instance.store(ret, std::memory_order_release);
 			}
 		}
 		return ret;
@@ -123,7 +118,7 @@ s_read_write_channel channel::tcp_tls_channel(std::error_code& ec, const char* h
 		return s_read_write_channel();
 	}
 	channel *ret = nobadalloc<channel>::construct(ec, std::move(cntx), std::move(pure) );
-	return nullptr != ret ? s_read_write_channel(ret) : s_read_write_channel();
+	return !ec ? s_read_write_channel(ret) : s_read_write_channel();
 }
 
 #undef __check_ec
