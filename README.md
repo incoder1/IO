@@ -16,7 +16,16 @@ and unnamed pipes, network sockets etc. Channels API user do not care where data
 API is always the same.
  
 Currently implemented channels for Windows and UNIX files and standard streams (terminal/console).
-Network and pipes support in progress.
+
+### Network INPUT/OUTPUT
+
+There are Unix Domain sockets TCP/IP channels. With TCP, UDP and ICMP support. For TCP and UDP there is a TLS and DTLS support 
+over the gnutls library. IP V4 and V6 both can be used with the same API (unlinke asio).
+There is a minumal http client library, can be used for obtaing external XML XSD schemas or DTD. If you need somethign more powerfull
+you can use Windows API HTTP components or libcurl (second is better).
+
+Assynchonius IO operations is not yet done, but it you can easy implement requared channels on top of [boost] asio (non boost version is better choose)
+in a few lines of code.
 
 ### C++ IOSTREAMS COMPATIBILITY
 
@@ -75,7 +84,8 @@ Lib iconv with support of the following character sets (code pages):
 	One byte code pages: US ASCII, ISO-8859-1…ISO-8859-16, KOI8-R, KOI8-U, KOI8-RU;
 	Windows one byte code pages: CP-1250 … CP-1258.
 	
-	GNU iconv and iconv from GLIB C tested as fully compatible. 
+	GNU iconv and iconv from GLIB C tested as fully compatible
+	gnutls - http://www.gnutls.org/ for SLL/TLS secured network connections
 
 ## SUPPORTED OPERATING SYSTEMS AND COMPILERS
 
@@ -102,27 +112,49 @@ operating system with any C++ 11 compatible (or partial compatible) compiler. C+
 		GCC/GC++ 7.1 
 
 ## BUILDING
+ 
 
-Currently build system is in progress. However, to build MinGW32/64 version of static or runtime library you can use  
-MinGW64 TDM and Msys or Msys2 (make sure configured properly to use your compiler).  
-This builds have no configure state, i.e. you can build release only static library or DLL with exceptions and RTTI off. 
-Cmake and boost JAM builds support is in progress.
+### Building with Code::Blocks IDE
 
-In any case, you can use open source Code::Blocks IDE to build binaries. IDE project files bundled. 
+Code::Blocks IDE project files bundled. There are predefined configurations for GCC. 
 
-### To build static release library use:
+
+For Windows GCC you can use MSYS2 MinGW64. Otherwise (for example TDM GCC etc. ) you need to 
+find/build 
+	- libiconv
+	- gnutls  with all dependencies 
+	
+### Building with CMake
+To build with CMake build tool to can use following command
+
+> cmake . -DCMAKE_BUILD_TYPE=<Release|Debug> [-DBUILD_SHARED_LIBS=ON} [-DNO_EXCEPTIONS=ON] [-DNO_RTTI=ON}
+
+Result is stored in  target/lib sub-folder
+
+You can build shared or static library release or debug version, optionally you can on or off exceptions and rtti.
+
+### Building with GNU make
+
+This make files have no configuration state, i.e. all compile options are predefined. Only release version with exceptions 
+and RTTI off provided.
+
+#### Windows with GNU make
+
+In case of Windows you must use MSYS2. 
+
+To build static release library use:
 		
 >		make –f   Makefile-mingw64-static
 		
 		build result available in lib/release-win-gcc-static-x64 subfolder
 		
-### To build DLL release library use:
+To build DLL release library use:
 
 >	 	make –f Makefile-mingw64-dll
 		
 		build result available in lib/release-win-gcc-dll-x64 subfolder
 
-### To build UNIX release shared library use:
+#### Unix with GNU make
 
 >	 	make –f Makefile-unix-shared
 
@@ -138,5 +170,4 @@ Example applications located in examples sub-folder
 	- text – universal character set detector example
 	- xml_marshalling – compile time reflection plain C object XML marshalling and XSD generation example
 	- xmlparse – StAX XML parser example 
-
 

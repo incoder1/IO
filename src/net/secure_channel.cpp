@@ -12,152 +12,98 @@
 #include "secure_channel.hpp"
 #include "threading.hpp"
 
+#ifdef _WIN32
+#   include <Wincrypt.h>
+#endif // _WIN32
+
+
 namespace io {
 
 namespace net {
 
-// FIXME: Implementation should be changes to library with better license
-
 namespace secure {
 
-class encryption {
-public:
+std::atomic<service*> service::_instance(nullptr);
+critical_section service::_mtx;
 
-	static const encryption* get(std::error_code& ec) noexcept
-	{
-		encryption* ret = _instance.load(std::memory_order_relaxed);
-		if(nullptr == ret) {
-			lock_guard lock(_init_cs);
-			ret = _instance.load(std::memory_order_acquire);
-			if(nullptr == ret) {
-				::tls_init();
-				std::shared_ptr<::tls_config> cnf = configure();
-				if(!cnf)
-					ec = std::make_error_code( std::errc::inappropriate_io_control_operation );
-				else
-					ret  =  new (std::nothrow) encryption( std::move(cnf) );
-					if(nullptr == ret)
-						ec = std::make_error_code(std::errc::not_enough_memory);
-				_instance.store(ret, std::memory_order_release);
-			}
-		}
-		return ret;
-	}
-
-	std::shared_ptr<::tls> new_context(bool allow_insecure) const noexcept
-	{
-		::tls* ret = ::tls_client();
-		if(nullptr != ret) {
-			if( allow_insecure ) {
-				::tls_config_insecure_noverifycert(config_.get());
-				::tls_config_insecure_noverifyname(config_.get());
-			} else {
-				::tls_config_verify(config_.get());
-			}
-			::tls_configure(ret, config_.get() );
-			return std::shared_ptr<::tls>(ret, &encryption::do_release_context);
-		}
-		return std::shared_ptr<::tls>();
-	}
-
-private:
-	static void do_release_context(void * const px) noexcept
-	{
-		::tls_free( static_cast<::tls*>(px) );
-	}
-	static void do_release_config(void * const px) noexcept
-	{
-		::tls_config_free(static_cast<::tls_config*>(px) );
-	}
-	static std::shared_ptr<::tls_config> configure() noexcept
-	{
-		::tls_config *cnf = ::tls_config_new();
-		if(nullptr == cnf)
-			return std::shared_ptr<tls_config>();
-		return std::shared_ptr<::tls_config>(cnf, &encryption::do_release_config);
-	}
-	encryption(std::shared_ptr<tls_config>&& config) noexcept:
-		config_(config)
-	{
-		::tls_config_set_protocols(config_.get(), TLS_PROTOCOL_TLSv1);
-		::tls_config_set_ca_path(config_.get(), "c:\\Program Files (x86)\\Git\\ssl\\cert");
-	}
-private:
-	std::shared_ptr<::tls_config> config_;
-	static critical_section _init_cs;
-	static std::atomic<encryption*> _instance;
-};
-
-critical_section encryption::_init_cs;
-std::atomic<encryption*> encryption::_instance(nullptr);
-
-// channel
-#define __check_ec( __ec ) \
-if( (__ec) ) return s_read_write_channel();
-
-s_read_write_channel channel::tcp_tls_channel(std::error_code& ec, const char* host, uint16_t port, bool allow_insecure) noexcept
+void service::destroy_gnu_tls_atexit() noexcept
 {
-	const socket_factory* sf = socket_factory::instance(ec);
-	__check_ec(ec);
-	s_socket sock = sf->client_tcp_socket(ec, host, port);
-	__check_ec(ec);
-	s_read_write_channel pure = sock->connect(ec);
-	__check_ec(ec);
-	const encryption* enc = encryption::get(ec);
-	__check_ec( ec );
-	std::shared_ptr<::tls> cntx = enc->new_context(allow_insecure);
-	if(!cntx) {
-		ec = std::make_error_code( std::errc::inappropriate_io_control_operation );
-		return s_read_write_channel();
-	}
-	net::synch_socket_channel *sch = reinterpret_cast<net::synch_socket_channel*>( pure.get() );
-	int err = ::tls_connect_socket(cntx.get(), static_cast<int>(sch->socket_), host );
-	if(err < 0) {
-		std::printf( ::tls_error(cntx.get()) );
-		ec = std::make_error_code( std::errc::inappropriate_io_control_operation );
-		return s_read_write_channel();
-	}
-	channel *ret = nobadalloc<channel>::construct(ec, std::move(cntx), std::move(pure) );
-	return !ec ? s_read_write_channel(ret) : s_read_write_channel();
+    service *srv = _instance.load(std::memory_order_relaxed);
+    if(nullptr != srv) {
+        ::gnutls_global_deinit();
+        delete srv;
+    }
 }
 
-#undef __check_ec
-
-channel::channel(std::shared_ptr<::tls>&& cntx, const s_read_write_channel& socket) noexcept:
-	read_write_channel(),
-	tls_context_( std::forward<std::shared_ptr<::tls> >(cntx) ),
-	pure_(socket)
+const service* service::instance(std::error_code& ec) noexcept
 {
+    service *ret = _instance.load(std::memory_order_consume);
+    if(nullptr == ret) {
+        lock_guard lock(_mtx);
+        ret = _instance.load(std::memory_order_consume);
+        if(nullptr == ret) {
+            if( GNUTLS_E_SUCCESS != ::gnutls_global_init() ) {
+                ec = std::make_error_code(std::errc::io_error);
+                return nullptr;
+            }
+            std::atexit( &service::destroy_gnu_tls_atexit );
+            ret = new (std::nothrow) service();
+            if(nullptr == ret)
+                ec = std::make_error_code(std::errc::not_enough_memory);
+            _instance.store(ret, std::memory_order_release);
+        }
+    }
+    return ret;
 }
 
-channel::~channel() noexcept
+service::service() noexcept
 {
-	::tls_close( tls_context_.get() );
+    ::gnutls_certificate_allocate_credentials( &xcred_ );
+    ::gnutls_certificate_set_x509_system_trust( xcred_ );
+
+/*
+#ifdef _WIN32
+    ::HCERTSTORE store = ::CertOpenSystemStoreW( static_cast<HCRYPTPROV_LEGACY>(NULL), L"ROOT");
+    ::PCCERT_CONTEXT context = nullptr;
+    std::error_code ec;
+    byte_buffer buff = byte_buffer::allocate(ec, memory_traits::page_size() );
+     for(;;) {
+        context = ::CertEnumCertificatesInStore(store, context);
+        if(nullptr == context)
+            break;
+        buff.put();
+     }
+     gnutls_datum_t dataum {
+
+     };
+    ::gnutls_certificate_set_x509_trust_mem(xcred_,  , GNUTLS_X509_FMT_DER);
+#endif // _WIN32
+*/
+
 }
 
-std::size_t channel::read(std::error_code& ec,uint8_t* const buff, std::size_t bytes) const noexcept
+service::~service() noexcept
 {
-	ssize_t ret = ::tls_read( tls_context_.get(), buff, bytes );
-	if(ret < 0) {
-			// fix this
-		std::printf( ::tls_error(tls_context_.get()) );
-		ec = std::make_error_code( std::errc::broken_pipe );
-		return 0;
-	}
-	return static_cast<std::size_t>( ret );
+    ::gnutls_certificate_free_credentials(xcred_);
 }
 
-std::size_t channel::write(std::error_code& ec, const uint8_t* buff,std::size_t size) const noexcept
+s_read_write_channel service::new_tls_connection(std::error_code& ec, const s_read_write_channel& socket) const noexcept
 {
-	ssize_t ret = ::tls_write(tls_context_.get(), buff, size);
-	if(ret < 0) {
-			// fix this
-		std::printf( ::tls_error(tls_context_.get()) );
-		ec = std::make_error_code( std::errc::broken_pipe );
-		return 0;
-	}
-	return static_cast<std::size_t>( ret );
+    ::gnutls_session_t session;
+    ::gnutls_init(&session, GNUTLS_CLIENT);
+    ::gnutls_set_default_priority(session);
+
+    const synch_socket_channel* s = reinterpret_cast<synch_socket_channel*>( socket.get() );
+
+    ::gnutls_transport_set_int( session, s->socket_ );
+    ::gnutls_handshake_set_timeout(session, GNUTLS_DEFAULT_HANDSHAKE_TIMEOUT);
+    int err;
+    do {
+        err = gnutls_handshake(session);
+    } while (err < 0 && ::gnutls_error_is_fatal(err) == 0);
+
 }
+
 
 } // namespace secure
 

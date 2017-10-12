@@ -24,18 +24,16 @@
 					<Add option="-Og" />
 					<Add option="-DIO_SHARED_LIB" />
 					<Add directory="include" />
-					<Add directory="deps/include" />
-					<Add directory="include/win" />
-					<Add directory="../boost_1_60_0" />
 					<Add directory="include/net" />
+					<Add directory="include/win" />
+					<Add directory="$(#msys2.include)" />
 				</Compiler>
 				<Linker>
-					<Add option="-shared-libgcc" />
 					<Add library="iconv.dll" />
+					<Add library="gnutls.dll" />
 					<Add library="Ws2_32" />
-					<Add library="tls-15.dll" />
-					<Add directory="deps/lib" />
-					<Add directory="../boost_1_60_0/stage/gcc64/lib" />
+					<Add library="Crypt32" />
+					<Add directory="$(#msys2.lib)" />
 				</Linker>
 			</Target>
 			<Target title="release-win-gcc-static-x64">
@@ -67,15 +65,17 @@
 					<Add option="-mavx" />
 					<Add option="-DNDEBUG" />
 					<Add directory="include" />
-					<Add directory="deps/include" />
-					<Add directory="include/win" />
 					<Add directory="include/net" />
+					<Add directory="include/win" />
+					<Add directory="$(#msys2.include)" />
 				</Compiler>
 				<Linker>
 					<Add option="-s" />
 					<Add library="iconv.dll" />
+					<Add library="gnutls.dll" />
 					<Add library="Ws2_32" />
-					<Add directory="deps/lib" />
+					<Add library="Crypt32" />
+					<Add directory="$(#msys2.lib)" />
 				</Linker>
 			</Target>
 			<Target title="debug-win-gcc-static-x64">
@@ -96,17 +96,17 @@
 					<Add option="-fexceptions" />
 					<Add option="-DIO_BUILD" />
 					<Add directory="include" />
-					<Add directory="deps/include" />
-					<Add directory="include/win" />
-					<Add directory="../boost_1_60_0" />
 					<Add directory="include/net" />
+					<Add directory="include/win" />
+					<Add directory="$(#msys2.include)" />
 				</Compiler>
 				<Linker>
 					<Add option="-pg -lgmon" />
-					<Add option="-pg" />
 					<Add library="iconv.dll" />
+					<Add library="gnutls.dll" />
 					<Add library="Ws2_32" />
-					<Add directory="deps/lib" />
+					<Add library="Crypt32" />
+					<Add directory="$(#msys2.lib)" />
 				</Linker>
 			</Target>
 			<Target title="release-win-gcc-dll-x64">
@@ -141,9 +141,9 @@
 					<Add option="-DNDEBUG" />
 					<Add option="-DIO_SHARED_LIB" />
 					<Add directory="include" />
-					<Add directory="deps/include" />
-					<Add directory="include/win" />
 					<Add directory="include/net" />
+					<Add directory="include/win" />
+					<Add directory="$(#msys2.include)" />
 				</Compiler>
 				<Linker>
 					<Add option="-s" />
@@ -161,9 +161,10 @@
 					<Add option="-msse4" />
 					<Add option="-mavx" />
 					<Add library="iconv.dll" />
+					<Add library="gnutls.dll" />
 					<Add library="Ws2_32" />
-					<Add library="tls-15.dll" />
-					<Add directory="deps/lib" />
+					<Add library="Crypt32" />
+					<Add directory="$(#msys2.lib)" />
 				</Linker>
 			</Target>
 			<Target title="debug-unix-gcc-so-x64">

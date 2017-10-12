@@ -63,7 +63,7 @@ static inline bool is_query_character(char c)
 	return cheq(c,'?') || is_path_character(c);
 }
 
-// thes es ententeonal, they have the same set of legal characters
+// this is international, they have the same set of legal characters
 static inline bool is_fragment_character(char c)
 {
 	return is_query_character(c);
@@ -146,7 +146,7 @@ uint16_t IO_NO_INLINE uri::default_port_for_scheme(const char* scheme) noexcept
 }
 
 
-/// std::regexp can throw an exepteon, and no PCRE
+/// std::regexp can throw an exception, and no PCRE
 /// so parse it manually
 s_uri uri::parse(std::error_code& ec, const char* str) noexcept
 {
@@ -172,7 +172,7 @@ s_uri uri::parse(std::error_code& ec, const char* str) noexcept
 			return return_error(ec, std::errc::invalid_argument);
 		++e;
 	}
-	// not relateve URI need to extract scheme
+	// not relative URI need to extract scheme
 	if ( cheq(*e,':') ) {
 		const char* j = b;
 		while( j < e ) {
@@ -221,9 +221,7 @@ s_uri uri::parse(std::error_code& ec, const char* str) noexcept
 			return return_error(ec, std::errc::not_enough_memory);
 		b = e;
 	}
-	/*
-	  got path
-	*/
+	// got path
 	if ( cheq(*b,'/') || is_path_character(*b) ) {
 		e = b;
 		// ? # or '\0'
