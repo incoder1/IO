@@ -127,7 +127,7 @@ find/build
 ### Building with CMake
 To build with CMake build tool to can use following command
 
-> cmake . -DCMAKE_BUILD_TYPE=<Release|Debug> [-DBUILD_SHARED_LIBS=ON} [-DNO_EXCEPTIONS=ON] [-DNO_RTTI=ON}
+> cmake . -DCMAKE_BUILD_TYPE=<Release|Debug> [-DBUILD_SHARED_LIBS=ON] [-DNO_EXCEPTIONS=ON] [-DNO_RTTI=ON]
 
 Result is stored in  target/lib sub-folder
 
@@ -152,13 +152,13 @@ To build DLL release library use:
 
 >	 	make –f Makefile-mingw64-dll
 		
-		build result available in lib/release-win-gcc-dll-x64 subfolder
+		build result available in target/release-win-gcc-dll-x64 subfolder
 
 #### Unix with GNU make
 
 >	 	make –f Makefile-unix-shared
 
-		build result available in lib/release-unix-gcc-so-x86_64
+		build result available in target/release-unix-gcc-so-x86_64
 
 ### EXAMPLE CODE
 

@@ -432,7 +432,7 @@ static constexpr __forceinline bool is_u8_5_or_6(const char ch)
 }
 
 // Gest UTF-8 character size
-__forceinline uint8_t u8_char_size(const char ch)
+__forceinline constexpr uint8_t u8_char_size(const char ch)
 {
 	return  ( static_cast<int8_t>(ch) > 0) ? 1
 	        :  is_u8_2(ch) ? 2

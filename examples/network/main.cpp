@@ -1,3 +1,6 @@
+// Network support is not yet complete
+// Able to took an XSD using  https TLS 1.2
+
 #if defined(_WIN32) || defined(_WIN64)
 
 #if _WIN32_WINNT < _WIN32_WINNT_VISTA
@@ -27,27 +30,23 @@ int main()
 	//s_uri url = uri::parse(ec, "http://www.springframework.org/schema/beans/spring-beans-4.2.xsd");
 	s_uri url = uri::parse(ec, "https://www.springframework.org/beans/spring-beans-4.2.xsd");
 	io::check_error_code(ec);
-	//const socket_factory* sf = socket_factory::instance(ec);
-	//io::check_error_code(ec);
+
+	io::check_error_code(ec);
 	std::cout << "connectig to: " << url->host() << std::endl;
 
-	//s_socket tpc_socket = sf->client_tcp_socket(ec, url->host().data(),url->port() );
-	//io::check_error_code(ec);
+    const socket_factory* sf = socket_factory::instance(ec);
+	s_socket tpc_socket = sf->client_tcp_socket(ec, url->host().data(),url->port() );
+	io::check_error_code(ec);
 
-	//std::cout << url->host() << "\tresolved to: \n";
-	//endpoint ep = tpc_socket->get_endpoint();
-	//do {
-	//	std::cout << "\t\t" << ep.ip_address() << '\n';
-	//	ep = ep.next();
-	//} while( ep.has_next() );
-	// std::cout << std::endl;
-	io::s_read_write_channel sock = secure::channel::tcp_tls_channel(ec,
-												url->host().data(),
-												url->port(),
-												true);
 
-	//io::s_read_write_channel sock = tpc_socket->connect(ec);
-	//io::check_error_code(ec);
+	const io::net::secure::service *sec_service = io::net::secure::service::instance(ec);
+    io::check_error_code( ec );
+
+    io::s_read_write_channel raw_ch = tpc_socket->connect(ec);
+    io::check_error_code( ec );
+
+    io::s_read_write_channel sch = sec_service->new_client_connection(ec, raw_ch );
+    io::check_error_code(ec);
 
 	http::s_request rq = http::new_request(
 			ec,
@@ -62,7 +61,7 @@ int main()
 	);
 
 	io::check_error_code( ec );
-	rq->send( ec, sock );
+	rq->send( ec, sch );
 	io::check_error_code( ec );
 
 	io::scoped_arr<uint8_t> tmp( 1 << 20 );
@@ -71,7 +70,7 @@ int main()
 
 	std::size_t read;
 	do {
-		read = sock->read(ec, tmp.get(), tmp.len() );
+		read = sch->read(ec, tmp.get(), tmp.len() );
 		if(read > 0)
 			std::cout.write( reinterpret_cast<const char*>(tmp.get()), read);
 	} while(!ec && read > 0 );

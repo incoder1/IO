@@ -41,6 +41,13 @@ class console;
 
 namespace win {
 
+inline ::WORD prev_attr(::HANDLE hcons) noexcept
+{
+	::CONSOLE_SCREEN_BUFFER_INFO info;
+	::GetConsoleScreenBufferInfo(hcons,&info);
+	return info.wAttributes;
+}
+
 class IO_PUBLIC_SYMBOL console_channel final: public read_write_channel {
 	console_channel(const console_channel&) = delete;
 	console_channel& operator=(const console_channel&) = delete;
@@ -81,6 +88,11 @@ enum class text_color: uint8_t {
 	bright_white = 0x0F
 };
 
+inline std::ostream& operator<<(std::ostream& to, text_color clr)
+{
+    ::SetConsoleTextAttribute( ::GetStdHandle(STD_OUTPUT_HANDLE), static_cast<::DWORD>(clr) );
+    return to;
+}
 
 
 /// \brief System console (terminal window) low level access API.

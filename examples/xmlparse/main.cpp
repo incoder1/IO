@@ -33,7 +33,7 @@ void print_start_doc(std::ostream& stm,const xml::s_event_stream_parser& s)
 	xml::document_event e = s->parse_start_doc();
 	// check parsing was succsess
 	if( !s->is_error() ) {
-		stm<<"start document:\n";
+		stm<< "start document:\n";
 		stm<<"\tversion: " << e.version();
 		stm<<" encoding: " << e.encoding();
 		stm<<" standalone: " << (e.standalone() ? "yes" : "no") << std::endl;

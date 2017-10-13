@@ -41,12 +41,13 @@ std::size_t byte_buffer::put(const uint8_t* begin,const uint8_t* const end) noex
 {
 	if(end <= begin)
 		return 0;
-	std::size_t result = memory_traits::distance(begin,end);
-	if( result > available())
+	std::size_t ret = memory_traits::distance(begin,end);
+	if( ret > available())
 		return 0;
-	position_ = std::copy(begin, end, position_);
-	last_ = position_ + 1;
-	return result;
+    std::memmove( position_, begin, ret );
+    position_ += ret;
+    last_ = position_ + 1;
+	return ret;
 }
 
 void byte_buffer::move(std::size_t offset) noexcept

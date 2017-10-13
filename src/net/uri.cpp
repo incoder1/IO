@@ -229,8 +229,12 @@ s_uri uri::parse(std::error_code& ec, const char* str) noexcept
 			if (!is_path_character(*e))
 				return return_error(ec, std::errc::invalid_argument );
 			++e;
+			++e;
 		}
-		path = const_string( b, e );
+		if(b != e)
+            path = const_string( b, e );
+        else
+            path = const_string("/");
 		if(path.empty())
 			return return_error(ec, std::errc::not_enough_memory);
 		b = e;

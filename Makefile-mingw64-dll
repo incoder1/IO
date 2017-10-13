@@ -3,7 +3,7 @@ CXX=g++
 AS=g++
 LD=g++
 
-TARGET_ROOT = ./lib
+TARGET_ROOT = ./target
 TARGET = $(TARGET_ROOT)/release-win-gcc-dll-x64
 OBJ_ROOT = ./obj
 OBJ ?= $(OBJ_ROOT)/release-win-gcc-dll-x64
@@ -13,8 +13,8 @@ SHARED_EXT=dll
 
 PLATFORM_SHARED_LINK_OPTIONS?=-shared -Wl,--dll -Wl,--output-def=$(TARGET)/libio.def -Wl,--out-implib=$(TARGET)/libio.a
 
-LIBS?=-L./deps/lib -liconv.dll -lWs2_32 -lssl-43.dll -ltls-15.dll
-INCLUEDS?=-Iinclude -Iinclude/win -Iinclude/net -Isrc -Ideps/include
+LIBS?=-liconv.dll -lgnutls.dll -lWs2_32
+INCLUEDS?=-Iinclude -Iinclude/win -Iinclude/net -Isrc
 
 MMX_AND_SSE?= -mmmx -msse -msse2 -mssse3 -msse3 -msse4 -mavx
 OPTIMIZE?=-mtune=generic -O3 -fno-exceptions -fno-rtti -minline-stringops-dynamically -fdeclone-ctor-dtor -fdevirtualize-at-ltrans -mmovbe $(MMX_AND_SSE)

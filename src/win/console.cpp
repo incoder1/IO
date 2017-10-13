@@ -21,12 +21,7 @@ namespace io {
 
 namespace win {
 
-static inline ::WORD prev_attr(::HANDLE hcons) noexcept
-{
-	::CONSOLE_SCREEN_BUFFER_INFO info;
-	::GetConsoleScreenBufferInfo(hcons,&info);
-	return info.wAttributes;
-}
+
 
 // console_channel
 console_channel::console_channel(::HANDLE hcons, ::WORD orig, ::WORD attr) noexcept:
