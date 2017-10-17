@@ -115,8 +115,8 @@ std::size_t IO_PUBLIC_SYMBOL transmit(std::error_code& ec,const s_read_channel& 
 		ec = std::make_error_code( std::errc::invalid_argument );
 		return 0;
 	}
-	// allign size up to 4
-	const std::size_t al_bs = (buff_size + 0x0003) & 0xFFFC;
+	// align size up to 4
+	const std::size_t al_bs = (static_cast<std::size_t>(buff_size) + 3ul) & ~3ul;
 	scoped_arr<uint8_t> rbuf( al_bs );
 	if( !rbuf ) {
 		ec = std::make_error_code(std::errc::not_enough_memory);

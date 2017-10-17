@@ -50,7 +50,22 @@ public:
 		rf_(rf)
 	{}
 
-	explicit scoped_arr() noexcept:
+	scoped_arr(const T* arr, const std::size_t len) noexcept:
+        mem_(nullptr),
+        len_(len),
+        rf_(
+            [] (T* const px) {
+                delete [] px;
+            }
+        )
+	{
+	    assert(0 != len_ && len_ < SIZE_MAX );
+        mem_ = new (std::nothrow) T [ len_ ];
+        if(nullptr != mem_)
+            std::memcpy(mem_, arr, (len_ * sizeof(T) ) );
+	}
+
+	constexpr scoped_arr() noexcept:
 		scoped_arr(nullptr, 0, nullptr)
 	{}
 
@@ -62,6 +77,13 @@ public:
 						memory_traits::free_temporary<T>(px);
 					})
 	{}
+
+    scoped_arr(std::initializer_list<T>&& ilist) noexcept:
+        scoped_arr( ilist.size() )
+	{
+	    if(nullptr != mem_)
+            std::copy(ilist.begin(), ilist.end() , mem_);
+	}
 
 	~scoped_arr() noexcept
 	{
@@ -75,7 +97,7 @@ public:
 
 	inline void clear() noexcept
 	{
-        std::memset(mem_, 0, len_  * sizeof(T) );
+        std::memset(mem_, 0, (len_  * sizeof(T)) );
 	}
 
 	inline void swap(scoped_arr& other) noexcept
@@ -85,9 +107,10 @@ public:
 		std::swap(rf_, other.rf_);
 	}
 
-	operator T*() const noexcept
+    const T& operator[](std::size_t index) const noexcept
 	{
-		return mem_;
+	    assert( index < len_ );
+		return mem_[index];
 	}
 
 	inline T* get() const noexcept
@@ -99,6 +122,7 @@ public:
 	{
 		return len_;
 	}
+
 private:
 	std::size_t len_;
 	T* mem_;

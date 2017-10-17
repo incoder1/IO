@@ -38,7 +38,7 @@ public:
 		encoding_(),
 		standalone_(false)
 	{}
-	document_event(const_string&& version,const_string&& enc, bool standalone):
+	document_event(const_string&& version,const_string&& enc, bool standalone) noexcept:
 		version_( std::forward<const_string>(version) ),
 		encoding_( std::forward<const_string>(enc) ),
 		standalone_(standalone)
@@ -84,6 +84,7 @@ private:
 
 class event_stream_parser;
 
+/// \brief XML tag attribute
 class IO_PUBLIC_SYMBOL attribute
 {
 public:
@@ -100,12 +101,17 @@ public:
 
 	attribute(cached_string&& name,const_string&& value) noexcept;
 
-	~attribute() noexcept;
+	~attribute() noexcept
+	{}
 
+    /// Returns attribute name
+    /// \return attribute name
 	inline cached_string name() const {
 		return name_;
 	}
 
+    /// Returns attribute value
+    /// \return attribute value, in string representation
 	inline const_string value() const {
 		return value_;
 	}
@@ -120,6 +126,7 @@ private:
 	const_string value_;
 };
 
+/// \brief qualified tag name
 class qname final
 {
 public:
@@ -145,14 +152,21 @@ public:
 		local_name_.swap(other.local_name_);
 	}
 
+	/// Returns whether this name contains name space prefix
+	/// \return whether name space prefix present
 	inline bool has_prefix() const noexcept {
 		return !prefix_.empty();
 	}
 
+    /// Returns name space prefix if present
+	/// \return name space prefix of empty string if it is not present
 	inline cached_string prefix() const  {
 		return prefix_;
 	}
 
+
+    /// Returns tag local name
+	/// \return tag local name
 	inline cached_string local_name() const {
 		return local_name_;
 	}
@@ -196,10 +210,24 @@ public:
 		return *this;
 	}
 
-	bool add_attribute(attribute&& attr) {
+	bool add_attribute(attribute&& attr) noexcept
+	{
+#ifdef IO_NO_EXCEPTIONS
+#   if __cplusplus > 201402L
+       return attr == attributes_.emplace_back( std::forward<attribute>( attr ) );
+#   else
 		std::size_t ps = attributes_.size();
 		attributes_.emplace_back( std::forward<attribute>( attr ) );
 		return (ps+1) == attributes_.size();
+#   endif // __cplusplus 14+
+#else
+    try {
+        attributes_.emplace_back( std::forward<attribute>( attr ) );
+        return true;
+    } catch(...) {
+        return false;
+    }
+#endif // IO_NO_EXCEPTIONS
 	}
 
 	inline bool empty_element() const noexcept {

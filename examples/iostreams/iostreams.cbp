@@ -17,8 +17,6 @@
 					<Add option="-g" />
 					<Add option="-fexceptions" />
 					<Add option="-DIO_SHARED_LIB" />
-					<Add option="-DIO_HAS_BOOST" />
-					<Add option="-DBOOST_SYSTEM_NO_DEPRECATED" />
 					<Add directory="../../deps/include" />
 					<Add directory="../../../boost_1_60_0" />
 				</Compiler>

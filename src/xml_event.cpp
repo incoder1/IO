@@ -21,9 +21,6 @@ attribute::attribute(cached_string&& name,const_string&& value) noexcept:
 		value_( std::forward<const_string>(value) )
 {}
 
-attribute::~attribute() noexcept
-{}
-
 //start_element_event
 start_element_event::start_element_event(qname&& name, bool empty_element) noexcept:
 	name_(std::forward<qname>(name)),

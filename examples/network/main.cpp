@@ -48,23 +48,13 @@ int main()
     io::s_read_write_channel sch = sec_service->new_client_connection(ec, raw_ch );
     io::check_error_code(ec);
 
-	http::s_request rq = http::new_request(
-			ec,
-			http::method::get,
-			url,
-			{
-				{"Accept","text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8"},
-				{"User-Agent", "io library"},
-				{"Accept-Charset","ISO-8859-1,utf-8;q=0.7,*;q=0.7"},
-				{"Connection"," close"}
-			}
-	);
+	http::s_request rq = http::new_request( ec, http::method::get, url );
 
 	io::check_error_code( ec );
 	rq->send( ec, sch );
 	io::check_error_code( ec );
 
-	io::scoped_arr<uint8_t> tmp( 1 << 20 );
+	io::scoped_arr<uint8_t> tmp( 1 << 20);
 	if(!tmp)
 		io::check_error_code( std::make_error_code(std::errc::not_enough_memory) );
 

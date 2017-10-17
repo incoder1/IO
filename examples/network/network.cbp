@@ -13,13 +13,15 @@
 				<Option type="1" />
 				<Option compiler="gcc" />
 				<Compiler>
+					<Add option="-pg" />
 					<Add option="-g" />
-					<Add directory="../../deps/include" />
 				</Compiler>
 				<Linker>
+					<Add option="-pg -lgmon" />
 					<Add library="iconv.dll" />
-					<Add directory="../../deps/lib" />
-					<Add directory="../../bin/debug-win-gcc-dll-x64" />
+					<Add library="gnutls.dll" />
+					<Add library="Ws2_32" />
+					<Add directory="../../bin/debug-win-gcc-static-x64" />
 				</Linker>
 			</Target>
 			<Target title="release-win-gcc-x64">
@@ -32,15 +34,12 @@
 					<Add option="-O3" />
 					<Add option="-mtune=native" />
 					<Add option="-DNDEBUG" />
-					<Add directory="../../deps/include" />
+					<Add option="-DIO_SHARED_LIB" />
 				</Compiler>
 				<Linker>
 					<Add option="-s" />
 					<Add library="iconv.dll" />
-					<Add library="Ws2_32" />
-					<Add library="tls-15.dll" />
-					<Add directory="../../deps/lib" />
-					<Add directory="../../bin/release-win-gcc-static-x64" />
+					<Add directory="../../bin/release-win-gcc-dll-x64" />
 				</Linker>
 			</Target>
 			<Target title="debug-unix-gcc-x86_64">

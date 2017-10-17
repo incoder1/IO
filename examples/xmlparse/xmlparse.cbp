@@ -19,7 +19,6 @@
 					<Add option="-g" />
 					<Add option="-fexceptions" />
 					<Add option="-Og" />
-					<Add directory="../../../boost_1_60_0" />
 					<Add directory="../../deps/include" />
 				</Compiler>
 				<Linker>

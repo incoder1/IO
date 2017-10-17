@@ -76,15 +76,11 @@ public:
 		ch_( std::forward<s_write_channel>(ch) ),
 		ref_count_( 0 )
 	{
-		// allign buffer on sizeof(char_size)
-		buffer_size = (buffer_size + (sizeof(char_type) - 1) ) & ~( (sizeof(char_type) - 1) );
-		uint8_t *buff = memory_traits::malloc_array<uint8_t>( buffer_size );
-		if(nullptr == buff) {
-			std::error_code ec = std::make_error_code(std::errc::not_enough_memory);
-			ios_check_error_code( "output stream buff ", ec );
-		}
-		uint8_t *end_buff = buff + buffer_size;
-		this->setp( reinterpret_cast<char_type*>(buff), reinterpret_cast<char_type*>(end_buff) );
+		char_type *buff = new (std::nothrow) char_type[ buffer_size ];
+		if(nullptr == buff )
+			ios_check_error_code( "input stream buff ", std::make_error_code(std::errc::not_enough_memory) );
+
+		this->setp( buff,  buff + buffer_size );
 	}
 
 	ochannel_streambuf(const s_write_channel& ch,const std::size_t buffer_size):
@@ -105,7 +101,7 @@ public:
 		{
 			if( this->pptr() != this->pbase() )
 				this->overflow( traits_type::eof() );
-			memory_traits::free( this->pbase() );
+			delete [] this->pbase();
 		}
 	}
 
@@ -138,6 +134,7 @@ public:
 		const uint8_t *wpos = reinterpret_cast<const uint8_t*>( this->pbase() );
 		std::size_t to_write = memory_traits::distance( this->pbase(), this->pptr() ) * sizeof(char_type);
 		assert( (to_write % sizeof(char_type) ) == 0 );
+
 		std::size_t written;
 		while( to_write > 0 ) {
 			written = ch_->write(ec, wpos, to_write);
@@ -146,12 +143,14 @@ public:
 			wpos += written;
 			to_write -= written;
 		}
+
 		if( traits_type::not_eof(__c) ) {
 			char_type b = traits_type::to_char_type(__c);
 			ch_->write(ec, reinterpret_cast<const uint8_t*>(&b), sizeof(char_type) );
 			if(ec)
 				return traits_type::eof();
 		}
+
 		clear();
 		return 1;
 	}
@@ -242,14 +241,12 @@ public:
 	ichannel_streambuf(s_read_channel&& src, std::size_t buffer_size):
 		super_type( ),
 		rch_( std::forward<s_read_channel>(src) ),
-		buffer_size_( buffer_size ),
+		buffer_size_( buffer_size * sizeof(char_type) ),
 		ref_count_( 0 )
 	{
-		char_type *buff = static_cast<char_type*>( memory_traits::malloc( buffer_size * sizeof(char_type) ) );
-		if(nullptr == buff ) {
-			std::error_code ec = std::make_error_code(std::errc::not_enough_memory);
-			ios_check_error_code( "input stream buff ", ec );
-		}
+		char_type *buff = new (std::nothrow) char_type[ buffer_size ];
+		if(nullptr == buff )
+			ios_check_error_code( "input stream buff ", std::make_error_code(std::errc::not_enough_memory) );
 		this->setg(buff, buff, buff);
 	}
 
@@ -290,9 +287,9 @@ public:
 
 	virtual ~ichannel_streambuf() override
 	{
-		void* buff = static_cast<void*>( this->eback() );
+        char_type *buff = this->eback();
 		if(nullptr != buff )
-			memory_traits::free( buff );
+			delete [] buff;
 	}
 
 private:

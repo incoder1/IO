@@ -29,20 +29,24 @@ void request::join(std::error_code& ec, byte_buffer& to) const noexcept
 	to.put(" HTTP/1.1\r\nHost: ");
 	to.put( uri_->host().data() );
 	to.put("\r\n", 2);
-	typedef headers::const_iterator hit_t;
-	typedef std::char_traits<char> ch8tr;
-	std::size_t len;
-	for(hit_t it = hdrs_.cbegin(); it != hdrs_.cend(); ++it) {
-		len = ch8tr::length(it->first) + ch8tr::length(it->second) + 3;
-		if( to.available() < len && !to.extend( (to.capacity() << 1) - to.capacity() ) ) {
-			to.clear();
-			ec = std::make_error_code(std::errc::not_enough_memory);
-			return;
-		}
-		to.put(it->first);
-		to.put(':');
-		to.put(it->second);
-		to.put("\r\n", 2);
+	for(std::size_t i=0; i < hdrs_.len(); i++ ) {
+        if( ! hdrs_[i].to_bytes(to) ) {
+            if( !to.exp_grow() ) {
+                to.clear();
+                ec = std::make_error_code(std::errc::not_enough_memory);
+                return;
+            } else {
+                hdrs_[i].to_bytes( to );
+            }
+        }
+	}
+	if( to.available() < 2 ) {
+        // we need '\0' at the end
+        if(! to.extend( to.capacity() + 3 ) ) {
+            to.clear();
+            ec = std::make_error_code(std::errc::not_enough_memory);
+            return;
+        }
 	}
 	to.put("\r\n", 2);
 }
@@ -50,8 +54,7 @@ void request::join(std::error_code& ec, byte_buffer& to) const noexcept
 void request::send_all(std::error_code& ec, const s_write_channel& ch, byte_buffer& buff) const noexcept
 {
 	buff.flip();
-	while( !ec && 0 != buff.length() )
-		buff.move( ch->write(ec, buff.position().get(), buff.size() ) );
+	trasmit_buffer(ec, ch, buff);
 }
 
 //get_request
@@ -78,7 +81,7 @@ public:
 
 };
 
-s_request IO_PUBLIC_SYMBOL new_request(std::error_code& ec,method m, const s_uri& resource, headers&& hdrs)
+s_request IO_PUBLIC_SYMBOL new_request(std::error_code& ec,method m, const s_uri& resource, std::initializer_list<header>&& hdrs) noexcept
 {
 	switch( m ) {
 	case method::get:
@@ -86,7 +89,7 @@ s_request IO_PUBLIC_SYMBOL new_request(std::error_code& ec,method m, const s_uri
 		           nobadalloc<get_request>::construct(
 		               ec,
 		               resource,
-		               std::forward<headers>(hdrs)
+                       headers( std::forward< std::initializer_list<header> > (hdrs) )
 		           )
 		       );
 	default:

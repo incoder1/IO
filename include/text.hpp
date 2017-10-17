@@ -11,6 +11,11 @@
 #define __IO_TEXT_HPP_INCLUDED__
 
 #include "config.hpp"
+
+#ifdef HAS_PRAGMA_ONCE
+#pragma once
+#endif // HAS_PRAGMA_ONCE
+
 #include "channels.hpp"
 #include "charsetcvt.hpp"
 #include "unicode_bom.hpp"
@@ -19,10 +24,6 @@
 #include <atomic>
 #include <exception>
 #include <string>
-
-#ifdef HAS_PRAGMA_ONCE
-#pragma once
-#endif // HAS_PRAGMA_ONCE
 
 #ifdef __IO_WINDOWS_BACKEND__
 #	define _U(quote) L##quote

@@ -155,6 +155,7 @@ int main(int argc, const char** argv)
 		return ec.value();
 	}
 	// Construct XML source
+	// Source will auto-detect XML file encoding, i.e. UTF-8, UTF-16[LE|BE] etc.
 	xml::s_source src = xml::source::create(ec, sf.open_for_read(ec) );
 	io::check_error_code( ec );
 	// Construct StAX parser

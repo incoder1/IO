@@ -75,7 +75,11 @@ public:
         uint8_t *ptr = memory_traits::memory_traits::malloc_array<uint8_t>(size);
         if(nullptr == ptr)
             return mem_block();
+#ifdef io_memmove
         io_memmove(ptr, arr, size);
+#else
+        std::memmove( ptr, arr, size);
+#endif // io_memmove
         return mem_block( ptr );
     }
 

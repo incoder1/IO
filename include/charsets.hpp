@@ -181,16 +181,5 @@ private:
 
 } // namespace io
 
-namespace std {
-
-template<>
-struct hash<io::charset> {
-public:
-	std::size_t operator()(const io::charset& ch)
-	{
-		return static_cast<std::size_t>( ch.code() );
-	}
-};
-}
 
 #endif // __CHARSETS_HPP_INCLUDED__

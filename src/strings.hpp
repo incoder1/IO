@@ -33,11 +33,11 @@ namespace {
 
 /// Compares two characters
 template<typename c_1, typename c_2>
-constexpr inline bool cheq(c_1 lsh, c_2 rhs )
+constexpr inline bool cheq(c_1 lsh, c_2 rhs)
 {
 	typedef std::char_traits<c_1> c1tr;
 	typedef std::char_traits<c_2> c2tr;
-	return uint_fast32_t(c1tr::to_int_type(lsh)) == uint_fast32_t(c2tr::to_int_type(rhs));
+	return uint32_t( c1tr::to_int_type(lsh) ) == uint32_t( c2tr::to_int_type(rhs) );
 }
 
 static constexpr inline bool cheq(char lsh, char rhs)
@@ -431,7 +431,7 @@ static constexpr __forceinline bool is_u8_5_or_6(const char ch)
 	return check_mask(0xF8,static_cast<uint8_t>(ch)) || check_mask(0xFC,static_cast<uint8_t>(ch));
 }
 
-// Gest UTF-8 character size
+// Obtains UTF-8 character size
 __forceinline constexpr uint8_t u8_char_size(const char ch)
 {
 	return  ( static_cast<int8_t>(ch) > 0) ? 1
