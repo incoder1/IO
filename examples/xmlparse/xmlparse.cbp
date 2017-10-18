@@ -46,13 +46,12 @@
 					<Add option="-fno-rtti" />
 					<Add option="-mtune=native" />
 					<Add option="-DNDEBUG" />
-					<Add directory="../../deps/include" />
+					<Add option="-DIO_SHARED_LIB" />
 				</Compiler>
 				<Linker>
 					<Add option="-s" />
 					<Add option="-fno-set-stack-executable" />
 					<Add library="iconv.dll" />
-					<Add directory="../../deps/lib" />
 					<Add directory="../../bin/release-win-gcc-dll-x64" />
 				</Linker>
 			</Target>

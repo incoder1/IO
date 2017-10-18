@@ -253,7 +253,13 @@ private:
 	char scan_buf_[MAX_SCAN_BUFF_SIZE];
 };
 
-} } // namesapce xml, namesapce io
+class parse_perfect {
+
+};
+
+} // namesapce xml
+
+} //  namesapce io
 
 
 #endif // __IO_XML_PARSE_HPP_INCLUDED__

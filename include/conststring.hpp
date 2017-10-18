@@ -22,6 +22,7 @@
 #include <ostream>
 #include <cstring>
 #include <string>
+#include <cctype>
 
 namespace io {
 
@@ -182,10 +183,26 @@ public:
 	}
 
 	/// Returns whether this string is pointing on nullptr
-	/// \retrun whether nullptr string
+	/// \return whether nullptr string
 	inline bool empty() const noexcept
 	{
 		return nullptr == data_;
+	}
+
+    /// Checks whether this string empty or contains only whitespace characters
+    /// \return whether this string is blank
+	inline bool blank() const noexcept
+	{
+        if(empty())
+            return true;
+        char *c = reinterpret_cast<char*>( data_ + sizeof(std::size_t) );
+        while( *c != '\0')
+        {
+            if( !std::isspace( traits_type::to_int_type( *c ) ) )
+                return false;
+            ++c;
+        }
+        return true;
 	}
 
 	/// Returns raw C-style zero ending string

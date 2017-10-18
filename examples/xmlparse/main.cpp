@@ -115,9 +115,13 @@ static void print_event(std::ostream& stm,const xml::s_event_stream_parser& s)
 }
 
 // output a string into a stream
-static  void log_chars(std::ostream& stm,const char* msg, const char* chars)
+
+static bool log_chars(std::ostream& stm,const char* msg, const const_string& chars)
 {
-	stm<< msg << '\n' << chars << std::endl;
+    // avoid login a between tag separators like spaces and line endings
+    if( ! chars.blank() )
+        stm << msg << '\n' << chars << std::endl;
+    return true;
 }
 
 // handle unexpected error if any
@@ -181,20 +185,22 @@ int main(int argc, const char** argv)
 		case xml::state_type::event:
 			print_event(cout,xs);
 			break;
-		// next state is an XML comment, it is posible to read or to
+		// next state is an XML comment, it is possible to read or to
 		// skip it
 		case xml::state_type::comment:
-			log_chars(cout, "Comment: ", xs->read_comment().data() );
+			log_chars(cout, "Comment: ", xs->read_comment() );
 			// xs->skip_comment();
 			break;
 		// next step is <![CDATA section same as characters
 		// but allow internal markup
 		case xml::state_type::cdata:
-			log_chars(cout,"CDATA: ", xs->read_cdata().data() );
+			log_chars(cout, "CDATA: ", xs->read_cdata() );
 			break;
 		// next step is characters, i.e. tag value
+		// optionally can be skip
 		case xml::state_type::characters:
-			log_chars(cout,"Characters: ", xs->read_chars().data() );
+            log_chars(cout, "Characters", xs->read_chars() );
+			// xs->skip_chars();
 			break;
 		}
 	// until state is enf of document

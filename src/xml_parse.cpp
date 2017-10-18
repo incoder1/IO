@@ -172,11 +172,14 @@ s_event_stream_parser event_stream_parser::open(std::error_code& ec, const s_sou
 event_stream_parser::event_stream_parser(const s_source& src, s_string_pool&& pool):
     object(),
     src_(src),
-    state_({error::ok,state_type::initial}),
-    current_(event_type::start_document),
-    pool_(std::forward<s_string_pool>(pool)),
-    validated_(),
-    nesting_(0)
+    state_(
+{
+    error::ok,state_type::initial
+}),
+current_(event_type::start_document),
+pool_(std::forward<s_string_pool>(pool)),
+validated_(),
+nesting_(0)
 {}
 
 event_stream_parser::~event_stream_parser() noexcept
@@ -525,30 +528,31 @@ const_string event_stream_parser::read_chars() noexcept
         return const_string();
     }
     result.put(scan_buf_, sb_len(scan_buf_) );
-    constexpr int end_of_stream = char8_traits::eof();
+    bool reading = true;
     int i;
-    bool still_reading = true;
     do {
-        i =  char8_traits::to_int_type( next() );
+        i = char8_traits::to_int_type( next() );
         switch(i) {
         case LEFTB:
-            still_reading = false;
+            reading = false;
             break;
         case RIGHTB:
             sb_clear( scan_buf_ );
             assign_error(error::illegal_chars);
             return const_string();
-        case end_of_stream:
+        case iEOF:
             sb_clear( scan_buf_ );
             assign_error(error::root_element_is_unbalanced);
             return const_string();
         default:
             putch(result, static_cast<char>(i) );
         }
-    } while( still_reading && !is_error());
+        if( is_error() ) {
+            sb_clear( scan_buf_ );
+            return const_string();
+        }
+    } while( reading );
     sb_clear( scan_buf_ );
-    if(is_error())
-        return const_string();
     sb_append( scan_buf_, static_cast<char>(LEFTB) );
     result.flip();
     return const_string( result.position().cdata(), result.last().cdata() );
@@ -560,7 +564,23 @@ void event_stream_parser::skip_chars() noexcept
         assign_error(error::invalid_state);
         return;
     }
-    read_chars();
+    for(int i = char8_traits::to_int_type( next() ); !is_error() ; i = char8_traits::to_int_type( next() ) ) {
+        switch(i) {
+        case LEFTB:
+            sb_clear( scan_buf_ );
+            sb_append( scan_buf_, static_cast<char>(LEFTB) );
+            return;
+        case RIGHTB:
+            sb_clear( scan_buf_ );
+            assign_error(error::illegal_chars);
+            return;
+        case iEOF:
+            sb_clear( scan_buf_ );
+            assign_error(error::root_element_is_unbalanced);
+            return;
+        }
+    }
+
 }
 
 const_string event_stream_parser::read_cdata() noexcept
