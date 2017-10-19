@@ -24,19 +24,6 @@ byte_buffer::byte_buffer(byte_buffer&& other) noexcept:
 	other.last_ = nullptr;
 }
 
-byte_buffer::~byte_buffer() noexcept
-{}
-
-bool byte_buffer::put(uint8_t byte) noexcept
-{
-	if( full() )
-		return false;
-	*position_ = byte;
-	++position_;
-	last_ = position_ + 1;
-	return true;
-}
-
 std::size_t byte_buffer::put(const uint8_t* begin,const uint8_t* const end) noexcept
 {
 	if(end <= begin)

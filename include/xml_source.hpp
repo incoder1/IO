@@ -36,13 +36,21 @@ class IO_PUBLIC_SYMBOL source final:public object
 	source& operator=(const source&) = delete;
 	public:
 		static s_source create(std::error_code& ec,s_read_channel&& src) noexcept;
+
 		static s_source create(std::error_code& ec,const s_read_channel& src) noexcept
 		{
 			return create(ec, s_read_channel(src) );
 		}
+
 		virtual ~source() noexcept override;
+
 		char next() noexcept;
-		bool eof() noexcept;
+
+		inline bool eof() const noexcept
+		{
+		    return error::ok != last_ && pos_ != end_;
+		}
+
 		inline std::size_t row() const noexcept {
 			return row_;
 		}

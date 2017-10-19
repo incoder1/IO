@@ -128,8 +128,8 @@ find/build
 To build with CMake build tool to can use following command
 
 > cmake . -DCMAKE_BUILD_TYPE=<Release|Debug> [-DBUILD_SHARED_LIBS=ON] [-DNO_EXCEPTIONS=ON] [-DNO_RTTI=ON]
-
-Result is stored in  target/lib sub-folder
+	
+	Result will be stored in  target/<Release|Debug>/lib sub-folder
 
 You can build shared or static library release or debug version, optionally you can on or off exceptions and rtti.
 

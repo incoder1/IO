@@ -93,7 +93,7 @@ converrc engine::convert(uint8_t** src,std::size_t& size, uint8_t** dst, std::si
 {
 	char **s = reinterpret_cast<char**>(src);
 	char **d = reinterpret_cast<char**>(dst);
-	if( ICONV_ERROR == ::iconv(iconv_, s, &size, d, &avail) )
+	if( ICONV_ERROR == ::iconv(iconv_, s, std::addressof(size), d, std::addressof(avail) ) )
 		return iconv_to_conv_errc(errno);
 	return converrc::success;
 }
@@ -202,10 +202,10 @@ void code_cnvtr::convert(std::error_code& ec, const uint8_t* src,const std::size
 	dst.clear();
 	std::size_t left = size;
 	std::size_t available = dst.capacity();
-	uint8_t** s = const_cast<uint8_t**>(&src);
+	uint8_t** s = const_cast<uint8_t**>( std::addressof(src) );
 	const uint8_t* d = dst.position().get();
 	while(!ec && left > 0)
-		convert(ec, s, left, const_cast<uint8_t**>(&d), available);
+		convert(ec, s, left, const_cast<uint8_t**>( std::addressof(d) ), available);
 	dst.move(dst.capacity() - available);
 	dst.flip();
 }

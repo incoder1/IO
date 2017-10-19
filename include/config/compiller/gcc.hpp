@@ -105,7 +105,8 @@
 #define io_bswap32 __builtin_bswap32
 #define io_bswap64 __builtin_bswap64
 
-// some MinGW/MinGW old compiler version making library calls instead of intrict
+// some MinGW/MinGW old compiler version making library calls instead of intrict,
+// even when -mmovbe
 // So replace the call by inline assembler
 #elif defined(IO_CPU_INTEL)
 
@@ -129,7 +130,7 @@ inline uint64_t io_bswap64(uint64_t qword) {
 
 #else
 
-// non intel CPU and MinGW is used ( assume this is not practically possible)
+// non Intel CPU and MinGW is used ( assume this is not practically possible)
 
 template<typename int16_type>
 __forceinline int16_type io_bswap16(int16_type x)

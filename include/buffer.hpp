@@ -248,8 +248,8 @@ public:
         arr_(),
         capacity_(0),
         position_(nullptr),
-        last_(nullptr) {
-    }
+        last_(nullptr)
+    {}
 
     /// Movement constructor (shallow copy)
     /// \param other buffer to move
@@ -257,15 +257,17 @@ public:
 
     /// Movement assignment operator (shallow copy)
     /// \param rhs buffer to move
-    byte_buffer& operator=(byte_buffer&& rhs) noexcept {
+    byte_buffer& operator=(byte_buffer&& rhs) noexcept
+    {
         byte_buffer( std::forward<byte_buffer>(rhs) ).swap( *this );
         return *this;
     }
 
-    /// Destoroys this buffer and releases memory allocated by this buffer
+    /// Destroys this buffer and releases memory allocated by this buffer
     /// If this buffer was moved to another object rval, do nothing
     /// Otherwise apply std::free to the underlying memory buffer
-    ~byte_buffer() noexcept;
+    ~byte_buffer() noexcept
+    {}
 
     /// Returns iterator on an byte address of current buffer insert position
     /// \return position buffer iterator
@@ -323,7 +325,16 @@ public:
     /// Puts single byte into this buffer current position, and increses buffer position and last
     /// \param byte a byte to put
     /// \return true whether byte was put and false if buffer was full before put attempt
-    bool put(uint8_t byte) noexcept;
+    bool put(uint8_t byte) noexcept
+    {
+        if( ! full() ) {
+           *position_ = byte;
+            ++position_;
+            last_ = position_ + 1;
+            return true;
+        }
+        return false;
+    }
 
     /// Puts single character into this buffer current position, and increses buffer position and last
     /// \param ch a byte to put

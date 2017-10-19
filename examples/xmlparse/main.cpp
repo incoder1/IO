@@ -178,7 +178,7 @@ int main(int argc, const char** argv)
 		// next step is DTD section or link to DTD
 		// you can read or skip it
 		case xml::state_type::dtd:
-			log_chars(cout,"DTD:", xs->read_dtd().data() );
+			log_chars(cout,"DTD:", xs->read_dtd() );
 			//xs->skip_dtd();
 			break;
 		// next state is an XML event, jump into event type swithc

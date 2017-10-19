@@ -11,14 +11,15 @@
 #define __IO_XML_EVENT_HPP_INCLUDED__
 
 #include "config.hpp"
-#include "conststring.hpp"
-#include "stringpool.hpp"
-
-#include <vector>
 
 #ifdef HAS_PRAGMA_ONCE
 #pragma once
 #endif // HAS_PRAGMA_ONCE
+
+#include "conststring.hpp"
+#include "stringpool.hpp"
+
+#include <vector>
 
 namespace io {
 
@@ -119,6 +120,11 @@ public:
 	void swap(attribute& rhs) noexcept {
 		name_.swap(rhs.name_);
 		value_.swap(rhs.value_);
+	}
+
+	bool operator==(const attribute& rhs) const noexcept
+	{
+        return name_ == rhs.name_ && value_ == rhs.value_;
 	}
 
 private:

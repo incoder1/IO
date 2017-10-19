@@ -173,10 +173,6 @@ inline char source::normalize_lend(char ch)
 	return ch;
 }
 
-bool source::eof() noexcept
-{
-  return error::ok != last_ && pos_ != end_;
-}
 
 char source::next() noexcept
 {

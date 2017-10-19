@@ -5,6 +5,37 @@
 		<Option title="io" />
 		<Option compiler="gcc" />
 		<Build>
+			<Target title="debug-win-gcc-static-x64">
+				<Option platforms="Windows;" />
+				<Option output="bin/debug-win-gcc-static-x64/io" prefix_auto="1" extension_auto="1" />
+				<Option working_dir="" />
+				<Option object_output="obj/debug-win-gcc-static-x64/" />
+				<Option type="2" />
+				<Option compiler="gcc" />
+				<Compiler>
+					<Add option="-Wnon-virtual-dtor" />
+					<Add option="-Winline" />
+					<Add option="-pedantic" />
+					<Add option="-std=c++11" />
+					<Add option="-pg" />
+					<Add option="-g" />
+					<Add option="-Og" />
+					<Add option="-fexceptions" />
+					<Add option="-DIO_BUILD" />
+					<Add directory="include" />
+					<Add directory="include/net" />
+					<Add directory="include/win" />
+					<Add directory="$(#msys2.include)" />
+				</Compiler>
+				<Linker>
+					<Add option="-pg -lgmon" />
+					<Add library="iconv.dll" />
+					<Add library="gnutls.dll" />
+					<Add library="Ws2_32" />
+					<Add library="Crypt32" />
+					<Add directory="$(#msys2.lib)" />
+				</Linker>
+			</Target>
 			<Target title="debug-win-gcc-dll-x64">
 				<Option platforms="Windows;" />
 				<Option output="bin/debug-win-gcc-dll-x64/io" prefix_auto="1" extension_auto="1" />
@@ -71,37 +102,6 @@
 				</Compiler>
 				<Linker>
 					<Add option="-s" />
-					<Add library="iconv.dll" />
-					<Add library="gnutls.dll" />
-					<Add library="Ws2_32" />
-					<Add library="Crypt32" />
-					<Add directory="$(#msys2.lib)" />
-				</Linker>
-			</Target>
-			<Target title="debug-win-gcc-static-x64">
-				<Option platforms="Windows;" />
-				<Option output="bin/debug-win-gcc-static-x64/io" prefix_auto="1" extension_auto="1" />
-				<Option working_dir="" />
-				<Option object_output="obj/debug-win-gcc-static-x64/" />
-				<Option type="2" />
-				<Option compiler="gcc" />
-				<Compiler>
-					<Add option="-Wnon-virtual-dtor" />
-					<Add option="-Winline" />
-					<Add option="-pedantic" />
-					<Add option="-std=c++11" />
-					<Add option="-pg" />
-					<Add option="-g" />
-					<Add option="-Og" />
-					<Add option="-fexceptions" />
-					<Add option="-DIO_BUILD" />
-					<Add directory="include" />
-					<Add directory="include/net" />
-					<Add directory="include/win" />
-					<Add directory="$(#msys2.include)" />
-				</Compiler>
-				<Linker>
-					<Add option="-pg -lgmon" />
 					<Add library="iconv.dll" />
 					<Add library="gnutls.dll" />
 					<Add library="Ws2_32" />

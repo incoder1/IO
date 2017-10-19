@@ -158,7 +158,7 @@ public:
 	/// Extracts normalized XML characters, i.e. tag body
 	const_string read_chars() noexcept;
 
-	/// Skip characters until next tag declaration e.g. '>  <next-tag>'
+	/// Skip characters until next tag declaration e.g. '>  <next-tag>' or 'text <![CDATA[ some data]]>'
 	void skip_chars() noexcept;
 
 	/// Extracs raw XML characters declared in <!CDATA[]]> section
@@ -188,7 +188,7 @@ private:
 	inline void putch(byte_buffer& buf, char i) noexcept
 	{
 		if( buf.full() ) {
-			if( !buf.extend( buf.capacity() / 2 ) ) {
+			if( !buf.extend( buf.capacity() >> 1 ) ) {
 				assign_error(error::out_of_memory);
 				return;
 			}
@@ -253,9 +253,7 @@ private:
 	char scan_buf_[MAX_SCAN_BUFF_SIZE];
 };
 
-class parse_perfect {
 
-};
 
 } // namesapce xml
 
