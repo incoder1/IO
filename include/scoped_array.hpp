@@ -17,6 +17,8 @@
 #pragma once
 #endif // HAS_PRAGMA_ONCE
 
+#include <type_traits>
+
 namespace io {
 
 template<typename T>
@@ -48,7 +50,9 @@ public:
 		len_(len),
 		mem_(arr),
 		rf_(rf)
-	{}
+	{
+	    static_assert( std::is_copy_assignable<T>::value || std::is_move_assignable<T>::value, "T must be copy or move assignable" );
+	}
 
 	scoped_arr(const T* arr, const std::size_t len) noexcept:
         mem_(nullptr),
@@ -59,6 +63,7 @@ public:
             }
         )
 	{
+	    static_assert( std::is_copy_assignable<T>::value || std::is_move_assignable<T>::value, "T must be copy or move assignable" );
 	    assert(0 != len_ && len_ < SIZE_MAX );
         mem_ = new (std::nothrow) T [ len_ ];
         if(nullptr != mem_)
@@ -67,7 +72,9 @@ public:
 
 	constexpr scoped_arr() noexcept:
 		scoped_arr(nullptr, 0, nullptr)
-	{}
+	{
+	   static_assert( std::is_copy_assignable<T>::value || std::is_move_assignable<T>::value, "T must be copy or move assignable" );
+	}
 
 	explicit scoped_arr(const std::size_t len) noexcept:
 		scoped_arr(
@@ -81,6 +88,7 @@ public:
     scoped_arr(std::initializer_list<T>&& ilist) noexcept:
         scoped_arr( ilist.size() )
 	{
+	    static_assert( std::is_copy_assignable<T>::value || std::is_move_assignable<T>::value, "T must be copy or move assignable" );
 	    if(nullptr != mem_)
             std::copy(ilist.begin(), ilist.end() , mem_);
 	}

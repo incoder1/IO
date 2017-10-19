@@ -51,6 +51,20 @@ struct state
 	error ec;
 	/// Current XML parsing state
 	state_type current;
+
+	constexpr state(error errcd, state_type state) noexcept:
+        ec(errcd),
+        current(state)
+	{}
+
+	constexpr state() noexcept:
+        state(error::ok,state_type::initial)
+	{}
+
+    state(const state& other) = default;
+    state& operator=(const state& other) = default;
+    ~state() = default;
+
 };
 
 class event_stream_parser;

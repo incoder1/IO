@@ -16,6 +16,10 @@
 #include <type_traits>
 #include <utility>
 
+#ifdef HAS_PRAGMA_ONCE
+#pragma once
+#endif // HAS_PRAGMA_ONCE
+
 namespace io {
 
 namespace {
@@ -35,6 +39,7 @@ public:
 
 
 } // namesapace
+
 
 
 template<typename T, class __memory_traits>
@@ -74,19 +79,22 @@ public:
 		return std::addressof(__x);
 	}
 
-	pointer allocate(size_type __n, const void* = 0) noexcept(no_exept_mode::is_nothrow)
+	pointer allocate(size_type __n, const void* px = nullptr) noexcept(no_exept_mode::is_nothrow)
 	{
 		assert( 0 != __n );
 		if(__n > 1) {
-            void *ret = __memory_traits::malloc( __n  * sizeof(value_type) );
+            void *ret = nullptr;
+		    if(nullptr != px)
+                ret = __memory_traits::realloc( const_cast<void*>(px),  __n * sizeof(value_type) );
+		    else
+                ret = __memory_traits::malloc( __n * sizeof(value_type) );
 #ifndef IO_NO_EXCEPTIONS
             if(nullptr == ret)
                 throw std::bad_array_new_length();
 #endif // IO_NO_EXCEPTIONS
-            return uncast_void<value_type>( ret );
-		} else {
-            return uncast_void<value_type>( __memory_traits::malloc( sizeof(value_type) ) );
+            return uncast_void<value_type>(ret);
 		}
+        return uncast_void<value_type>( __memory_traits::malloc( sizeof(value_type) ) );
 	}
 
 	// __p is not permitted to be a null pointer.

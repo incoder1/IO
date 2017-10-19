@@ -12,7 +12,7 @@
 				<Option object_output="obj/debug-win-gcc-x64/" />
 				<Option type="1" />
 				<Option compiler="gcc" />
-				<Option parameters="d:\Tools\eclipse\artifacts.xml" />
+				<Option parameters="test.xml" />
 				<Compiler>
 					<Add option="-std=c++11" />
 					<Add option="-pg" />

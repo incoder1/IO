@@ -293,12 +293,6 @@
 			<Option target="debug-win-gcc-dll-x64" />
 			<Option target="release-win-gcc-dll-x64" />
 		</Unit>
-		<Unit filename="include/win/pipe.hpp">
-			<Option target="debug-win-gcc-dll-x64" />
-			<Option target="release-win-gcc-static-x64" />
-			<Option target="debug-win-gcc-static-x64" />
-			<Option target="release-win-gcc-dll-x64" />
-		</Unit>
 		<Unit filename="include/win/sockets.hpp">
 			<Option target="debug-win-gcc-dll-x64" />
 			<Option target="release-win-gcc-static-x64" />
@@ -389,12 +383,6 @@
 			<Option target="release-win-gcc-dll-x64" />
 		</Unit>
 		<Unit filename="src/win/memory_traits.cpp">
-			<Option target="debug-win-gcc-dll-x64" />
-			<Option target="release-win-gcc-static-x64" />
-			<Option target="debug-win-gcc-static-x64" />
-			<Option target="release-win-gcc-dll-x64" />
-		</Unit>
-		<Unit filename="src/win/pipe.cpp">
 			<Option target="debug-win-gcc-dll-x64" />
 			<Option target="release-win-gcc-static-x64" />
 			<Option target="debug-win-gcc-static-x64" />

@@ -44,8 +44,7 @@ static inline bool is_prologue(const char *s) noexcept
 
 static inline bool is_comment(const char *s) noexcept
 {
-    // start_with(s, "--", 2);
-    return cheq(*s,HYPHEN) && cheq(*(s+1),HYPHEN);
+    return start_with(s, "--", 2);
 }
 
 static inline bool is_cdata(const char* s) noexcept
@@ -172,14 +171,11 @@ s_event_stream_parser event_stream_parser::open(std::error_code& ec, const s_sou
 event_stream_parser::event_stream_parser(const s_source& src, s_string_pool&& pool):
     object(),
     src_(src),
-    state_(
-{
-    error::ok,state_type::initial
-}),
-current_(event_type::start_document),
-pool_(std::forward<s_string_pool>(pool)),
-validated_(),
-nesting_(0)
+    state_(),
+    current_(event_type::start_document),
+    pool_(std::forward<s_string_pool>(pool)),
+    validated_(),
+    nesting_(0)
 {}
 
 event_stream_parser::~event_stream_parser() noexcept
@@ -273,44 +269,56 @@ byte_buffer event_stream_parser::read_entity() noexcept
     return byte_buffer();
 }
 
+#define check_event_parser_state( _EVENT_TYPE, _ERR_RET_TYPE )\
+    if(state_type::event != state_.current || current_ != _EVENT_TYPE ) { \
+        assign_error(error::invalid_state); \
+        return _ERR_RET_TYPE(); \
+    }
+
 document_event event_stream_parser::parse_start_doc() noexcept
 {
-    if(state_type::event != state_.current || current_ != event_type::start_document)  {
-        assign_error(error::invalid_state);
-        return document_event();
-    }
+    check_event_parser_state(event_type::start_document, document_event )
+
     byte_buffer buff( read_entity() );
+
     if( !check_buffer(buff) )
         return document_event();
+
     buff.shift(5);
+
     const_string version, encoding;
     bool standalone = false;
+
     const char* prologue = buff.position().cdata();
     // extract version
     char* i = io_strstr(prologue, "version=\"");
+
     if(nullptr == i) {
         assign_error(error::illegal_prologue);
         return document_event();
     }
-    i += 9;
-    const char* stop = i;
-    while( !cheq(QNM, *stop) )
-        ++stop;
-    if(nullptr == stop || cheq('\0',*stop) ) {
+
+    // should be compiler optimized
+    i += io_strlen("version=\"");
+    char *stop = tstrchr(i, QNM);
+    if(nullptr == stop )  {
         assign_error(error::illegal_prologue);
         return document_event();
     }
     version = const_string( i, stop);
+
     if( version.empty() ) {
         assign_error(error::out_of_memory);
         return document_event();
     }
-    // extract optionalal
+
+    // extract optional
     i = const_cast<char*>( stop + 1 );
+
     // extract encoding if exist
     const char* j = io_strstr(i, "encoding=\"");
     if(nullptr != j) {
-        i = const_cast<char*>( j + 10 );
+        i = const_cast<char*>( j + io_strlen("encoding=\"") );
         stop  = tstrchr( i, QNM );
         if(nullptr == stop ) {
             assign_error(error::illegal_prologue);
@@ -326,7 +334,7 @@ document_event event_stream_parser::parse_start_doc() noexcept
     // extract standalone if exist
     j = io_strstr(i, "standalone=\"");
     if(nullptr != j) {
-        i = const_cast<char*> ( j + 12 );
+        i = const_cast<char*> ( j + io_strlen("standalone=\"") );
         stop  = tstrchr( i, QNM);
         if(nullptr == stop ) {
             assign_error(error::illegal_prologue);
@@ -355,10 +363,7 @@ document_event event_stream_parser::parse_start_doc() noexcept
 
 instruction_event event_stream_parser::parse_processing_instruction() noexcept
 {
-    if(state_type::event != state_.current || current_ != event_type::processing_instruction) {
-        assign_error(error::invalid_state);
-        return instruction_event();
-    }
+    check_event_parser_state(event_type::processing_instruction, instruction_event)
     byte_buffer buff = read_entity();
     if( !check_buffer(buff) )
         return instruction_event();
@@ -509,8 +514,7 @@ const_string event_stream_parser::read_comment() noexcept
         return const_string();
     }
     byte_buffer tmp( read_until_double_separator(HYPHEN, error::illegal_commentary) );
-    tmp.flip();
-    return const_string( tmp.position().cdata(), tmp.last().cdata()-2 );
+    return !tmp.empty() ? const_string( tmp.position().cdata(), tmp.last().cdata()-2 ) : const_string();
 }
 
 const_string event_stream_parser::read_chars() noexcept
@@ -672,10 +676,8 @@ bool event_stream_parser::validate_xml_name(const cached_string& str, bool attr)
 
 start_element_event event_stream_parser::parse_start_element() noexcept
 {
-    if(state_type::event != state_.current || current_ != event_type::start_element) {
-        assign_error(error::invalid_state);
-        return start_element_event();
-    }
+    check_event_parser_state(event_type::start_element, start_element_event);
+
     byte_buffer buff = read_entity();
     if( !check_buffer(buff) )
         return start_element_event();
@@ -716,10 +718,8 @@ start_element_event event_stream_parser::parse_start_element() noexcept
 
 end_element_event event_stream_parser::parse_end_element() noexcept
 {
-    if(state_type::event != state_.current || current_ != event_type::end_element)  {
-        assign_error(error::invalid_state);
-        return end_element_event();
-    }
+    check_event_parser_state(event_type::end_element, end_element_event )
+
     if(nesting_ == 0) {
         assign_error(error::root_element_is_unbalanced);
         return end_element_event();

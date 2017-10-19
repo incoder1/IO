@@ -72,6 +72,7 @@ struct memory_traits {
         return static_cast<T*>( ret );
 	}
 
+
 	/// General propose memory block release
 	/// WARN! do not use for memory allocated by calloc_temporary
 	static inline void free IO_PREVENT_MACRO (void * const ptr) noexcept

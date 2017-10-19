@@ -36,7 +36,7 @@ standalone="yes"?>
 			English inscription
 			Русская надпись
 			Ελληνική επιγραφή
-			<![CDATA[<sender>John Smith</sender> <recipient name="Тарас Шевченко"/>]]>
+			<![CDATA[<sender>George Gordon Byron</sender> <recipient name="Тарас Шевченко"/> <watcher>Александр Пушкин</watcher> ]]>
 			Et quidam text
 			Some more text
 			Еще немного текста

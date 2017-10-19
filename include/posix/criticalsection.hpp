@@ -1,5 +1,15 @@
-#ifndef CRITICALSECTION_H
-#define CRITICALSECTION_H
+/*
+ *
+ * Copyright (c) 2016
+ * Viktor Gubin
+ *
+ * Use, modification and distribution are subject to the
+ * Boost Software License, Version 1.0. (See accompanying file
+ * LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
+ *
+ */
+#ifndef __IO_CRITICALSECTION_HPP_INCLUDED__
+#define __IO_CRITICALSECTION__HPP_INCLUDED__
 
 #include <config.hpp>
 
@@ -58,4 +68,4 @@ private:
 
 } // namespace io
 
-#endif // CRITICALSECTION_H
+#endif // __IO_CRITICALSECTION__HPP_INCLUDED__
