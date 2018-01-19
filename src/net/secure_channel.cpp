@@ -12,11 +12,6 @@
 #include "secure_channel.hpp"
 #include "threading.hpp"
 
-#ifdef _WIN32
-#   include <Wincrypt.h>
-#endif // _WIN32
-
-
 namespace io {
 
 namespace net {
@@ -76,21 +71,8 @@ session session::client_session(std::error_code &ec, ::gnutls_certificate_creden
     //  } );
 
     err = client_handshake( ret.peer_ );
-    switch( err ) {
-    case GNUTLS_E_SUCCESS:
-        break;
-    case GNUTLS_E_CERTIFICATE_VERIFICATION_ERROR:
-        //std::printf("Certificate check failed\n");
+    if(GNUTLS_E_SUCCESS != err)
         ec = std::make_error_code( std::errc::connection_refused );
-        break;
-    case GNUTLS_E_FATAL_ALERT_RECEIVED:
-        //std::printf("fatal allert: %s\n", ::gnutls_alert_get_name( ::gnutls_alert_get(ret.peer_) ) );
-        ec = std::make_error_code( std::errc::connection_refused );
-        break;
-    default:
-        ec = std::make_error_code( std::errc::connection_refused );
-    }
-    // std::printf("- Session info: %s\n", ::gnutls_session_get_desc(ret.peer_) );
     return ret;
 }
 

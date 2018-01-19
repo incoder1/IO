@@ -51,6 +51,8 @@ endpoint::endpoint(const std::shared_ptr<::addrinfo>& info) noexcept:
 	addr_info_(info)
 {}
 
+uint16_t get_port()
+
 
 uint16_t endpoint::port() const noexcept
 {

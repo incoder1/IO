@@ -32,13 +32,13 @@ class mem_block {
     mem_block& operator=(const mem_block&) = delete;
 public:
 
-    constexpr mem_block() noexcept:
-        px_(nullptr) {
-    }
-
     constexpr explicit mem_block(uint8_t* const px) noexcept:
-        px_(px) {
-    }
+        px_(px)
+    {}
+
+    constexpr mem_block() noexcept:
+        mem_block(nullptr)
+    {}
 
     ~mem_block() noexcept {
         if(nullptr != px_)
@@ -50,37 +50,36 @@ public:
         other.px_ = nullptr;
     }
 
-    mem_block& operator=(mem_block&& rhs) noexcept {
+    mem_block& operator=(mem_block&& rhs) noexcept
+    {
         px_ = rhs.px_;
         rhs.px_ = nullptr;
         return *this;
     }
 
-    operator bool() const noexcept {
+    operator bool() const noexcept
+    {
         return nullptr != px_;
     }
 
-    inline uint8_t* get() const {
+    inline uint8_t* get() const
+    {
         return px_;
     }
 
-    static inline mem_block allocate(const std::size_t size) noexcept {
+    static inline mem_block allocate(const std::size_t size) noexcept
+    {
         uint8_t *ptr = memory_traits::malloc_array<uint8_t>(size);
         if(nullptr == ptr)
             return mem_block();
         return mem_block( ptr );
     }
 
-    static inline mem_block wrap(const uint8_t* arr, std::size_t size) noexcept {
-        uint8_t *ptr = memory_traits::memory_traits::malloc_array<uint8_t>(size);
-        if(nullptr == ptr)
-            return mem_block();
-#ifdef io_memmove
-        io_memmove(ptr, arr, size);
-#else
-        std::memmove( ptr, arr, size);
-#endif // io_memmove
-        return mem_block( ptr );
+    static inline mem_block wrap(const uint8_t* arr,const std::size_t size) noexcept {
+        mem_block ret = allocate(size);
+        if(ret)
+            std::memcpy( ret.get(), arr, size);
+        return std::move(ret);
     }
 
     inline void swap(mem_block& with) noexcept {
@@ -257,8 +256,7 @@ public:
 
     /// Movement assignment operator (shallow copy)
     /// \param rhs buffer to move
-    byte_buffer& operator=(byte_buffer&& rhs) noexcept
-    {
+    byte_buffer& operator=(byte_buffer&& rhs) noexcept {
         byte_buffer( std::forward<byte_buffer>(rhs) ).swap( *this );
         return *this;
     }
@@ -325,10 +323,9 @@ public:
     /// Puts single byte into this buffer current position, and increses buffer position and last
     /// \param byte a byte to put
     /// \return true whether byte was put and false if buffer was full before put attempt
-    bool put(uint8_t byte) noexcept
-    {
+    bool put(uint8_t byte) noexcept {
         if( ! full() ) {
-           *position_ = byte;
+            *position_ = byte;
             ++position_;
             last_ = position_ + 1;
             return true;
@@ -590,8 +587,7 @@ public:
     /// \param size array length
     /// \return new buffer, or empty buffer if no more memory left
     template<typename T>
-    static inline byte_buffer wrap(const T* arr, std::size_t size) noexcept
-    {
+    static inline byte_buffer wrap(const T* arr, std::size_t size) noexcept {
         static_assert( std::is_fundamental<T>::value || std::is_trivial<T>::value, "Must be an array of trivail or fundamental type" );
         if(0 == size)
             return byte_buffer();

@@ -79,6 +79,7 @@ inline s_request new_request(std::error_code& ec,method m, const s_uri& resource
 
 
 
+
 } // namespace http
 
 

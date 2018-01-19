@@ -138,6 +138,7 @@ const charset& code_pages::platform_current() noexcept {
 				return UTF_32LE;
 			case 65001:
 				return UTF_8;
+            case 1200:
 			default:
 				return UTF_16LE;
 		}

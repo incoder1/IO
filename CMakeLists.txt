@@ -53,7 +53,7 @@ endif()
 
 if( ${CMAKE_BUILD_TYPE} STREQUAL "Release" )
  add_definitions(-DNDEBUG)
- set(LIBRARY_OUTPUT_PATH ${CMAKE_BINARY_DIR}/Relase/lib)
+ set(LIBRARY_OUTPUT_PATH ${CMAKE_BINARY_DIR}/Release/lib)
 elseif(${CMAKE_BUILD_TYPE} STREQUAL "Debug")
 	set(LIBRARY_OUTPUT_PATH ${CMAKE_BINARY_DIR}/Debug/lib)
 endif()

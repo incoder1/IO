@@ -637,22 +637,7 @@ s_charset_detector charset_detector::create(std::error_code& ec) noexcept
 	detail::s_prober utf8_prob = detail::utf8_prober::create(ec);
 	if(ec)
 		return s_charset_detector();
-	v_pobers probers;
-#ifndef IO_NO_EXCEPTIONS
-	try {
-		probers = { latin1_prob, utf8_prob};
-	} catch(...) {
-		ec = std::make_error_code(std::errc::not_enough_memory);
-	}
-#else
-	std::new_handler prev = std::set_new_handler( &detail::bad_alloc_handler::handle );
-	probers = { latin1_prob, utf8_prob };
-	if(detail::bad_alloc_handler::_bad_alloc.load()) {
-		ec = std::make_error_code(std::errc::not_enough_memory);
-		detail::bad_alloc_handler::_bad_alloc.store(false);
-	}
-	std::set_new_handler(prev);
-#endif // IO_NO_EXCEPTIONS
+	v_pobers probers( { latin1_prob, utf8_prob} );
 	return !ec ?  s_charset_detector(
 	           nobadalloc<charset_detector>::construct(ec, std::move(probers) )
 	       )

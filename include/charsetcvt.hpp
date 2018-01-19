@@ -110,7 +110,7 @@ public:
 	}
 
 	engine() noexcept;
-	engine(const char* from,const char* to, cnvrt_control control);
+	engine(const char* from,const char* to, cnvrt_control control) noexcept;
 	~engine() noexcept;
 
 	inline void swap(engine& other) noexcept;

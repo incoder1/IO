@@ -205,9 +205,9 @@ inline std::string transcode(const char32_t* u32_str)
 inline std::wstring transcode_to_ucs(const char* u8_str, std::size_t bytes)
 {
 #ifdef __IO_WINDOWS_BACKEND__
-	scoped_arr<char16_t> arr( bytes << 1 );
+	scoped_arr<char16_t> arr( bytes * 2 );
 #else
-	scoped_arr<char32_t> arr( bytes << 2 );
+	scoped_arr<char32_t> arr( bytes * 4 );
 #endif // __IO_WINDOWS_BACKEND__
 	std::error_code ec;
 	std::size_t conv = transcode(ec, detail::address_of(u8_str), bytes, arr.get(), arr.len() );
@@ -227,15 +227,9 @@ inline std::string transcode_big(const wchar_t* ucs_str, std::size_t len)
 #ifdef __IO_WINDOWS_BACKEND__
 	const char16_t* ucs = reinterpret_cast<const char16_t*>(ucs_str);
 #else
-	const char32_t* ucs = reinterpret_cast<const char32_t*>(ucs_str);;
+	const char32_t* ucs = reinterpret_cast<const char32_t*>(ucs_str);
 #endif // __IO_WINDOWS_BACKEND__
-	scoped_arr<char> arr( len* sizeof(wchar_t) );
-	if(!arr)
-#ifdef IO_NO_EXCEPTIONS
-		check_error_code( std::make_error_code(std::errc::not_enough_memory) );
-#else
-		throw std::bad_alloc();
-#endif // IO_NO_EXCEPTIONS
+	scoped_arr<char> arr( len * sizeof(wchar_t) );
 	std::error_code ec;
 	std::size_t conv = transcode(ec, ucs, len, detail::address_of(arr.get()), arr.len() );
 	check_error_code(ec);
@@ -247,7 +241,7 @@ inline std::string transcode_small(const wchar_t* ucs_str, std::size_t len)
 #ifdef __IO_WINDOWS_BACKEND__
 	const char16_t* ucs = reinterpret_cast<const char16_t*>(ucs_str);
 #else
-	const char32_t* ucs = reinterpret_cast<const char32_t*>(ucs_str);;
+	const char32_t* ucs = reinterpret_cast<const char32_t*>(ucs_str);
 #endif // __IO_WINDOWS_BACKEND__
 	const std::size_t buff_size = len* sizeof(wchar_t);
 	uint8_t *tmp = static_cast<uint8_t*>( io_alloca( buff_size ) );

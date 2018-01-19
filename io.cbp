@@ -146,9 +146,9 @@
 					<Add directory="$(#msys2.include)" />
 				</Compiler>
 				<Linker>
+					<Add option="-O3" />
 					<Add option="-s" />
 					<Add option="-mtune=generic" />
-					<Add option="-O3" />
 					<Add option="-minline-stringops-dynamically" />
 					<Add option="-fdeclone-ctor-dtor" />
 					<Add option="-fdevirtualize-at-ltrans" />
@@ -163,7 +163,6 @@
 					<Add library="iconv.dll" />
 					<Add library="gnutls.dll" />
 					<Add library="Ws2_32" />
-					<Add library="Crypt32" />
 					<Add directory="$(#msys2.lib)" />
 				</Linker>
 			</Target>

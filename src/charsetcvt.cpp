@@ -73,7 +73,7 @@ engine::engine() noexcept:
 	iconv_( INVALID_ICONV_DSPTR )
 {}
 
-engine::engine(const char* from,const char* to, cnvrt_control control):
+engine::engine(const char* from,const char* to, cnvrt_control control) noexcept:
 	iconv_(INVALID_ICONV_DSPTR)
 {
 	iconv_ = ::iconv_open( to, from );

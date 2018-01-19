@@ -124,6 +124,7 @@ static bool log_chars(std::ostream& stm,const char* msg, const const_string& cha
     return true;
 }
 
+#ifdef IO_NO_EXCEPTIONS
 // handle unexpected error if any
 // current implementation
 // print last error (errno for UNIX or GetLastError for Windows) message into
@@ -133,12 +134,17 @@ static void on_terminate() noexcept
 {
 	io::exit_with_current_error();
 }
+#endif // IO_NO_EXCEPTIONS
 
 // entry point to xml parsing
 int main(int argc, const char** argv)
 {
-	// set terminate handler for unexpected errors if any
+
+#ifdef IO_NO_EXCEPTIONS
+    // set terminate handler for unexpected errors if any
 	std::set_terminate( on_terminate );
+#endif // IO_NO_EXCEPTIONS
+
 	// Take a console unicode out and error streams
 	// can be replaced with std::cout and std::cerr
 	// but no any guaranty for unicode support

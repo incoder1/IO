@@ -63,7 +63,7 @@ struct memory_traits {
         while( __builtin_expect( nullptr == (ret = std::calloc(array_size, sizeof(T) ) ) , false ) )
 #else
 		while( nullptr == (ret = std::calloc(array_size, sizeof(T) ) ) )
- #endif // __GNUG__
+#endif // __GNUG__
         {
             std::new_handler handler = std::get_new_handler();
             if( nullptr == handler )

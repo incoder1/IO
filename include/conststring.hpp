@@ -28,53 +28,55 @@ namespace io {
 
 namespace detail {
 
+// custom atomic, since std::atomic class adds additional this pointer i.e. + 4/8 additional bytes
 #ifdef __GNUC__
+
+// Use GCC Intrinsics
 class atomic_traits {
 public:
-	static inline std::size_t inc(std::size_t volatile *ptr)
-	{
-		return __atomic_add_fetch(ptr, 1, __ATOMIC_RELAXED);
-	}
-	static inline std::size_t dec(std::size_t volatile *ptr)
-	{
-		return __atomic_sub_fetch(ptr, 1, __ATOMIC_SEQ_CST);
-	}
+    static inline std::size_t inc(std::size_t volatile *ptr) {
+        return __atomic_add_fetch(ptr, 1, __ATOMIC_RELAXED);
+    }
+    static inline std::size_t dec(std::size_t volatile *ptr) {
+        return __atomic_sub_fetch(ptr, 1, __ATOMIC_SEQ_CST);
+    }
 };
+
 #endif // __GNUC__
 
 #ifdef _MSC_VER
+
+// MS VC++ atomic Intrinsics
 class atomic_traits {
 public:
 #	ifdef _M_X64 // 64 bit instruction set
-	static inline std::size_t inc(std::size_t volatile *ptr)
-	{
-		__int64 volatile *p = reinterpret_cast<__int64 volatile*>(ptr);
+    static inline std::size_t inc(std::size_t volatile *ptr) {
+        __int64 volatile *p = reinterpret_cast<__int64 volatile*>(ptr);
 #	ifdef _M_ARM
-		return static_cast<std::size_t>( _InterlockedIncrement64_nf(p) );
+        return static_cast<std::size_t>( _InterlockedIncrement64_nf(p) );
 #	else
-		return static_cast<std::size_t>( _InterlockedIncrement64(p) );
+        // Intel/AMD x64
+        return static_cast<std::size_t>( _InterlockedIncrement64(p) );
 #	endif // _M_ARM
-	}
-	static inline std::size_t dec(std::size_t volatile *ptr)
-	{
-		__int64 volatile *p = reinterpret_cast<__int64 volatile*>(ptr);
-		return return static_cast<std::size_t>( _InterlockedDecrement64(p) );
-	}
+    }
+    static inline std::size_t dec(std::size_t volatile *ptr) {
+        __int64 volatile *p = reinterpret_cast<__int64 volatile*>(ptr);
+        return return static_cast<std::size_t>( _InterlockedDecrement64(p) );
+    }
+
 #	else // 32 bit instruction set
-	static inline std::size_t inc(std::size_t volatile *ptr)
-	{
-		_long volatile *p = reinterpret_cast<long volatile*>(ptr);
+    static inline std::size_t inc(std::size_t volatile *ptr) {
+        _long volatile *p = reinterpret_cast<long volatile*>(ptr);
 #	ifdef _M_ARM
-		return static_cast<std::size_t>( _InterlockedIncrement_nf(p) );
-#	else
-		return static_cast<std::size_t>( _InterlockedIncrement(p) );
+        return static_cast<std::size_t>( _InterlockedIncrement_nf(p) );
+#	else // Intel/AMD x32
+        return static_cast<std::size_t>( _InterlockedIncrement(p) );
 #	endif // _M_ARM
-	}
-	static inline std::size_t dec(std::size_t volatile *ptr)
-	{
-		long volatile *p = reinterpret_cast<long volatile*>(ptr);
-		return static_cast<std::size_t>( _InterlockedDecrement(p) );
-	}
+    }
+    static inline std::size_t dec(std::size_t volatile *ptr) {
+        long volatile *p = reinterpret_cast<long volatile*>(ptr);
+        return static_cast<std::size_t>( _InterlockedDecrement(p) );
+    }
 #	endif // 32 bit instruction set
 
 };
@@ -85,222 +87,206 @@ public:
 ///  \brief Immutable zero ending C style string wrapper
 class const_string {
 private:
-	static inline void intrusive_add_ref(uint8_t* ptr) noexcept
-	{
-		std::size_t volatile *p = reinterpret_cast<std::size_t volatile*>(ptr);
-		detail::atomic_traits::inc(p);
-	}
-	static inline bool intrusive_release(uint8_t* ptr) noexcept
-	{
-		std::size_t volatile *p = reinterpret_cast<std::size_t volatile*>(ptr);
-		return static_cast<size_t>(0) == detail::atomic_traits::dec(p);
-	}
+    static inline void intrusive_add_ref(uint8_t* ptr) noexcept {
+        std::size_t volatile *p = reinterpret_cast<std::size_t volatile*>(ptr);
+        detail::atomic_traits::inc(p);
+    }
+    static inline bool intrusive_release(uint8_t* ptr) noexcept {
+        std::size_t volatile *p = reinterpret_cast<std::size_t volatile*>(ptr);
+        return static_cast<size_t>(0) == detail::atomic_traits::dec(p);
+    }
 public:
-	typedef std::char_traits<char> traits_type;
+    typedef std::char_traits<char> traits_type;
 
-	/// Creates empty const string  object
-	constexpr const_string() noexcept:
-		data_(nullptr)
-	{}
+    /// Creates empty const string  object
+    constexpr const_string() noexcept:
+        data_(nullptr)
+    {}
 
-	/// Shallow copy this string (inc reference count)
-	const_string(const const_string& other):
-		data_(other.data_)
-	{
-		if(nullptr != data_)
-			// increase refference count
-			intrusive_add_ref(data_);
-	}
+    /// Shallow copy this string (inc reference count)
+    const_string(const const_string& other):
+        data_(other.data_) {
+        if(nullptr != data_)
+            // increase refference count
+            intrusive_add_ref(data_);
+    }
 
-	/// Copy assignment operator, shallow copy this string
-	const_string& operator=(const const_string& rhs)
-	{
-		const_string(rhs).swap( *this );
-		return *this;
-	}
+    /// Copy assignment operator, shallow copy this string
+    const_string& operator=(const const_string& rhs) {
+        const_string(rhs).swap( *this );
+        return *this;
+    }
 
-	/// Movement constructor, default movement semantic
-	const_string(const_string&& other) noexcept:
-		data_(other.data_)
-	{
-		other.data_ = nullptr;
-	}
+    /// Movement constructor, default movement semantic
+    const_string(const_string&& other) noexcept:
+        data_(other.data_) {
+        other.data_ = nullptr;
+    }
 
-	/// Movement assigment operator, defailt movement semantic
-	const_string& operator=(const_string&& other) noexcept
-	{
-		const_string( std::forward<const_string>(other) ).swap( *this );
-		return *this;
-	}
+    /// Movement assigment operator, defailt movement semantic
+    const_string& operator=(const_string&& other) noexcept {
+        const_string( std::forward<const_string>(other) ).swap( *this );
+        return *this;
+    }
 
-	/// Deep copy a character array
-	/// \param str pointer to character array begin
-	/// \param length count of chars to be copied
-	const_string(const char* str, std::size_t length) noexcept:
-		data_(nullptr)
-	{
-		assert(nullptr != str && length > 0);
-		const std::size_t len = sizeof(std::size_t) + length + 1;
-		data_ = memory_traits::malloc_array<uint8_t>( len );
-		// set initial intrusive atomic reference count
-		intrusive_add_ref( data_ );
-		// copy data
-		char *b = reinterpret_cast<char*>( data_ + sizeof(std::size_t) );
-		traits_type::copy(b, str, length);
-	}
+    /// Deep copy a character array
+    /// \param str pointer to character array begin
+    /// \param length count of chars to be copied
+    const_string(const char* str, std::size_t length) noexcept:
+        data_(nullptr) {
+        assert(nullptr != str && length > 0);
+        const std::size_t len = sizeof(std::size_t) + length + 1;
+        data_ = memory_traits::malloc_array<uint8_t>( len );
 
-	/// Decrement this string refference count, release allocated memory when
-	/// reference count bring to 0
-	~const_string() noexcept
-	{
-		if(nullptr != data_ && intrusive_release(data_) )
-			memory_traits::free(data_);
-	}
+        // set initial intrusive atomic reference count
+        std::size_t *rc = reinterpret_cast<std::size_t*>(data_);
+        *rc = 1;
 
-	/// Deep copy a continues memory block (character array)
-	/// \param first pointer on memory block begin
-	/// \param last pointer on block end
-	const_string(const char* first, const char* last) noexcept:
-		const_string( first, memory_traits::distance(first,last) )
-	{}
+        // copy string data
+        char *b = reinterpret_cast<char*>( data_ + sizeof(std::size_t) );
+        traits_type::copy(b, str, length);
+    }
 
-	/// Deep copies a zero ending C string
-	const_string(const char* str) noexcept:
-		const_string(str, traits_type::length(str) )
-	{}
+    /// Decrement this string refference count, release allocated memory when
+    /// reference count bring to 0
+    ~const_string() noexcept {
+        if(nullptr != data_ && intrusive_release(data_) )
+            memory_traits::free(data_);
+    }
 
-	/// Deep copy STD lib string
-	/// \param str STD lib string to be copied
-	const_string(const std::string& str) noexcept:
-		const_string( str.data(), str.length() )
-	{}
+    /// Deep copy a continues memory block (character array)
+    /// \param first pointer on memory block begin
+    /// \param last pointer on block end
+    const_string(const char* first, const char* last) noexcept:
+        const_string( first, memory_traits::distance(first,last) )
+    {}
 
-	/// Swaps two const_string objects
-	/// \param with object to swap with this
-	inline void swap(const_string& with) noexcept
-	{
-		std::swap(data_, with.data_);
-	}
+    /// Deep copies a zero ending C string
+    const_string(const char* str) noexcept:
+        const_string(str, traits_type::length(str) )
+    {}
 
-	/// Returns whether this string is pointing on nullptr
-	/// \return whether nullptr string
-	inline bool empty() const noexcept
-	{
-		return nullptr == data_;
-	}
+    /// Deep copy STD lib string
+    /// \param str STD lib string to be copied
+    const_string(const std::string& str) noexcept:
+        const_string( str.data(), str.length() )
+    {}
+
+    /// Swaps two const_string objects
+    /// \param with object to swap with this
+    inline void swap(const_string& with) noexcept {
+        std::swap(data_, with.data_);
+    }
+
+    /// Returns whether this string is pointing on nullptr
+    /// \return whether nullptr string
+    inline bool empty() const noexcept {
+        return nullptr == data_;
+    }
 
     /// Checks whether this string empty or contains only whitespace characters
     /// \return whether this string is blank
-	inline bool blank() const noexcept
-	{
+    inline bool blank() const noexcept {
         if(empty())
             return true;
-        char *c = reinterpret_cast<char*>( data_ + sizeof(std::size_t) );
-        while( *c != '\0')
-        {
+        const char *c = reinterpret_cast<const char*>( data_ + sizeof(std::size_t) );
+        while( *c != '\0') {
+#ifdef io_isspace
+            if( ! io_isspace( traits_type::to_int_type( *c ) ) )
+#else
             if( !std::isspace( traits_type::to_int_type( *c ) ) )
+#endif // io_isspace
                 return false;
             ++c;
         }
         return true;
-	}
+    }
 
-	/// Returns raw C-style zero ending string
-	/// \return C-style string, "" if string is empty
-	inline const char* data() const noexcept
-	{
-		return nullptr == data_ ? "" : reinterpret_cast<char*>( data_ + sizeof(std::size_t) );
-	}
+    /// Returns raw C-style zero ending string
+    /// \return C-style string, "" if string is empty
+    inline const char* data() const noexcept {
+        return nullptr == data_ ? "" : reinterpret_cast<char*>( data_ + sizeof(std::size_t) );
+    }
 
-	/// Returns raw C-style zero ending string same as data(), provided for IDE's and debuggers
-	/// \return C-style string "" if string is empty
-	inline const char* c_str() const noexcept
-	{
-		return data();
-	}
+    /// Returns raw C-style zero ending string same as data(), provided for IDE's and debuggers
+    /// \return C-style string "" if string is empty
+    inline const char* c_str() const noexcept {
+        return data();
+    }
 
-	/// Converts this string to system UCS-2 ( UTF-16 LE or BE)
-	inline std::u16string convert_to_u16() const
-	{
-		return empty() ? std::u16string() : transcode_to_u16( data(), length() );
-	}
+    /// Converts this string to system UCS-2 ( UTF-16 LE or BE)
+    inline std::u16string convert_to_u16() const {
+        return empty() ? std::u16string() : transcode_to_u16( data(), length() );
+    }
 
-	/// Converts this string to system UCS-4 ( UTF-32 LE or BE)
-	inline std::u32string convert_to_u32() const
-	{
-		return empty() ? std::u32string() : transcode_to_u32( data(), length() );
-	}
+    /// Converts this string to system UCS-4 ( UTF-32 LE or BE)
+    inline std::u32string convert_to_u32() const {
+        return empty() ? std::u32string() : transcode_to_u32( data(), length() );
+    }
 
-	/// Converts this string to system whide UNICODE (UTF-16/32 LE/BE OS and CPU byte order depends) representation
-	inline std::wstring convert_to_ucs() const
-	{
-		return empty() ? std::wstring() : transcode_to_ucs( data(), length() );
-	}
+    /// Converts this string to system whide UNICODE (UTF-16/32 LE/BE OS and CPU byte order depends) representation
+    inline std::wstring convert_to_ucs() const {
+        return empty() ? std::wstring() : transcode_to_ucs( data(), length() );
+    }
 
-	/// Returns string length in bytes
-	/// \return string length in bytes
-	inline std::size_t length() const noexcept
-	{
-		return empty() ? 0 : traits_type::length( data() );
-	}
+    /// Returns string length in bytes
+    /// \return string length in bytes
+    inline std::size_t length() const noexcept {
+        return empty() ? 0 : traits_type::length( data() );
+    }
 
-	/// Hash this string bytes (murmur3 for 32bit, cityhash for 64 bit)
-	/// \return string content hash
-	inline std::size_t hash() const noexcept
-	{
-		return empty() ? io::hash_bytes( data(), length() ) : 0;
-	}
+    /// Hash this string bytes (murmur3 for 32bit, cityhash for 64 bit)
+    /// \return string content hash
+    inline std::size_t hash() const noexcept {
+        return empty() ? io::hash_bytes( data(), length() ) : 0;
+    }
 
-	/// Lexico-graphichally compares this string with another
-	bool operator==(const const_string& rhs) const noexcept
-	{
-		return 0 == compare( rhs );
-	}
+    /// Lexico-graphichally compares this string with another
+    bool operator==(const const_string& rhs) const noexcept {
+        return 0 == compare( rhs );
+    }
 
-	bool operator<(const const_string& rhs) const noexcept
-	{
-		return 0 > compare( rhs );
-	}
+    bool operator<(const const_string& rhs) const noexcept {
+        return 0 > compare( rhs );
+    }
 
-	bool operator>(const const_string& rhs) const noexcept
-	{
-		return 0 < compare( rhs );
-	}
+    bool operator>(const const_string& rhs) const noexcept {
+        return 0 < compare( rhs );
+    }
 
 private:
-    inline int compare(const const_string& rhs) const noexcept
-    {
+    inline int compare(const const_string& rhs) const noexcept {
         if(data_ == rhs.data_)
-			return 0;
-		else if( empty() && !rhs.empty() )
-			return -1;
-		else if( !empty() && rhs.empty() )
-			return 1;
-		else
- 			return std::strcmp( data(), rhs.data() );
+            return 0;
+        else if( empty() && !rhs.empty() )
+            return -1;
+        else if( !empty() && rhs.empty() )
+            return 1;
+        else
+            return std::strcmp( data(), rhs.data() );
     }
 private:
-	uint8_t* data_;
+    uint8_t* data_;
 };
 
 inline std::ostream& operator<<(std::ostream& os, const const_string& cstr)
 {
-	return ( os << cstr.data() );
+    return ( os << cstr.data() );
 }
 
 inline std::wostream& operator<<(std::wostream& os, const const_string& cstr)
 {
-	return ( os << cstr.convert_to_ucs() );
+    return ( os << cstr.convert_to_ucs() );
 }
 
 inline std::basic_ostream<char16_t>& operator<<(std::basic_iostream<char16_t>& os, const const_string& cstr)
 {
-	return ( os << cstr.convert_to_u16() );
+    return ( os << cstr.convert_to_u16() );
 }
 
 inline std::basic_ostream<char32_t>& operator<<(std::basic_iostream<char32_t>& os, const const_string& cstr)
 {
-	return ( os << cstr.convert_to_u32() );
+    return ( os << cstr.convert_to_u32() );
 }
 
 } // namespace io

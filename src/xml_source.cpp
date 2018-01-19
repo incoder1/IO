@@ -36,7 +36,7 @@ s_source source::open(std::error_code& ec, const s_read_channel& src, byte_buffe
 	charset_detect_status chdetstat = chdet->detect(ec, pos, rb.size() );
 	if( ec )
 		return s_source();
-	if( (!chdetstat) || chdetstat.confidence() < 0.5f ) {
+	if( !chdetstat && (chdetstat.confidence() < 0.5f) ) {
 		ec = make_error_code(converrc::not_supported);
 		return s_source();
 	}
@@ -121,12 +121,11 @@ source::~source() noexcept
 
 error source::read_more() noexcept
 {
+    rb_.clear();
 	if(  !rb_.empty() &&  rb_.capacity() < READ_BUFF_MAXIMAL_SIZE) {
-		rb_.clear();
 		if( !rb_.exp_grow() )
 			return error::out_of_memory;
-	} else
-		rb_.clear();
+	}
 	std::error_code ec;
 	size_t read = src_->read(ec, const_cast<uint8_t*>(rb_.position().get()), rb_.capacity() );
 	if(ec)
@@ -160,23 +159,24 @@ inline void source::new_line_or_shift_col(const char ch)
 // normalize line endings accodring XML spec
 inline char source::normalize_lend(char ch)
 {
-	if( cheq('\r', ch) ) {
+    char ret = ch;
+	if( cheq('\r', ret) ) {
 		if( cheq('\n', *(pos_+1) ) ) {
 			++pos_;
 			++row_;
 			col_ = 1;
 			return '\n';
 		}
-		ch = '\n';
+		ret = '\n';
 	}
-	new_line_or_shift_col(ch);
-	return ch;
+	new_line_or_shift_col(ret);
+	return ret;
 }
 
 
 char source::next() noexcept
 {
-	if( pos_+2 > end_ ) {
+	if( end_ == (pos_+1) ) {
 		last_ = charge();
 		if( pos_ == end_ || error::ok != last_ )
             return _eof;

@@ -73,7 +73,7 @@ bool byte_buffer::extend(std::size_t extend_size) noexcept
 
 bool byte_buffer::exp_grow() noexcept
 {
-	return extend ( (capacity_ << 1) - capacity_ );
+	return extend ( capacity_ << 2 );
 }
 
 byte_buffer byte_buffer::allocate(std::error_code& ec, std::size_t capacity) noexcept
