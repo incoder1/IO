@@ -20,11 +20,11 @@ Currently implemented channels for Windows and UNIX files and standard streams (
 ### Network INPUT/OUTPUT
 
 There are Unix Domain sockets TCP/IP channels. With TCP, UDP and ICMP support. For TCP and UDP there is a TLS and DTLS support 
-over the gnutls library. IP V4 and V6 both can be used with the same API (unlinke asio).
-There is a minumal http client library, can be used for obtaing external XML XSD schemas or DTD. If you need somethign more powerfull
+over the gnutls library. IP V4 and V6 both can be used with the same API (unlike ASIO).
+There is a minimal http client library, can be used for obtain external XML XSD schema or DTD. If you need something more powerful
 you can use Windows API HTTP components or libcurl (second is better).
 
-Assynchonius IO operations is not yet done, but it you can easy implement requared channels on top of [boost] asio (non boost version is better choose)
+Asynchronous IO operations is not yet done, but it you can easy implement required channels on top of [boost] ASIO (non boost version is better choose)
 in a few lines of code.
 
 ### C++ IOSTREAMS COMPATIBILITY
@@ -38,7 +38,7 @@ Character set library for detecting and converting between characters sets (code
 locale. Library designed to be useful for applications, which should work in worldwide like a web server or web browser 
 for example. Conversion between character sets based on iconv library standardized by POSIX. Microsoft Windows version 
 uses port of GNU iconv. There are minimal port of Mozilla universal character detector, which can detect latin1 
-or UNICODE representation from a sort of raw bytes. As whell as byte order mark ( BOM ) utility classes bundled.
+or UNICODE representation from a sort of raw bytes. As well as byte order mark ( BOM ) utility classes bundled.
  
 
 ### CONSOLE
@@ -53,7 +53,7 @@ including UTF-8 and system WCHAR mode. Library have possibility to define consol
 Constant string class and string poll support.
 Io::const_string a constant string which work like a intrusive smart pointer, e.g. not copy background character array each 
 time you put const std::string& reference into function parameter, or assign a values to std::string. 
-Background data array is considered to be always in UFT-8 UNICODE, and there are utility functions to trunscode for char16_t,
+Background data array is considered to be always in UFT-8 UNICODE, and there are utility functions to transcode for char16_t,
 char32_t or wchar_t std::basic_string.
 io::string_pool and io::cached_string is a pool to reduce memory usage for binary equal strings + support for better string 
 hash function. For example GNU lib std++ uses MurMur2 hash function, which is legacy now days. IO provides MurMur3 hash function
@@ -71,8 +71,8 @@ into XML of specific format. You can save a value as XML tag or like a XML tag a
 Library Idea – is to have a XML biding API like Java JAXB, but since C++ 11/17 have no standard reflection methodology
 as well as no annotations support, IO is based on compile time reflection with ability to specify XML format using sets of 
 std::tuple.  When you have RTTI on, you also able to generate XSD from plain old C++ classes.
-XML un-marshalling (deserialization) implementation is in progress.
-Serialization is based on std::ostream, so it is not exeption safe, e.g. you need some custom unexpected/terminate handlers.
+XML unmarshalling (deserialization) implementation is in progress.
+Serialization is based on std::ostream, so it is not exception safe, e.g. you need some custom unexpected/terminate handlers.
 
 ### DEPENDENCIES 
 
@@ -89,7 +89,7 @@ Lib iconv with support of the following character sets (code pages):
 
 ## SUPPORTED OPERATING SYSTEMS AND COMPILERS
 
-Generally library should work with Micosoft Windows Vista + and any POSIX compliant (Unix like GNU/Linux FreeBSD or Mac OS X) 
+Generally library should work with Microsoft Windows Vista + and any POSIX compliant (Unix like GNU/Linux FreeBSD or Mac OS X) 
 operating system with any C++ 11 compatible (or partial compatible) compiler. C++ standard library must provide:
 
 	* <functional>
