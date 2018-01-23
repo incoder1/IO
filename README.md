@@ -2,7 +2,7 @@
 
 IO is modern C++ (C++ 11 +) library for general propose input/output and XML processing
 
-## LIBRARY FUTURES (Sub libraries)
+## LIBRARY FEATURES (Sub libraries)
 
 ### GENEGIC INPUT/OUTPUT interface.
 
