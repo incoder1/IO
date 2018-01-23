@@ -328,13 +328,13 @@ public:
 DECLARE_IPTR(asynch_read_write_channel);
 
 /// Transmits a buffer data into a write channel
-/// function will re-attemt to write unless
+/// function will re-attempt to write unless
 /// size bytes from buffer will be written to the destination
-/// channel, or an io_error occured
-/// \param ec opration error code, contains error when io error
+/// channel, or an io_error
+/// \param ec operation error code, contains error when io error
 /// \param buff memory buffer, must not be nullptr
 /// \param size count of bytes to transmit,
-///				must be gretter then 0 and less or equals to memory buffer size
+///				must be greater then 0 and less or equals to memory buffer size
 /// \param dst destination write channel
 std::size_t IO_PUBLIC_SYMBOL transmit_buffer(
     std::error_code& ec,
@@ -378,11 +378,11 @@ inline std::size_t transmit_buffer(std::error_code& ec,
 }
 
 /// Transmits all read channels data to destination write channel
-/// \param ec opration error code, contains error
-///				when io error or not anoegth memory for allocating buffer
+/// \param ec operation error code, contains error
+///				when io error or not enough memory for allocating buffer
 /// \param src source read channel
 /// \param dst destination write channel
-/// \param buff memory buffer size, will be alligned up to 4 bytes
+/// \param buff memory buffer size, will be aligned up to 4 bytes
 /// \return count of bytes transfered
 /// \throw never throws
 std::size_t IO_PUBLIC_SYMBOL transmit(std::error_code& ec,const s_read_channel& src, const s_write_channel& dst, uint16_t buff) noexcept;

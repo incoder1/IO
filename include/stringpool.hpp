@@ -39,7 +39,7 @@ namespace detail {
 		void* operator new(std::size_t) = delete;
 	public:
 
-		__forceinline const char* data() const noexcept {
+		inline const char* data() const noexcept {
 			return data_;
 		}
 
@@ -80,7 +80,7 @@ namespace detail {
 
 class string_pool;
 
- /// \brief A holder of a zerro terminated character array stored in string pool.
+ /// \brief A holder of a zero terminated character array stored in string pool.
  /*!
  * \details Two or more holders can point on the same character array at time.
  * Character array will be stored in memory since at list

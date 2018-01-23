@@ -8,9 +8,13 @@
 #endif // HAS_PRAGMA_ONCEs
 
 #if  defined(__IO_WINDOWS_BACKEND__)
+
 #	include "win/criticalsection.hpp"
+
 #elif defined(__IO_POSIX__BACKEND__)
+
 #	include "posix/criticalsection.hpp"
+
 #else
 
 #include <mutex>

@@ -114,13 +114,12 @@ private:
 #define DECLARE_CHARSET(ID) static const charset ID;
 
 /// Holds constants on supported character sets
-/// And provides an OS/Locale retriving charsets functions
 class IO_PUBLIC_SYMBOL code_pages {
     code_pages(const code_pages&) = delete;
     code_pages& operator=(code_pages&) = delete;
 // to avoid externs, enums etc
 public:
-	/** unicode representations **/
+	/** UNICODE representations **/
 	DECLARE_CHARSET(UTF_8)
 	DECLARE_CHARSET(UTF_16LE)
 	DECLARE_CHARSET(UTF_16BE)

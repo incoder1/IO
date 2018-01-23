@@ -24,6 +24,7 @@
 
 namespace io {
 
+/// UNICODE UTF-8 byte order mark primitive
 class IO_PUBLIC_SYMBOL utf8_bom  {
 private:
 	static const uint8_t* DATA;
@@ -42,6 +43,7 @@ public:
 	}
 };
 
+/// UNICODE UTF-16LE byte order mark primitive
 class IO_PUBLIC_SYMBOL utf_16le_bom {
 private:
 	static const uint8_t *DATA;
@@ -60,6 +62,7 @@ public:
 	}
 };
 
+/// UNICODE UTF-32LE byte order mark primitive
 class IO_PUBLIC_SYMBOL utf_32le_bom {
 private:
 	static const uint8_t *DATA;
@@ -78,6 +81,7 @@ public:
 	}
 };
 
+/// UNICODE UTF-16BE byte order mark primitive
 class IO_PUBLIC_SYMBOL utf_16be_bom {
 private:
 	static const uint8_t *DATA;
@@ -96,6 +100,7 @@ public:
 	}
 };
 
+/// UNICODE UTF-32BE byte order mark primitive
 class IO_PUBLIC_SYMBOL utf_32be_bom {
 private:
 	static const uint8_t *DATA;
@@ -114,6 +119,7 @@ public:
 	}
 };
 
+/// UNICODE representation types enumeration
 enum class unicode_cp {
 	utf8,
 	utf_16le,

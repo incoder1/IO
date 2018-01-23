@@ -162,11 +162,11 @@ public:
 	/// Skips XML DTD declaration
 	void skip_dtd() noexcept;
 
-	/// Extracts raw unformated XML comentary into memory buffer
-	/// \return extracted comentary body
+	/// Extracts raw unformated XML commentary into memory buffer
+	/// \return extracted commentary body
 	const_string read_comment() noexcept;
 
-	/// Skips XML comentary
+	/// Skips XML commentary
 	void skip_comment() noexcept;
 
 	/// Extracts normalized XML characters, i.e. tag body
@@ -175,7 +175,8 @@ public:
 	/// Skip characters until next tag declaration e.g. '>  <next-tag>' or 'text <![CDATA[ some data]]>'
 	void skip_chars() noexcept;
 
-	/// Extracs raw XML characters declared in <!CDATA[]]> section
+	/// Extract raw XML characters declared in <!CDATA[]]> section
+	/// \return CDATA section content
 	const_string read_cdata() noexcept;
 
 private:

@@ -8,7 +8,7 @@
  * LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
  *
  */
-#ifndef __IO_CHARSETS_CVT_HPP_INCLUDED__
+D:\cpp\io\include\charsetcvt.hpp#ifndef __IO_CHARSETS_CVT_HPP_INCLUDED__
 #define __IO_CHARSETS_CVT_HPP_INCLUDED__
 
 #include <cerrno>
@@ -31,7 +31,7 @@ typedef void* iconv_t;
 
 namespace io {
 
-/// \brief Xharacter set conversation (transcoding) error code
+/// \brief Character set conversation (transcoding) error code
 enum converrc: int {
 	/// conversation was success
 	success = 0,
@@ -153,9 +153,9 @@ private:
 
 /// Convert a character array UTF-8 encoded to platform current USC-2 (UTF-16LE or UTF-16BE) character array
 /// \param  ec operation error code
-/// \param  u8_scr source character array UTF-8 encoded, must not be nullptr and at least src_bytes whide
+/// \param  u8_scr source character array UTF-8 encoded, must not be nullptr and at least src_bytes wide
 /// \param  src_bytes size of source array in bytes
-/// \param  dst destination memory buffer, must not be nullptr and at least dst_size elements whide
+/// \param  dst destination memory buffer, must not be nullptr and at least dst_size elements wide
 /// \param  dst_size size of destination memory buffer available elements in char16_t elements
 /// \return count char16_t elements in destination array, or 0 in case of failure
 /// \throw never throws
@@ -167,17 +167,17 @@ std::size_t IO_PUBLIC_SYMBOL transcode(std::error_code& ec,const uint8_t* u8_src
 /// \param  src_bytes size of source array in bytes
 /// \param  u32_dst destination memory buffer, must not be nullptr and at least dst_size width
 /// \param  dst_size size of destination memory buffer available char32_t elements
-/// \return count of filled char32_t elements in destinaton array, or 0 in case of failure
+/// \return count of filled char32_t elements in destination array, or 0 in case of failure
 /// \throw never throws
 std::size_t IO_PUBLIC_SYMBOL transcode(std::error_code& ec,const uint8_t* u8_src, std::size_t src_bytes, char32_t* const u32_dst, std::size_t dst_size) noexcept;
 
 /// Converts platform current UCS-2 (UTF-16LE or UTF-16BE) character array to UTF-8 encoded character array
 /// \param  ec operation error code
-/// \param  u16_src source character array UCS-2 encoded must not be nullptr and at least src_width whide
+/// \param  u16_src source character array UCS-2 encoded must not be nullptr and at least src_width wide
 /// \param  src_width size of source array in char16_t elements
-/// \param  dst destination memory buffer, must not be nullptr and at least dst_size bytes whide
+/// \param  dst destination memory buffer, must not be nullptr and at least dst_size bytes wide
 /// \param  dst_size size of destination memory buffer available char16_t elements
-/// \return count of filled bytes in destinaton character array, or 0 in case of failure
+/// \return count of filled bytes in destination character array, or 0 in case of failure
 /// \throw never throws
 std::size_t IO_PUBLIC_SYMBOL transcode(std::error_code& ec,const char16_t* u16_src, std::size_t src_width, uint8_t* const u8_dst, std::size_t dst_size) noexcept;
 
@@ -186,9 +186,9 @@ std::size_t IO_PUBLIC_SYMBOL transcode(std::error_code& ec,const char16_t* u16_s
 /// \param  ec operation error code
 /// \param  u32_src source character array UCS-4 encoded
 /// \param  src_width size of source array in char32_t elements
-/// \param  dst destination memory buffer, must not be nullptr and at least dst_size whide
+/// \param  dst destination memory buffer, must not be nullptr and at least dst_size wide
 /// \param  dst_size size of destination memory buffer available elements in char32_t elements
-/// \return count of filled bytes in destinaton character array, or 0 in case of failure
+/// \return count of filled bytes in destination character array, or 0 in case of failure
 /// \throw never throws
 std::size_t IO_PUBLIC_SYMBOL transcode(std::error_code& ec,const char32_t* u32_src, std::size_t src_width, uint8_t* const u8_dst, std::size_t dst_size) noexcept;
 

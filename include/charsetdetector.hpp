@@ -42,7 +42,7 @@ public:
 class charset_detector;
 DECLARE_IPTR(charset_detector);
 
-/// Constails status of character set detection
+/// Contains status of character set detection
 class charset_detect_status {
 public:
 	constexpr charset_detect_status() noexcept:
@@ -53,8 +53,8 @@ public:
 		charset_( ch ),
 		confidence_(confidence)
 	{}
-	/// Returns true if and only if dector 100% sure about detection accuracy
-	/// \return wether dector 100% sure about accuracy
+	/// Returns true if and only if detector 100% sure about detection accuracy
+	/// \return whether detector 100% sure about accuracy
 	operator bool() const noexcept
 	{
 		return 1.0F == confidence_;

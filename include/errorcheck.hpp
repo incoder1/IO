@@ -38,9 +38,9 @@ namespace io {
 
 /// Checks error code variable, if there is an error
 /// prints error message into standard error stream
-/// and do abonormal flow termination by:
+/// and do abnormal flow termination by:
 /// 	calling std::terminate when exceptions is off
-/// 	(can be instercepted with terminate handler).
+/// 	(can be intercepted with terminate handler).
 /// 	throws std::system_error when exceptions is on
 /// \param ec reference to error code variable
 inline void check_error_code(std::error_code const  &ec)

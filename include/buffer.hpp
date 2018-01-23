@@ -340,15 +340,15 @@ public:
         return put( static_cast<uint8_t>(ch) );
     }
 
-    /// Moves buffer current poistion on offset bytes and set last on postion+1
-    /// If offest is larger then available bytes, sets position to the buffer end
+    /// Moves buffer current position on offset bytes and set last on position+1
+    /// If offset is larger then available bytes, sets position to the buffer end
     /// and sets last to the iterator after buffer end
-    /// \param offeset offest in bytes
+    /// \param offset moving offset in bytes
     void move(std::size_t offset) noexcept;
 
-    /// Moves current buffer postion on offset bytes i.e.shift possition right
+    /// Moves current buffer position on offset bytes i.e. shift position right
     /// Unlike \see #move last iterator will stay on it's current position.
-    /// This method is usefull for scanning buffer bytes after you've applyed #flip operation
+    /// This method is useful for scanning buffer bytes after you've applied #flip operation
     /// \param offset count of bytes to shift, if position+offset is larger then buffer capacity, buffer will be cleared
     /// \see #flip
     /// \see #clear
@@ -358,7 +358,7 @@ public:
             clear();
     }
 
-    /// Puts continiues memory block (an array) into this buffer.
+    /// Puts continues memory block (an array) into this buffer.
     /// If memory block size larger then available bytes returns 0 and don't puts anything into this buffer
     /// \param begin of memory block first byte
     /// \param end address of memory block last byte, must be larger then begin
@@ -366,7 +366,7 @@ public:
     std::size_t put(const uint8_t* begin,const uint8_t* const end) noexcept;
 
 
-    /// Puts continiues memory block (an array) into this buffer.
+    /// Puts continues memory block (an array) into this buffer.
     /// If memory block size larger then available bytes returns 0 and not puts anything into this buffer
     /// \param arr address of memory block first byte
     /// \param count count of bytes to copy from array
@@ -375,7 +375,7 @@ public:
         return put(arr, (arr + count) );
     }
 
-    /// Puts continiues memory block (an array) into this buffer.
+    /// Puts continues memory block (an array) into this buffer.
     /// If memory block size larger then available bytes returns 0 and not puts anything into this buffer
     /// \param arr address of memory block first element
     /// \param count count of element to copy from array
@@ -397,7 +397,7 @@ public:
     }
 
     /// Puts content between position and last bytes from another buffer
-    /// \return count of bytes put from another buffer, or 0 if not anoeth available space in this buffer
+    /// \return count of bytes put from another buffer, or 0 if not enough available space in this buffer
     inline std::size_t put(byte_buffer& other) noexcept {
         if( available() < other.length() )
             return 0;
@@ -406,7 +406,7 @@ public:
 
     /// Puts STL string ( std::basic_sting<?,?>) content between begin() and end() iterators
     /// to this buffer
-    /// \return count of bytes put from stl string, or 0 if not anoeth available space in this buffer
+    /// \return count of bytes put from std::basic_string, or 0 if not enough available space in this buffer
     template<class _char_t>
     inline std::size_t put(const std::basic_string<_char_t>& s) noexcept {
         if(s.empty())
@@ -531,16 +531,16 @@ public:
         std::swap(last_, other.last_);
     }
 
-    /// Extends (i.e. realloc) this buffer by incressing this buffer capacity with extend_size (capacity+extend_size)
-    /// If not anoeth memory, buffer will be keept in memory as is
+    /// Extends (i.e. realloc) this buffer by increasing this buffer capacity with extend_size (capacity+extend_size)
+    /// If not enough memory, buffer will be kept in memory as is
     /// \param extend_size count of bytes to extend this buffer capacity
-    /// \return true buffer was extended, false if not enoeth available memory
+    /// \return true buffer was extended, false if not enough available memory
     /// \throw never throws
     bool extend(std::size_t extend_size) noexcept;
 
     /// Exponentially grow this buffer by sq this buffer capacity
-    /// If not anoeth memory, buffer will be keept in memory as is
-    /// \return true buffer was extended, false if not enoeth available memory
+    /// If not enough memory, buffer will be kept in memory as is
+    /// \return true buffer was extended, false if not enough available memory
     /// \throw never throws
     bool exp_grow() noexcept;
 
@@ -620,7 +620,7 @@ private:
 };
 
 
-/// Converts this buffer into STL string of provided type by deep coppying all bytes between
+/// Converts this buffer into STL string of provided type by deep copying all bytes between
 /// buffer position and last iterators into STL string
 /// \return STL string storing buffer content
 /// \throw std::bad_alloc

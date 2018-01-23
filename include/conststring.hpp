@@ -98,7 +98,7 @@ private:
 public:
     typedef std::char_traits<char> traits_type;
 
-    /// Creates empty const string  object
+    /// Creates empty constant string  object
     constexpr const_string() noexcept:
         data_(nullptr)
     {}
@@ -107,7 +107,7 @@ public:
     const_string(const const_string& other):
         data_(other.data_) {
         if(nullptr != data_)
-            // increase refference count
+            // increase reference count
             intrusive_add_ref(data_);
     }
 
@@ -147,7 +147,7 @@ public:
         traits_type::copy(b, str, length);
     }
 
-    /// Decrement this string refference count, release allocated memory when
+    /// Decrement this string reference count, release allocated memory when
     /// reference count bring to 0
     ~const_string() noexcept {
         if(nullptr != data_ && intrusive_release(data_) )
@@ -172,7 +172,7 @@ public:
         const_string( str.data(), str.length() )
     {}
 
-    /// Swaps two const_string objects
+    /// Swaps this object with another one
     /// \param with object to swap with this
     inline void swap(const_string& with) noexcept {
         std::swap(data_, with.data_);
@@ -208,11 +208,13 @@ public:
         return nullptr == data_ ? "" : reinterpret_cast<char*>( data_ + sizeof(std::size_t) );
     }
 
+#ifndef NDEBUG
     /// Returns raw C-style zero ending string same as data(), provided for IDE's and debuggers
     /// \return C-style string "" if string is empty
     inline const char* c_str() const noexcept {
         return data();
     }
+#endif // NDEBUG
 
     /// Converts this string to system UCS-2 ( UTF-16 LE or BE)
     inline std::u16string convert_to_u16() const {
@@ -241,7 +243,9 @@ public:
         return empty() ? io::hash_bytes( data(), length() ) : 0;
     }
 
-    /// Lexico-graphichally compares this string with another
+    /// Lexicographically compare the string with another
+    /// \param rhs a string to compare with
+    /// \return whether strings equals
     bool operator==(const const_string& rhs) const noexcept {
         return 0 == compare( rhs );
     }

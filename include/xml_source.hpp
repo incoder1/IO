@@ -30,32 +30,51 @@ class source;
 
 DECLARE_IPTR(source);
 
+/// XML source abstraction, to be used by parser
 class IO_PUBLIC_SYMBOL source final:public object {
     source(const source&) = delete;
     source& operator=(const source&) = delete;
 public:
+
+	/// Create new XML source from a readable byte channel
+	/// \param ec operation error code
+	/// \param src source byte channel
+	/// \return smart pointer source reference when no error code, otherwise an empty smart pointer
     static s_source create(std::error_code& ec,s_read_channel&& src) noexcept;
 
+	/// Create new XML source from a readable byte channel
+	/// \param ec operation error code
+	/// \param src source byte channel
+	/// \return smart pointer source reference when no error code, otherwise an empty smart pointer
     static s_source create(std::error_code& ec,const s_read_channel& src) noexcept {
         return create(ec, s_read_channel(src) );
     }
 
+    /// Releases internally allocated resources
     virtual ~source() noexcept override;
 
+    /// Returns next character or character component byte
     char next() noexcept;
 
+    /// Checks current state is end of stream
+    /// \return whether end of stream
     inline bool eof() const noexcept {
         return error::ok != last_ && pos_ != end_;
     }
 
+    /// Current XML source character row
     inline std::size_t row() const noexcept {
         return row_;
     }
 
+    /// Current XML source character column
     inline std::size_t col() const noexcept {
+
         return col_;
     }
 
+	/// Returns last operation error
+	/// \return last operation error
     inline error last_error() const noexcept {
         return last_;
     }

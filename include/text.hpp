@@ -48,7 +48,7 @@ typedef char32_t unicode_char;
 namespace io {
 
 
-/// \brief Onfly character conversation synchronous read channel implementation.
+/// \brief On-fly character conversation synchronous read channel implementation.
 /*!
  * Reads bytes into internal memory buffer first, and then transcode it using embedded converter
  * WARNING! Do not use this channel for reading binary data
