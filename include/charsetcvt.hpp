@@ -8,7 +8,7 @@
  * LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
  *
  */
-D:\cpp\io\include\charsetcvt.hpp#ifndef __IO_CHARSETS_CVT_HPP_INCLUDED__
+#ifndef __IO_CHARSETS_CVT_HPP_INCLUDED__
 #define __IO_CHARSETS_CVT_HPP_INCLUDED__
 
 #include <cerrno>

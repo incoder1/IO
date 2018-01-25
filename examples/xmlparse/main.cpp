@@ -21,8 +21,16 @@
 #include <files.hpp>
 // StAX XML parser
 #include <xml_parse.hpp>
+
+#include <iostream>
+
+
+#if defined(_WIN32) && !defined(UNICODE)
 // Unicode console
-#include <console.hpp>
+#	include <console.hpp>
+#	define NEED_UNICODE_CONSOLE
+#endif
+
 
 using namespace io;
 
@@ -145,12 +153,14 @@ int main(int argc, const char** argv)
 	std::set_terminate( on_terminate );
 #endif // IO_NO_EXCEPTIONS
 
-	// Take a console unicode out and error streams
-	// can be replaced with std::cout and std::cerr
-	// but no any guaranty for unicode support
-	// (Windows CRT not supporting it for sure)
+// Unicode console for Windows (not needed for MSYS2 or UNIX)
+#ifdef NEED_UNICODE_CONSOLE
 	std::ostream& cout = io::console::out_stream();
 	std::ostream& cerr = io::console::error_stream();
+#else
+	std::ostream& cout = std::cout;
+	std::ostream& cerr = std::cerr;
+#endif
 	// take program arguments
 	if(argc < 2) {
 		cout<< "XML parsing example\n Usage:\t xmlparse <xmlfile>" <<std::endl;

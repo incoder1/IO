@@ -1,8 +1,8 @@
-/bin
-/lib
+/target
 */**/obj
 */**/bin
 */**/tmp
+*/**/**/target
 **.gch
 **.save
 **.o
