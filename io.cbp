@@ -180,17 +180,21 @@
 					<Add option="-Winline" />
 					<Add option="-pedantic" />
 					<Add option="-std=c++11" />
+					<Add option="-pg" />
 					<Add option="-g" />
 					<Add option="-fexceptions" />
 					<Add option="-Og" />
 					<Add option="-fPIC" />
+					<Add option="`pkg-config --cflags gnutls`" />
 					<Add option="-DIO_SHARED_LIB" />
 					<Add directory="include" />
 					<Add directory="include/posix" />
 					<Add directory="include/net" />
 				</Compiler>
 				<Linker>
+					<Add option="-pg" />
 					<Add option="-shared-libgcc" />
+					<Add option="`pkg-config --libs gnutls`" />
 					<Add library="pthread" />
 				</Linker>
 			</Target>

@@ -11,7 +11,7 @@
 
 #	include "win/criticalsection.hpp"
 
-#elif defined(__IO_POSIX__BACKEND__)
+#elif defined( __IO_POSIX_BACKEND__)
 
 #	include "posix/criticalsection.hpp"
 
@@ -21,7 +21,8 @@
 
 namespace io {
 
-	using lock_guard = std::lock_guard;
+    typedef std::unique_lock<std::mutex> lock_guard;
+
 	typedef std::mutex critical_section;
 
 } // namespace io

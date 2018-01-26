@@ -122,11 +122,11 @@ public:
 
 	/// Returns UCS-4 encoded file path
 	inline std::wstring wpath()  {
-        return transcode_to_ucs( name_, std::strlen(name_) );
+        return transcode_to_ucs( name_.get(), std::strlen( name_.get() ) );
 	}
 
 	inline std::string path() {
-		return std::string(name_);
+		return std::string(name_.get());
 	}
 
 	/// Opens blocking read channel from this file

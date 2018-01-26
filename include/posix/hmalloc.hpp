@@ -57,7 +57,7 @@ struct memory_traits {
 	static inline T* malloc_array(std::size_t array_size) noexcept
 	{
 		assert(0 != array_size);
-		T *ret = nullptr;
+		void *ret = nullptr;
 #ifdef __GNUG__
         while( __builtin_expect( nullptr == (ret = std::calloc(array_size, sizeof(T) ) ) , false ) )
 #else
@@ -89,22 +89,6 @@ struct memory_traits {
        return std::realloc(base, new_size);
 	}
 
-
-	/// General propose memory block release
-	/// WARN! do not use for memory allocated by calloc_temporary
-	static inline void free IO_PREVENT_MACRO (void * const ptr) noexcept
-	{
-		// replace this one to use jemalloc/tcmalloc etc
-		std::free(ptr);
-	}
-
-	/// Memory block re-allocation
-	static inline void* realloc IO_PREVENT_MACRO (void * const base, std::size_t new_size) noexcept
-	{
-	   assert(new_size > 0);
-		// replace this one to use jemalloc/tcmalloc etc
-       return std::realloc(base, new_size);
-	}
 
 	template<typename T>
 	static inline std::size_t distance(const T* less_address,const T* lager_address) noexcept
