@@ -401,6 +401,32 @@ inline size_t xmlname_strspn(const char *s)
 	return io_strcspn( s, pattern);
 }
 
+#if defined(__GNUG__) || defined(_MSC_VER)
+
+#ifdef __GNUG__
+#	define io_clz __builtin_clz
+#endif // __GNUG__
+
+#ifdef _MSC_VER
+#	include <intrin.h>
+inline int io_clz( unsigned int x )
+{
+   int ret = 0;
+   _BitScanForward(&r, x);
+   return ret;
+}
+#endif // _MSC_VER
+
+inline uint8_t u8_char_size(const char ch) {
+	if(  static_cast<int8_t>(ch) > 0 )
+		return 1;
+	unsigned int c = ~static_cast<unsigned int>( ch );
+	static constexpr int DIFF = ( sizeof(int) * 8) - 8;
+	int ret =  io_clz(c) - DIFF;
+	return ret > 4 ? 5 : static_cast<uint8_t>( ret );
+}
+
+#else
 // UTF-8 char mask helper
 static constexpr __forceinline bool check_mask(const uint8_t mask,const uint8_t value)
 {
@@ -434,12 +460,14 @@ static constexpr __forceinline bool is_u8_5_or_6(const char ch)
 // Obtains UTF-8 character size
 __forceinline constexpr uint8_t u8_char_size(const char ch)
 {
-	return  ( static_cast<int8_t>(ch) > 0) ? 1
+	return   ( static_cast<int8_t>(ch) > 0) ? 1
 	        :  is_u8_2(ch) ? 2
 	        :  is_u8_3(ch) ? 3
 	        :  is_u8_4(ch) ? 4
 	        : 5;
 }
+#endif
+
 
 } // namespace io
 

@@ -148,6 +148,7 @@ static void on_terminate() noexcept
 int main(int argc, const char** argv)
 {
 
+
 #ifdef IO_NO_EXCEPTIONS
     // set terminate handler for unexpected errors if any
 	std::set_terminate( on_terminate );
