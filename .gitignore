@@ -3,7 +3,7 @@
 */**/obj
 */**/bin
 */**/tmp
-*/**/**/target
+*/**/target
 **.gch
 **.save
 **.o
