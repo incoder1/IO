@@ -27,7 +27,7 @@ namespace boost
 {
 	inline void throw_exception( std::system_error const & e )
 	{
-		detail::panic( e.code() , e.what() );
+		io::detail::panic(  e.code().value() , e.what() );
 	}
 }
 #endif // IO_NO_EXCEPTIONS

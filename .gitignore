@@ -1,5 +1,9 @@
 /bin
 /target
+CMakeCache.txt
+cmake_install.cmake
+CMakeFiles/
+Makefile
 */**/obj
 */**/bin
 */**/tmp
