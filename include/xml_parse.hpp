@@ -184,7 +184,6 @@ private:
 	void scan() noexcept;
 	void s_instruction_or_prologue() noexcept;
 	void s_comment_cdata_or_dtd() noexcept;
-	void s_start_or_end_element() noexcept;
 	void s_characters_or_eod() noexcept;
 	void s_entity() noexcept;
 

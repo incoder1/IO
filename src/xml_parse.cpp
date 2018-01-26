@@ -57,24 +57,24 @@ static inline bool is_doc_type(const char *s) noexcept
     return start_with(s, DOCTYPE, 7);
 }
 
-static std::size_t extract_prefix(std::size_t& start,const char* str) noexcept
+static std::size_t extract_prefix(std::size_t &start, const char* str) noexcept
 {
-    start = 0;
     char *s = const_cast<char*>(str);
-    if( cheq(LEFTB,*s) )
-        return 0;
-    ++start;
-    ++s;
-    if(cheq(SOLIDUS,*s)) {
-        ++s;
-        ++start;
+    if( cheq(LEFTB,*s) ) {
+		if( cheq(SOLIDUS,*(s+1) ) ) {
+			start += 2;
+			s += 2;
+		} else {
+			++start;
+			++s;
+		}
     }
     s += io_strcspn(s,"\t\n\v\f\r :/>");
-    if( !cheq(*s,COLON)  ) {
-        start = 0;
-        return 0;
+    if( !cheq(COLON, *s) ) {
+		start = 0;
+    	return 0;
     }
-    return str_size(str, (s-1) ) - (start-1);
+	return str_size( (str + start), s );
 }
 
 static std::size_t extract_local_name(std::size_t& start,const char* str) noexcept
@@ -195,7 +195,7 @@ qname event_stream_parser::extract_qname(const char* from, std::size_t& len) noe
     cached_string local_name;
     len = 0;
     std::size_t start = 0;
-    std::size_t count = extract_prefix(start,from);
+    std::size_t count = extract_prefix(start, from );
     if( count > 0 )
         prefix = pool_->get( from+start, count);
     len += start+count;
@@ -793,9 +793,10 @@ void event_stream_parser::s_comment_cdata_or_dtd() noexcept
     }
 }
 
-void event_stream_parser::s_start_or_end_element() noexcept
+
+void event_stream_parser::s_entity() noexcept
 {
-    if(1 == sb_len(scan_buf_) ) {
+	if(1 == sb_len(scan_buf_) ) {
         char ch = next();
         if( is_eof(ch) ) {
             assign_error(error::parse_error);
@@ -803,22 +804,8 @@ void event_stream_parser::s_start_or_end_element() noexcept
         }
         sb_append(scan_buf_, ch );
     }
-    if( is_whitespace(scan_buf_[1]) ) {
-        assign_error(error::parse_error);
-        return;
-    }
-    if(cheq(SOLIDUS,scan_buf_[1])) {
-        state_.current = state_type::event;
-        current_ = event_type::end_element;
-    } else {
-        state_.current = state_type::event;
-        current_ = event_type::start_element;
-    }
-}
-
-void event_stream_parser::s_entity() noexcept
-{
-    switch( char8_traits::to_int_type( scan_buf_[1] ) ) {
+    int second = char8_traits::to_int_type( scan_buf_[1] );
+    switch( second ) {
     case QM:
         s_instruction_or_prologue();
         break;
@@ -828,10 +815,19 @@ void event_stream_parser::s_entity() noexcept
     case iEOF:
         assign_error(error::root_element_is_unbalanced);
         break;
-    default:
-        s_start_or_end_element();
+	case SOLIDUS:
+		state_.current = state_type::event;
+        current_ = event_type::end_element;
         break;
-    }
+	default:
+		if( is_whitespace(second) ) {
+			assign_error(error::parse_error);
+		} else {
+			state_.current = state_type::event;
+        	current_ = event_type::start_element;
+		}
+       	break;
+	}
 }
 
 void event_stream_parser::scan() noexcept
