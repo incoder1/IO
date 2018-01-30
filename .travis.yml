@@ -1,4 +1,5 @@
 language: cpp
+os: linux
 
 addons:
   apt:
@@ -7,14 +8,15 @@ addons:
     packages:
       - g++-7
       - libgnutls-dev
-    
+      
+install: false
+
 branches:
   only:
 - master
 
 # Compiler selection
-compiler:
-- gcc
+compiler: gcc
 
 script:
    make –f Makefile-unix-shared
