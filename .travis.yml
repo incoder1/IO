@@ -1,0 +1,13 @@
+language: cpp
+sudo: false
+dist: trusty
+compiler:
+- g++
+os:
+- linux
+
+branches:
+  only:
+- master
+
+script: make –f Makefile-unix-shared
