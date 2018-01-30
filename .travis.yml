@@ -1,36 +1,20 @@
-language: C++
-sudo: false
-dist: trusty
-compiler:
-- g++
+language: cpp
 
-matrix:
- # works on Precise and Trusty
-    - os: linux
-      addons:
-        apt:
-          sources:
-            - ubuntu-toolchain-r-test
-          packages:
-            - g++-5
-      env:
-         - MATRIX_EVAL="CC=gcc-5 && CXX=g++-5"
- # works on Precise and Trusty
-    - os: linux
-      addons:
-        apt:
-          sources:
-            - ubuntu-toolchain-r-test
-          packages:
-            - g++-7
-      env:
-        - MATRIX_EVAL="CC=gcc-7 && CXX=g++-7"
-
-before_install:
-    - eval "${MATRIX_EVAL}"
+addons:
+  apt:
+    sources:
+      - ubuntu-toolchain-r-test
+    packages:
+      - g++-7
+      - libgnutls-dev
     
 branches:
   only:
 - master
 
-script: make –f Makefile-unix-shared
+# Compiler selection
+compiler:
+- gcc
+
+script:
+   make –f Makefile-unix-shared
