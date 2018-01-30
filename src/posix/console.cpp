@@ -126,24 +126,20 @@ critical_section console::_cs;
 void console::release_console() noexcept
 {
 	console* inst = _instance.load( std::memory_order_seq_cst );
-	inst->~console();
-	memory_traits::free( inst );
+	if(nullptr != inst)
+		delete inst;
 }
 
 const console* console::get()
 {
-	console *tmp = _instance.load( std::memory_order_relaxed );
+	console *tmp = _instance.load( std::memory_order_consume );
 	if( nullptr == tmp ) {
-		tmp = _instance.load( std::memory_order_acquire );
 		lock_guard lock(_cs);
+		tmp = _instance.load( std::memory_order_consume );
 		if( nullptr == tmp ) {
-			void *raw = memory_traits::malloc( sizeof(console) );
-			if(nullptr != raw) {
-				tmp = new (raw) console();
-				_instance.store( tmp, std::memory_order_release );
-				std::atexit( &console::release_console );
-			}
-			std::atomic_thread_fence( std::memory_order_release );
+			std::atexit( &console::release_console );
+			tmp = new (std::nothrow) console();
+			_instance.store( tmp, std::memory_order_release );
 		}
 	}
 	return tmp;

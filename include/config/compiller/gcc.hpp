@@ -99,6 +99,7 @@
 #define io_toupper(__ch) __builtin_toupper((__ch))
 
 #define io_bswap16 __builtin_bswap16
+#define io_clz __builtin_clz
 
 #ifndef IO_IS_MINGW
 

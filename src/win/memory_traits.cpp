@@ -19,11 +19,6 @@ namespace io {
 
 namespace win {
 
-#ifdef IO_NO_EXCEPTIONS
-
-#else
-#endif // IO_NO_EXCEPTIONS
-
 class heap_allocator {
 private:
 	constexpr heap_allocator(::HANDLE heap) noexcept:
@@ -32,33 +27,34 @@ private:
 	static void do_destoroy() noexcept
 	{
 		heap_allocator *tmp = _instance.load(std::memory_order_acquire);
-		::HANDLE heap = tmp->heap_;
-		::HeapFree(heap, 0, tmp);
-		::HeapDestroy(heap);
-		_instance.store(nullptr, std::memory_order_release);
+		if(nullptr != tmp) {
+			::HANDLE heap = tmp->heap_;
+			::HeapFree(heap, 0, tmp);
+			::HeapDestroy(heap);
+			_instance.store(nullptr, std::memory_order_release);
+		}
 	}
 public:
 	static const heap_allocator* instance() noexcept
 	{
-		heap_allocator *ret = _instance.load(std::memory_order_relaxed);
+		heap_allocator *ret = _instance.load(std::memory_order_consume);
 		if(nullptr == ret) {
 			lock_guard lock(_mtx);
-			ret = _instance.load(std::memory_order_acquire);
+			ret = _instance.load(std::memory_order_consume);
 			if(nullptr == ret) {
 				std::atexit(&heap_allocator::do_destoroy);
 				::HANDLE heap = ::HeapCreate(0,0,0);
-				if(INVALID_HANDLE_VALUE == heap)
-					std::terminate();
-				void *raw = ::HeapAlloc(heap, HEAP_NO_SERIALIZE, sizeof(heap_allocator) );
-				if(NULL == raw)
-					std::terminate();
-				ret = new (raw) heap_allocator(heap);
+				if(INVALID_HANDLE_VALUE != heap) {
+					void *raw = ::HeapAlloc(heap, HEAP_NO_SERIALIZE, sizeof(heap_allocator) );
+					if(NULL != raw)
+						ret = new (raw) heap_allocator(heap);
+				}
 				_instance.store(ret, std::memory_order_release);
 			}
 		}
 		return ret;
 	}
-	inline void* allocate(std::size_t bytes) const noexcept
+	inline void* allocate(const std::size_t bytes) const noexcept
 	{
 		return ::HeapAlloc(heap_, HEAP_ZERO_MEMORY, bytes);
 	}

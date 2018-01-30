@@ -29,21 +29,21 @@ public:
 	critical_section() noexcept:
         sl_()
 	{
-		pthread_spin_init(&sl_, 0);
+		::pthread_spin_init(&sl_, 0);
 	}
 	~critical_section() noexcept
 	{
-		pthread_spin_destroy(&sl_);
+		::pthread_spin_destroy(&sl_);
 	}
 	__forceinline void lock() noexcept
 	{
-		pthread_spin_lock(&sl_);
+		::pthread_spin_lock(&sl_);
 	}
 	__forceinline bool try_lock() noexcept {
 		return 0 == ::pthread_spin_trylock(&sl_);
 	}
 	__forceinline void unlock() noexcept {
-		pthread_spin_unlock(&sl_);
+		::pthread_spin_unlock(&sl_);
 	}
 private:
 	::pthread_spinlock_t sl_;

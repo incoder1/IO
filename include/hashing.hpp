@@ -107,7 +107,7 @@ public:
 	}
 };
 
-#else // 64 bit istruction set
+#else // 64 bit instruction set
 
 // Original hash function can be found https://github.com/google/cityhash
 class cityhash
@@ -190,25 +190,23 @@ private:
 
 	static uint64_t IO_NO_INLINE hash_len0_to16(const uint8_t *s, std::size_t len) IO_NO_INLINE {
 	  if (len >= 8) {
-		uint64_t mul = k2 + len * 2;
-		uint64_t a = fetch_64(s) + k2;
-		uint64_t b = fetch_64(s + len - 8);
-		uint64_t c = rotate(b, 37) * mul + a;
-		uint64_t d = (rotate(a, 25) + b) * mul;
-		return hash_len16(c, d, mul);
-	  }
-	  if (len >= 4) {
-		uint64_t mul = k2 + len * 2;
-		uint64_t a = fetch_32(s);
-		return hash_len16(len + (a << 3), fetch_32(s + len - 4), mul);
-	  }
-	  if (len > 0) {
-		uint8_t a = s[0];
-		uint8_t b = s[len >> 1];
-		uint8_t c = s[len - 1];
-		uint32_t y = static_cast<uint32_t>(a) + (static_cast<uint32_t>(b) << 8);
-		uint32_t z = len + (static_cast<uint32_t>(c) << 2);
-		return shift_mix(y * k2 ^ z * k0) * k2;
+			uint64_t mul = k2 + len * 2;
+			uint64_t a = fetch_64(s) + k2;
+			uint64_t b = fetch_64(s + len - 8);
+			uint64_t c = rotate(b, 37) * mul + a;
+			uint64_t d = (rotate(a, 25) + b) * mul;
+			return hash_len16(c, d, mul);
+	  } else if (len >= 4) {
+			uint64_t mul = k2 + len * 2;
+			uint64_t a = fetch_32(s);
+			return hash_len16(len + (a << 3), fetch_32(s + len - 4), mul);
+	  } else if (len > 0) {
+			uint8_t a = s[0];
+			uint8_t b = s[len >> 1];
+			uint8_t c = s[len - 1];
+			uint32_t y = static_cast<uint32_t>(a) + (static_cast<uint32_t>(b) << 8);
+			uint32_t z = len + (static_cast<uint32_t>(c) << 2);
+			return shift_mix(y * k2 ^ z * k0) * k2;
 	  }
 	  return k2;
 	}

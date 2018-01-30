@@ -16,6 +16,8 @@
 #	error "This library requires at least C++ 11 standard compatiable compiler. Check compiller options"
 #endif // CPP11 detection
 
+#include <intrin.h>
+
 #define HAS_PRAGMA_ONCE
 
 #ifndef _CPPRTTI
@@ -84,6 +86,14 @@
 #define io_isdigit(__ch) isdigit((__ch))
 #define io_tolower(__ch) tolower((__ch))
 #define io_toupper(__ch) toupper((__ch))
+
+inline int io_clz(unsigned int x )
+{
+   int ret = 0;
+   _BitScanForward(&r, x);
+   return ret;
+}
+
 
 
 #ifndef _DEBUG

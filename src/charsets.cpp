@@ -77,17 +77,44 @@ DECLARE_CHARSET(CP_1258,1258,"CP1258",1,false) // ANSI/OEM Vietnamese; Vietnames
 const charset* ALL_SUPPORTED[] =
 {
     // unicode
-    &code_pages::UTF_8, &code_pages::UTF_16LE, &code_pages::UTF_16BE, &code_pages::UTF_32LE, &code_pages::UTF_32BE, &code_pages::UTF_7,
+    &code_pages::UTF_8,
+    &code_pages::UTF_16LE,
+    &code_pages::UTF_16BE,
+    &code_pages::UTF_32LE,
+    &code_pages::UTF_32BE,
+    &code_pages::UTF_7,
     // one byte code pages
-    &code_pages::ASCII, &code_pages::KOI8_R, &code_pages::KOI8_U, &code_pages::KOI8_RU,
+    &code_pages::ASCII,
+    &code_pages::KOI8_R,
+    &code_pages::KOI8_U,
+    &code_pages::KOI8_RU,
     // iso
-    &code_pages::ISO_8859_1, &code_pages::ISO_8859_2, &code_pages::ISO_8859_3,  &code_pages::ISO_8859_4,
-    &code_pages::ISO_8859_5, &code_pages::ISO_8859_6, &code_pages::ISO_8859_7,  &code_pages::ISO_8859_8,
-    &code_pages::ISO_8859_9, &code_pages::ISO_8859_10, &code_pages::ISO_8859_11, &code_pages::ISO_8859_12,
-    &code_pages::ISO_8859_13, &code_pages::ISO_8859_14, &code_pages::ISO_8859_15, &code_pages::ISO_8859_16,
+    &code_pages::ISO_8859_1,
+    &code_pages::ISO_8859_2,
+    &code_pages::ISO_8859_3,
+    &code_pages::ISO_8859_4,
+    &code_pages::ISO_8859_5,
+    &code_pages::ISO_8859_6,
+    &code_pages::ISO_8859_7,
+    &code_pages::ISO_8859_8,
+    &code_pages::ISO_8859_9,
+    &code_pages::ISO_8859_10,
+    &code_pages::ISO_8859_11,
+    &code_pages::ISO_8859_12,
+    &code_pages::ISO_8859_13,
+    &code_pages::ISO_8859_14,
+    &code_pages::ISO_8859_15,
+    &code_pages::ISO_8859_16,
     // windows
-    &code_pages::CP_1250, &code_pages::CP_1251, &code_pages::CP_1252, &code_pages::CP_1253, &code_pages::CP_1254,
-    &code_pages::CP_1255, &code_pages::CP_1256, &code_pages::CP_1257, &code_pages::CP_1258
+    &code_pages::CP_1250,
+    &code_pages::CP_1251,
+    &code_pages::CP_1252,
+    &code_pages::CP_1253,
+    &code_pages::CP_1254,
+    &code_pages::CP_1255,
+    &code_pages::CP_1256,
+    &code_pages::CP_1257,
+    &code_pages::CP_1258
 };
 
 /// Returns a character set for a name

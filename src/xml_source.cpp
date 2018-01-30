@@ -193,6 +193,7 @@ char source::next() noexcept
 		result = normalize_lend( result );
 		break;
 	case 5:
+	case 6:
 		last_ = error::illegal_chars;
 		return _eof;
 	default:
