@@ -95,7 +95,6 @@ inline int io_clz(unsigned int x )
 }
 
 
-
 #ifndef _DEBUG
 #define NDEBUG
 #endif
