@@ -1,6 +1,6 @@
 language: cpp
 
-dist: trusty
+dist: zesty
 sudo: required
 
 os:
@@ -19,6 +19,7 @@ matrix:
             - ubuntu-toolchain-r-test
           packages:
             - g++-7
+            - libgnutls-dev
       env:
         - MATRIX_EVAL="CC=gcc-7 && CXX=g++-7"
         
