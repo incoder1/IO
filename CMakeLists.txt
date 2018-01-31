@@ -37,7 +37,7 @@ if(Boost_FOUND)
 	add_definitions(-DIO_HAS_BOOST)
 endif()
 
-find_package(GnuTLS REQUIRED)
+find_package(GnuTLS 3.0 REQUIRED)
 if(GNUTLS_FOUND)
 	include_directories(${GNUTLS_INCLUDE_DIR})
 endif()
@@ -67,8 +67,7 @@ if( ${CMAKE_CXX_COMPILER_ID} STREQUAL "GNU" OR ${CMAKE_CXX_COMPILER_ID} STREQUAL
 	
 	set(MMX_AND_SSE_FLAGS "-mmmx -msse -msse2 -mssse3 -msse3 -msse4 -mavx")
 	set(RELEASE_OPTIMIZE_FLAGS "-mtune=generic -s -O3 -minline-stringops-dynamically -fdeclone-ctor-dtor -fdevirtualize-at-ltrans -mmovbe")
-	
-	
+		
 	if(NO_EXCEPTIONS)
 		set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fno-exceptions")
 	endif()

@@ -1,6 +1,6 @@
 language: cpp
 
-dist: xenal
+dist: trusty
 sudo: required
 
 os:
