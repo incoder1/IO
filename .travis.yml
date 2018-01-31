@@ -1,6 +1,15 @@
-dist:     trusty
 language: cpp
-os: linux
+
+dist: trusty
+sudo: required
+
+os:
+- linux
+
+# Compiler selection
+compiler:
+    - gcc
+
 addons:
   apt:
     sources:
@@ -13,10 +22,7 @@ install: false
 
 branches:
   only:
-- master
-
-# Compiler selection
-compiler: gcc
+    - master
 
 script:
-   make –f Makefile-unix-shared
+  - make –f Makefile-unix-shared
