@@ -25,4 +25,4 @@ branches:
     - master
 
 script:
-  - make –f Makefile-unix-shared
+  - make --file=Makefile-unix-shared
