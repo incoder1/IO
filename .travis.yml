@@ -1,6 +1,6 @@
 language: cpp
 
-dist: zesty
+dist: xenal
 sudo: required
 
 os:
