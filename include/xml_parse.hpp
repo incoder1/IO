@@ -85,7 +85,8 @@ DECLARE_IPTR(event_stream_parser);
 class IO_PUBLIC_SYMBOL event_stream_parser:public object
 {
 private:
-	static constexpr std::size_t MAX_SCAN_BUFF_SIZE = 16; // 9 but for 16 for better allign;
+	// we need 9 bytes only, but will use 16 for better align
+	static constexpr std::size_t MAX_SCAN_BUFF_SIZE = 16;
 	typedef std::unordered_set<
 			std::size_t,
 			std::hash<std::size_t>,
@@ -249,11 +250,11 @@ private:
 	}
 
 	static __forceinline void sb_append(const char* sb,const char c) noexcept {
-		const_cast<char*>(sb)[ io_strlen(sb) ] = c;
+		const_cast<char*>(sb)[ sb_len(sb) ] = c;
 	}
 
 	static __forceinline void sb_append(const char* sb,const char* str) noexcept {
-		char *i = const_cast<char*>( sb + io_strlen(sb) );
+		char *i = const_cast<char*>( sb + sb_len(sb) );
 		io_strcpy( i, str);
 	}
 

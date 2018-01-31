@@ -197,7 +197,6 @@ char source::next() noexcept
 		last_ = error::illegal_chars;
 		return _eof;
 	default:
-		++col_;
 		char_shift_ = ch_size;
 		break;
 	}

@@ -69,7 +69,8 @@ static std::size_t extract_prefix(std::size_t &start, const char* str) noexcept
 			++s;
 		}
     }
-    s += io_strcspn(s,"\t\n\v\f\r :/>");
+    static const char* DELIMS = "\t\n\v\f\r :/>";
+    s += io_strcspn(s, DELIMS);
     if( !cheq(COLON, *s) ) {
 		start = 0;
     	return 0;
@@ -239,7 +240,7 @@ byte_buffer event_stream_parser::read_entity() noexcept
     byte_buffer result = byte_buffer::allocate(ec, MID_BUFF_SIZE);
     if( !check_buffer(result) )
         return result;
-    result.put(scan_buf_, sb_len(scan_buf_) );
+    result.put(scan_buf_ );
     sb_clear(scan_buf_);
     constexpr int_fast32_t EOS = std::char_traits<int_fast32_t>::eof();
     int_fast32_t ch;
@@ -423,7 +424,7 @@ const_string event_stream_parser::read_dtd() noexcept
     byte_buffer dtd = byte_buffer::allocate(ec, MID_BUFF_SIZE);
     if( ! check_buffer(dtd) )
         return const_string();
-    dtd.put(scan_buf_, sb_len(scan_buf_) );
+    dtd.put(scan_buf_);
     sb_clear(scan_buf_);
     std::size_t brackets = 1;
     int i;
@@ -531,7 +532,7 @@ const_string event_stream_parser::read_chars() noexcept
         assign_error(error::root_element_is_unbalanced);
         return const_string();
     }
-    result.put(scan_buf_, sb_len(scan_buf_) );
+    result.put(scan_buf_ );
     bool reading = true;
     int i;
     do {
@@ -796,7 +797,7 @@ void event_stream_parser::s_comment_cdata_or_dtd() noexcept
 
 void event_stream_parser::s_entity() noexcept
 {
-	if(1 == sb_len(scan_buf_) ) {
+	if( cheq('\0',scan_buf_[1]) ) {
         char ch = next();
         if( is_eof(ch) ) {
             assign_error(error::parse_error);
