@@ -3,26 +3,32 @@ language: cpp
 dist: trusty
 sudo: required
 
-os:
-- linux
-
-# Compiler selection
-compiler:
-    - gcc
-
-addons:
-  apt:
-    sources:
-      - ubuntu-toolchain-r-test
-    packages:
-      - g++-7
-      - libgnutls-dev
-      
 install: false
+
+cache:
+  directories:
+- ${TRAVIS_BUILD_DIR}/deps
+
+matrix:
+  include:
+- os: linux
+      addons:
+        apt:
+          sources:
+            - ubuntu-toolchain-r-test
+          packages:
+            - g++-7
+            - libgnutls-dev
+      env:
+        - MATRIX_EVAL="CC=gcc-7 && CXX=g++-7"
+
+before_install:
+    - eval "${MATRIX_EVAL}"
+
 
 branches:
   only:
     - master
-
+    
 script:
   - make --file=Makefile-unix-shared
