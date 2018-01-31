@@ -3,32 +3,28 @@ language: cpp
 dist: trusty
 sudo: required
 
-install: false
-
-cache:
-  directories:
-- ${TRAVIS_BUILD_DIR}/deps
-
-matrix:
-  include:
-- os: linux
-      addons:
-        apt:
-          sources:
-            - ubuntu-toolchain-r-test
-          packages:
-            - g++-7
-            - libgnutls-dev
-      env:
-        - MATRIX_EVAL="CC=gcc-7 && CXX=g++-7"
-
-before_install:
-    - eval "${MATRIX_EVAL}"
-
+os:
+  - linux
 
 branches:
   only:
     - master
     
+matrix:
+  include:
+- os: linux
+  compiler: gcc-7
+      addons:
+        apt:
+          sources:
+            - ubuntu-toolchain-r-test
+          packages: ['g++-7','libgnutls-dev']
+      install: export CXX="g++-7"
+      env: CMAKE_ARGS="-DCMAKE_CXX_FLAGS=-std=c++17"
+
+    
 script:
-  - make --file=Makefile-unix-shared
+  - mkdir build
+  - cd build
+  - cmake .. -DCMAKE_BUILD_TYPE=Debug
+  - cmake --build .
