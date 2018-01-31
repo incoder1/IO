@@ -11,6 +11,7 @@
 #define __IO_H_ALLOCATOR_HPP_INCLUDED__
 
 #include <assert.h>
+
 #include <memory>
 #include <new>
 #include <type_traits>
