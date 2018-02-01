@@ -22,6 +22,11 @@
 #	define CP_UTF8 65001
 #endif // CP_UTF8
 
+
+#ifdef _MSC_VER
+#	include <Strsafe.h>
+#endif
+
 namespace io {
 
 static inline ::WORD current_stream_attr() noexcept

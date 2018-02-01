@@ -289,7 +289,7 @@ static constexpr inline bool no_zerro(const size_t x)
 inline char* tstrchr(const char* s,char c)
 {
 #ifdef io_strchr
-	return io_strchr(s, char8_traits::to_int_type(c) );
+	return io_strchr( const_cast<char*>(s), char8_traits::to_int_type(c) );
 #else
 	const char *a = s;
 	const uint8_t uc = static_cast<uint8_t>(c);
@@ -324,7 +324,7 @@ inline bool is_one_of(char what, const char* chars)
 
 inline char* tstrchrn(const char* s,char c,std::size_t max_len)
 {
-	return static_cast<char*>( io_memchr( s, static_cast<int>(c), max_len) );
+	return static_cast<char*>( const_cast<void*>( io_memchr( s, static_cast<int>(c), max_len) ) );
 }
 
 template<typename _char_t>

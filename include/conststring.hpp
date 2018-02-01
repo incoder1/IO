@@ -61,7 +61,7 @@ public:
     }
     static inline std::size_t dec(std::size_t volatile *ptr) {
         __int64 volatile *p = reinterpret_cast<__int64 volatile*>(ptr);
-        return return static_cast<std::size_t>( _InterlockedDecrement64(p) );
+        return static_cast<std::size_t>( _InterlockedDecrement64(p) );
     }
 
 #	else // 32 bit instruction set

@@ -203,7 +203,7 @@ public:
 	/// \param s zero terminated C string
 	/// \return whether this string is equals with C string
 	inline bool eq(const char* s) const noexcept {
-		return 0 == io_strcmp(data(), s);
+		return 0 ==  traits_type::compare( s, data(), traits_type::length(s) );
 	}
 
 	/// Converts this string to system UCS-2 ( UTF-16 LE or BE)
@@ -253,7 +253,7 @@ private:
     	intrusive_ptr_release( static_cast<object* const>(obj) );
     }
 	/// Construct new string pool
-	string_pool();
+	string_pool() noexcept;
 public:
 
 	static s_string_pool create(std::error_code& ec) noexcept {

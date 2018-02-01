@@ -169,7 +169,7 @@ s_event_stream_parser event_stream_parser::open(std::error_code& ec, const s_sou
     return s_event_stream_parser( nobadalloc<event_stream_parser>::construct( ec, src, std::move(pool) ) );
 }
 
-event_stream_parser::event_stream_parser(const s_source& src, s_string_pool&& pool):
+event_stream_parser::event_stream_parser(const s_source& src, s_string_pool&& pool) noexcept:
     object(),
     src_(src),
     state_(),
@@ -292,7 +292,7 @@ document_event event_stream_parser::parse_start_doc() noexcept
 
     const char* prologue = buff.position().cdata();
     // extract version
-    char* i = io_strstr(prologue, "version=\"");
+    char* i = io_strstr( const_cast<char*>(prologue), "version=\"");
 
     if(nullptr == i) {
         assign_error(error::illegal_prologue);

@@ -192,7 +192,7 @@ private:
 public:
 
 	channel_ostream(s_write_channel&& ch):
-		super_type(),
+		super_type( nullptr ),
 		sb_( new streambuf_type(
 		         std::forward<s_write_channel>(ch),
 		         memory_traits::page_size() )

@@ -54,8 +54,13 @@ enum converrc: int {
 
 class IO_PUBLIC_SYMBOL chconv_error_category final: public std::error_category {
 private:
+#ifndef  _MSC_VER
 	friend std::error_code  make_error_code(io::converrc ec) noexcept;
 	friend std::error_condition  make_error_condition(io::converrc err) noexcept;
+#else
+	friend IO_PUBLIC_SYMBOL std::error_code make_error_code(io::converrc errc) noexcept;
+	friend IO_PUBLIC_SYMBOL std::error_condition make_error_condition(io::converrc err) noexcept;
+#endif
 	static inline const chconv_error_category* instance()
 	{
 		static chconv_error_category _instance;
@@ -85,8 +90,13 @@ public:
 
 };
 
-std::error_code IO_PUBLIC_SYMBOL make_error_code(io::converrc errc) noexcept;
-std::error_condition  IO_PUBLIC_SYMBOL make_error_condition(io::converrc err) noexcept;
+#ifndef _MSC_VER
+	std::error_code IO_PUBLIC_SYMBOL make_error_code(io::converrc errc) noexcept;
+	std::error_condition  IO_PUBLIC_SYMBOL make_error_condition(io::converrc err) noexcept;
+#else
+	IO_PUBLIC_SYMBOL std::error_code make_error_code(io::converrc errc) noexcept;
+	IO_PUBLIC_SYMBOL std::error_condition make_error_condition(io::converrc err) noexcept;
+#endif
 
 enum class cnvrt_control
 {

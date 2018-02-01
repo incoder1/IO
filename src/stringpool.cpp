@@ -38,7 +38,7 @@ cached_string::cached_string(const char* s, std::size_t count) noexcept:
 
 // string_pool
 
-string_pool::string_pool():
+string_pool::string_pool() noexcept:
 	object(),
 	pool_()
 {}

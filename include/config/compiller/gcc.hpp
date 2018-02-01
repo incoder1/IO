@@ -10,6 +10,11 @@
 #ifndef __COMPILLER_CONFIG_GCC_HPP_INCLUDED__
 #define __COMPILLER_CONFIG_GCC_HPP_INCLUDED__
 
+#if __cplusplus < 201103L
+#	error "This library requires at least C++ 11 standard compiler"
+#endif // CPP11 detection
+
+
 #pragma once
 
 #include <cstddef>
@@ -33,7 +38,7 @@
 #endif
 
 #ifndef IO_NO_INLINE
-#define IO_NO_INLINE __attribute__ ((noinline))
+#	define IO_NO_INLINE __attribute__ ((noinline))
 #endif // IO_NO_INLINE
 
 #if __BYTE_ORDER__ == __ORDER_LITTLE_ENDIAN__

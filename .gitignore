@@ -1,4 +1,5 @@
 /bin
+/obj
 /target
 CMakeCache.txt
 cmake_install.cmake

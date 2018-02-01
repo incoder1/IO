@@ -40,20 +40,18 @@
 // shared library
 #if defined(IO_SHARED_LIB)
 #	if defined(IO_BUILD)
-#		ifdef __GNUC__
+#		ifdef __GNUG__
 #			define IO_PUBLIC_SYMBOL __attribute__ ((dllexport))
 #			define IO_MALLOC_ATTR __attribute__ ((dllexport,malloc))
 #		else
 #			define IO_PUBLIC_SYMBOL __declspec(dllexport)
-#			define IO_MALLOC_ATTR __declspec(dllexport)
 #		endif
 #	else
-#		ifdef __GNUC__
+#		ifdef __GNUG__
 #			define IO_PUBLIC_SYMBOL __attribute__ ((dllimport))
 #			define IO_MALLOC_ATTR __attribute__ ((dllimport,malloc))
 #		else
 #			define IO_PUBLIC_SYMBOL __declspec(dllimport)
-#			define IO_MALLOC_ATTR __declspec(dllimport)
 #		endif
 #	endif // defined
 // static library

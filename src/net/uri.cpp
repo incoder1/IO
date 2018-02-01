@@ -84,7 +84,7 @@ static char to_lower_a(const char ch) noexcept
 #endif // io_tolower
 }
 
-static constexpr inline bool is_uppercase_a(const char ch) noexcept
+static inline bool is_uppercase_a(const char ch) noexcept
 {
 #ifdef io_isupper
 	return io_isupper(ch);

@@ -1,4 +1,4 @@
-/*
+﻿/*
  *
  * Copyright (c) 2016
  * Viktor Gubin
@@ -416,11 +416,14 @@ public:
 
     // binary primitives functions
 
+// MS VC++ defining int8_t as typedef char int8_t
+#ifndef _MSC_VER
     /// Puts a small value in its binary representation into current buffer
     /// \param small a small value
     inline bool put(int8_t small) {
         return put( static_cast<uint8_t>(small) );
     }
+#endif 
 
     inline int8_t get_int8() {
         return binary_get<int8_t>();

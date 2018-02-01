@@ -1,4 +1,4 @@
-/*
+﻿/*
  *
  * Copyright (c) 2016
  * Viktor Gubin
@@ -12,11 +12,12 @@
 
 #pragma once
 
-#if __cplusplus < 201103L
-#	error "This library requires at least C++ 11 standard compatiable compiler. Check compiller options"
+#if _MSVC_LANG < 201103L
+#	error "This library needs at least MS VC++ 15 with /std:c++latest compiller option"
 #endif // CPP11 detection
 
 #include <intrin.h>
+#include <stdint.h>
 
 #define HAS_PRAGMA_ONCE
 
@@ -26,13 +27,23 @@
 #	endif
 #endif
 
+#ifndef IO_NO_INLINE
+#	define IO_NO_INLINE __declspec(noinline)
+#endif // IO_NO_INLINE
+
 #ifndef  _CPPUNWIND
 #	define IO_NO_EXCEPTIONS
 // use static STL and stdlib C++ when exeptions off
 // to avoid std::unxpected, when exeptions off
+#	ifdef _HAS_EXCEPTIONS
+#		undef _HAS_EXCEPTIONS
+#	endif
 #	define _HAS_EXCEPTIONS 0
 #	define _STATIC_CPPLIB
 #endif // exception
+
+// MS VC doesn't generate big endian code
+#define IO_IS_LITTLE_ENDIAN 1
 
 #if defined(_M_IX86) || defined(_M_AMD64)
 #	define IO_CPU_INTEL
@@ -43,9 +54,9 @@
 #endif
 
 #ifdef IO_CPU_BITS_64
-#define io_size_t_abs(__x) llabs( (__x) )
+#	define io_size_t_abs(__x) llabs( (__x) )
 #else
-#define io_size_t_abs(__x) labs( (__x) )
+#	define io_size_t_abs(__x) labs( (__x) )
 #endif
 
 
@@ -60,6 +71,8 @@
 #define io_memchr(__s,__c,__n) memchr( (__s), (__c), (__n) )
 
 #define io_memset(__p,__v,__bytes) memset( (__p), (__v), (__bytes) )
+
+#define io_memcmp(__p1,__p2,__bytes) memcmp( (__p1), (__p2),(__bytes) )
 
 #define io_zerro_mem(__p,__bytes) memset( (__p), 0, (__bytes) )
 
@@ -87,26 +100,24 @@
 #define io_tolower(__ch) tolower((__ch))
 #define io_toupper(__ch) toupper((__ch))
 
-inline int io_clz(unsigned int x )
-{
-   int ret = 0;
-   _BitScanForward(&r, x);
-   return ret;
-}
-
-
-#ifndef _DEBUG
-#define NDEBUG
-#endif
 
 #ifndef IO_PUSH_IGNORE_UNUSED_PARAM
 
 #	define IO_PUSH_IGNORE_UNUSED_PARAM\
+			_Pragma("warning( push )")\
 			_Pragma("warning( push )")\
 			_Pragma("warning( disable : CA1801)")
 
 #	define IO_POP_IGNORE_UNUSED_PARAM _Pragma("warning( pop )")
 
 #endif // ignore unused parameters warning, for stub templates and plased new operators
+
+inline int io_clz(unsigned long x )
+{
+   unsigned long ret = 0;
+   _BitScanForward(&ret, x);
+   return  static_cast<int>(ret);
+}
+
 
 #endif // __COMPILLER_CONFIG_MSVC_HPP_INCLUDED__

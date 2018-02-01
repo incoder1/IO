@@ -101,15 +101,16 @@ operating system with any C++ 11 compatible (or partial compatible) compiler. C+
 ### TESTED COMPILERS AND PLATFORMS
 
 #### Microsoft Windows 
-			- Windows 7
-			- Windows 10
-		GCC/G++ 5.1 -  MinGW64 (TDM build)
-		GCC/G++ 7.2.0 MinGW64 (MSYS2 build)
-	
-(MS Visual C++ 15 should work [there is specific code] but not yet tested.
+		- Windows 7
+		- Windows 10
 		
-#### GNU/Lunux (Fedora 26)
-		GCC/GC++ 7.1 
+		- GCC/G++ 5.1 -  MinGW64 (TDM build)
+		- GCC/G++ 7.2.0 MinGW64 (MSYS2 build)
+		- MS Visual C++ 17 (x64)
+		
+#### GNU/Lunux
+	- Fedora 26
+	- GCC/GC++ 7.1 
 
 ## BUILDING
  
@@ -121,8 +122,8 @@ Code::Blocks IDE project files bundled. There are predefined configurations for 
 
 For Windows GCC you can use MSYS2 MinGW64. Otherwise (for example TDM GCC etc. ) you need to 
 find/build 
-	- libiconv
-	- gnutls  with all dependencies 
+	- gnuiconv
+	- gnutls 3.0+  with all dependencies 
 	
 ### Building with CMake
 To build with CMake build tool to can use following command
@@ -133,12 +134,30 @@ To build with CMake build tool to can use following command
 
 You can build shared or static library release or debug version, optionally you can on or off exceptions and rtti.
 
-### Building with GNU make
+### Building with makefiles
 
 This make files have no configuration state, i.e. all compile options are predefined. Only release version with exceptions 
 and RTTI off provided.
 
-#### Windows with GNU make
+#### Windows with Microsoft VC++
+
+You need Visual Studio or Visual Studio BuildTools version 15+
+
+Building is from command line using nmake tool. Source tree contains pre-build gnu iconv in deps sup folder
+build for x64 (amd64|x86_64).
+
+> WARNING! VC++ port have no HTTPS support ( porting in progress )
+
+To build the DLL, open command prompt execute vcvars64.bat from visual studio. See
+https://docs.microsoft.com/en-us/dotnet/framework/tools/developer-command-prompt-for-vs
+
+Then goto IO source code root directory and execute
+
+>			nmake -f io_dll_msvc.mak
+
+		build result available in target/release-win-msvc-dll-x64
+
+#### Windows with GCC (MinGW64) and GNU make
 
 In case of Windows you must use MSYS2. 
 

@@ -148,7 +148,7 @@ private:
 		return io_bswap64( unaligned_load64(p) );
 	}
 	static __forceinline uint32_t fetch_32(const uint8_t *p) {
-		return io_bswap32( unaligned_load34(p) );
+		return io_bswap32( unaligned_load32(p) );
 	}
 #endif // IO_IS_LITTLE_ENDIAN
 
@@ -188,7 +188,7 @@ private:
 		return ret;
 	}
 
-	static uint64_t IO_NO_INLINE hash_len0_to16(const uint8_t *s, std::size_t len) IO_NO_INLINE {
+	static uint64_t IO_NO_INLINE hash_len0_to16(const uint8_t *s, std::size_t len) noexcept {
 	  if (len >= 8) {
 			uint64_t mul = k2 + len * 2;
 			uint64_t a = fetch_64(s) + k2;

@@ -72,6 +72,8 @@ critical_section heap_allocator::_mtx;
 std::atomic<heap_allocator*> heap_allocator::_instance(nullptr);
 
 
+#ifdef __GNUG__
+
 void* IO_MALLOC_ATTR private_heap_alloc(std::size_t bytes) noexcept
 {
 	return heap_allocator::instance()->allocate(bytes);
@@ -81,6 +83,20 @@ void IO_PUBLIC_SYMBOL private_heap_free(void * const ptr) noexcept
 {
 	heap_allocator::instance()->release(ptr);
 }
+
+#else
+
+IO_PUBLIC_SYMBOL void* private_heap_alloc(std::size_t bytes) noexcept
+{
+	return heap_allocator::instance()->allocate(bytes);
+}
+
+IO_PUBLIC_SYMBOL void private_heap_free(void * const ptr) noexcept
+{
+	heap_allocator::instance()->release(ptr);
+}
+
+#endif
 
 
 } // namesapce win

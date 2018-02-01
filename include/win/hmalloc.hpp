@@ -16,8 +16,14 @@ namespace io {
 
 namespace win {
 
+#ifdef __GNUG__
 	void* IO_MALLOC_ATTR private_heap_alloc(std::size_t bytes) noexcept;
 	void IO_PUBLIC_SYMBOL private_heap_free(void * const ptr) noexcept;
+#else
+	IO_PUBLIC_SYMBOL void* private_heap_alloc(std::size_t bytes) noexcept;
+	IO_PUBLIC_SYMBOL void private_heap_free(void * const ptr) noexcept;
+#endif
+
 
 } // namesapce win
 

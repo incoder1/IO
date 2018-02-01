@@ -11,9 +11,6 @@
 #ifndef CONFIG_HPP_INCLUDED
 #define CONFIG_HPP_INCLUDED
 
-#if __cplusplus < 201103L
-#	error "This library requires at least C++ 11 standard compiler"
-#endif // CPP11 detection
 
 #ifdef __GNUC__
 #include "config/compiller/gcc.hpp"

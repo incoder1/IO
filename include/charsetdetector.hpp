@@ -13,6 +13,7 @@
 #include "object.hpp"
 #include "unicode_bom.hpp"
 
+#include <array>
 #include <vector>
 
 namespace io {

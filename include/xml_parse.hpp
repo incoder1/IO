@@ -95,7 +95,7 @@ private:
 	friend class nobadalloc<event_stream_parser>;
 	event_stream_parser(const event_stream_parser&) = delete;
 	event_stream_parser& operator=(const event_stream_parser&) = delete;
-	event_stream_parser(const s_source& src, s_string_pool&& pool);
+	event_stream_parser(const s_source& src, s_string_pool&& pool) noexcept;
 public:
 
 	/// Constructs new XML parser from an XML source
