@@ -28,9 +28,9 @@ int main()
 	using namespace io::net;
 	std::error_code ec;
 	//s_uri url = uri::parse(ec, "http://www.springframework.org/schema/beans/spring-beans-4.2.xsd");
-	//s_uri url = uri::parse(ec, "https://www.springframework.org/beans/spring-beans-4.2.xsd");
+	s_uri url = uri::parse(ec, "https://www.springframework.org/beans/spring-beans-4.2.xsd");
 
-	s_uri url = uri::parse(ec, "https://www.google.com");
+	//s_uri url = uri::parse(ec, "https://www.google.com");
 	io::check_error_code(ec);
 
 	io::check_error_code(ec);
@@ -47,7 +47,7 @@ int main()
     io::s_read_write_channel raw_ch = tpc_socket->connect(ec);
     io::check_error_code( ec );
 
-    io::s_read_write_channel sch = sec_service->new_client_connection(ec, raw_ch );
+    io::s_read_write_channel sch = sec_service->new_client_connection(ec, std::move(raw_ch) );
     io::check_error_code(ec);
 
 	http::s_request rq = http::new_request( ec, http::method::get, url );
@@ -66,6 +66,8 @@ int main()
 		if(read > 0)
 			std::cout.write( reinterpret_cast<const char*>(tmp.get()), read);
 	} while(!ec && read > 0 );
+
+	std::cout.flush();
 
     return 0;
 }

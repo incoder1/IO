@@ -33,6 +33,7 @@ OBJECTS = stdafx.pch errorcheck.obj memory_traits.obj sockets.obj files.obj sync
 LINK_OBJECTS = $(OBJ)\stdafx.obj $(OBJ)\errorcheck.obj $(OBJ)\memory_traits.obj $(OBJ)\sockets.obj $(OBJ)\files.obj $(OBJ)\synch_socket_channel.obj $(OBJ)\console.obj $(OBJ)\shared_library.obj $(OBJ)\buffer.obj $(OBJ)\channels.obj $(OBJ)\stringpool.obj $(OBJ)\charsets.obj $(OBJ)\charsetdetector.obj $(OBJ)\unicode_bom.obj $(OBJ)\charsetcvt.obj $(OBJ)\text.obj $(OBJ)\uri.obj $(OBJ)\http_client.obj $(OBJ)\xml_error.obj $(OBJ)\xml_event.obj $(OBJ)\xml_source.obj $(OBJ)\xml_parse.obj
 
 all: clean link
+	copy $(DEPS_LIBS)\iconv-2.dll $(TARGET)\iconv-2.dll
 
 clean:
 #	del $(OBJ) > nul

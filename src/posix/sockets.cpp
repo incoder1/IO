@@ -313,9 +313,6 @@ s_socket socket_factory::client_udp_socket(std::error_code& ec, const char* host
 	return s_socket();
 }
 
-
-
-
 } // namespace net
 
 } // namespace io

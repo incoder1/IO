@@ -168,10 +168,10 @@ service::service(credentials&& creds) noexcept:
 service::~service() noexcept
 {}
 
-s_read_write_channel service::new_client_connection(std::error_code& ec, const s_read_write_channel& socket) const noexcept
+s_read_write_channel service::new_client_connection(std::error_code& ec, s_read_write_channel&& socket) const noexcept
 {
 
-    session s = session::client_session(ec, creds_.get(),  s_read_write_channel( socket ) );
+    session s = session::client_session(ec, creds_.get(),  std::forward<s_read_write_channel>(socket) );
     if( ec )
         return s_read_write_channel();
     tls_channel* ch = nobadalloc< tls_channel >::construct(ec, std::move(s) );

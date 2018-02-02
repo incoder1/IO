@@ -172,7 +172,7 @@ public:
     static const service* instance(std::error_code& ec) noexcept;
     ~service() noexcept;
 
-    s_read_write_channel new_client_connection(std::error_code& ec, const s_read_write_channel& socket) const noexcept;
+    s_read_write_channel new_client_connection(std::error_code& ec, s_read_write_channel&& socket) const noexcept;
 private:
     service(credentials&& creds) noexcept;
     static void destroy_gnu_tls_atexit() noexcept;

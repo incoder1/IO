@@ -153,7 +153,7 @@ https://docs.microsoft.com/en-us/dotnet/framework/tools/developer-command-prompt
 
 Then goto IO source code root directory and execute
 
->			nmake -f io_dll_msvc.mak
+>			nmake -f NMakefile-msvcx64-dll.mak
 
 		build result available in target/release-win-msvc-dll-x64
 
