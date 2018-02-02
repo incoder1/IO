@@ -54,7 +54,7 @@ static void print_instr(std::ostream& stm, const xml::s_event_stream_parser& s)
 	// extract and parse processing instruction
 	xml::instruction_event e = s->parse_processing_instruction();
 	// check parsing was succsess
-	if( s->is_error() ) {
+	if( !s->is_error() ) {
 		stm<<"processing instruction:\n";
 		stm<<"\ttarget:" <<e.target();
 		stm<<"\n\tdata: " << e.data() << std::endl;
