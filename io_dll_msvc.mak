@@ -18,14 +18,14 @@ SHARED_EXT=dll
 
 PLATFORM_SHARED_LINK_OPTIONS=
 
-LIBS=libiconv.lib Ws2_32.lib User32.lib
+LIBS=iconv.dll.lib Ws2_32.lib User32.lib
 INCLUEDS=/Iinclude /Iinclude\win /Iinclude\net /Isrc /I$(DEPS_INCLUDES)
 
-OPTIMIZE=
+OPTIMIZE= /Ox /Zc:wchar_t
 SHARED_DEFINES= /DIO_SHARED_LIB /DIO_BUILD
-DEFINES = /DNDEBUG $(SHARED_DEFINES)
-CPPFLAGS = /c /Ox /std:c++latest /Zc:wchar_t $(DEFINES) $(OPTIMIZE) $(INCLUEDS) 
-LDFLAGS = /LIBPATH:$(DEPS_LIBS) $(LIBS) 
+DEFINES = $(SHARED_DEFINES) /DNDEBUG /DUNICODE
+CPPFLAGS = /c /MT /std:c++latest $(DEFINES) $(OPTIMIZE) $(INCLUEDS) 
+LDFLAGS = /DLL /LIBPATH:$(DEPS_LIBS)
 
 PCH = /Yustdafx.hpp /Fp$(OBJ)\stdafx.pch
 
@@ -41,7 +41,7 @@ clean:
 	mkdir $(TARGET)
 	
 link: compile
-	$(LD) /DLL /OUT:$(TARGET)\io.dll /IMPLIB:$(TARGET)\io.lib $(LDFLAGS) $(LINK_OBJECTS)
+	$(LD) $(LDFLAGS) /OUT:$(TARGET)\io.dll /IMPLIB:$(TARGET)\io.lib $(LIBS) $(LINK_OBJECTS)
 
 compile: $(OBJECTS)
 

@@ -35,7 +35,7 @@
 #define EILSEQ 
 #endif
 
-#define LIBICONV_DLL_EXPORTED
+#define LIBICONV_DLL_EXPORTED __declspec(dllimport)
 
 extern LIBICONV_DLL_EXPORTED  int _libiconv_version; /* Likewise */
 

@@ -119,5 +119,8 @@ inline int io_clz(unsigned long x )
    return  static_cast<int>(ret);
 }
 
+#define _STATIC_CPPLIB
+// disable warnings about defining _STATIC_CPPLIB
+#define _DISABLE_DEPRECATE_STATIC_CPPLIB  
 
 #endif // __COMPILLER_CONFIG_MSVC_HPP_INCLUDED__
