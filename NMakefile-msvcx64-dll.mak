@@ -18,7 +18,7 @@ SHARED_EXT=dll
 
 PLATFORM_SHARED_LINK_OPTIONS=
 
-LIBS=iconv.dll.lib Ws2_32.lib User32.lib
+LIBS=iconv.dll.lib Ws2_32.lib User32.lib Secur32.lib
 INCLUEDS=/Iinclude /Iinclude\win /Iinclude\net /Isrc /I$(DEPS_INCLUDES)
 
 OPTIMIZE= /Ox /Zc:wchar_t
@@ -29,8 +29,8 @@ LDFLAGS = /DLL /LIBPATH:$(DEPS_LIBS)
 
 PCH = /Yustdafx.hpp /Fp$(OBJ)\stdafx.pch
 
-OBJECTS = stdafx.pch errorcheck.obj memory_traits.obj sockets.obj files.obj synch_socket_channel.obj console.obj shared_library.obj buffer.obj channels.obj stringpool.obj charsets.obj charsetdetector.obj unicode_bom.obj charsetcvt.obj text.obj uri.obj http_client.obj xml_error.obj xml_event.obj xml_source.obj xml_parse.obj
-LINK_OBJECTS = $(OBJ)\stdafx.obj $(OBJ)\errorcheck.obj $(OBJ)\memory_traits.obj $(OBJ)\sockets.obj $(OBJ)\files.obj $(OBJ)\synch_socket_channel.obj $(OBJ)\console.obj $(OBJ)\shared_library.obj $(OBJ)\buffer.obj $(OBJ)\channels.obj $(OBJ)\stringpool.obj $(OBJ)\charsets.obj $(OBJ)\charsetdetector.obj $(OBJ)\unicode_bom.obj $(OBJ)\charsetcvt.obj $(OBJ)\text.obj $(OBJ)\uri.obj $(OBJ)\http_client.obj $(OBJ)\xml_error.obj $(OBJ)\xml_event.obj $(OBJ)\xml_source.obj $(OBJ)\xml_parse.obj
+OBJECTS = stdafx.pch errorcheck.obj memory_traits.obj sockets.obj files.obj synch_socket_channel.obj sspi_channel.obj console.obj shared_library.obj buffer.obj channels.obj stringpool.obj charsets.obj charsetdetector.obj unicode_bom.obj charsetcvt.obj text.obj uri.obj http_client.obj xml_error.obj xml_event.obj xml_source.obj xml_parse.obj
+LINK_OBJECTS = $(OBJ)\stdafx.obj $(OBJ)\errorcheck.obj $(OBJ)\memory_traits.obj $(OBJ)\sockets.obj $(OBJ)\files.obj $(OBJ)\synch_socket_channel.obj $(OBJ)\sspi_channel.obj $(OBJ)\console.obj $(OBJ)\shared_library.obj $(OBJ)\buffer.obj $(OBJ)\channels.obj $(OBJ)\stringpool.obj $(OBJ)\charsets.obj $(OBJ)\charsetdetector.obj $(OBJ)\unicode_bom.obj $(OBJ)\charsetcvt.obj $(OBJ)\text.obj $(OBJ)\uri.obj $(OBJ)\http_client.obj $(OBJ)\xml_error.obj $(OBJ)\xml_event.obj $(OBJ)\xml_source.obj $(OBJ)\xml_parse.obj
 
 all: clean link
 	copy $(DEPS_LIBS)\iconv-2.dll $(TARGET)\iconv-2.dll
@@ -60,6 +60,8 @@ sockets.obj:
 	$(CXX) $(CPPFLAGS) $(PCH) src\win\sockets.cpp /Fo$(OBJ)\sockets.obj
 synch_socket_channel.obj:
 	$(CXX) $(CPPFLAGS) $(PCH) src\win\synch_socket_channel.cpp /Fo$(OBJ)\synch_socket_channel.obj
+sspi_channel.obj:
+	$(CXX) $(CPPFLAGS) $(PCH) src\win\sspi_channel.cpp /Fo$(OBJ)\sspi_channel.obj
 console.obj:
 	$(CXX) $(CPPFLAGS) $(PCH) src\win\console.cpp /Fo$(OBJ)\console.obj
 shared_library.obj:

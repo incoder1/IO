@@ -87,14 +87,14 @@ public:
     	px_(nullptr)
     {}
 
-    intrusive_ptr(T * p, bool add_ref = true ):
+    intrusive_ptr(T * p, bool add_ref = true ) noexcept:
     	px_(p)
     {
         if(nullptr != px_ && add_ref )
 			intrusive_ptr_add_ref(px_);
     }
 
-	intrusive_ptr(intrusive_ptr const & rhs):
+	intrusive_ptr(intrusive_ptr const & rhs) noexcept:
         	px_( rhs.px_ )
     {
         if( nullptr != px_ )
@@ -134,13 +134,13 @@ public:
         return px_ != nullptr;
     }
 
-	intrusive_ptr& operator=(intrusive_ptr const & rhs)
+	intrusive_ptr& operator=(intrusive_ptr const & rhs) noexcept
     {
         this_type(rhs).swap(*this);
         return *this;
     }
 
-    intrusive_ptr & operator=(T * rhs)
+    intrusive_ptr & operator=(T * rhs) noexcept
     {
         this_type(rhs).swap(*this);
         return *this;
@@ -151,12 +151,12 @@ public:
         this_type().swap(*this);
     }
 
-    void reset(T * rhs )
+    void reset(T * rhs ) noexcept
     {
         this_type( rhs ).swap(*this);
     }
 
-    void reset(T * rhs, bool add_ref )
+    void reset(T * rhs, bool add_ref ) noexcept
     {
         this_type(rhs,add_ref).swap(*this);
     }
@@ -173,13 +173,13 @@ public:
         return ret;
     }
 
-    inline T& operator*() const
+    inline T& operator*() const noexcept
     {
         assert( px_ != 0 );
         return *px_;
     }
 
-    inline T * operator->() const
+    inline T * operator->() const noexcept
     {
         assert( px_ != nullptr);
         return px_;
@@ -290,11 +290,13 @@ intrusive_ptr<T> const_pointer_cast(intrusive_ptr<U> const & p)
     return const_cast<T *>(p.get());
 }
 
+#ifndef IO_NO_RTTI
 template<class T, class U>
 intrusive_ptr<T> dynamic_pointer_cast(intrusive_ptr<U> const & p)
 {
-    return dynamic_cast<T *>(p.get());
+    return dynamic_cast<T *>( p.get() );
 }
+#endif // IO_NO_RTTI
 
 } // namesapce boost
 

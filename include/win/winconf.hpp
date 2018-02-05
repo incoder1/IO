@@ -8,10 +8,10 @@
 // Check for the default value, for MinGW is Windows XP
 #if defined(_WIN32_WINNT) && defined(IO_BUILD)
 
-#	if _WIN32_WINNT < 0x0600
+#	if _WIN32_WINNT < _WIN32_WINNT_VISTA
 #		undef  _WIN32_WINNT
-#		define WINVER 0x0600
-#		define _WIN32_WINNT 0x0600
+#		define WINVER _WIN32_WINNT_VISTA
+#		define _WIN32_WINNT _WIN32_WINNT_VISTA
 #	endif // _WIN32_WINNT
 
 #	define WIN32_LEAN_AND_MEAN
@@ -56,8 +56,13 @@
 #	endif // defined
 // static library
 #else
-#	define IO_PUBLIC_SYMBOL
-#	define IO_MALLOC_ATTR __attribute__ ((malloc))
+#	ifdef __GNUG__
+#		define IO_PUBLIC_SYMBOL
+#		define IO_MALLOC_ATTR __attribute__((malloc))
+#	else
+#		define IO_PUBLIC_SYMBOL
+#		define IO_MALLOC_ATTR
+#	endif // __GNUG__
 #endif // IO_SHARED_LIB
 
 #include "hmalloc.hpp"

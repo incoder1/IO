@@ -224,7 +224,6 @@
 		<Unit filename="include/hashing.hpp" />
 		<Unit filename="include/net/http_client.hpp" />
 		<Unit filename="include/net/secure_channel.hpp">
-			<Option target="debug-win-gcc-static-x64" />
 			<Option target="debug-win-gcc-dll-x64" />
 			<Option target="release-win-gcc-static-x64" />
 			<Option target="debug-unix-gcc-so-x64" />
@@ -312,6 +311,7 @@
 			<Option target="debug-win-gcc-dll-x64" />
 			<Option target="release-win-gcc-static-x64" />
 			<Option target="release-win-gcc-dll-x64" />
+			<Option target="debug-win-gcc-static-x64" />
 		</Unit>
 		<Unit filename="include/win/synch_socket_channel.hpp">
 			<Option target="debug-win-gcc-dll-x64" />
@@ -345,7 +345,6 @@
 		<Unit filename="src/charsets.cpp" />
 		<Unit filename="src/net/http_client.cpp" />
 		<Unit filename="src/net/secure_channel.cpp">
-			<Option target="debug-win-gcc-static-x64" />
 			<Option target="debug-win-gcc-dll-x64" />
 			<Option target="release-win-gcc-static-x64" />
 			<Option target="debug-unix-gcc-so-x64" />
@@ -414,6 +413,7 @@
 			<Option target="debug-win-gcc-dll-x64" />
 			<Option target="release-win-gcc-static-x64" />
 			<Option target="release-win-gcc-dll-x64" />
+			<Option target="debug-win-gcc-static-x64" />
 		</Unit>
 		<Unit filename="src/win/synch_socket_channel.cpp">
 			<Option target="debug-win-gcc-dll-x64" />

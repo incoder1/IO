@@ -8,15 +8,15 @@
  * LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
  *
  */
-#ifndef CONFIG_HPP_INCLUDED
-#define CONFIG_HPP_INCLUDED
+#ifndef IO_CONFIG_HPP_INCLUDED
+#define IO_CONFIG_HPP_INCLUDED
 
 
-#ifdef __GNUC__
+#ifdef __GNUG__
 #include "config/compiller/gcc.hpp"
 #elif defined(_MSC_VER)
 #include "config/compiller/ms_visual_cpp.hpp"
-#endif // __GNUC__
+#endif // __GNUG__
 
 #ifdef HAS_PRAGMA_ONCE
 #pragma once
@@ -54,4 +54,4 @@
 #define DECLARE_IPTR(T) typedef boost::intrusive_ptr<T> s_##T
 #endif // DECLARE_IPTR
 
-#endif // CONFIG_HPP_INCLUDED
+#endif // IO_CONFIG_HPP_INCLUDED

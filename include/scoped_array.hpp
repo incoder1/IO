@@ -99,7 +99,7 @@ public:
 			rf_(mem_);
 	}
 
-	operator bool() const noexcept {
+	explicit operator bool() const noexcept {
 		return nullptr != mem_;
 	}
 
