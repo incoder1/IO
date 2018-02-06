@@ -97,8 +97,10 @@ file::file(const wchar_t* name) noexcept:
 	name_()
 {
 	if(nullptr != name && L'\0' != *name) {
-		scoped_arr<char> tmp( std::wcslen(name) + 1 );
-		std::wcstombs( tmp.get(), const_cast<wchar_t*>(name), tmp.len()-1);
+		std::size_t len = std::wcslen(name);
+		scoped_arr<char> tmp( len + 1 );
+		if(tmp)
+			std::wcstombs( tmp, const_cast<wchar_t*>(name), len );
 		name_ = std::move(tmp);
 	}
 }

@@ -134,7 +134,7 @@ s_connection_contex connection_contex::new_context(std::error_code& ec, ::PCredH
                                     ISC_REQ_REPLAY_DETECT   |
                                     ISC_REQ_CONFIDENTIALITY |
                                     ISC_RET_EXTENDED_ERROR  |
-                                    ISC_REQ_ALLOCATE_MEMORY |
+                                   // ISC_REQ_ALLOCATE_MEMORY |
                                     ISC_REQ_MUTUAL_AUTH 	|
                                     ISC_REQ_STREAM;
 
@@ -206,15 +206,15 @@ connection_contex::~connection_contex() noexcept
 
 bool connection_contex::client_handshake(std::error_code& ec) noexcept
 {
+	// send client creds
+	io::transmit_buffer( ec, raw_, out_.get(), out_.len() );
 	::SECURITY_STATUS ss = SEC_E_INCOMPLETE_MESSAGE;
 	std::size_t read;
 	while( ss == SEC_E_INCOMPLETE_MESSAGE || ss ==  SEC_I_CONTINUE_NEEDED ) {
-		// send client creds
-        io::transmit_buffer( ec, raw_, out_.get(), out_.len() );
-		// read server response
-		read = raw_->read(ec, in_.get(), in_.len() );
 		if(ec)
 			return false;
+		// read server response
+		read = raw_->read(ec, in_.get(), in_.len() );
 	}
 
 	return false;
