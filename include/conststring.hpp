@@ -245,17 +245,17 @@ public:
 
     /// Converts this string to system UCS-2 ( UTF-16 LE or BE)
     inline std::u16string convert_to_u16() const {
-        return empty() ? std::u16string() : transcode_to_u16( data(), length() );
+        return empty() ? std::u16string() : transcode_to_u16( data(), size() );
     }
 
     /// Converts this string to system UCS-4 ( UTF-32 LE or BE)
     inline std::u32string convert_to_u32() const {
-        return empty() ? std::u32string() : transcode_to_u32( data(), length() );
+        return empty() ? std::u32string() : transcode_to_u32( data(), size() );
     }
 
     /// Converts this string to system whide UNICODE (UTF-16/32 LE/BE OS and CPU byte order depends) representation
     inline std::wstring convert_to_ucs() const {
-        return empty() ? std::wstring() : transcode_to_ucs( data(), length() );
+        return empty() ? std::wstring() : transcode_to_ucs( data(), size() );
     }
 
     ///Returns string length in UNICODE characters
