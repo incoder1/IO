@@ -7,19 +7,18 @@
 
 #include <xml_lexcast.hpp>
 #include <text.hpp>
+#include <conststring.hpp>
 
 #include <iostream>
 
 #include <charsetdetector.hpp>
 
 const char* latin1str = "0Aa\n\t1Bb\n\t2Cc\n\t3Dd\n\t4Ee\n\t5Ff\n\t6Gg\n\t7Hh\n\t8Ii\n\t9Jj";
-const char* u8str = "Hello!\nПривет!\nПривіт!\nΧαιρετίσματα!\nHelló!\nHallå!\nこんにちは!\n您好!\n";
+const char* u8str = "Hello!\nПривет!\nПривіт!\nΧαιρετίσματα!\nHelló!\nHallå!\nこんにちは!\n你好!\n";
+
 
 int main()
 {
-	//typedef io::xml::lexical_cast<char32_t> lcast;
-	//std::cout << lcast::str_to_float(U"0.33") << std::endl;
-
 	std::error_code ec;
 	io::s_charset_detector chdet = io::charset_detector::create(ec);
 	io::check_error_code(ec);
@@ -45,5 +44,6 @@ int main()
 	std::cout << "Type: " << ( status ? "for sure\n" : "guested\n");
 	if(!status)
 		std::cout << "Confidence : " << ( status.confidence() * 100.0F ) << '%' << std::endl;
+
     return 0;
 }

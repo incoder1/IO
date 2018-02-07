@@ -104,23 +104,24 @@ static error check_xml_name(const char* tn) noexcept
     if( is_digit(*tn) )
         return error::illegal_name;
     // need to convert into USC-4 in this point
-    std::size_t len = io_strlen(tn);
+    const std::size_t len = io_strlen(tn);
+    const std::size_t u32len = const_string::utf8_length(tn);
     char32_t *ch32 = nullptr;
     if(0 == len)
         return error::illegal_name;
-    else if(len < UCHAR_MAX) {
+    else if(u32len < UCHAR_MAX) {
         // stack in this point
-        ch32 = static_cast<char32_t*>( io_alloca( len * sizeof(char32_t) ) );
+        ch32 = static_cast<char32_t*>( io_alloca( u32len * sizeof(char32_t) ) );
     } else {
         // a huge name, more then 255 bytes
-        ch32 =   memory_traits::calloc_temporary<char32_t>(len);
+        ch32 =   memory_traits::calloc_temporary<char32_t>(u32len);
         if(nullptr == ch32)
             return error::out_of_memory;
     }
     std::error_code ec;
     std::size_t ulen = transcode(ec,
                                  reinterpret_cast<const uint8_t*>(tn),len,
-                                 ch32,len);
+                                 ch32,u32len);
     if( ec || !ulen ) {
         // huge name, release memory for UCS-4
         if(len > UCHAR_MAX)
@@ -135,7 +136,7 @@ static error check_xml_name(const char* tn) noexcept
         if( !is_xml_name_char( ch32[i] ) )
             return error::illegal_name;
     }
-    if(len > UCHAR_MAX)
+    if(u32len > UCHAR_MAX)
         memory_traits::free_temporary( ch32 );
     return error::ok;
 }

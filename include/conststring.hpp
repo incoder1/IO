@@ -95,7 +95,35 @@ private:
         std::size_t volatile *p = reinterpret_cast<std::size_t volatile*>(ptr);
         return static_cast<size_t>(0) == detail::atomic_traits::dec(p);
     }
+
+#ifdef IO_IS_LITTLE_ENDIAN
+	static constexpr unsigned int MB_SHIFT = ( sizeof(unsigned int) << 3 ) - 8;
+#endif // IO_IS_LITTLE_ENDIAN
+
+	// returns UTF-8 character size in bytes
+    static unsigned int u8_mblen(const uint8_t* mb) noexcept
+    {
+		if( static_cast<unsigned int>(mb[0]) < 0x80U)
+			return 1;
+#ifdef IO_IS_LITTLE_ENDIAN
+		unsigned int c = static_cast<unsigned int>(mb[0]) << MB_SHIFT;
+#else
+		unsigned int c = static_cast<unsigned int>(mb[0]);
+#endif // IO_IS_LITTLE_ENDIAN
+		return static_cast<unsigned int>( io_clz( ~c ) );
+    }
+
 public:
+
+	/// Returns UTF-8 string length in logical UNICODE characters
+	/// \return length in characters
+	static std::size_t utf8_length(const char* u8str) noexcept {
+		std::size_t ret = 0;
+		for(const uint8_t *c = reinterpret_cast<const uint8_t*>(u8str); '\0' != *c; c += u8_mblen(c) )
+			++ret;
+		return ret;
+	}
+
     typedef std::char_traits<char> traits_type;
 
     /// Creates empty constant string  object
@@ -123,28 +151,29 @@ public:
         other.data_ = nullptr;
     }
 
-    /// Movement assigment operator, defailt movement semantic
+    /// Movement assignment operator, default movement semantic
     const_string& operator=(const_string&& other) noexcept {
         const_string( std::forward<const_string>(other) ).swap( *this );
         return *this;
     }
 
-    /// Deep copy a character array
+    /// Constructs constant string object by deep copying a character array
     /// \param str pointer to character array begin
-    /// \param length count of chars to be copied
+    /// \param length count of bytes to copy from array
+    /// \throw never throws, constructs empty string if no free memory left
     const_string(const char* str, std::size_t length) noexcept:
         data_(nullptr) {
         assert(nullptr != str && length > 0);
         const std::size_t len = sizeof(std::size_t) + length + 1;
         data_ = memory_traits::malloc_array<uint8_t>( len );
-
-        // set initial intrusive atomic reference count
-        std::size_t *rc = reinterpret_cast<std::size_t*>(data_);
-        *rc = 1;
-
-        // copy string data
-        char *b = reinterpret_cast<char*>( data_ + sizeof(std::size_t) );
-        traits_type::copy(b, str, length);
+        if(nullptr != data_) {
+			// set initial intrusive atomic reference count
+			std::size_t *rc = reinterpret_cast<std::size_t*>(data_);
+			*rc = 1;
+			// copy string data
+			char *b = reinterpret_cast<char*>( data_ + sizeof(std::size_t) );
+			traits_type::copy(b, str, length);
+        }
     }
 
     /// Decrement this string reference count, release allocated memory when
@@ -187,9 +216,7 @@ public:
     /// Checks whether this string empty or contains only whitespace characters
     /// \return whether this string is blank
     inline bool blank() const noexcept {
-        if(empty())
-            return true;
-        const char *c = reinterpret_cast<const char*>( data_ + sizeof(std::size_t) );
+        const char *c = data();
         while( *c != '\0') {
 #ifdef io_isspace
             if( ! io_isspace( traits_type::to_int_type( *c ) ) )
@@ -231,16 +258,23 @@ public:
         return empty() ? std::wstring() : transcode_to_ucs( data(), length() );
     }
 
-    /// Returns string length in bytes
-    /// \return string length in bytes
+    ///Returns string length in UNICODE characters
+    /// \return string length in characters
     inline std::size_t length() const noexcept {
+    	return empty() ? 0 : utf8_length( data() );
+    }
+
+
+    /// Returns string size in bytes
+    /// \return string size in bytes
+    inline std::size_t size() const noexcept {
         return empty() ? 0 : traits_type::length( data() );
     }
 
     /// Hash this string bytes (murmur3 for 32bit, cityhash for 64 bit)
     /// \return string content hash
     inline std::size_t hash() const noexcept {
-        return empty() ? io::hash_bytes( data(), length() ) : 0;
+        return empty() ? io::hash_bytes( data(), size() ) : 0;
     }
 
     /// Lexicographically compare the string with another

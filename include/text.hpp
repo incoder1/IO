@@ -127,6 +127,48 @@ static constexpr uint8_t* address_of(const T* p) noexcept
 	return const_cast<uint8_t*>( reinterpret_cast<const uint8_t*>(p) );
 }
 
+// returns UTF-8 character size in bytes
+static unsigned int u8_mblen(const char* mb) noexcept
+{
+	if( static_cast<unsigned int>(mb[0]) < 0x80U)
+			return 1;
+#ifdef IO_IS_LITTLE_ENDIAN
+		static constexpr unsigned int MB_SHIFT = ( sizeof(unsigned int) << 3 ) - 8;
+		unsigned int c = static_cast<unsigned int>(mb[0]) << MB_SHIFT;
+#else
+		unsigned int c = static_cast<unsigned int>(mb[0]);
+#endif // IO_IS_LITTLE_ENDIAN
+		return static_cast<unsigned int>( io_clz( ~c ) );
+}
+
+static std::size_t utf16_buff_size(const char* b, std::size_t size) noexcept
+{
+	const char *end = b + size;
+	std::size_t ret = 0;
+	const char *c = b;
+	unsigned int mblen;
+	while( (b < end) && '\0' != *c) {
+		mblen = u8_mblen(c);
+		ret = ret > 2 ? ret + 2 : ret + 1;
+		c = c + mblen;
+	}
+	return ret;
+}
+
+static std::size_t utf32_buff_size(const char* b, std::size_t size) noexcept
+{
+	const char *end = b + size;
+	std::size_t ret = 0;
+	const char *c = b;
+	unsigned int mblen;
+	while( (b < end) && '\0' != *c) {
+		mblen = u8_mblen(c);
+		ret += mblen;
+		c = c + mblen;
+	}
+	return ret;
+}
+
 } // namesapace detail
 
 
@@ -137,7 +179,7 @@ static constexpr uint8_t* address_of(const T* p) noexcept
 /// \throw std::system_error or std::bad_alloc
 inline std::u16string transcode_to_u16(const char* u8_str, std::size_t bytes)
 {
-	scoped_arr<char16_t> arr(bytes);
+	scoped_arr<char16_t> arr( detail::utf16_buff_size(u8_str, bytes) + 1 );
 	std::error_code ec;
 	std::size_t conv = transcode(ec, detail::address_of(u8_str), bytes, arr.get(), arr.len() );
 	check_error_code(ec);
@@ -151,7 +193,7 @@ inline std::u16string transcode_to_u16(const char* u8_str, std::size_t bytes)
 /// \throw std::system_error or std::bad_alloc
 inline std::u32string transcode_to_u32(const char* u8_str, std::size_t bytes)
 {
-	scoped_arr<char32_t> arr(bytes);
+	scoped_arr<char32_t> arr( detail::utf32_buff_size(u8_str,bytes) + 1);
 	std::error_code ec;
 	std::size_t conv = transcode(ec, detail::address_of(u8_str), bytes, arr.get(), arr.len() );
 	check_error_code(ec);
@@ -205,9 +247,9 @@ inline std::string transcode(const char32_t* u32_str)
 inline std::wstring transcode_to_ucs(const char* u8_str, std::size_t bytes)
 {
 #ifdef __IO_WINDOWS_BACKEND__
-	scoped_arr<char16_t> arr( bytes * 2 );
+	scoped_arr<char16_t> arr( detail::utf16_buff_size(u8_str, bytes) + 1 );
 #else
-	scoped_arr<char32_t> arr( bytes * 4 );
+	scoped_arr<char32_t> arr( detail::utf32_buff_size(u8_str,bytes) + 1);
 #endif // __IO_WINDOWS_BACKEND__
 	std::error_code ec;
 	std::size_t conv = transcode(ec, detail::address_of(u8_str), bytes, arr.get(), arr.len() );
@@ -222,7 +264,7 @@ inline std::wstring transcode_to_ucs(const char* u8_str)
 
 namespace detail {
 
-inline std::string transcode_big(const wchar_t* ucs_str, std::size_t len)
+static std::string transcode_big(const wchar_t* ucs_str, std::size_t len)
 {
 #ifdef __IO_WINDOWS_BACKEND__
 	const char16_t* ucs = reinterpret_cast<const char16_t*>(ucs_str);
@@ -236,7 +278,7 @@ inline std::string transcode_big(const wchar_t* ucs_str, std::size_t len)
 	return std::string(arr.get(), conv);
 }
 
-inline std::string transcode_small(const wchar_t* ucs_str, std::size_t len)
+static std::string transcode_small(const wchar_t* ucs_str, std::size_t len)
 {
 #ifdef __IO_WINDOWS_BACKEND__
 	const char16_t* ucs = reinterpret_cast<const char16_t*>(ucs_str);

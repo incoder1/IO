@@ -103,13 +103,13 @@
 #define io_tolower(__ch) __builtin_tolower((__ch))
 #define io_toupper(__ch) __builtin_toupper((__ch))
 
-#define io_bswap16 __builtin_bswap16
-#define io_clz __builtin_clz
+#define io_bswap16(__x) __builtin_bswap16((__x))
+#define io_clz(__x) __builtin_clz((__x))
 
 #ifndef IO_IS_MINGW
 
-#define io_bswap32 __builtin_bswap32
-#define io_bswap64 __builtin_bswap64
+#define io_bswap32(__x) __builtin_bswap32((__x))
+#define io_bswap64(__x) __builtin_bswap64((__x))
 
 // some MinGW/MinGW old compiler version making library calls instead of intrict,
 // even when -mmovbe

@@ -401,15 +401,16 @@ inline size_t xmlname_strspn(const char *s)
 	return io_strcspn( s, pattern);
 }
 
-
 inline uint8_t u8_char_size(const char ch) {
-	if(  static_cast<int8_t>(ch) > 0 )
-		return 1;
-	unsigned int c = ~static_cast<unsigned int>( ch );
-	// (sizeof(int) * 8) - 8, i.e. (4 * 8) - 8 = 24
-	// or (8 * 8) - 8 = 56
-	static constexpr int DIFF = (sizeof(int) << 3) - 8;
-	return static_cast<uint8_t>( io_clz(c) - DIFF );
+		if( static_cast<unsigned int>(ch) < 0x80U)
+			return 1;
+#ifdef IO_IS_LITTLE_ENDIAN
+		static constexpr unsigned int MB_SHIFT = ( sizeof(unsigned int) << 3 ) - 8;
+		unsigned int c = static_cast<unsigned int>(ch) << MB_SHIFT;
+#else
+		unsigned int c = static_cast<unsigned int>(ch);
+#endif // IO_IS_LITTLE_ENDIAN
+		return static_cast<unsigned int>( io_clz( ~c ) );
 }
 
 
