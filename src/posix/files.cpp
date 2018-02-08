@@ -100,7 +100,7 @@ file::file(const wchar_t* name) noexcept:
 		std::size_t len = std::wcslen(name);
 		scoped_arr<char> tmp( len + 1 );
 		if(tmp)
-			std::wcstombs( tmp, const_cast<wchar_t*>(name), len );
+			std::wcstombs( tmp.get(), const_cast<wchar_t*>(name), len );
 		name_ = std::move(tmp);
 	}
 }
