@@ -277,11 +277,18 @@ public:
         return empty() ? io::hash_bytes( data(), size() ) : 0;
     }
 
+    /// Checks underlying character array is binary same to rhs array
+    /// \param rhs array to check with
+    /// \param bytes rhs array size in byte
+    inline bool equal(const char* rhs, std::size_t bytes) const noexcept {
+    	return 0 == traits_type::compare( data(), rhs, bytes);
+    }
+
     /// Lexicographically compare the string with another
     /// \param rhs a string to compare with
     /// \return whether strings equals
     bool operator==(const const_string& rhs) const noexcept {
-        return 0 == compare( rhs );
+    	return (data_ == rhs.data_) ? true : 0 == compare( rhs );
     }
 
     bool operator<(const const_string& rhs) const noexcept {

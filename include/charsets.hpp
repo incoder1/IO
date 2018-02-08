@@ -23,31 +23,10 @@ namespace io {
 class IO_PUBLIC_SYMBOL charset {
 public:
 
-	charset(const charset& rhs) noexcept:
-		unicode_(rhs.unicode_),
-		char_max_(rhs.char_max_),
-		code_(rhs.code_),
-		name_(rhs.name_)
-	{}
-
-	charset& operator=(const charset& rhs) noexcept
-	{
-		charset(rhs).swap( *this );
-		return *this;
-	}
-
-	charset(charset&& rhs) noexcept:
-		unicode_( rhs.unicode_ ),
-		char_max_( rhs.char_max_ ),
-		code_( rhs.code_ ),
-		name_( rhs.name_ )
-	{}
-
-	charset& operator=(charset&& rhs) noexcept
-	{
-		charset( std::forward<charset>(rhs) ).swap( *this );
-		return *this;
-	}
+	charset(const charset& rhs) = default;
+	charset& operator=(const charset& rhs) = default;
+	charset(charset&& rhs) noexcept = default;
+	charset& operator=(charset&& rhs) noexcept = default;
 
 	constexpr charset() noexcept:
 		unicode_(false),
@@ -62,6 +41,12 @@ public:
 		code_(code),
 		name_(name)
 	{}
+
+	/// Checks this charset points to a known code page
+	explicit operator bool() const noexcept
+	{
+        return char_max_ != 0 && code_ != 0;
+	}
 
 	/// Returns integer identifier of this character set, number is equal to Win32 id-s
 	/// \return charset integer identifier
@@ -85,15 +70,17 @@ public:
 		return char_max_;
 	}
 
-	/// Returns wether this carset is point on an UNICODE representation
-	/// \return wether this carset is UNICODE representation
+	/// Returns whether this charset is point on an UNICODE representation code page
+	/// \return whether this charset is UNICODE representation
 	constexpr inline bool unicode() const
 	{
 		return unicode_;
 	}
 
+	/// Checks charset equality
 	bool operator==(const charset& rhs) const noexcept;
 
+	/// Checks charset equality
 	bool operator!=(const charset& rhs) const noexcept;
 
 private:

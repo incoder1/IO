@@ -659,7 +659,7 @@ void event_stream_parser::cache_validated_name(std::size_t hash)
 
 bool event_stream_parser::validate_xml_name(const cached_string& str, bool attr) noexcept
 {
-    if( validated_.end() == validated_.find( str.fast_hash() ) ) {
+    if( validated_.end() == validated_.find( reinterpret_cast<std::size_t>(str.data()) ) ) {
         error err;
         if(attr)
             err = validate_attribute_name( str.data() );
@@ -670,7 +670,7 @@ bool event_stream_parser::validate_xml_name(const cached_string& str, bool attr)
             assign_error( err );
             return false;
         }
-        validated_.emplace( str.fast_hash() );
+        validated_.emplace( reinterpret_cast<std::size_t>(str.data()) );
         return true;
     }
     return true;

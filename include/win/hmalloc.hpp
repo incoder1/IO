@@ -44,7 +44,7 @@ struct memory_traits {
 	static inline void* malloc IO_PREVENT_MACRO (std::size_t bytes) noexcept
 	{
 	    void *ret = nullptr;
-#ifdef __GNUG__
+#if defined __GNUG__
         while( __builtin_expect( nullptr == (ret = std::malloc(bytes) ) , false ) )
 #else
 		while( nullptr == (ret = std::malloc(bytes) ) )
@@ -112,9 +112,9 @@ struct memory_traits {
 
 	/// Temporary propose memory continues memory block allocation of specific type
 	/// with 0-ro initialization
-	/// this implemenation uses additional local application heap
-	/// to avoid process default heap fragmentation because of temporay
-	/// memory blocks allocations/dealocations
+	/// this implementation uses additional local application heap
+	/// to avoid process default heap fragmentation because of temporary
+	/// memory blocks allocations/deallocations
 	/// memory allocated by this function must be freed by free_temporary only
 	/// behavior of delete [] or std::free is undefined (sigsev or 0x0....5)
 	template<typename T>

@@ -46,7 +46,8 @@ public:
     }
 
     mem_block(mem_block&& other) noexcept:
-        px_( other.px_ ) {
+        px_( other.px_ )
+	{
         other.px_ = nullptr;
     }
 
@@ -423,7 +424,7 @@ public:
     inline bool put(int8_t small) {
         return put( static_cast<uint8_t>(small) );
     }
-#endif 
+#endif
 
     inline int8_t get_int8() {
         return binary_get<int8_t>();

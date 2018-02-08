@@ -136,10 +136,28 @@ private:
 class qname final
 {
 public:
-	qname(const qname&) noexcept = default;
-	qname& operator=(const qname&) noexcept = default;
-	qname(qname&&) noexcept = default;
-	qname& operator=(qname&&) noexcept = default;
+	qname(const qname& c) noexcept:
+		prefix_( c.prefix_ ),
+		local_name_( c.local_name_ )
+	{
+	}
+
+	qname& operator=(const qname& rhs) noexcept
+	{
+		qname( rhs ).swap( *this );
+		return *this;
+	}
+
+	qname(qname&& c) noexcept:
+		prefix_( std::move(c.prefix_) ),
+		local_name_( std::move(c.local_name_) )
+	{}
+
+	qname& operator=(qname&& rhs) noexcept
+	{
+		qname( std::forward<qname>(rhs) ).swap( *this );
+		return *this;
+	}
 
 	constexpr qname() noexcept:
 		prefix_(),
@@ -175,6 +193,12 @@ public:
 	/// \return tag local name
 	inline cached_string local_name() const {
 		return local_name_;
+	}
+
+	void swap(qname&& other) noexcept
+	{
+		prefix_.swap( other.prefix_ );
+		local_name_.swap( other.local_name_ );
 	}
 
 private:

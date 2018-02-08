@@ -13,28 +13,6 @@
 
 namespace io {
 
-namespace detail {
-
-char_holder* char_holder::alloc(const char* s,const std::size_t len) noexcept {
-	std::size_t bytes = ('\0'!=*(s+len)) ? len+1 : len;
-	uint8_t *raw = memory_traits::malloc_array<uint8_t>( sizeof(char_holder) + bytes );
-	if(nullptr == raw)
-		return nullptr;
-	char* dst = reinterpret_cast<char*>( raw + sizeof(char_holder) );
-	io_memmove( dst, s, len);
-	return new ( static_cast<void*>(raw) ) char_holder( dst );
-}
-
-} // namespace detail
-
-// cached_string
-cached_string::cached_string(const char* s, std::size_t count) noexcept:
-	holder_(nullptr)
-{
-	if(nullptr != s && count >= 0)
-		holder_ = detail::char_holder::alloc(s,count);
-}
-
 
 // string_pool
 
@@ -45,19 +23,36 @@ string_pool::string_pool() noexcept:
 
 const cached_string string_pool::get(const char* s, std::size_t count) noexcept
 {
-	if(nullptr == s || '\0' == *s || count == 0)
+#ifdef __GNUG__
+	if( __builtin_expect( (nullptr == s || '\0' == *s || count == 0 ), false) )
 		return cached_string();
+#else
+	if(nullptr == s || '\0' == *s || count == 0) {
+#	ifdef _MSC_VER
+		__assume(0);
+#	endif // _MSC_VER
+		return cached_string();
+	}
+#endif // __GNUG__
+
 	const std::size_t str_hash = io::hash_bytes(s,count);
 	pool_type::const_iterator i = pool_.find( str_hash );
 	if( i == pool_.end() ) {
-        cached_string new_str(s, count);
-        if( new_str.empty() )
-            return cached_string(); // an error
-        auto ret = pool_.emplace( str_hash, std::move( new_str ) );
-        return ret.second ? ret.first->second : new_str;
+        auto ret = pool_.emplace( str_hash, cached_string(s, count) );
+#ifdef __GNUG__
+		return __builtin_expect(ret.second,true)
+			? ret.first->second : cached_string(s, count);
+#else
+		return ret.second ? ret.first->second : cached_string(s, count);
+#endif // defined
 	} else {
-	    // hash miss (collision) check
-		return i->second.eq(s, count) ? i->second : cached_string(s, count);
+#ifdef __GNUG__
+        return __builtin_expect( i->second.equal(s, count), true)
+        	? i->second : cached_string(s, count);
+#else
+		return i->second.equal(s, count)
+			? i->second : cached_string(s, count);
+#endif // __GNUG__
 	}
 	return cached_string();
 }

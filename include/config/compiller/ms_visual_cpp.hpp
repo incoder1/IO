@@ -112,6 +112,8 @@
 
 #endif // ignore unused parameters warning, for stub templates and plased new operators
 
+#pragma intrinsic(_BitScanForward)
+
 inline int io_clz(unsigned long x )
 {
    unsigned long ret = 0;

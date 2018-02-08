@@ -29,6 +29,7 @@
 typedef void* iconv_t;
 #endif // iconv_t
 
+
 namespace io {
 
 /// \brief Character set conversation (transcoding) error code
@@ -114,8 +115,8 @@ public:
 
 	engine(engine&& other) noexcept;
 	engine& operator=(engine&& rhs) noexcept;
-	operator bool() const
-	{
+
+	explicit operator bool() const {
 		return is_open();
 	}
 

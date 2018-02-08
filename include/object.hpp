@@ -68,6 +68,12 @@ public:
 		return memory_traits::malloc(size);
 	}
 
+	void operator delete( void* const ptr, const std::nothrow_t&) noexcept
+	{
+		assert(nullptr != ptr);
+		memory_traits::free(ptr);
+	}
+
 	void operator delete(void* const ptr) noexcept {
 		assert(nullptr != ptr);
 		memory_traits::free(ptr);

@@ -14,15 +14,17 @@
 
 #include <iconv.h>
 
-#ifdef __linux__
+// for non GNU libiconv, gnu libc iconv for example
+#ifndef iconvctl
 
 #define ICONV_SET_DISCARD_ILSEQ   4  /* const int *argument */
+
 static int iconvctl (iconv_t cd, int request, void* argument)
 {
     return 1;
 }
 
-#endif // __linux__
+#endif // LIBICONV_PLUG
 
 namespace io {
 
@@ -241,7 +243,7 @@ std::size_t IO_PUBLIC_SYMBOL transcode(std::error_code& ec,const uint8_t* u8_src
 	uint8_t* d = reinterpret_cast<uint8_t*>(dst);
 	std::size_t left = src_bytes;
 	std::size_t avail = dst_size * sizeof(char32_t);
-	converrc result = eng.convert(&s,left,&d,avail);
+	converrc result = eng.convert( &s ,left, &d, avail);
 	if( converrc::success != result ) {
 		ec = make_error_code(result);
 		return 0;
@@ -261,7 +263,7 @@ std::size_t IO_PUBLIC_SYMBOL transcode(std::error_code& ec,const char16_t* u16_s
 	uint8_t* d = const_cast<uint8_t*>(u8_dst);
 	std::size_t left = src_width * sizeof(char16_t);
 	std::size_t avail = dst_size;
-	converrc result = eng.convert(&s,left,&d,avail);
+	converrc result = eng.convert( &s ,left, &d, avail);
 	if( converrc::success != result ) {
 		ec = make_error_code(result);
 		return 0;
@@ -279,7 +281,7 @@ std::size_t IO_PUBLIC_SYMBOL transcode(std::error_code& ec,const char32_t* u32_s
 	uint8_t* d = const_cast<uint8_t*>(u8_dst);
 	std::size_t left = src_width * sizeof(char32_t);
 	std::size_t avail = dst_size;
-	converrc result = eng.convert(&s,left,&d,avail);
+	converrc result = eng.convert( &s,left, &d,avail);
 	if( converrc::success != result ) {
 		ec = make_error_code(result);
 		return 0;

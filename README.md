@@ -51,13 +51,16 @@ including UTF-8 and system WCHAR mode. Library have possibility to define consol
 ### STRINGS
 
 Constant string class and string poll support.
-Io::const_string a constant string which work like a intrusive smart pointer, e.g. not copy background character array each 
-time you put const std::string& reference into function parameter, or assign a values to std::string. 
-Background data array is considered to be always in UFT-8 UNICODE, and there are utility functions to transcode for char16_t,
+
+io::const_string a constant string which work like a intrusive smart pointer. E.g. const_string doesn't deep copying 
+background character array each time you put const reference into function parameter, or using copy assignment operator. 
+Background data array is considered to be always in UFT-8 UNICODE, and there are utility functions for trans-coding for char16_t,
 char32_t or wchar_t std::basic_string.
-io::string_pool and io::cached_string is a pool to reduce memory usage for binary equal strings + support for better string 
-hash function. For example GNU lib std++ uses MurMur2 hash function, which is legacy now days. IO provides MurMur3 hash function
-for 32 bit CPUs and Google CityHash function for 64 bit CPUS.
+
+io::string_pool is a pool to reduce memory usage for binary equal strings and better string hash function. 
+For example GNU lib std++ uses MurMur2 hash function, which is legacy now days. 
+
+IO provides MurMur3 hash function for 32 bit instruction set and Google CityHash function for 64 bit CPUS.
 
 ### StAX XML PARSER
 
