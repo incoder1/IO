@@ -104,16 +104,15 @@ operating system with any C++ 11 compatible (or partial compatible) compiler. C+
 ### TESTED COMPILERS AND PLATFORMS
 
 #### Microsoft Windows 
-		- Windows 7
-		- Windows 10
-		
-		- GCC/G++ 5.1 -  MinGW64 (TDM build)
-		- GCC/G++ 7.2.0 MinGW64 (MSYS2 build)
-		- MS Visual C++ 17 (x64)
+		- Windows 7 GCC/G++ 5.1 -  MinGW64 (TDM build)
+		- Windows 7 GCC/G++ 7.2.0 MinGW64 (MSYS2 build)
+		- Windows 10 GCC/G++ 7.2.0 MinGW64 (MSYS2 build)
+		- Windows 10 MS Visual C++ 17 (x64)
 		
 #### GNU/Lunux
-	- Fedora 26
-	- GCC/GC++ 7.1 
+	
+	- Fedora 23 GCC/G++ 6.3
+	- Fedora 26 GCC/G++ 7.1
 
 ## BUILDING
  
@@ -125,8 +124,12 @@ Code::Blocks IDE project files bundled. There are predefined configurations for 
 
 For Windows GCC you can use MSYS2 MinGW64. Otherwise (for example TDM GCC etc. ) you need to 
 find/build 
-	- gnuiconv
-	- gnutls 3.0+  with all dependencies 
+	- GNU iconv can be found at https://www.gnu.org/software/libiconv/
+	- GNU TLS 3.0+ https://www.gnutls.org/  with all dependencies 
+
+	With MSYS2 it is better to install pre-build dependencies using pacman, like
+	- pacman -S libiconv
+	- pacman -S libgnutls-devel
 	
 ### Building with CMake
 To build with CMake build tool to can use following command
