@@ -182,11 +182,7 @@ char source::next() noexcept
             return _eof;
 	}
 	char result = *pos_;
-#ifdef __GNUG__
-	if( __builtin_expect( (char_shift_ > 1 ), false) ) {
-#else
 	if( char_shift_ > 1 ) {
-#endif // __GNUG__
 		--char_shift_;
 		++pos_;
 		return result;
@@ -198,9 +194,6 @@ char source::next() noexcept
 		break;
 	case 5:
 	case 6:
-#if defined(_MSC_VER) && defined(NDEBUG)
-		__assume(0);
-#endif // _MSC_VER
 		last_ = error::illegal_chars;
 		return _eof;
 	default:

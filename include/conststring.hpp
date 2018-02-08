@@ -26,66 +26,8 @@
 
 namespace io {
 
-namespace detail {
-
-// custom atomic, since std::atomic class adds additional this pointer i.e. + 4/8 additional bytes
-#ifdef __GNUC__
-
-// Use GCC Intrinsics
-class atomic_traits {
-public:
-    static inline std::size_t inc(std::size_t volatile *ptr) {
-        return __atomic_add_fetch(ptr, 1, __ATOMIC_RELAXED);
-    }
-    static inline std::size_t dec(std::size_t volatile *ptr) {
-        return __atomic_sub_fetch(ptr, 1, __ATOMIC_SEQ_CST);
-    }
-};
-
-#endif // __GNUC__
-
-#ifdef _MSC_VER
-
-// MS VC++ atomic Intrinsics
-class atomic_traits {
-public:
-#	ifdef _M_X64 // 64 bit instruction set
-    static inline std::size_t inc(std::size_t volatile *ptr) {
-        __int64 volatile *p = reinterpret_cast<__int64 volatile*>(ptr);
-#	ifdef _M_ARM
-        return static_cast<std::size_t>( _InterlockedIncrement64_nf(p) );
-#	else
-        // Intel/AMD x64
-        return static_cast<std::size_t>( _InterlockedIncrement64(p) );
-#	endif // _M_ARM
-    }
-    static inline std::size_t dec(std::size_t volatile *ptr) {
-        __int64 volatile *p = reinterpret_cast<__int64 volatile*>(ptr);
-        return static_cast<std::size_t>( _InterlockedDecrement64(p) );
-    }
-
-#	else // 32 bit instruction set
-    static inline std::size_t inc(std::size_t volatile *ptr) {
-        _long volatile *p = reinterpret_cast<long volatile*>(ptr);
-#	ifdef _M_ARM
-        return static_cast<std::size_t>( _InterlockedIncrement_nf(p) );
-#	else // Intel/AMD x32
-        return static_cast<std::size_t>( _InterlockedIncrement(p) );
-#	endif // _M_ARM
-    }
-    static inline std::size_t dec(std::size_t volatile *ptr) {
-        long volatile *p = reinterpret_cast<long volatile*>(ptr);
-        return static_cast<std::size_t>( _InterlockedDecrement(p) );
-    }
-#	endif // 32 bit instruction set
-
-};
-#endif // _MSC_VER
-
-} // namesapace detail
-
 ///  \brief Immutable zero ending C style string wrapper
-class const_string {
+class const_string final {
 private:
     static inline void intrusive_add_ref(uint8_t* ptr) noexcept {
         std::size_t volatile *p = reinterpret_cast<std::size_t volatile*>(ptr);
@@ -178,7 +120,7 @@ public:
 
     /// Decrement this string reference count, release allocated memory when
     /// reference count bring to 0
-    ~const_string() noexcept {
+	~const_string() noexcept {
         if(nullptr != data_ && intrusive_release(data_) )
             memory_traits::free(data_);
     }
@@ -277,18 +219,11 @@ public:
         return empty() ? io::hash_bytes( data(), size() ) : 0;
     }
 
-    /// Checks underlying character array is binary same to rhs array
-    /// \param rhs array to check with
-    /// \param bytes rhs array size in byte
-    inline bool equal(const char* rhs, std::size_t bytes) const noexcept {
-    	return 0 == traits_type::compare( data(), rhs, bytes);
-    }
-
     /// Lexicographically compare the string with another
     /// \param rhs a string to compare with
     /// \return whether strings equals
     bool operator==(const const_string& rhs) const noexcept {
-    	return (data_ == rhs.data_) ? true : 0 == compare( rhs );
+    	return 0 == compare( rhs );
     }
 
     bool operator<(const const_string& rhs) const noexcept {

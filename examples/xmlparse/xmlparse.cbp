@@ -19,7 +19,7 @@
 					<Add option="-Og" />
 					<Add option="-g" />
 					<Add option="-fexceptions" />
-					<Add option="-Og" />
+					<Add option="-DUNICODE" />
 				</Compiler>
 				<Linker>
 					<Add option="-pg -lgmon" />
@@ -45,6 +45,7 @@
 					<Add option="-fno-rtti" />
 					<Add option="-mtune=native" />
 					<Add option="-DNDEBUG" />
+					<Add option="-DUNICODE" />
 					<Add option="-DIO_SHARED_LIB" />
 				</Compiler>
 				<Linker>

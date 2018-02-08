@@ -174,7 +174,7 @@ public:
 	{}
 
 	template<typename _Tp1>
-	constexpr h_allocator(const h_allocator<_Tp1>& other) noexcept
+	constexpr h_allocator(const h_allocator<_Tp1>&) noexcept
 	{}
 
 	~h_allocator() noexcept = default;

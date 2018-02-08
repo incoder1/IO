@@ -25,7 +25,7 @@
 #include <iostream>
 
 
-#if defined(__IO_WINDOWS_BACKEND__) && !defined(UNICODE)
+#if defined(__IO_WINDOWS_BACKEND__) && defined(UNICODE)
 // Unicode console
 #	include <console.hpp>
 #	define NEED_UNICODE_CONSOLE

@@ -87,11 +87,9 @@ class IO_PUBLIC_SYMBOL event_stream_parser:public object
 private:
 	// we need 9 bytes only, but will use 16 for better align
 	static constexpr std::size_t MAX_SCAN_BUFF_SIZE = 16;
-	typedef std::unordered_set<
-			std::size_t,
-			std::hash<std::size_t>,
-			std::equal_to<std::size_t>,
-			h_allocator<std::size_t> > validated_set;
+
+	typedef std::unordered_set<std::size_t> validated_set;
+
 	friend class nobadalloc<event_stream_parser>;
 	event_stream_parser(const event_stream_parser&) = delete;
 	event_stream_parser& operator=(const event_stream_parser&) = delete;
@@ -219,7 +217,7 @@ private:
 	attribute extract_attribute(const char* from, std::size_t& len) noexcept;
 	bool validate_xml_name(const cached_string& str, bool attr) noexcept;
 
-	void cache_validated_name(std::size_t name_hash);
+	void cache_validated_name(const char* name) noexcept;
 
 	inline char next() noexcept
 	{

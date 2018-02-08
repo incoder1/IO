@@ -27,10 +27,6 @@
 
 #define HAS_PRAGMA_ONCE
 
-#if defined(__MINGW32__) || defined(__MINGW64__)
-#	define IO_IS_MINGW
-#endif // defined
-
 #ifndef __GXX_RTTI
 #	ifndef IO_NO_RTTI
 #		define IO_NO_RTTI
@@ -106,80 +102,23 @@
 #define io_bswap16(__x) __builtin_bswap16((__x))
 #define io_clz(__x) __builtin_clz((__x))
 
-#ifndef IO_IS_MINGW
-
-#define io_bswap32(__x) __builtin_bswap32((__x))
-#define io_bswap64(__x) __builtin_bswap64((__x))
-
-// some MinGW/MinGW old compiler version making library calls instead of intrict,
-// even when -mmovbe
-// So replace the call by inline assembler
-#elif defined(IO_CPU_INTEL)
-
-inline uint32_t io_bswap32(uint32_t dword)  {
-	__asm__ ("bswapl %0" : "=a"(dword)  : "a"(dword) : );
-	return dword;
-}
-
-#ifdef  __MINGW64__
-
-inline uint64_t io_bswap64(uint64_t qword) {
-	__asm__ ("bswapq %0" : "=a"(qword)  : "a"(qword) : );
-	return qword;
-}
-
+#ifndef __MINGW32__
+#	define io_bswap32(__x) __builtin_bswap32((__x))
 #else
+	__forceinline uint32_t io_bswap32(uint32_t dword)  {
+		__asm__ ("bswapl %0" : "=a"(dword)  : "a"(dword) : );
+		return dword;
+	}
+#endif // __MINGW32__
 
-#define io_bswap64 __builtin_bswap64
-
-#endif // IO_x64
-
+#ifndef __MINGW64__
+#	define io_bswap64(__x) __builtin_bswap64((__x))
 #else
-
-// non Intel CPU and MinGW is used ( assume this is not practically possible)
-
-template<typename int16_type>
-__forceinline int16_type io_bswap16(int16_type x)
-{
-	return ( (x << 8) & 0xFF00) ) | ( (x >> 8) & 0x00FF );
-}
-
-template<typename int32_type>
-__forceinline int32_type io_bswap32(int32_type x)
-{
-	return ((x << 24) & 0xff000000 ) |
-		   ((x <<  8) & 0x00ff0000 ) |
-		   ((x >>  8) & 0x0000ff00 ) |
-		   ((x >> 24) & 0x000000ff );
-}
-
-template<typename int64_type>
-__forceinline int64_type io_bswap64(int64_type x) {
-#ifdef _LP64
-	/*
-	 * Assume we have wide enough registers to do it without touching
-	 * memory.
-	 */
-	return  ( (x << 56) & 0xff00000000000000UL ) |
-		( (x << 40) & 0x00ff000000000000UL ) |
-		( (x << 24) & 0x0000ff0000000000UL ) |
-		( (x <<  8) & 0x000000ff00000000UL ) |
-		( (x >>  8) & 0x00000000ff000000UL ) |
-		( (x >> 24) & 0x0000000000ff0000UL ) |
-		( (x >> 40) & 0x000000000000ff00UL ) |
-		( (x >> 56) & 0x00000000000000ffUL );
-#else
-	/*
-	 * Split the operation in two 32bit steps.
-	 */
-	uint32_t tl, th;
-	th = io_bswap32((uint32_t)(x & 0x00000000ffffffffULL));
-	tl = io_bswap32((uint32_t)((x >> 32) & 0x00000000ffffffffULL));
-	return ((int64_type)th << 32) | tl;
-#endif
-}
-
-#endif // IO_IS_MINGW
+	__forceinline uint64_t io_bswap64(uint64_t qword) {
+		__asm__ ("bswapq %0" : "=a"(qword)  : "a"(qword) : );
+		return qword;
+	}
+#endif // __MINGW64__
 
 
 #ifndef IO_PUSH_IGNORE_UNUSED_PARAM
@@ -192,5 +131,21 @@ __forceinline int64_type io_bswap64(int64_type x) {
 
 #endif // __GNUC__
 
+namespace io {
+namespace detail {
+
+/// GCC intrinsics for atomic pointer
+class atomic_traits {
+public:
+    static __forceinline std::size_t inc(std::size_t volatile *ptr) {
+        return __atomic_add_fetch(ptr, 1, __ATOMIC_RELAXED);
+    }
+    static __forceinline std::size_t dec(std::size_t volatile *ptr) {
+        return __atomic_sub_fetch(ptr, 1, __ATOMIC_SEQ_CST);
+    }
+};
+
+} // namespace detail
+} // namespace io
 
 #endif // __COMPILLER_CONFIG_GCC_HPP_INCLUDED__

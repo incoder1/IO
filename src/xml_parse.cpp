@@ -642,24 +642,24 @@ attribute event_stream_parser::extract_attribute(const char* from, std::size_t& 
     return attribute( std::move(name), const_string(val.position().cdata(), val.last().cdata()) );
 }
 
-void event_stream_parser::cache_validated_name(std::size_t hash)
+void event_stream_parser::cache_validated_name(const char* str) noexcept
 {
-#ifndef IO_NO_EXCEPTIONS
+#ifdef IO_NO_EXCEPTIONS
+    auto ret = validated_.emplace( reinterpret_cast<std::size_t> ( std::addressof(str) )  );
+    if(!ret.second)
+        assign_error( xml::error::out_of_memory );
+#else
     try {
-        validated_.emplace( hash );
+        validated_.emplace(  reinterpret_cast<std::size_t> ( std::addressof(str) ) );
     } catch(std::bad_alloc& exc) {
         assign_error( xml::error::out_of_memory );
     }
-#else
-    auto ret = validated_.emplace( hash );
-    if(!ret.second)
-        assign_error( xml::error::out_of_memory );
 #endif // IO_NO_EXCEPTIONS
 }
 
 bool event_stream_parser::validate_xml_name(const cached_string& str, bool attr) noexcept
 {
-    if( validated_.end() == validated_.find( reinterpret_cast<std::size_t>(str.data()) ) ) {
+    if( validated_.end() == validated_.find(reinterpret_cast<std::size_t>(str.data()))  ) {
         error err;
         if(attr)
             err = validate_attribute_name( str.data() );
