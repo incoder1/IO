@@ -70,42 +70,30 @@
 
 #define io_alloca(x) _alloca((x))
 
-#pragma intrinsic(memmove)
 #define io_memmove(__dst, __src, __bytes) memmove( (__dst), (__src), (__bytes) )
 
-#pragma intrinsic(memchr)
 #define io_memchr(__s,__c,__n) memchr( (__s), (__c), (__n) )
 
-#pragma intrinsic(memset)
 #define io_memset(__p,__v,__bytes) memset( (__p), (__v), (__bytes) )
 
-#pragma intrinsic(memcmp)
 #define io_memcmp(__p1,__p2,__bytes) memcmp( (__p1), (__p2),(__bytes) )
 
 #define io_zerro_mem(__p,__bytes) memset( (__p), 0, (__bytes) )
 
-#pragma intrinsic(strstr)
 #define io_strstr(__s1,__s2) strstr( (__s1), (__s2) )
 
-#pragma intrinsic(strchr)
 #define io_strchr(__s,__c) strchr( (__s), (__c) )
 
-#pragma intrinsic(strlen)
 #define io_strlen(__s) strlen( (__s) )
 
-#pragma intrinsic(strcmp)
 #define io_strcmp(__lsh,__rsh) strcmp( (__lsh), (__rhs) )
 
-#pragma intrinsic(strcpy)
 #define io_strcpy(__s1,__s2 ) strcpy( (__s1), (__s2) )
 
-#pragma intrinsic(strcspn)
 #define io_strcspn(__s, __p) strcspn( (__s), (__p) )
 
-#pragma intrinsic(strpbrk)
 #define io_strpbrk(__s, __p) strpbrk( (__s), (__p) )
 
-#pragma intrinsic(strchr)
 #define io_strchr(__s,__c) strchr( (__s), (__c) )
 
 #define io_isalpha(__ch) isalpha((__ch))
@@ -144,32 +132,32 @@ namespace detail {
 class atomic_traits {
 public:
 #	ifdef _M_X64 // 64 bit instruction set
-    static inline std::size_t inc(std::size_t volatile *ptr) {
+    static inline size_t inc(size_t volatile *ptr) {
         __int64 volatile *p = reinterpret_cast<__int64 volatile*>(ptr);
 #	ifdef _M_ARM
-        return static_cast<std::size_t>( _InterlockedIncrement64_nf(p) );
+        return static_cast<size_t>( _InterlockedIncrement64_nf(p) );
 #	else
         // Intel/AMD x64
-        return static_cast<std::size_t>( _InterlockedIncrement64(p) );
+        return static_cast<size_t>( _InterlockedIncrement64(p) );
 #	endif // _M_ARM
     }
-    static inline std::size_t dec(std::size_t volatile *ptr) {
+    static inline size_t dec(size_t volatile *ptr) {
         __int64 volatile *p = reinterpret_cast<__int64 volatile*>(ptr);
-        return static_cast<std::size_t>( _InterlockedDecrement64(p) );
+        return static_cast<size_t>( _InterlockedDecrement64(p) );
     }
 
 #	else // 32 bit instruction set
-    static inline std::size_t inc(std::size_t volatile *ptr) {
+    static inline size_t inc(size_t volatile *ptr) {
         _long volatile *p = reinterpret_cast<long volatile*>(ptr);
 #	ifdef _M_ARM
-        return static_cast<std::size_t>( _InterlockedIncrement_nf(p) );
+        return static_cast<size_t>( _InterlockedIncrement_nf(p) );
 #	else // Intel/AMD x32
-        return static_cast<std::size_t>( _InterlockedIncrement(p) );
+        return static_cast<size_t>( _InterlockedIncrement(p) );
 #	endif // _M_ARM
     }
-    static inline std::size_t dec(std::size_t volatile *ptr) {
+    static inline size_t dec(size_t volatile *ptr) {
         long volatile *p = reinterpret_cast<long volatile*>(ptr);
-        return static_cast<std::size_t>( _InterlockedDecrement(p) );
+        return static_cast<size_t>( _InterlockedDecrement(p) );
     }
 #	endif // 32 bit instruction set
 }; // atomic_traits

@@ -209,11 +209,11 @@ public:
 	}
 private:
 	typedef std::unordered_map<
-	std::size_t,
+		std::size_t,
 		cached_string,
 		std::hash<std::size_t>,
 		std::equal_to<std::size_t>,
-		io::h_allocator< std::pair<std::size_t, cached_string> >
+		io::h_allocator< std::pair<const std::size_t, cached_string> >
 		> pool_type;
 	pool_type pool_;
 };
