@@ -29,8 +29,8 @@ LDFLAGS = /DLL /LIBPATH:$(DEPS_LIBS)
 
 PCH = /Yustdafx.hpp /Fp$(OBJ)\stdafx.pch
 
-OBJECTS = stdafx.pch errorcheck.obj memory_traits.obj sockets.obj files.obj synch_socket_channel.obj sspi_channel.obj console.obj shared_library.obj buffer.obj channels.obj stringpool.obj charsets.obj charsetdetector.obj unicode_bom.obj charsetcvt.obj text.obj uri.obj http_client.obj xml_error.obj xml_event.obj xml_source.obj xml_parse.obj
-LINK_OBJECTS = $(OBJ)\stdafx.obj $(OBJ)\errorcheck.obj $(OBJ)\memory_traits.obj $(OBJ)\sockets.obj $(OBJ)\files.obj $(OBJ)\synch_socket_channel.obj $(OBJ)\sspi_channel.obj $(OBJ)\console.obj $(OBJ)\shared_library.obj $(OBJ)\buffer.obj $(OBJ)\channels.obj $(OBJ)\stringpool.obj $(OBJ)\charsets.obj $(OBJ)\charsetdetector.obj $(OBJ)\unicode_bom.obj $(OBJ)\charsetcvt.obj $(OBJ)\text.obj $(OBJ)\uri.obj $(OBJ)\http_client.obj $(OBJ)\xml_error.obj $(OBJ)\xml_event.obj $(OBJ)\xml_source.obj $(OBJ)\xml_parse.obj
+OBJECTS = stdafx.pch errorcheck.obj memory_traits.obj sockets.obj files.obj synch_socket_channel.obj sspi_channel.obj console.obj shared_library.obj buffer.obj channels.obj hashing.obj stringpool.obj charsets.obj charsetdetector.obj unicode_bom.obj charsetcvt.obj text.obj uri.obj http_client.obj xml_error.obj xml_event.obj xml_source.obj xml_parse.obj
+LINK_OBJECTS = $(OBJ)\stdafx.obj $(OBJ)\errorcheck.obj $(OBJ)\memory_traits.obj $(OBJ)\sockets.obj $(OBJ)\files.obj $(OBJ)\synch_socket_channel.obj $(OBJ)\sspi_channel.obj $(OBJ)\console.obj $(OBJ)\shared_library.obj $(OBJ)\buffer.obj $(OBJ)\channels.obj $(OBJ)\hashing.obj $(OBJ)\stringpool.obj $(OBJ)\charsets.obj $(OBJ)\charsetdetector.obj $(OBJ)\unicode_bom.obj $(OBJ)\charsetcvt.obj $(OBJ)\text.obj $(OBJ)\uri.obj $(OBJ)\http_client.obj $(OBJ)\xml_error.obj $(OBJ)\xml_event.obj $(OBJ)\xml_source.obj $(OBJ)\xml_parse.obj
 
 all: clean link
 	copy $(DEPS_LIBS)\iconv-2.dll $(TARGET)\iconv-2.dll
@@ -72,6 +72,8 @@ buffer.obj:
 	$(CXX) $(CPPFLAGS) $(PCH) src\buffer.cpp /Fo$(OBJ)\buffer.obj
 channels.obj:
 	$(CXX) $(CPPFLAGS) $(PCH) src\channels.cpp /Fo$(OBJ)\channels.obj
+hashing.obj:
+	$(CXX) $(CPPFLAGS) $(PCH) src\hashing.cpp /Fo$(OBJ)\hashing.obj
 stringpool.obj:
 	$(CXX) $(CPPFLAGS) $(PCH) src\stringpool.cpp /Fo$(OBJ)\stringpool.obj
 	

@@ -22,6 +22,7 @@
 // StAX XML parser
 #include <xml_parse.hpp>
 
+#include <algorithm>
 #include <iostream>
 
 
@@ -74,16 +75,13 @@ static void print_start_element(std::ostream& stm, const xml::s_event_stream_par
 		// show whether  <tag attr="att"/> or <tag></tag>
 		// parser not generating end element events for
 		// self closing tags
-		stm<<" empty element:" << ( e.empty_element() ? " yes" : " no") <<  '\n';
+		stm <<" empty element:" << ( e.empty_element() ? " yes" : " no") <<  '\n';
 		// loop over the XML attributes if any
 		if( e.has_attributes() ) {
 			stm<<"\tattributes:\n";
-			xml::start_element_event::iterator i = e.attr_begin();
-			do {
-				stm<<"\t\tname: " << i->name();
-				stm<<" value: " << i->value() << '\n';
-				++i;
-			} while(i != e.attr_end() );
+			std::for_each(e.attr_begin(), e.attr_end(), [&stm] (const xml::attribute& attr) {
+				stm << "\t\tname: " << attr.name() << " value: " << attr.value() << '\n';
+			} );
 		}
 		stm.flush();
 	}
@@ -187,7 +185,7 @@ int main(int argc, const char** argv)
 	xml::s_source src = xml::source::create(ec, sf.open_for_read(ec) );
 	io::check_error_code( ec );
 	// Construct StAX parser
-	xml::s_event_stream_parser xs = xml::event_stream_parser::open(ec, src);
+	xml::s_event_stream_parser xs = xml::event_stream_parser::open(ec, std::move(src) );
 	io::check_error_code( ec );
 	// loop for StAX parsing
 	xml::state state;

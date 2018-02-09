@@ -158,7 +158,7 @@ static inline error validate_attribute_name(const char* name) noexcept
 }
 
 // event_stream_parser
-s_event_stream_parser event_stream_parser::open(std::error_code& ec, const s_source& src) noexcept
+s_event_stream_parser event_stream_parser::open(std::error_code& ec,s_source&& src) noexcept
 {
     if(!src) {
         ec = std::make_error_code( std::errc::bad_address );

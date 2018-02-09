@@ -88,7 +88,11 @@ private:
 	// we need 9 bytes only, but will use 16 for better align
 	static constexpr std::size_t MAX_SCAN_BUFF_SIZE = 16;
 
-	typedef std::unordered_set<std::size_t> validated_set;
+	typedef std::unordered_set<
+			std::size_t,
+			std::hash<std::size_t>,
+			std::equal_to<std::size_t>,
+			io::h_allocator<std::size_t> > validated_set;
 
 	friend class nobadalloc<event_stream_parser>;
 	event_stream_parser(const event_stream_parser&) = delete;
@@ -100,7 +104,7 @@ public:
 	/// \param ec contains system error code when parser can not be constructed,
 	/// 		for example in case of out of memory or nullptr pointed source
 	/// \param source an XML source data
-	static s_event_stream_parser open(std::error_code& ec, const s_source& src) noexcept;
+	static s_event_stream_parser open(std::error_code& ec,s_source&& src) noexcept;
 
 
 	/// Destroy parser and releases associated resources

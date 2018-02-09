@@ -81,7 +81,7 @@ s_source source::open(std::error_code& ec, const s_read_channel& src, byte_buffe
 	if( utf8_bom::is(pos) )
 		rb.shift( utf8_bom::len() );
 	source *sc = nobadalloc<source>::construct(ec, std::move(text_channel), std::move(rb) );
-	return !ec ? s_source(sc) : s_source();
+	return (nullptr == sc) ? s_source(): s_source(sc);
 }
 
 s_source source::create(std::error_code& ec,s_read_channel&& src) noexcept
@@ -157,11 +157,11 @@ inline void source::new_line_or_shift_col(const char ch)
 }
 
 // normalize line endings accodring XML spec
-inline char source::normalize_lend(char ch)
+inline char source::normalize_lend(const char ch)
 {
     char ret = ch;
 	if( cheq('\r', ret) ) {
-		if( cheq('\n', *(pos_+1) ) ) {
+		if( io_likely( cheq('\n', *(pos_+1) ) ) ) {
 			++pos_;
 			++row_;
 			col_ = 1;

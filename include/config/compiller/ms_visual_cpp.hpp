@@ -116,6 +116,9 @@
 
 #endif // ignore unused parameters warning, for stub templates and plased new operators
 
+#define io_likely(__expr__) !!(__expr__)
+#define io_unlikely(__expr__) !!(__expr__)
+
 #pragma intrinsic(_BitScanForward)
 
 __forceinline int io_clz(unsigned long x )

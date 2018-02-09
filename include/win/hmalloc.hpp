@@ -48,11 +48,7 @@ struct memory_traits {
 	static inline void* malloc IO_PREVENT_MACRO (std::size_t bytes) noexcept
 	{
 	    void *ret = nullptr;
-#if defined __GNUG__
-        while( __builtin_expect( nullptr == (ret = std::malloc(bytes) ) , false ) )
-#else
-		while( nullptr == (ret = std::malloc(bytes) ) )
-#endif // __GNUG__
+        while( io_unlikely( nullptr == (ret = std::malloc(bytes) ) ) )
         {
             std::new_handler handler = std::get_new_handler();
             if( nullptr == handler )
@@ -69,11 +65,7 @@ struct memory_traits {
 	{
 		assert(0 != array_size);
 		void *ret = nullptr;
-#ifdef __GNUG__
-        while( __builtin_expect( nullptr == (ret = std::calloc(array_size, sizeof(T) ) ) , false ) )
-#else
-		while( nullptr == (ret = std::calloc(array_size, sizeof(T) ) ) )
-#endif // __GNUG__
+		while( io_unlikely(nullptr == (ret = std::calloc(array_size,sizeof(T)) ) ) )
         {
             std::new_handler handler = std::get_new_handler();
             if( nullptr == handler )
@@ -125,11 +117,7 @@ struct memory_traits {
 	static inline T* calloc_temporary(std::size_t count) noexcept
 	{
 		void *ret = nullptr;
-#ifdef __GNUG__
-        while( __builtin_expect( nullptr == (ret = static_cast<T*>( win::private_heap_alloc( sizeof(T) * count) ) ), false ) )
-#else
-		while( nullptr == (ret = static_cast<T*>( win::private_heap_alloc( sizeof(T) * count) ) ) )
-#endif // __GNUG__
+		while( io_unlikely(nullptr == (ret = static_cast<T*>( win::private_heap_alloc( sizeof(T) * count) ) )) )
         {
             std::new_handler handler = std::get_new_handler();
             if( nullptr == handler )

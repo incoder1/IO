@@ -11,19 +11,15 @@
 #define __COMPILLER_CONFIG_GCC_HPP_INCLUDED__
 
 #if __cplusplus < 201103L
-#	error "This library requires at least C++ 11 standard compiler"
+#	error "This library requires at least C++ 11 standard compatiable compiler.\
+	Check your compiller options must have -std=c++[11,14,17,...]"
 #endif // CPP11 detection
-
 
 #pragma once
 
 #include <cstddef>
 #include <cstdint>
 
-#if __cplusplus < 201103L
-#	error "This library requires at least C++ 11 standard compatiable compiler.\
-	Check your compiller options must have -std=c++[11,14,17,...]"
-#endif // CPP11 detection
 
 #define HAS_PRAGMA_ONCE
 
@@ -129,7 +125,11 @@
 
 #	define IO_POP_IGNORE_UNUSED_PARAM _Pragma("GCC diagnostic pop")
 
-#endif // __GNUC__
+#endif // IO_PUSH_IGNORE_UNUSED_PARAM
+
+
+#define io_likely(__expr__) __builtin_expect(!!(__expr__), true)
+#define io_unlikely(__expr__) __builtin_expect(!!(__expr__), false)
 
 namespace io {
 namespace detail {

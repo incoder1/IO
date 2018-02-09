@@ -54,11 +54,11 @@ public:
 		}
 		return ret;
 	}
-	inline void* allocate(const std::size_t bytes) const noexcept
+	__forceinline void* allocate(const std::size_t bytes) const noexcept
 	{
 		return ::HeapAlloc(heap_, HEAP_ZERO_MEMORY, bytes);
 	}
-	inline void release(void* const ptr) const noexcept
+	__forceinline void release(void* const ptr) const noexcept
 	{
 		::HeapFree(heap_, 0, const_cast<LPVOID>(ptr) );
 	}

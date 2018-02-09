@@ -79,48 +79,25 @@ string_pool::string_pool() noexcept:
 	pool_()
 {}
 
-#if __GNUG__
-const cached_string string_pool::get(const char* s, std::size_t count) noexcept
-{
-	if( __builtin_expect( (nullptr == s || '\0' == *s || count == 0 ), 0) )
-		return cached_string();
-	const std::size_t str_hash = io::hash_bytes(s,count);
-	pool_type::const_iterator i = pool_.find( str_hash );
-	if(  i != pool_.end() ) {
-		if( __builtin_expect( i->second.equal(s, count), 1 ) )
-			return i->second;
-		else
-			return cached_string(s, count);
-	}
-	else {
-		std::pair<pool_type::iterator,bool> ret = pool_.emplace( str_hash, cached_string(s, count) );
-		if( __builtin_expect(ret.second,1) )
-			return ret.first->second;
-		else
-			return cached_string(s, count);
-	}
-	return cached_string();
-}
-
-#else
 
 const cached_string string_pool::get(const char* s, std::size_t count) noexcept
 {
-	if(nullptr == s || '\0' == *s || count == 0)
+	if( io_unlikely( (nullptr == s || '\0' == *s || count == 0 ) ) )
 		return cached_string();
 	const std::size_t str_hash = io::hash_bytes(s,count);
-	pool_type::const_iterator i = pool_.find( str_hash );
-	if( i == pool_.end() ) {
-		auto ret = pool_.emplace( str_hash, cached_string(s, count) );
-		return ret.second ? ret.first->second : cached_string(s, count);
+	pool_type::const_iterator it = pool_.find( str_hash );
+	if(  it != pool_.end() ) {
+		for(std::size_t i = pool_.count( str_hash ); i > 0 ; --i, ++it) {
+			if( io_likely( it->second.equal(s, count) ) )
+				return it->second;
+		}
 	}
-	else {
-		return i->second.equal(s, count)
-			   ? i->second : cached_string(s, count);
-	}
-	return cached_string();
+	std::pair<pool_type::iterator,bool> ret = pool_.emplace( str_hash, cached_string(s, count) );
+	if( io_likely(ret.second) )
+		return ret.first->second;
+	else
+		return cached_string(s, count);
 }
 
-#endif //  __GNUG__
 
 } // namespace io
