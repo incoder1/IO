@@ -56,17 +56,19 @@ bool byte_buffer::extend(std::size_t extend_size) noexcept
 	// out of memory
 	if(nullptr == new_data)
 		return false;
+
 	if( has_data ) {
 		position_ = new_data + memory_traits::distance( arr_.get(), position_ );
 		last_ = new_data + memory_traits::distance(arr_.get(), last_);
-		std::size_t zerro_bytes = memory_traits::distance(last_, new_data + capacity_);
-		if(zerro_bytes > 0)
-			io_zerro_mem(last_, zerro_bytes );
+		const std::size_t tail =  memory_traits::distance(last_, (new_data + capacity_) );
+		if(tail > 0)
+			io_zerro_mem(last_, tail );
 	} else {
 		position_ = new_data;
 		last_ = position_;
 		io_zerro_mem(position_, capacity_);
 	}
+
 	arr_ = detail::mem_block( new_data );
 	return true;
 }

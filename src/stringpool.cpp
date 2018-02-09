@@ -14,18 +14,6 @@
 namespace io {
 
 // cached_string
-void cached_string::intrusive_add_ref(uint8_t* ptr) noexcept
-{
-	std::size_t volatile *p = reinterpret_cast<std::size_t volatile*>(ptr);
-	detail::atomic_traits::inc(p);
-}
-
-bool cached_string::intrusive_release(uint8_t* ptr) noexcept
-{
-	std::size_t volatile *p = reinterpret_cast<std::size_t volatile*>(ptr);
-	return static_cast<size_t>(0) == detail::atomic_traits::dec(p);
-}
-
 
 cached_string::cached_string(const cached_string& other) noexcept:
 	data_( other.data_ )

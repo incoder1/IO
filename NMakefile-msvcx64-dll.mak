@@ -21,7 +21,7 @@ PLATFORM_SHARED_LINK_OPTIONS=
 LIBS=iconv.dll.lib Ws2_32.lib User32.lib Secur32.lib
 INCLUEDS=/Iinclude /Iinclude\win /Iinclude\net /Isrc /I$(DEPS_INCLUDES)
 
-OPTIMIZE= /Ox /Zc:wchar_t
+OPTIMIZE= /Ox /Oi /Zc:wchar_t
 SHARED_DEFINES= /DIO_SHARED_LIB /DIO_BUILD
 DEFINES = $(SHARED_DEFINES) /DNDEBUG /DUNICODE
 CPPFLAGS = /c /MT /std:c++latest $(DEFINES) $(OPTIMIZE) $(INCLUEDS) 

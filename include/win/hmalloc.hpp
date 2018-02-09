@@ -33,11 +33,15 @@ namespace win {
 struct memory_traits {
 
 	/// returns OS page size
-	static inline std::size_t page_size()
+	static inline std::size_t page_size() noexcept
 	{
-		::SYSTEM_INFO si;
-		::GetSystemInfo(&si);
-		return static_cast<std::size_t>( si.dwPageSize );
+		static ::DWORD ret = 0;
+		if(0 == ret) {
+			::SYSTEM_INFO si;
+			::GetSystemInfo(&si);
+			ret = si.dwPageSize;
+		}
+		return static_cast<std::size_t>( ret );
 	}
 
 	/// General propose memory allocation

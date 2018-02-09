@@ -29,11 +29,11 @@ namespace io {
 ///  \brief Immutable zero ending C style string wrapper
 class const_string final {
 private:
-    static inline void intrusive_add_ref(uint8_t* ptr) noexcept {
+    static inline void intrusive_add_ref(uint8_t* const ptr) noexcept {
         std::size_t volatile *p = reinterpret_cast<std::size_t volatile*>(ptr);
         detail::atomic_traits::inc(p);
     }
-    static inline bool intrusive_release(uint8_t* ptr) noexcept {
+    static inline bool intrusive_release(uint8_t* const ptr) noexcept {
         std::size_t volatile *p = reinterpret_cast<std::size_t volatile*>(ptr);
         return static_cast<size_t>(0) == detail::atomic_traits::dec(p);
     }

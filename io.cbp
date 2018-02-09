@@ -343,6 +343,7 @@
 		<Unit filename="src/charsetcvt.cpp" />
 		<Unit filename="src/charsetdetector.cpp" />
 		<Unit filename="src/charsets.cpp" />
+		<Unit filename="src/hashing.cpp" />
 		<Unit filename="src/net/http_client.cpp" />
 		<Unit filename="src/net/secure_channel.cpp">
 			<Option target="debug-win-gcc-dll-x64" />

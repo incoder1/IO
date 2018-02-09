@@ -33,7 +33,7 @@
 				<Option object_output="obj/release-win-gcc-x64/" />
 				<Option type="1" />
 				<Option compiler="gcc" />
-				<Option parameters="test.xml" />
+				<Option parameters="c:\Windows\CCM\1033\DCMStrings.xml " />
 				<Compiler>
 					<Add option="-O3" />
 					<Add option="-Weffc++" />

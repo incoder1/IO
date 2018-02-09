@@ -33,8 +33,16 @@ DECLARE_IPTR(string_pool);
 
 class IO_PUBLIC_SYMBOL cached_string final {
 private:
-	static void intrusive_add_ref(uint8_t* ptr) noexcept;
-	static bool intrusive_release(uint8_t* ptr) noexcept;
+	static inline void intrusive_add_ref(uint8_t* const ptr) noexcept
+	{
+		std::size_t volatile *p = reinterpret_cast<std::size_t volatile*>(ptr);
+		detail::atomic_traits::inc(p);
+	}
+	static inline bool intrusive_release(uint8_t* const ptr) noexcept
+	{
+		std::size_t volatile *p = reinterpret_cast<std::size_t volatile*>(ptr);
+		return static_cast<size_t>(0) == detail::atomic_traits::dec(p);
+	}
 	friend class string_pool;
 	cached_string(const char* str, std::size_t length) noexcept;
 public:

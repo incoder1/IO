@@ -124,12 +124,20 @@ static void print_event(std::ostream& stm,const xml::s_event_stream_parser& s)
 
 // output a string into a stream
 
-static bool log_chars(std::ostream& stm,const char* msg, const const_string& chars)
+static bool log_chars(std::ostream& strm,const char* msg, const const_string& chars)
 {
-    // avoid login a between tag separators like spaces and line endings
-    if( ! chars.blank() )
-        stm << msg << '\n' << chars << std::endl;
+	strm << msg << '\n' << chars << std::endl;
     return true;
+}
+
+/// print xml characters
+static void print_xml_characters(std::ostream& strm,const xml::s_event_stream_parser& s)
+{
+	const_string chars = s->read_chars();
+	// avoid login a between tag separators like spaces and line endings
+    // parser not allowed to ignore such chars according to W3C standard
+	if( !s->is_error() && !chars.blank() )
+		log_chars(strm, "Characters: ", chars);
 }
 
 #ifdef IO_NO_EXCEPTIONS
@@ -148,13 +156,12 @@ static void on_terminate() noexcept
 int main(int argc, const char** argv)
 {
 
-
 #ifdef IO_NO_EXCEPTIONS
     // set terminate handler for unexpected errors if any
 	std::set_terminate( on_terminate );
 #endif // IO_NO_EXCEPTIONS
 
-// Unicode console for Windows (not needed for MSYS2 or UNIX)
+// Unicode console for Windows (not needed for MSYS2/Cygwin or UNIX)
 #ifdef NEED_UNICODE_CONSOLE
 	std::ostream& cout = io::console::out_stream();
 	std::ostream& cerr = io::console::error_stream();
@@ -164,7 +171,7 @@ int main(int argc, const char** argv)
 #endif
 	// take program arguments
 	if(argc < 2) {
-		cout<< "XML parsing example\n Usage:\t xmlparse <xmlfile>" <<std::endl;
+		cout<< "XML parsing example\n Usage:\t xmlparse <xmlfile>[.xml]" << std::endl;
 		return 0;
 	}
 	// error code variable
@@ -216,7 +223,7 @@ int main(int argc, const char** argv)
 		// next step is characters, i.e. tag value
 		// optionally can be skip
 		case xml::state_type::characters:
-            log_chars(cout, "Characters", xs->read_chars() );
+			print_xml_characters(cout, xs );
 			// xs->skip_chars();
 			break;
 		}

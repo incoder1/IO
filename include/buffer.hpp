@@ -58,7 +58,7 @@ public:
         return *this;
     }
 
-    operator bool() const noexcept
+    explicit operator bool() const noexcept
     {
         return nullptr != px_;
     }
@@ -325,11 +325,10 @@ public:
     /// \param byte a byte to put
     /// \return true whether byte was put and false if buffer was full before put attempt
     bool put(uint8_t byte) noexcept {
-        if( ! full() ) {
-            *position_ = byte;
-            ++position_;
-            last_ = position_ + 1;
-            return true;
+        if( !full() ) {
+			*position_ = byte;
+			last_ = (++position_) + 1;
+			return true;
         }
         return false;
     }
