@@ -8,16 +8,16 @@
 #include <files.hpp>
 
 #include <iostream>
-
 #include <vector>
-
 
 int main()
 {
 	using namespace io;
 	std::error_code ec;
 
-	file sf("test-utf16le.txt");
+	std::string file_name = io::transcode(L"test-utf16le.txt");
+
+	file sf( file_name.data() );
 	if(!sf.exist()) {
 		std::cerr << " test file " << sf.path()
 		<< "is not exist or can not be found"

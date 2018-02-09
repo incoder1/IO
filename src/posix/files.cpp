@@ -96,12 +96,12 @@ file::file(const char* name) noexcept:
 file::file(const wchar_t* name) noexcept:
 	name_()
 {
-	if(nullptr != name && L'\0' != *name) {
-		std::size_t len = std::wcslen(name);
-		scoped_arr<char> tmp( len + 1 );
-		if(tmp)
+	if( nullptr != name && L'\0' != *name) {
+		scoped_arr<char> tmp( detail::utf8_buff_size(len, std::wcslen(name) ) + 1 );
+		if(tmp) {
 			std::wcstombs( tmp.get(), const_cast<wchar_t*>(name), len );
-		name_ = std::move(tmp);
+			name_ = std::move(tmp);
+		}
 	}
 }
 
