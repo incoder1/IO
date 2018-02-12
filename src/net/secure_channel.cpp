@@ -22,7 +22,7 @@ namespace secure {
 
 ssize_t session::push(::gnutls_transport_ptr_t t, const void * data, std::size_t size)
 {
-    read_write_channel *tr = static_cast<read_write_channel*>(t);
+    read_write_channel *tr = reinterpret_cast<read_write_channel*>(t);
     std::error_code ec;
     std::size_t ret = tr->write( ec, static_cast<const uint8_t*>(data), size);
     return ec ?  -1 : ret;
@@ -30,7 +30,7 @@ ssize_t session::push(::gnutls_transport_ptr_t t, const void * data, std::size_t
 
 ssize_t session::pull(::gnutls_transport_ptr_t t, void * data, std::size_t max_size)
 {
-    read_write_channel *tr = static_cast<read_write_channel*>(t);
+    read_write_channel *tr = reinterpret_cast<read_write_channel*>(t);
     std::error_code ec;
     std::size_t ret = tr->read( ec, static_cast<uint8_t*>(data), max_size);
     return ec ?  -1 : ret;
@@ -43,7 +43,7 @@ int session::client_handshake(::gnutls_session_t const peer) noexcept
     int err;
     do {
         err = ::gnutls_handshake(peer);
-    } while (err < 0 &&  0 == ::gnutls_error_is_fatal(err) );
+    } while (err < 0 && 0 == ::gnutls_error_is_fatal(err) );
     return err;
 }
 
@@ -61,7 +61,7 @@ session session::client_session(std::error_code &ec, ::gnutls_certificate_creden
     if(err > 0 )
         ec = std::make_error_code( std::errc::broken_pipe );
 
-    ::gnutls_transport_ptr_t transport = reinterpret_cast<gnutls_transport_ptr_t>( ret.socket_.get() );
+    ::gnutls_transport_ptr_t transport = reinterpret_cast<::gnutls_transport_ptr_t>( ret.socket_.get() );
 
     ::gnutls_transport_set_ptr( ret.peer_, transport );
     ::gnutls_transport_set_push_function( ret.peer_, &session::push );

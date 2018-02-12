@@ -149,12 +149,14 @@ and RTTI off provided.
 
 You need Visual Studio or Visual Studio BuildTools version 15+
 
-Building is from command line using nmake tool. Source tree contains pre-build gnu iconv in deps sup folder
+Building is from command line using nmake tool. Source tree contains pre-build gnu iconv and gnutls in deps sup folder
 build for x64 (amd64|x86_64).
 
-> WARNING! VC++ port have no HTTPS support ( porting in progress )
+GNU TLS for MS VC++ pre-build can be found at https://github.com/ShiftMediaProject/gnutls/releases
 
-To build the DLL, open command prompt execute vcvars64.bat from visual studio. See
+
+To build the DLL, open command prompt execute vcvars64.bat from visual studio. 
+See
 https://docs.microsoft.com/en-us/dotnet/framework/tools/developer-command-prompt-for-vs
 
 Then goto IO source code root directory and execute

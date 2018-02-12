@@ -16,17 +16,13 @@
 #include <files.hpp>
 
 #include <net/uri.hpp>
-#include <net/http_client.hpp>
-
-#if 0
 #include <net/secure_channel.hpp>
-#endif // 0
+#include <net/http_client.hpp>
 
 #include <errorcheck.hpp>
 #include <stream.hpp>
 #include <scoped_array.hpp>
 
-#if 0
 int main()
 {
 	using namespace io::net;
@@ -74,30 +70,4 @@ int main()
 	std::cout.flush();
 
     return 0;
-}
-#endif
-
-#include <win/sspi_channel.hpp>
-
-int main(int arc, const char** argv) {
-	using namespace io;
-	using namespace io::net;
-	std::error_code ec;
-
-	s_uri url = uri::parse(ec, "https://www.springframework.org/beans/spring-beans-4.2.xsd");
-	io::check_error_code(ec);
-
-    const socket_factory* sf = socket_factory::instance(ec);
-	s_socket tpc_socket = sf->client_tcp_socket(ec, url->host().data(),url->port() );
-	io::check_error_code(ec);
-	io::s_read_write_channel raw_ch = tpc_socket->connect(ec);
-    io::check_error_code( ec );
-
-	const secure::service *sec_service = secure::service::instance(ec);
- 	io::check_error_code(ec);
-
-	io::s_read_write_channel sch = sec_service->new_client_connection(ec, std::move(raw_ch) );
-    io::check_error_code(ec);
-
-	return 0;
 }

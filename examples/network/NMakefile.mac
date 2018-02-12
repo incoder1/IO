@@ -1,0 +1,9 @@
+
+ROOT=..\..
+LDPATH=$(ROOT)\target\release-win-msvc-dll-x64
+INCLUDES=/I$(ROOT)\include /I$(ROOT)\deps\msvc\include
+
+link: compile
+	link /LIBPATH:$(LDPATH) /OUT:network.exe io.lib main.obj
+compile:
+	cl /c /MT /DNDEBUG /DUNICODE /DIO_SHARED_LIB  $(INCLUDES) /Fomain.obj  main.cpp

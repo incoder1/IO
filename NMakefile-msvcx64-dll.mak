@@ -11,29 +11,30 @@ OBJ = $(OBJ_ROOT)\release-win-msv-dll-x64
 # dependencies
 DEPS_ROOT=deps\msvc
 DEPS_INCLUDES=$(DEPS_ROOT)\include
-DEPS_LIBS=$(DEPS_ROOT)\lib
+DEPS_LIBS=$(DEPS_ROOT)\lib\x64
 
 LIB_NAME=io
 SHARED_EXT=dll
 
 PLATFORM_SHARED_LINK_OPTIONS=
 
-LIBS=iconv.dll.lib Ws2_32.lib User32.lib Secur32.lib
+LIBS=iconv.dll.lib gnutls.lib Ws2_32.lib User32.lib 
 INCLUEDS=/Iinclude /Iinclude\win /Iinclude\net /Isrc /I$(DEPS_INCLUDES)
 
 OPTIMIZE= /Ox /Oi /Zc:wchar_t
 SHARED_DEFINES= /DIO_SHARED_LIB /DIO_BUILD
 DEFINES = $(SHARED_DEFINES) /DNDEBUG /DUNICODE
-CPPFLAGS = /c /MT /std:c++latest $(DEFINES) $(OPTIMIZE) $(INCLUEDS) 
-LDFLAGS = /DLL /LIBPATH:$(DEPS_LIBS)
+CPPFLAGS = /c /nologo /GL /LD /std:c++latest $(DEFINES) $(OPTIMIZE) $(INCLUEDS) 
+LDFLAGS = /DLL /LTCG /LIBPATH:$(DEPS_LIBS)
 
 PCH = /Yustdafx.hpp /Fp$(OBJ)\stdafx.pch
 
-OBJECTS = stdafx.pch errorcheck.obj memory_traits.obj sockets.obj files.obj synch_socket_channel.obj sspi_channel.obj console.obj shared_library.obj buffer.obj channels.obj hashing.obj stringpool.obj charsets.obj charsetdetector.obj unicode_bom.obj charsetcvt.obj text.obj uri.obj http_client.obj xml_error.obj xml_event.obj xml_source.obj xml_parse.obj
-LINK_OBJECTS = $(OBJ)\stdafx.obj $(OBJ)\errorcheck.obj $(OBJ)\memory_traits.obj $(OBJ)\sockets.obj $(OBJ)\files.obj $(OBJ)\synch_socket_channel.obj $(OBJ)\sspi_channel.obj $(OBJ)\console.obj $(OBJ)\shared_library.obj $(OBJ)\buffer.obj $(OBJ)\channels.obj $(OBJ)\hashing.obj $(OBJ)\stringpool.obj $(OBJ)\charsets.obj $(OBJ)\charsetdetector.obj $(OBJ)\unicode_bom.obj $(OBJ)\charsetcvt.obj $(OBJ)\text.obj $(OBJ)\uri.obj $(OBJ)\http_client.obj $(OBJ)\xml_error.obj $(OBJ)\xml_event.obj $(OBJ)\xml_source.obj $(OBJ)\xml_parse.obj
+OBJECTS = stdafx.pch errorcheck.obj memory_traits.obj sockets.obj files.obj synch_socket_channel.obj secure_channel.obj console.obj shared_library.obj buffer.obj channels.obj hashing.obj stringpool.obj charsets.obj charsetdetector.obj unicode_bom.obj charsetcvt.obj text.obj uri.obj http_client.obj xml_error.obj xml_event.obj xml_source.obj xml_parse.obj
+LINK_OBJECTS = $(OBJ)\stdafx.obj $(OBJ)\errorcheck.obj $(OBJ)\memory_traits.obj $(OBJ)\sockets.obj $(OBJ)\files.obj $(OBJ)\synch_socket_channel.obj $(OBJ)\secure_channel.obj $(OBJ)\console.obj $(OBJ)\shared_library.obj $(OBJ)\buffer.obj $(OBJ)\channels.obj $(OBJ)\hashing.obj $(OBJ)\stringpool.obj $(OBJ)\charsets.obj $(OBJ)\charsetdetector.obj $(OBJ)\unicode_bom.obj $(OBJ)\charsetcvt.obj $(OBJ)\text.obj $(OBJ)\uri.obj $(OBJ)\http_client.obj $(OBJ)\xml_error.obj $(OBJ)\xml_event.obj $(OBJ)\xml_source.obj $(OBJ)\xml_parse.obj
 
 all: clean link
 	copy $(DEPS_LIBS)\iconv-2.dll $(TARGET)\iconv-2.dll
+	copy $(DEPS_LIBS)\gnutls.dll $(TARGET)\gnutls.dll
 
 clean:
 #	del $(OBJ) > nul
@@ -48,7 +49,7 @@ compile: $(OBJECTS)
 
 stdafx.pch:
 	$(CXX) $(CPPFLAGS) /Yc /Fp$(OBJ)\stdafx.pch /Fo$(OBJ)\stdafx.obj src\stdafx.cpp
-	
+
 # win only 
 memory_traits.obj:
 	$(CXX) $(CPPFLAGS) $(PCH) src\win\memory_traits.cpp /Fo$(OBJ)\memory_traits.obj
@@ -94,7 +95,8 @@ uri.obj:
 	$(CXX) $(CPPFLAGS) $(PCH) src\net\uri.cpp /Fo$(OBJ)\uri.obj
 http_client.obj:
 	$(CXX) $(CPPFLAGS) $(PCH) src\net\http_client.cpp /Fo$(OBJ)\http_client.obj
-# HTTPS in progress, need replacement for gnutls
+secure_channel.obj:
+	$(CXX) $(CPPFLAGS) $(PCH) src\net\secure_channel.cpp /Fo$(OBJ)\secure_channel.obj
 	
 # XML
 xml_error.obj:

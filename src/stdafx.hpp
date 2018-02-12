@@ -12,10 +12,6 @@
 #define __STDAFX_HPP_INCLUDED__
 
 #include "config.hpp"
-
-#include <ostream>
-#include <system_error>
-
 #include "errorcheck.hpp"
 #include "buffer.hpp"
 #include "channels.hpp"
