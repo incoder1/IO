@@ -30,9 +30,7 @@
 				<Linker>
 					<Add option="-pg -lgmon" />
 					<Add library="iconv.dll" />
-					<Add library="gnutls.dll" />
 					<Add library="Ws2_32" />
-					<Add library="Secur32" />
 					<Add directory="$(#msys2.lib)" />
 				</Linker>
 			</Target>
@@ -50,9 +48,9 @@
 					<Add option="-Winline" />
 					<Add option="-pedantic" />
 					<Add option="-std=c++11" />
+					<Add option="-Og" />
 					<Add option="-g" />
 					<Add option="-fexceptions" />
-					<Add option="-Og" />
 					<Add option="-DIO_SHARED_LIB" />
 					<Add directory="include" />
 					<Add directory="include/net" />
@@ -61,9 +59,7 @@
 				</Compiler>
 				<Linker>
 					<Add library="iconv.dll" />
-					<Add library="gnutls.dll" />
 					<Add library="Ws2_32" />
-					<Add library="Crypt32" />
 					<Add directory="$(#msys2.lib)" />
 				</Linker>
 			</Target>
@@ -103,9 +99,7 @@
 				<Linker>
 					<Add option="-s" />
 					<Add library="iconv.dll" />
-					<Add library="gnutls.dll" />
 					<Add library="Ws2_32" />
-					<Add library="Crypt32" />
 					<Add directory="$(#msys2.lib)" />
 				</Linker>
 			</Target>
@@ -161,9 +155,8 @@
 					<Add option="-msse4" />
 					<Add option="-mavx" />
 					<Add library="iconv.dll" />
-					<Add library="gnutls.dll" />
 					<Add library="Ws2_32" />
-					<Add library="secur32" />
+					<Add library="gnutls" />
 					<Add directory="$(#msys2.lib)" />
 				</Linker>
 			</Target>
@@ -227,6 +220,7 @@
 			<Option target="debug-win-gcc-dll-x64" />
 			<Option target="release-win-gcc-static-x64" />
 			<Option target="debug-unix-gcc-so-x64" />
+			<Option target="debug-win-gcc-static-x64" />
 		</Unit>
 		<Unit filename="include/net/uri.hpp" />
 		<Unit filename="include/network.hpp" />
@@ -307,12 +301,6 @@
 			<Option target="debug-win-gcc-static-x64" />
 			<Option target="release-win-gcc-dll-x64" />
 		</Unit>
-		<Unit filename="include/win/sspi_channel.hpp">
-			<Option target="debug-win-gcc-dll-x64" />
-			<Option target="release-win-gcc-static-x64" />
-			<Option target="release-win-gcc-dll-x64" />
-			<Option target="debug-win-gcc-static-x64" />
-		</Unit>
 		<Unit filename="include/win/synch_socket_channel.hpp">
 			<Option target="debug-win-gcc-dll-x64" />
 			<Option target="release-win-gcc-static-x64" />
@@ -345,11 +333,7 @@
 		<Unit filename="src/charsets.cpp" />
 		<Unit filename="src/hashing.cpp" />
 		<Unit filename="src/net/http_client.cpp" />
-		<Unit filename="src/net/secure_channel.cpp">
-			<Option target="debug-win-gcc-dll-x64" />
-			<Option target="release-win-gcc-static-x64" />
-			<Option target="debug-unix-gcc-so-x64" />
-		</Unit>
+		<Unit filename="src/net/secure_channel.cpp" />
 		<Unit filename="src/net/uri.cpp" />
 		<Unit filename="src/posix/console.cpp">
 			<Option target="debug-unix-gcc-so-x64" />
@@ -409,12 +393,6 @@
 			<Option target="release-win-gcc-static-x64" />
 			<Option target="debug-win-gcc-static-x64" />
 			<Option target="release-win-gcc-dll-x64" />
-		</Unit>
-		<Unit filename="src/win/sspi_channel.cpp">
-			<Option target="debug-win-gcc-dll-x64" />
-			<Option target="release-win-gcc-static-x64" />
-			<Option target="release-win-gcc-dll-x64" />
-			<Option target="debug-win-gcc-static-x64" />
 		</Unit>
 		<Unit filename="src/win/synch_socket_channel.cpp">
 			<Option target="debug-win-gcc-dll-x64" />
