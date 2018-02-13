@@ -40,11 +40,11 @@ int session::client_handshake(::gnutls_session_t const peer) noexcept
 {
     // ::gnutls_handshake_set_timeout(peer, GNUTLS_DEFAULT_HANDSHAKE_TIMEOUT);
     // ::gnutls_handshake_set_timeout(peer, GNUTLS_INDEFINITE_TIMEOUT);
-    int err;
+    int ret;
     do {
-        err = ::gnutls_handshake(peer);
-    } while (err < 0 && 0 == ::gnutls_error_is_fatal(err) );
-    return err;
+		ret = ::gnutls_handshake(peer);
+    } while(0 != ret && (::gnutls_error_is_fatal(ret) > 0) );
+    return ret;
 }
 
 session session::client_session(std::error_code &ec, ::gnutls_certificate_credentials_t crd,s_read_write_channel&& socket) noexcept

@@ -6,4 +6,4 @@ INCLUDES=/I$(ROOT)\include /I$(ROOT)\deps\msvc\include
 link: compile
 	link /LIBPATH:$(LDPATH) /OUT:network.exe io.lib main.obj
 compile:
-	cl /c /MT /DNDEBUG /DUNICODE /DIO_SHARED_LIB  $(INCLUDES) /Fomain.obj  main.cpp
+	cl /c /std:c++latest /Ox /MD /EHsc /DNDEBUG /DUNICODE /DIO_SHARED_LIB  $(INCLUDES) /Fomain.obj  main.cpp

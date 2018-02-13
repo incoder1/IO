@@ -43,10 +43,8 @@ int main()
 
 	const io::net::secure::service *sec_service = io::net::secure::service::instance(ec);
     io::check_error_code( ec );
-
     io::s_read_write_channel raw_ch = tpc_socket->connect(ec);
     io::check_error_code( ec );
-
     io::s_read_write_channel sch = sec_service->new_client_connection(ec, std::move(raw_ch) );
     io::check_error_code(ec);
 
@@ -56,16 +54,15 @@ int main()
 	rq->send( ec, sch );
 	io::check_error_code( ec );
 
-	io::scoped_arr<uint8_t> tmp( 1 << 20);
-	if(!tmp)
-		io::check_error_code( std::make_error_code(std::errc::not_enough_memory) );
-
+	// 64k
+	uint8_t tmp[2048];
 	std::size_t read;
 	do {
-		read = sch->read(ec, tmp.get(), tmp.len() );
-		if(read > 0)
-			std::cout.write( reinterpret_cast<const char*>(tmp.get()), read);
-	} while(!ec && read > 0 );
+		read = sch->read(ec, tmp, 2048 );
+		if(read == 0)
+			break;
+		std::cout.write( reinterpret_cast<char*>(tmp), read);
+	} while(!ec);
 
 	std::cout.flush();
 

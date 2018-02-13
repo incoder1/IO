@@ -35,7 +35,7 @@ static constexpr int SOLIDUS = 47;// '/'
 static constexpr int HYPHEN = char8_traits::to_int_type('-');// '-'
 static constexpr int COLON = 58; // ':'
 static constexpr int ENDL = 0;
-static constexpr int iEOF = std::char_traits<char32_t>::to_int_type( std::char_traits<char32_t>::eof() );
+static constexpr int iEOF = std::char_traits<char32_t>::eof();
 
 static inline bool is_prologue(const char *s) noexcept
 {
