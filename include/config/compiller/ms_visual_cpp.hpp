@@ -119,13 +119,13 @@
 #define io_likely(__expr__) !!(__expr__)
 #define io_unlikely(__expr__) !!(__expr__)
 
-#pragma intrinsic(_BitScanForward)
+#pragma intrinsic(_BitScanReverse)
 
 __forceinline int io_clz(unsigned long x )
 {
-   unsigned long ret = 0;
-   _BitScanForward(&ret, x);
-   return  static_cast<int>(ret);
+	unsigned long ret = 0;
+	_BitScanReverse(&ret, x);
+	return  static_cast<int>(ret);
 }
 
 namespace io {

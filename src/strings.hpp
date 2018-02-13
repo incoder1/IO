@@ -402,7 +402,7 @@ inline size_t xmlname_strspn(const char *s)
 }
 
 inline uint8_t u8_char_size(const char ch) {
-		if( static_cast<unsigned int>(ch) < 0x80U)
+		if( static_cast<uint8_t>(ch) < 0x80U)
 			return 1;
 #ifdef IO_IS_LITTLE_ENDIAN
 		static constexpr unsigned int MB_SHIFT = ( sizeof(unsigned int) << 3 ) - 8;
