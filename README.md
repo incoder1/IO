@@ -93,15 +93,10 @@ Lib iconv with support of the following character sets (code pages):
 ## SUPPORTED OPERATING SYSTEMS AND COMPILERS
 
 Generally library should work with Microsoft Windows Vista + and any POSIX compliant (Unix like GNU/Linux FreeBSD or Mac OS X) 
-operating system with any C++ 11 compatible (or partial compatible) compiler. C++ standard library must provide:
+operating system with GCC 5+ or MS Visual C++ 15+
 
-	* <functional>
-	* <system_error>
-	* <tuple>
-	* <type_traits>
-	* <utility>
 	
-### TESTED COMPILERS AND PLATFORMS
+### TESTED CONFIGURATIONS
 
 #### Microsoft Windows 
 		- Windows 7 GCC/G++ 5.1 -  MinGW64 (TDM build)
