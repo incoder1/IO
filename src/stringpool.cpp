@@ -23,11 +23,6 @@ cached_string::cached_string(const cached_string& other) noexcept:
 		intrusive_add_ref(data_);
 }
 
-cached_string::cached_string(cached_string&& other) noexcept:
-	data_(other.data_)
-{
-	other.data_ = nullptr;
-}
 
 cached_string::cached_string(const char* str, std::size_t length) noexcept:
 	data_(nullptr)

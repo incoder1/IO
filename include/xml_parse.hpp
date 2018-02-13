@@ -205,12 +205,12 @@ private:
 	inline void putch(byte_buffer& buf, char i) noexcept
 	{
 		if( buf.full() ) {
-			if( !buf.extend( buf.capacity() >> 1 ) ) {
+			if( !buf.ln_grow() ) {
 				assign_error(error::out_of_memory);
 				return;
 			}
 		}
-		buf.put(i);
+		buf.put( i );
 	}
 
 	char skip_to_symbol(char symbol) noexcept;

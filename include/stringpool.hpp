@@ -64,7 +64,11 @@ public:
 	}
 
 	/// Movement constructor, default movement semantic
-	cached_string(cached_string&& other) noexcept;
+	cached_string(cached_string&& other) noexcept:
+		data_(other.data_)
+	{
+		other.data_ = nullptr;
+	}
 
 	/// Movement assignment operator, default movement semantic
 	cached_string& operator=(cached_string&& other) noexcept {

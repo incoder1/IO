@@ -547,6 +547,12 @@ public:
     /// \throw never throws
     bool exp_grow() noexcept;
 
+    /// Natural logarithm grow this buffer by ln this buffer capacity
+	/// If not enough memory, buffer will be kept in memory as is
+    /// \return true buffer was extended, false if not enough available memory
+    /// \throw never throws
+    bool ln_grow() noexcept;
+
 private:
 
     byte_buffer(detail::mem_block&& arr, std::size_t capacity) noexcept:

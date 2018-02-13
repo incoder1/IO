@@ -119,6 +119,14 @@
 #define io_likely(__expr__) !!(__expr__)
 #define io_unlikely(__expr__) !!(__expr__)
 
+#ifdef IO_CPU_INTEL
+
+#pragma intrinsic(__lzcnt)
+
+#define io_clz(__x) __lzcnt((__x))
+
+#else // non intel impl
+	
 #pragma intrinsic(_BitScanReverse)
 
 __forceinline int io_clz(unsigned long x )
@@ -127,6 +135,8 @@ __forceinline int io_clz(unsigned long x )
 	_BitScanReverse(&ret, x);
 	return  static_cast<int>(ret);
 }
+
+#endif // Non intel impl
 
 namespace io {
 namespace detail {
