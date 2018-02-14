@@ -711,7 +711,7 @@ start_element_event event_stream_parser::parse_start_element() noexcept
 				return start_element_event();
 			}
 			if( ! result.add_attribute( std::move(attr) ) ) {
-				assign_error( error::out_of_memory );
+				assign_error( error::illegal_attribute );
 				return start_element_event();
 			}
 			left += offset;

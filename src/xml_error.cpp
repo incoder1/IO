@@ -38,8 +38,10 @@ const char* error_category::cstr_message(int err_code) const noexcept
 		return "No errors";
 	case error::io_error:
 		return "System input/output error";
+	case error::illegal_attribute:
+		return "Tag have several attributes with the same name";
 	case error::illegal_chars:
-		return "Illegal Unicode characters online";
+		return "Illegal UNICODE characters online";
 	case error::out_of_memory:
 		return "Not enough memory";
 	case error::illegal_name:

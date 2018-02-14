@@ -25,6 +25,7 @@ enum class error
 	ok,
 	io_error,
 	out_of_memory,
+	illegal_attribute,
 	illegal_prologue,
 	illegal_chars,
 	illegal_name,

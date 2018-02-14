@@ -19,7 +19,7 @@
 #include "conststring.hpp"
 #include "stringpool.hpp"
 
-#include <vector>
+#include <set>
 
 namespace io {
 
@@ -122,6 +122,10 @@ public:
 		value_.swap(rhs.value_);
 	}
 
+	bool operator<(const attribute& rhs) const noexcept {
+        return name_ < rhs.name_;
+	}
+
 	bool operator==(const attribute& rhs) const noexcept
 	{
         return name_ == rhs.name_ && value_ == rhs.value_;
@@ -146,6 +150,10 @@ public:
 		prefix_(p),
 		local_name_(n)
 	{}
+
+	explicit operator bool() const noexcept {
+		return !local_name_.empty();
+	}
 
 	inline void swap(qname& other) noexcept
 	{
@@ -181,55 +189,30 @@ private:
 class IO_PUBLIC_SYMBOL start_element_event final
 {
 private:
-	typedef std::vector<attribute, h_allocator<attribute> > attrs_storage;
+	typedef std::set<attribute, std::less<attribute> , h_allocator<attribute> > attrs_storage;
 public:
 	typedef attrs_storage::const_iterator iterator;
 
 	start_element_event(const start_element_event& rhs) = delete;
 	start_element_event& operator=(const start_element_event& rhs) = delete;
 
-	start_element_event() noexcept:
-		name_(),
-		attributes_(),
-		empty_element_(false)
-	{}
-
+	start_element_event() noexcept;
 	~start_element_event() noexcept = default;
 
 	start_element_event(qname&& name, bool empty_element) noexcept;
-
-	start_element_event(start_element_event&& rhs) noexcept:
-		name_( std::move(rhs.name_) ),
-		attributes_( std::move(rhs.attributes_) ),
-		empty_element_(rhs.empty_element_)
-	{}
+	start_element_event(start_element_event&& rhs) noexcept;
 
 	start_element_event& operator=(start_element_event&& rhs) noexcept {
-		name_ = rhs.name_;
-		attributes_ = std::move(rhs.attributes_);
-		empty_element_ = rhs.empty_element_;
+		start_element_event( std::forward<start_element_event>(rhs) ).swap( *this );
 		return *this;
 	}
 
-	bool add_attribute(attribute&& attr) noexcept
+	explicit operator bool() const noexcept
 	{
-#ifdef IO_NO_EXCEPTIONS
-#   if __cplusplus > 201402L
-       return attr == attributes_.emplace_back( std::forward<attribute>( attr ) );
-#   else
-		std::size_t ps = attributes_.size();
-		attributes_.emplace_back( std::forward<attribute>( attr ) );
-		return (ps+1) == attributes_.size();
-#   endif // __cplusplus 14+
-#else
-    try {
-        attributes_.emplace_back( std::forward<attribute>( attr ) );
-        return true;
-    } catch(...) {
-        return false;
-    }
-#endif // IO_NO_EXCEPTIONS
+        return static_cast<bool>(name_);
 	}
+
+	bool add_attribute(attribute&& attr) noexcept;
 
 	inline bool empty_element() const noexcept {
 		return empty_element_;
@@ -249,6 +232,12 @@ public:
 
 	inline iterator attr_end() const noexcept {
 		return attributes_.cend();
+	}
+
+	inline void swap(start_element_event& other) noexcept {
+		name_.swap(other.name_);
+		attributes_.swap(other.attributes_);
+		std::swap(empty_element_, other.empty_element_);
 	}
 
 private:
@@ -276,6 +265,11 @@ public:
 	end_element_event(end_element_event&& mv) noexcept:
 		name_( std::move(mv.name_) )
 	{}
+
+	explicit operator bool() const noexcept
+	{
+        return static_cast<bool>(name_);
+	}
 
 	inline end_element_event& operator=(end_element_event&& rhs) noexcept
 	{
