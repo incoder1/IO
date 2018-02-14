@@ -6,7 +6,7 @@
 // for non UTF-8 encoding XML file should have byte order mark (BOM)
 
 // mini embedded version of winver.h
-// needed bu MinGW/64 headers wich uses WinXP by
+// needed bu MinGW/64 headers which uses WinXP by
 // default
 // We need Windows Vista +
 #ifdef _WIN32
@@ -193,7 +193,7 @@ int main(int argc, const char** argv)
 		// Scan for next XML state
 		state = xs->scan_next();
 		switch(state.current) {
-		// skip initial state and endof document state
+		// skip initial state and end of document state
 		case xml::state_type::initial:
 		case xml::state_type::eod:
 			break;
@@ -203,7 +203,7 @@ int main(int argc, const char** argv)
 			log_chars(cout,"DTD:", xs->read_dtd() );
 			//xs->skip_dtd();
 			break;
-		// next state is an XML event, jump into event type swithc
+		// next state is an XML event, jump into event type switch
 		case xml::state_type::event:
 			print_event(cout,xs);
 			break;
@@ -214,7 +214,7 @@ int main(int argc, const char** argv)
 			// xs->skip_comment();
 			break;
 		// next step is <![CDATA section same as characters
-		// but allow internal markup
+		// but allow internal XML markup
 		case xml::state_type::cdata:
 			log_chars(cout, "CDATA: ", xs->read_cdata() );
 			break;
@@ -235,7 +235,8 @@ int main(int argc, const char** argv)
 		// Obtain error location (line number and row) from XML source
 		// and output error details into error stream
 		cerr<< "XML error [" << xs->row() << ',' << xs->col() << "] " << ec.message() << std::endl;
-		return -1;
+		// return error code
+		return ec.value();
 	}
 	// Parsing is done
 	cout << "End of document" << std::endl;

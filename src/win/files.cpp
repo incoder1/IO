@@ -87,7 +87,7 @@ file::file(const wchar_t* name) noexcept:
 		name_( std::char_traits<wchar_t>::length(name) + 1 )
 {
 	if(name_)
-		std::char_traits<wchar_t>::move(name_.get(), name, name_.len()-1 );
+		std::char_traits<wchar_t>::copy(name_.get(), name, name_.len()-1 );
 }
 
 static inline win::synch_file_channel* new_channel(std::error_code& ec, ::HANDLE hnd) noexcept {
