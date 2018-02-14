@@ -18,13 +18,13 @@ SHARED_EXT=dll
 
 PLATFORM_SHARED_LINK_OPTIONS=
 
-LIBS=iconv.dll.lib gnutls.lib Ws2_32.lib User32.lib 
+LIBS=msvcrt.lib kernel32.lib user32.lib Ws2_32.lib iconv.dll.lib gnutls.lib 
 INCLUEDS=/Iinclude /Iinclude\win /Iinclude\net /Isrc /I$(DEPS_INCLUDES)
 
 OPTIMIZE= /Ox /Oi /Zc:wchar_t
 SHARED_DEFINES= /DIO_SHARED_LIB /DIO_BUILD
 DEFINES = $(SHARED_DEFINES) /DNDEBUG /DUNICODE
-CPPFLAGS = /c /nologo /GL /LD /std:c++latest $(DEFINES) $(OPTIMIZE) $(INCLUEDS) 
+CPPFLAGS = /c /nologo /GL /Zl /std:c++latest $(DEFINES) $(OPTIMIZE) $(INCLUEDS) 
 LDFLAGS = /DLL /LTCG /LIBPATH:$(DEPS_LIBS)
 
 PCH = /Yustdafx.hpp /Fp$(OBJ)\stdafx.pch

@@ -176,32 +176,33 @@ inline char source::normalize_lend(const char ch)
 
 char source::next() noexcept
 {
-	if( end_ == (pos_+1) ) {
+	if( io_unlikely( end_ == (pos_+1) ) ) {
 		last_ = charge();
 		if( pos_ == end_ || error::ok != last_ )
             return _eof;
 	}
-	char result = *pos_;
-	if( char_shift_ > 1 ) {
+	char ret = *pos_;
+	if( io_unlikely( char_shift_ > 1 ) ) {
 		--char_shift_;
 		++pos_;
-		return result;
+		return ret;
 	}
-	std::uint8_t ch_size = u8_char_size( result );
-	switch(ch_size) {
+	uint_fast8_t mbl = u8_char_size( ret );
+	switch( mbl ) {
 	case 1:
-		result = normalize_lend( result );
+		ret = normalize_lend( ret );
 		break;
-	case 5:
-	case 6:
+	case 2:
+	case 3:
+	case 4:
+		char_shift_ = mbl;
+		break;
+	default:
 		last_ = error::illegal_chars;
 		return _eof;
-	default:
-		char_shift_ = ch_size;
-		break;
 	}
 	++pos_;
-	return result;
+	return ret;
 }
 
 } // namespace xml

@@ -11,7 +11,6 @@
 #include "stdafx.hpp"
 #include "console.hpp"
 
-#include <stdlib.h>
 
 #ifndef CP_WINUNICODE
 #define CP_WINUNICODE 1200
@@ -107,11 +106,11 @@ console::console():
 	::HANDLE hstdout = ::GetStdHandle(STD_OUTPUT_HANDLE);
 	::HANDLE hstderr =  ::GetStdHandle(STD_ERROR_HANDLE);
 	::WORD origing_attr = win::prev_attr(hstdout);
-	cin_ = new win::console_channel( hstdin, origing_attr, origing_attr );
+	cin_ = new (std::nothrow) win::console_channel( hstdin, origing_attr, origing_attr );
 	intrusive_ptr_add_ref( cin_ );
-	cout_ = new win::console_channel( hstdout, origing_attr, origing_attr);
+	cout_ = new (std::nothrow) win::console_channel( hstdout, origing_attr, origing_attr);
 	intrusive_ptr_add_ref( cout_ );
-	cerr_ =  new win::console_channel( hstderr, origing_attr, 0x0C);
+	cerr_ =  new (std::nothrow) win::console_channel( hstderr, origing_attr, 0x0C);
 	intrusive_ptr_add_ref( cerr_ );
 	// both of them returns false, but working as expected
 	::SetConsoleCP(CP_WINUNICODE);

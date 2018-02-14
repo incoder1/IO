@@ -17,12 +17,14 @@
 #pragma once
 #endif // HAS_PRAGMA_ONCE
 
+
 #include <atomic>
 #include <memory>
-#include <iostream>
 
 #include <text.hpp>
 #include <stream.hpp>
+
+#include <istream>
 #include <ostream>
 
 #include <wincon.h>

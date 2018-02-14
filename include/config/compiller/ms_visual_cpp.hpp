@@ -63,6 +63,7 @@
 #	define io_size_t_abs(__x) labs( (__x) )
 #endif
 
+#pragma intrinsic(_byteswap_ushort,_byteswap_ulong,_byteswap_uint64)
 
 #define io_bswap16 _byteswap_ushort
 #define io_bswap32 _byteswap_ulong
