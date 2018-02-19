@@ -205,7 +205,7 @@ private:
 	inline void putch(byte_buffer& buf, char i) noexcept
 	{
 		if( buf.full() ) {
-			if( !buf.ln_grow() ) {
+			if( io_unlikely( !buf.ln_grow() ) ) {
 				assign_error(error::out_of_memory);
 				return;
 			}
@@ -220,8 +220,6 @@ private:
 	qname extract_qname(const char* from, std::size_t& len) noexcept;
 	attribute extract_attribute(const char* from, std::size_t& len) noexcept;
 	bool validate_xml_name(const cached_string& str, bool attr) noexcept;
-
-	void cache_validated_name(const char* name) noexcept;
 
 	inline char next() noexcept
 	{

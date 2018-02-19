@@ -141,7 +141,7 @@ static constexpr char32_t decode4(const uint8_t* mb4) noexcept
 
 } // namespace u8_decode
 
-static error check_xml_name(const char* tn) noexcept
+static IO_NO_INLINE error check_xml_name(const char* tn) noexcept
 {
 	const char* c = tn;
 	if( io_unlikely( ('\0' == *c) || is_digit(*c) ) )
@@ -269,7 +269,9 @@ event_stream_parser::event_stream_parser(const s_source& src, s_string_pool&& po
 	pool_(std::forward<s_string_pool>(pool)),
 	validated_(),
 	nesting_(0)
-{}
+{
+	validated_.reserve(64);
+}
 
 event_stream_parser::~event_stream_parser() noexcept
 {}
@@ -733,36 +735,19 @@ attribute event_stream_parser::extract_attribute(const char* from, std::size_t& 
 	return attribute( std::move(name), const_string(val.position().cdata(), val.last().cdata()) );
 }
 
-void event_stream_parser::cache_validated_name(const char* str) noexcept
-{
-#ifdef IO_NO_EXCEPTIONS
-	auto ret = validated_.emplace( reinterpret_cast<std::size_t> ( std::addressof(str) )  );
-	if(!ret.second)
-		assign_error( xml::error::out_of_memory );
-#else
-	try {
-		validated_.emplace(  reinterpret_cast<std::size_t> ( std::addressof(str) ) );
-	}
-	catch(std::bad_alloc& exc) {
-		assign_error( xml::error::out_of_memory );
-	}
-#endif // IO_NO_EXCEPTIONS
-}
-
 bool event_stream_parser::validate_xml_name(const cached_string& str, bool attr) noexcept
 {
-	if( validated_.end() == validated_.find(reinterpret_cast<std::size_t>(str.data()))  ) {
+	if( validated_.end() == validated_.find( str.hash() ) ) {
 		error err;
 		if(attr)
 			err = validate_attribute_name( str.data() );
 		else
 			err = validate_tag_name( str.data() );
-
 		if(error::ok != err ) {
 			assign_error( err );
 			return false;
 		}
-		validated_.emplace( reinterpret_cast<std::size_t>(str.data()) );
+		validated_.insert( str.hash() );
 		return true;
 	}
 	return true;
