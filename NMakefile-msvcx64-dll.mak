@@ -61,8 +61,6 @@ sockets.obj:
 	$(CXX) $(CPPFLAGS) $(PCH) src\win\sockets.cpp /Fo$(OBJ)\sockets.obj
 synch_socket_channel.obj:
 	$(CXX) $(CPPFLAGS) $(PCH) src\win\synch_socket_channel.cpp /Fo$(OBJ)\synch_socket_channel.obj
-sspi_channel.obj:
-	$(CXX) $(CPPFLAGS) $(PCH) src\win\sspi_channel.cpp /Fo$(OBJ)\sspi_channel.obj
 console.obj:
 	$(CXX) $(CPPFLAGS) $(PCH) src\win\console.cpp /Fo$(OBJ)\console.obj
 shared_library.obj:

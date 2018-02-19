@@ -99,6 +99,94 @@ static std::size_t extract_local_name(std::size_t& start,const char* str) noexce
 	return memory_traits::distance(str,s-1) - (start-1);
 }
 
+#ifdef IO_IS_LITTLE_ENDIAN
+
+static constexpr char32_t INVALID_CHAR = -1;
+
+namespace u8_decode {
+
+static constexpr char32_t SH2    = 6;
+static constexpr char32_t SH3    = 12;
+static constexpr char32_t SH4    = 18;
+
+static constexpr uint8_t TAIL_MASK  = 0x3F;
+static constexpr uint8_t B2_MASK    = 0x1F;
+static constexpr uint8_t B3_MASK    = 0x0F;
+static constexpr uint8_t B4_MASK    = 0x07;
+
+static constexpr char tail(const uint8_t tail) noexcept
+{
+	return tail & TAIL_MASK;
+}
+
+static constexpr char32_t decode2(const uint8_t* mb2) noexcept
+{
+	return ( (mb2[0] & B2_MASK) << SH2) + tail(mb2[1]);
+}
+
+static constexpr char32_t decode3(const uint8_t* mb3) noexcept
+{
+	return ( (mb3[0] & B3_MASK) << SH3)  +
+		   ( tail(mb3[1]) << SH2) +
+		   ( tail(mb3[2]) );
+}
+
+static constexpr char32_t decode4(const uint8_t* mb4) noexcept
+{
+	return ( (mb4[0] & B4_MASK) << SH4) +
+		   ( tail(mb4[1]) << SH3) +
+		   ( tail(mb4[2]) << SH2) +
+		   tail(mb4[3]);
+}
+
+} // namespace u8_decode
+
+static error check_xml_name(const char* tn) noexcept
+{
+	const char* c = tn;
+	if( io_unlikely( ('\0' == *c) || is_digit(*c) ) )
+		return error::illegal_name;
+	do {
+		switch( u8_char_size(*c) ) {
+		case io_likely(1):
+			if( io_unlikely( !is_xml_name_char(static_cast<char32_t>(*c) ) ) )
+				return error::illegal_name;
+			++c;
+			break;
+		case 2:
+			if(!is_xml_name_char(u8_decode::decode2( reinterpret_cast<const uint8_t*>(c) ) ) )
+				return error::illegal_name;
+			c += 2;
+			break;
+		case 3:
+			if(!is_xml_name_char(u8_decode::decode3( reinterpret_cast<const uint8_t*>(c) ) ) )
+				return error::illegal_name;
+			c += 3;
+			break;
+		case 4:
+			if(!is_xml_name_char(u8_decode::decode4( reinterpret_cast<const uint8_t*>(c) ) ) )
+				return error::illegal_name;
+			c += 4;
+			break;
+		default:
+#ifdef	_MSC_VER
+		__assume(0);
+#endif // _MSC_VER
+			return error::illegal_name;
+		}
+	} while('\0' != *c);
+	return error::ok;
+}
+
+#else
+
+static bool utf8_to_utf32(const char* src, std::size_t &slen, char32_t* dst, std::size_t &dlen) noexcept
+	std::error_code ec;
+	std::size_t ulen = transcode(ec,
+								 reinterpret_cast<const uint8_t*>(src),len,
+								 dst,dlen);
+	return !ec || 0 != ulen;
+}
 
 static error check_xml_name(const char* tn) noexcept
 {
@@ -120,11 +208,8 @@ static error check_xml_name(const char* tn) noexcept
 		if(nullptr == ch32)
 			return error::out_of_memory;
 	}
-	std::error_code ec;
-	std::size_t ulen = transcode(ec,
-								 reinterpret_cast<const uint8_t*>(tn),len,
-								 ch32,u32len);
-	if( ec || !ulen ) {
+	std::size_t i = len, j = u32len;
+	if( !utf8_to_utf32(tn, i, ch32, j) ) {
 		// huge name, release memory for UCS-4
 		if(len > UCHAR_MAX)
 			memory_traits::free_temporary( ch32 );
@@ -134,7 +219,7 @@ static error check_xml_name(const char* tn) noexcept
 	if( !is_xml_name_start_char(*ch32) )
 		return error::illegal_name;
 	// rest of name
-	for(std::size_t i = 1; i < ulen; i++) {
+	for(std::size_t i = 1; i < u32len; i++) {
 		if( !is_xml_name_char( ch32[i] ) )
 			return error::illegal_name;
 	}
@@ -142,6 +227,10 @@ static error check_xml_name(const char* tn) noexcept
 		memory_traits::free_temporary( ch32 );
 	return error::ok;
 }
+
+#endif // IO_IS_LITTLE_ENDIAN
+
+
 
 static error validate_tag_name(const char* name) noexcept
 {

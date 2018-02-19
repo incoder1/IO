@@ -261,7 +261,7 @@ inline bool is_xml_name_start_char(char32_t ch) noexcept
 }
 
 // Works only for UCS-4
-static constexpr inline bool is_xml_name_char(uint_fast32_t ch) noexcept
+static constexpr inline bool is_xml_name_char(char32_t ch) noexcept
 {
 	return is_digit(ch) ||
 	       // - | . | U+00B7
