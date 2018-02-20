@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes" ?>
+<CodeBlocks_project_file>
+	<FileVersion major="1" minor="6" />
+	<Project>
+		<Option title="xml_unmarshalling" />
+		<Option pch_mode="2" />
+		<Option compiler="gcc" />
+		<Build>
+			<Target title="debug-gcc-win64">
+				<Option output="bin/debug-gcc-win64/xml_unmarshalling" prefix_auto="1" extension_auto="1" />
+				<Option object_output="obj/debug-gcc-win64/" />
+				<Option type="1" />
+				<Option compiler="gcc" />
+				<Compiler>
+					<Add option="-pg" />
+					<Add option="-Og" />
+					<Add option="-g" />
+				</Compiler>
+				<Linker>
+					<Add option="-pg -lgmon" />
+					<Add library="iconv" />
+					<Add directory="../../bin/debug-win-gcc-static-x64" />
+				</Linker>
+			</Target>
+			<Target title="release-gcc-win64">
+				<Option output="bin/release-win64/xml_unmarshalling" prefix_auto="1" extension_auto="1" />
+				<Option object_output="obj/release-gcc-win64/" />
+				<Option type="1" />
+				<Option compiler="gcc" />
+				<Compiler>
+					<Add option="-O2" />
+					<Add option="-DIO_SHARED_LIB" />
+				</Compiler>
+				<Linker>
+					<Add option="-s" />
+					<Add directory="../../bin/release-win-gcc-dll-x64" />
+				</Linker>
+			</Target>
+		</Build>
+		<Compiler>
+			<Add option="-Wall" />
+			<Add option="-fexceptions" />
+			<Add directory="../../include" />
+		</Compiler>
+		<Linker>
+			<Add library="io" />
+		</Linker>
+		<Unit filename="main.cpp" />
+		<Extensions>
+			<code_completion />
+			<envvars />
+			<debugger />
+		</Extensions>
+	</Project>
+</CodeBlocks_project_file>

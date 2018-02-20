@@ -617,15 +617,22 @@ const_string event_stream_parser::read_chars() noexcept
 		assign_error(error::invalid_state);
 		return const_string();
 	}
+	// just "\n<" in scan stack
+	if( cheq(LEFTB,scan_buf_[1]) && cheq('\0',scan_buf_[3]) ) {
+		char tmp[2] = { scan_buf_[0], '\0'};
+		sb_clear(scan_buf_);
+		scan_buf_[0] = char8_traits::to_char_type(LEFTB);
+		return const_string(tmp);
+	}
 	std::error_code ec;
-	byte_buffer result = byte_buffer::allocate(ec,HUGE_BUFF_SIZE);
-	if(!check_buffer(result))
+	byte_buffer ret = byte_buffer::allocate(ec,HUGE_BUFF_SIZE);
+	if(!check_buffer(ret))
 		return const_string();
 	if( !sb_check(scan_buf_) ) {
 		assign_error(error::root_element_is_unbalanced);
 		return const_string();
 	}
-	result.put(scan_buf_ );
+	ret.put(scan_buf_);
 	bool reading = true;
 	int i;
 	do {
@@ -643,18 +650,18 @@ const_string event_stream_parser::read_chars() noexcept
 			assign_error(error::root_element_is_unbalanced);
 			return const_string();
 		default:
-			putch(result, static_cast<char>(i) );
-		}
-		if( is_error() ) {
-			sb_clear( scan_buf_ );
-			return const_string();
+			putch(ret, static_cast<char>(i) );
+			if( is_error() ) {
+				sb_clear( scan_buf_ );
+				return const_string();
+			}
 		}
 	}
 	while( reading );
 	sb_clear( scan_buf_ );
-	sb_append( scan_buf_, static_cast<char>(LEFTB) );
-	result.flip();
-	return const_string( result.position().cdata(), result.last().cdata() );
+	scan_buf_[0] = char8_traits::to_char_type(LEFTB);
+	ret.flip();
+	return const_string( ret.position().cdata(), ret.last().cdata() );
 }
 
 void event_stream_parser::skip_chars() noexcept

@@ -266,15 +266,15 @@ public:
 		name_( std::move(mv.name_) )
 	{}
 
-	explicit operator bool() const noexcept
-	{
-        return static_cast<bool>(name_);
-	}
-
-	inline end_element_event& operator=(end_element_event&& rhs) noexcept
+	end_element_event& operator=(end_element_event&& rhs) noexcept
 	{
 		name_.swap( rhs.name_ );
 		return *this;
+	}
+
+	explicit operator bool() const noexcept
+	{
+        return static_cast<bool>(name_);
 	}
 
 	inline qname name() const noexcept {

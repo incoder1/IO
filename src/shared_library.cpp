@@ -14,7 +14,7 @@
 
 extern "C" {
 
-BOOL WINAPI DllMain(::HMODULE hprocess,::DWORD fdwReason,:: LPVOID lpvReserved)
+BOOL WINAPI DllMain(::HMODULE hprocess,::DWORD fdwReason,::LPVOID lpvReserved)
 {
 	switch (fdwReason) {
 	case DLL_PROCESS_ATTACH:
