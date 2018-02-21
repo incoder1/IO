@@ -19,6 +19,7 @@
 #include "conststring.hpp"
 #include "stringpool.hpp"
 
+#include <algorithm>
 #include <set>
 
 namespace io {
@@ -232,6 +233,20 @@ public:
 
 	inline iterator attr_end() const noexcept {
 		return attributes_.cend();
+	}
+
+	std::pair<const_string, bool> get_attribute(const char* attr_name) const noexcept
+	{
+		iterator ret = std::find_if(
+					attributes_.begin(),
+					attributes_.end(),
+					[attr_name] (const attribute& attr) {
+                        return attr.name().equal(attr_name);
+					} );
+		if( attributes_.end() != ret)
+			return std::make_pair( ret->value() ,true);
+		else
+			return std::make_pair(const_string(), false);
 	}
 
 	inline void swap(start_element_event& other) noexcept {

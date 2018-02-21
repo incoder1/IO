@@ -62,8 +62,10 @@ static configuration read_config(io::unsafe<io::xml::reader>& rd) {
 	configuration ret;
 	io::xml::start_element_event bev = rd.next_tag_begin();
 		// read id from attribute
-	  	ret.id = size_t_cast::from_string( bev.attr_begin()->value().data() );
-	  	ret.enabled = bool_cast::from_string( (++bev.attr_begin())->value().data() );
+		io::const_string tmp = bev.get_attribute("id").first;
+	  	ret.id = size_t_cast::from_string( tmp.data() );
+	  	tmp = bev.get_attribute("enabled").first;
+	  	ret.enabled = bool_cast::from_string( tmp.data() );
 	  	// read name value from tag
 		bev = rd.next_tag_begin();
 		  ret.name = std::string( rd.next_characters().data() );

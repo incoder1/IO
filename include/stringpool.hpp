@@ -145,6 +145,14 @@ public:
 		return tmp == rhs ? true : 0 == traits_type::compare( tmp, rhs, bytes);
 	}
 
+
+	/// Checks underlying character array is binary same to rhs zero ending string
+	/// \param rhs zero ending string check with
+	inline bool equal(const char* rhs) const noexcept {
+		const char *tmp = data();
+		return tmp == rhs ? true : 0 == std::strcmp(tmp, rhs);
+	}
+
 	/// Lexicographically compare the string with another
 	/// \param rhs a string to compare with
 	/// \return whether strings equals
