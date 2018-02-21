@@ -324,6 +324,7 @@
 		<Unit filename="include/xml_event.hpp" />
 		<Unit filename="include/xml_lexcast.hpp" />
 		<Unit filename="include/xml_parse.hpp" />
+		<Unit filename="include/xml_reader.hpp" />
 		<Unit filename="include/xml_source.hpp" />
 		<Unit filename="include/xml_types.hpp" />
 		<Unit filename="src/buffer.cpp" />
@@ -403,6 +404,7 @@
 		<Unit filename="src/xml_error.cpp" />
 		<Unit filename="src/xml_event.cpp" />
 		<Unit filename="src/xml_parse.cpp" />
+		<Unit filename="src/xml_reader.cpp" />
 		<Unit filename="src/xml_source.cpp" />
 		<Extensions>
 			<code_completion />

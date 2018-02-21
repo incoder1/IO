@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<configurations>
+	<configuration id="0" enabled="true">
+		<name>Test configuration <![CDATA[<0>]]></name>
+	</configuration>
+	<configuration id="1" enabled="false">
+		<name>Test configuration <![CDATA[<1>]]></name>
+	</configuration>
+</configurations>

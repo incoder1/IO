@@ -64,8 +64,11 @@ IO provides MurMur3 hash function for 32 bit instruction set and Google CityHash
 
 ### StAX XML PARSER
 
-Streaming API for XML parsing – a non-validating (except for XML syntax) parser for XML document with StAX API. 
+Streaming API for XML parsing (XML POOL API) – a non-validating (except for XML syntax) parser for XML document with StAX API. 
 Exceptions and RTTI off mode supported. Errors including out of memory can be handled by error code.
+
+### XML reading cursor API
+A StAX parser facade to simplify de-serializing C/C++ structures or classes from XML. See xml_deserializing
 
 ### XML MARSHALLER
 
@@ -192,4 +195,5 @@ Example applications located in examples sub-folder
 	- text – universal character set detector example
 	- xml_marshalling – compile time reflection plain C object XML marshalling and XSD generation example
 	- xmlparse – StAX XML parser example 
+	- xml_deserializing - Reading XML into C++ structure
 
