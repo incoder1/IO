@@ -12,13 +12,16 @@
 
 #include "config.hpp"
 
+#ifdef HAS_PRAGMA_ONCE
+#pragma once
+#endif // HAS_PRAGMA_ONCE
+
+
+#include <stdint.h>
 #include <limits>
 #include <cstdlib>
 #include <ctime>
 
-#ifdef HAS_PRAGMA_ONCE
-#pragma once
-#endif // HAS_PRAGMA_ONCE
 
 namespace io {
 
@@ -311,7 +314,7 @@ private:
 		n /= static_cast<int_type>(radix);
 		return rem;
 	}
-	static inline char_type* format_u(int_type value,char_type* to) noexcept IO_NO_INLINE
+	static inline char_type* format_u(int_type value, char_type* to) noexcept
 	{
 		char_type result[cast_traits::max_str_len];
 		char_type *s = &result[cast_traits::max_str_len];
@@ -381,7 +384,7 @@ private:
 		n /= static_cast<int_type>(radix);
 		return rem;
 	}
-	static const char_type* format_a(int_type value,char_type* to) noexcept IO_NO_INLINE
+	static const char_type* format_a(int_type value,char_type* to) noexcept
 	{
 		char_type result[cast_traits::max_str_len];
 		char_type *s = &result[cast_traits::max_str_len];
@@ -593,7 +596,7 @@ private:
 public:
 	typedef typename lext_cast::char_type char_type;
 	static constexpr uint8_t max_str_len = int_limits<uint8_t>::max_str_len;
-	static inline void  to_stiring(uint8_t byte, const char_type* to) noexcept {
+	static inline void  to_stiring(uint8_t byte, char_type* to) noexcept {
 		return lext_cast::byte_to_str(byte, to);
 	}
 	static inline uint8_t from_stiring(const char_type* from) noexcept {
@@ -602,21 +605,32 @@ public:
 };
 
 
+#ifndef _MSC_VER
 template<class __lex_cast>
 class lexical_cast_traits<int8_t,__lex_cast>
 {
 private:
 	typedef __lex_cast lext_cast;
+
 public:
+	
 	typedef typename lext_cast::char_type char_type;
-	static constexpr uint8_t max_str_len = int_limits<int8_t>::max_str_len;
-	static inline void to_string(int8_t small, const char_type* to) noexcept {
+	
+	static constexpr std::size_t max_str_len = int_limits<int8_t>::max_str_len;
+	
+	static void to_string(const int8_t small, char_type* to) noexcept 
+	{
 		return lext_cast::small_to_str(small, to);
 	}
-	static inline int8_t from_string(const char_type* from) noexcept {
+	
+	static int8_t from_string(const char_type* from) noexcept 
+	{
 		return lext_cast::str_to_small(from);
 	}
+	
+	
 };
+#endif
 
 template<class __lex_cast>
 class lexical_cast_traits<uint16_t,__lex_cast>
@@ -625,15 +639,20 @@ private:
 	typedef __lex_cast lext_cast;
 public:
 	typedef typename lext_cast::char_type char_type;
-	static constexpr uint8_t max_str_len = int_limits<int8_t>::max_str_len;
-	static inline void to_string(uint16_t word, const char_type* to) noexcept {
+	
+	static constexpr std::size_t max_str_len = int_limits<int8_t>::max_str_len;
+	
+	static  void to_string(const uint16_t word, char_type* to) noexcept {
 		return lext_cast::word_to_str(word, to);
 	}
-	static inline uint16_t from_string(const char_type* from) noexcept {
+	
+	static uint16_t from_string(const char_type* from) noexcept {
 		return lext_cast::str_to_word(from);
 	}
+	
 };
 
+#ifndef _MSC_VER
 template<class __lex_cast>
 class lexical_cast_traits<int16_t,__lex_cast>
 {
@@ -642,13 +661,14 @@ private:
 public:
 	typedef typename lext_cast::char_type char_type;
 	static constexpr uint8_t max_str_len = int_limits<int16_t>::max_str_len;
-	static inline void to_string(int16_t small, const char_type* to) noexcept {
+	static void to_string(const int16_t small, char_type* to) noexcept {
 		return lext_cast::short_to_str(small, to);
 	}
-	static inline uint16_t from_string(const char_type* from) noexcept {
+	static uint16_t from_string(const char_type* from) noexcept {
 		return lext_cast::str_to_short(from);
 	}
 };
+#endif
 
 
 template<class __lex_cast>
@@ -659,7 +679,7 @@ private:
 public:
 	typedef typename lext_cast::char_type char_type;
 	static constexpr uint8_t max_str_len = int_limits<uint32_t>::max_str_len;
-	static inline void to_string(int32_t dword, const char_type* to) noexcept {
+	static inline void to_string(int32_t dword, char_type* to) noexcept {
 		return lext_cast::dword_to_str(dword, to);
 	}
 	static inline uint32_t from_string(const char_type* from) noexcept {
@@ -675,7 +695,7 @@ private:
 public:
 	typedef typename lext_cast::char_type char_type;
 	static constexpr uint8_t max_str_len = int_limits<int32_t>::max_str_len;
-	static inline void to_string(int32_t dword, const char_type* to) noexcept {
+	static inline void to_string(int32_t dword, char_type* to) noexcept {
 		return lext_cast::int_to_str(dword, to);
 	}
 	static inline uint32_t from_string(const char_type* from) noexcept {
@@ -691,7 +711,7 @@ private:
 public:
 	typedef typename lext_cast::char_type char_type;
 	static constexpr uint8_t max_str_len = int_limits<uint64_t>::max_str_len;
-	static inline void to_string(uint64_t qword, const char_type* to) noexcept {
+	static inline void to_string(uint64_t qword, char_type* to) noexcept {
 		return lext_cast::qword_to_str(qword, to);
 	}
 	static inline uint64_t from_string(const char_type* from) noexcept {
@@ -707,7 +727,7 @@ private:
 public:
 	typedef typename lext_cast::char_type char_type;
 	static constexpr uint8_t max_str_len = int_limits<int64_t>::max_str_len;
-	static inline void to_string(int64_t llong, const char_type* to) noexcept {
+	static inline void to_string(int64_t llong, char_type* to) noexcept {
 		return lext_cast::long_to_str(llong, to);
 	}
 	static inline int64_t from_string(const char_type* from) noexcept {
@@ -723,7 +743,7 @@ private:
 public:
 	typedef typename lext_cast::char_type char_type;
 	static constexpr uint8_t max_str_len = 32;
-	static inline void to_string(float real, const char_type* to) noexcept {
+	static inline void to_string(float real, char_type* to) noexcept {
 		return lext_cast::float_to_str(real, to);
 	}
 	static inline float from_string(const char_type* from) noexcept {
@@ -739,7 +759,7 @@ private:
 public:
 	typedef typename lext_cast::char_type char_type;
 	static constexpr uint8_t max_str_len = 64;
-	static inline void to_string(double deximal, const char_type* to) noexcept {
+	static inline void to_string(double deximal, char_type* to) noexcept {
 		return lext_cast::double_to_str(deximal, to);
 	}
 	static inline double from_string(const char_type* from) noexcept {
@@ -755,7 +775,7 @@ private:
 public:
 	typedef typename lext_cast::char_type char_type;
 	static constexpr uint8_t max_str_len = 128;
-	static inline void to_string(long double big_deximal, const char_type* to) noexcept {
+	static inline void to_string(long double big_deximal, char_type* to) noexcept {
 		return lext_cast::longdouble_to_str(big_deximal, to);
 	}
 	static inline long double from_string(const char_type* from) noexcept {
@@ -771,7 +791,7 @@ private:
 public:
 	typedef typename lext_cast::char_type char_type;
 	static constexpr uint8_t max_str_len = 6;
-	static inline void to_string(bool __b, const char_type* to) noexcept {
+	static inline void to_string(bool __b, char_type* to) noexcept {
 		return lext_cast::boolean_to_str(__b, to);
 	}
 	static inline long double from_string(const char_type* from) noexcept {
