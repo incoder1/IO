@@ -160,10 +160,6 @@ public:
 		return data_ == rhs.data_;
 	}
 
-	bool operator<(const cached_string& rhs) const noexcept {
-		return data_ < rhs.data_;
-	}
-
 private:
 	uint8_t* data_;
 };

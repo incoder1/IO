@@ -17,8 +17,8 @@ namespace xml {
 
 //attribute
 attribute::attribute(cached_string&& name,const_string&& value) noexcept:
-		name_( std::forward<cached_string>(name) ),
-		value_( std::forward<const_string>(value) )
+	name_( std::forward<cached_string>(name) ),
+	value_( std::forward<const_string>(value) )
 {}
 
 
@@ -43,9 +43,22 @@ start_element_event::start_element_event(qname&& name, bool empty_element) noexc
 
 bool start_element_event::add_attribute(attribute&& attr) noexcept
 {
-	return attributes_.emplace( std::forward<attribute>( attr ) ).second;
+	return attributes_.emplace( std::forward<attribute>( attr )  ).second;
 }
 
+std::pair<const_string, bool> start_element_event::get_attribute(const char* attr_name) const noexcept
+{
+	iterator ret = std::find_if(
+					   attributes_.begin(),
+					   attributes_.end(),
+	[attr_name] (const attribute& attr) {
+		return attr.name().equal(attr_name);
+	} );
+	if( attributes_.end() != ret)
+		return std::make_pair( ret->value(),true);
+	else
+		return std::make_pair(const_string(), false);
+}
 
 } // namesapce xml
 

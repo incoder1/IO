@@ -27,7 +27,7 @@ namespace io {
 
 namespace {
 
-template<typename int_t> struct int_limits {};
+template<typename __integer_type__> struct int_limits {};
 
 template<>
 struct int_limits<uint8_t> {
@@ -258,7 +258,7 @@ public:
 
 // Fast codecvt convert for ascii/latin1 (UTF-8 0,127) any with UCS
 // simply cast to short/int versions
-// for unicode 0-9, A-Z, a-z it is always ok
+// for UNICODE 0-9, A-Z, a-z it is always ok
 template<typename __char_type>
 struct move_digits {
 private:
@@ -613,22 +613,22 @@ private:
 	typedef __lex_cast lext_cast;
 
 public:
-	
+
 	typedef typename lext_cast::char_type char_type;
-	
+
 	static constexpr std::size_t max_str_len = int_limits<int8_t>::max_str_len;
-	
-	static void to_string(const int8_t small, char_type* to) noexcept 
+
+	static void to_string(const int8_t small, char_type* to) noexcept
 	{
 		return lext_cast::small_to_str(small, to);
 	}
-	
-	static int8_t from_string(const char_type* from) noexcept 
+
+	static int8_t from_string(const char_type* from) noexcept
 	{
 		return lext_cast::str_to_small(from);
 	}
-	
-	
+
+
 };
 #endif
 
@@ -639,17 +639,17 @@ private:
 	typedef __lex_cast lext_cast;
 public:
 	typedef typename lext_cast::char_type char_type;
-	
+
 	static constexpr std::size_t max_str_len = int_limits<int8_t>::max_str_len;
-	
+
 	static  void to_string(const uint16_t word, char_type* to) noexcept {
 		return lext_cast::word_to_str(word, to);
 	}
-	
+
 	static uint16_t from_string(const char_type* from) noexcept {
 		return lext_cast::str_to_word(from);
 	}
-	
+
 };
 
 #ifndef _MSC_VER

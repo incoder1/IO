@@ -20,7 +20,7 @@
 #include "stringpool.hpp"
 
 #include <algorithm>
-#include <set>
+#include <unordered_set>
 
 namespace io {
 
@@ -72,11 +72,11 @@ public:
 		data_( std::move(data) )
 	{}
 
-	inline const_string target() const {
+	inline const_string target() const noexcept {
 		return target_;
 	}
 
-	inline const_string data() const {
+	inline const_string data() const noexcept {
 		return data_;
 	}
 private:
@@ -87,8 +87,7 @@ private:
 class event_stream_parser;
 
 /// \brief XML tag attribute
-class IO_PUBLIC_SYMBOL attribute
-{
+class IO_PUBLIC_SYMBOL attribute {
 public:
 
 	attribute(const attribute&) noexcept = default;
@@ -106,15 +105,15 @@ public:
 	~attribute() noexcept
 	{}
 
-    /// Returns attribute name
-    /// \return attribute name
-	inline cached_string name() const {
+	/// Returns attribute name
+	/// \return attribute name
+	inline cached_string name() const noexcept {
 		return name_;
 	}
 
-    /// Returns attribute value
-    /// \return attribute value, in string representation
-	inline const_string value() const {
+	/// Returns attribute value
+	/// \return attribute value, in string representation
+	inline const_string value() const noexcept {
 		return value_;
 	}
 
@@ -123,14 +122,10 @@ public:
 		value_.swap(rhs.value_);
 	}
 
-	bool operator<(const attribute& rhs) const noexcept {
-        return name_ < rhs.name_;
+	bool operator==(const attribute& rhs) const noexcept {
+		return name_ == rhs.name_;
 	}
 
-	bool operator==(const attribute& rhs) const noexcept
-	{
-        return name_ == rhs.name_ && value_ == rhs.value_;
-	}
 
 private:
 	cached_string name_;
@@ -138,8 +133,7 @@ private:
 };
 
 /// \brief qualified tag name
-class qname final
-{
+class qname final {
 public:
 
 	constexpr qname() noexcept:
@@ -156,10 +150,9 @@ public:
 		return !local_name_.empty();
 	}
 
-	inline void swap(qname& other) noexcept
-	{
-        prefix_.swap( other.prefix_ );
-        local_name_.swap( other.local_name_ );
+	inline void swap(qname& other) noexcept {
+		prefix_.swap( other.prefix_ );
+		local_name_.swap( other.local_name_ );
 	}
 
 	/// Returns whether this name contains name space prefix
@@ -168,14 +161,14 @@ public:
 		return !prefix_.empty();
 	}
 
-    /// Returns name space prefix if present
+	/// Returns name space prefix if present
 	/// \return name space prefix of empty string if it is not present
 	inline cached_string prefix() const  {
 		return prefix_;
 	}
 
 
-    /// Returns tag local name
+	/// Returns tag local name
 	/// \return tag local name
 	inline cached_string local_name() const {
 		return local_name_;
@@ -187,10 +180,16 @@ private:
 };
 
 
-class IO_PUBLIC_SYMBOL start_element_event final
-{
+class IO_PUBLIC_SYMBOL start_element_event final {
 private:
-	typedef std::set<attribute, std::less<attribute> , h_allocator<attribute> > attrs_storage;
+
+	struct attr_hash:public std::unary_function<attribute, std::size_t> {
+		inline std::size_t operator()(const attribute& attr) const noexcept {
+			return attr.name().hash();
+		}
+	};
+
+	typedef std::unordered_set<attribute, attr_hash, std::equal_to<attribute>, h_allocator<attribute> > attrs_storage;
 public:
 	typedef attrs_storage::const_iterator iterator;
 
@@ -208,9 +207,8 @@ public:
 		return *this;
 	}
 
-	explicit operator bool() const noexcept
-	{
-        return static_cast<bool>(name_);
+	explicit operator bool() const noexcept {
+		return static_cast<bool>(name_);
 	}
 
 	bool add_attribute(attribute&& attr) noexcept;
@@ -235,19 +233,7 @@ public:
 		return attributes_.cend();
 	}
 
-	std::pair<const_string, bool> get_attribute(const char* attr_name) const noexcept
-	{
-		iterator ret = std::find_if(
-					attributes_.begin(),
-					attributes_.end(),
-					[attr_name] (const attribute& attr) {
-                        return attr.name().equal(attr_name);
-					} );
-		if( attributes_.end() != ret)
-			return std::make_pair( ret->value() ,true);
-		else
-			return std::make_pair(const_string(), false);
-	}
+	std::pair<const_string, bool> get_attribute(const char* attr_name) const noexcept;
 
 	inline void swap(start_element_event& other) noexcept {
 		name_.swap(other.name_);
@@ -261,8 +247,7 @@ private:
 	bool empty_element_;
 };
 
-class IO_PUBLIC_SYMBOL end_element_event final
-{
+class IO_PUBLIC_SYMBOL end_element_event final {
 public:
 	end_element_event(const end_element_event&) = delete;
 	end_element_event& operator=(const end_element_event&) = delete;
@@ -281,15 +266,13 @@ public:
 		name_( std::move(mv.name_) )
 	{}
 
-	end_element_event& operator=(end_element_event&& rhs) noexcept
-	{
+	end_element_event& operator=(end_element_event&& rhs) noexcept {
 		name_.swap( rhs.name_ );
 		return *this;
 	}
 
-	explicit operator bool() const noexcept
-	{
-        return static_cast<bool>(name_);
+	explicit operator bool() const noexcept {
+		return static_cast<bool>(name_);
 	}
 
 	inline qname name() const noexcept {
