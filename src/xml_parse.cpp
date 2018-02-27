@@ -739,7 +739,7 @@ attribute event_stream_parser::extract_attribute(const char* from, std::size_t& 
 		++i;
 	}
 	len = str_size(from, i);
-	return attribute( std::move(name), const_string(val.position().cdata(), val.last().cdata()) );
+	return attribute( name, const_string(val.position().cdata(), val.last().cdata()) );
 }
 
 bool event_stream_parser::validate_xml_name(const cached_string& str, bool attr) noexcept

@@ -20,7 +20,7 @@
 #include "stringpool.hpp"
 
 #include <algorithm>
-#include <unordered_set>
+#include <set>
 
 namespace io {
 
@@ -100,7 +100,10 @@ public:
 		value_()
 	{}
 
-	attribute(cached_string&& name,const_string&& value) noexcept;
+	attribute(const cached_string& name,const_string&& value) noexcept:
+		name_( name ),
+		value_( std::forward<const_string>(value) )
+	{}
 
 	~attribute() noexcept
 	{}
@@ -125,8 +128,6 @@ public:
 	bool operator==(const attribute& rhs) const noexcept {
 		return name_ == rhs.name_;
 	}
-
-
 private:
 	cached_string name_;
 	const_string value_;
@@ -183,13 +184,15 @@ private:
 class IO_PUBLIC_SYMBOL start_element_event final {
 private:
 
-	struct attr_hash:public std::unary_function<attribute, std::size_t> {
-		inline std::size_t operator()(const attribute& attr) const noexcept {
-			return attr.name().hash();
-		}
+	struct attr_less: public std::binary_function<attribute,attribute,bool>
+	{
+     	bool operator()(const attribute& lsh, const attribute& rhs) const noexcept
+     	{
+     		return lsh.name() < rhs.name();
+     	}
 	};
 
-	typedef std::unordered_set<attribute, attr_hash, std::equal_to<attribute>, h_allocator<attribute> > attrs_storage;
+	typedef std::set<attribute, attr_less, h_allocator<attribute> > attrs_storage;
 public:
 	typedef attrs_storage::const_iterator iterator;
 

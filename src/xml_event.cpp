@@ -15,19 +15,14 @@ namespace io {
 
 namespace xml {
 
-//attribute
-attribute::attribute(cached_string&& name,const_string&& value) noexcept:
-	name_( std::forward<cached_string>(name) ),
-	value_( std::forward<const_string>(value) )
-{}
-
 
 //start_element_event
 start_element_event::start_element_event() noexcept:
 	name_(),
 	attributes_(),
 	empty_element_(false)
-{}
+{
+}
 
 start_element_event::start_element_event(start_element_event&& rhs) noexcept:
 	name_( std::move(rhs.name_) ),
@@ -48,13 +43,11 @@ bool start_element_event::add_attribute(attribute&& attr) noexcept
 
 std::pair<const_string, bool> start_element_event::get_attribute(const char* attr_name) const noexcept
 {
-	iterator ret = std::find_if(
-					   attributes_.begin(),
-					   attributes_.end(),
-	[attr_name] (const attribute& attr) {
-		return attr.name().equal(attr_name);
-	} );
-	if( attributes_.end() != ret)
+	iterator ret = std::find_if(attributes_.cbegin(), attributes_.cend(),
+				[attr_name] (const attribute& attr) noexcept {
+					return attr.name().equal(attr_name);
+				});
+	if( attributes_.cend() != ret)
 		return std::make_pair( ret->value(),true);
 	else
 		return std::make_pair(const_string(), false);

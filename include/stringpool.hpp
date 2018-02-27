@@ -153,11 +153,17 @@ public:
 		return tmp == rhs ? true : 0 == std::strcmp(tmp, rhs);
 	}
 
-	/// Lexicographically compare the string with another
+	/// Check this string equality
 	/// \param rhs a string to compare with
 	/// \return whether strings equals
 	bool operator==(const cached_string& rhs) const noexcept {
 		return data_ == rhs.data_;
+	}
+
+	/// Compare this string with another
+	bool operator<(const cached_string& rhs) const noexcept {
+        return (data_ == rhs.data_) ? 0
+        :  std::strcmp( data(), rhs.data() ) < 0;
 	}
 
 private:
