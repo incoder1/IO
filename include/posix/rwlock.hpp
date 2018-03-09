@@ -55,7 +55,7 @@ public:
 	}
 	~read_lock() noexcept
 	{
-		barrier_.read_lock();
+		barrier_.read_unlock();
 	}
 private:
 	read_write_barrier& barrier_;
