@@ -3,20 +3,16 @@
 #endif // _WIN32
 
 #include <console.hpp>
-#include <files.hpp>
-#include <stream.hpp>
+
 
 #include "stubs.hpp"
 
-static const char* PROLOGUE = "<?xml version=\"1.0\" encoding=\"UTF-8\" ?>";
+#include <iostream>
+#include <files.hpp>
+#include <stream.hpp>
+#include <xml_types.hpp>
 
-static io::s_write_channel create_file_channel(const char* path) {
-	io::file f( path );
-	std::error_code ec;
-	io::s_write_channel ret = f.open_for_write(ec, io::write_open_mode::overwrite);
-	io::check_error_code(ec);
-	return ret;
-}
+
 
 #ifdef IO_XML_HAS_TO_XSD
 static const char* SCHEMA_BEGIN = "<xs:schema xmlns:xs=\"http://www.w3.org/2001/XMLSchema\">";
@@ -88,3 +84,4 @@ int main()
 
 	return 0;
 }
+

@@ -10,22 +10,12 @@
 #if  defined(__IO_WINDOWS_BACKEND__)
 
 #	include "win/criticalsection.hpp"
+#	include "win/srw_lock.hpp"
 
 #elif defined( __IO_POSIX_BACKEND__)
 
 #	include "posix/criticalsection.hpp"
-
-#else
-
-#include <mutex>
-
-namespace io {
-
-    typedef std::unique_lock<std::mutex> lock_guard;
-
-	typedef std::mutex critical_section;
-
-} // namespace io
+#	include "posix/rwlock.hpp"
 
 #endif // __IO_WINDOWS_BACKEND__
 

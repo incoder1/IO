@@ -156,7 +156,7 @@ inline void source::new_line_or_shift_col(const char ch)
 		++col_;
 }
 
-// normalize line endings accodring XML spec
+// normalize line endings according XML spec
 inline char source::normalize_lend(const char ch)
 {
     char ret = ch;

@@ -351,6 +351,6 @@ inline std::string transcode(const wchar_t* ucs_str)
 }
 
 
-} // namespace
+} // namespace io
 
 #endif // __IO_TEXT_HPP_INCLUDED__

@@ -215,6 +215,7 @@
 		<Unit filename="include/errorcheck.hpp" />
 		<Unit filename="include/files.hpp" />
 		<Unit filename="include/hashing.hpp" />
+		<Unit filename="include/memory_channel.hpp" />
 		<Unit filename="include/net/http_client.hpp" />
 		<Unit filename="include/net/secure_channel.hpp">
 			<Option target="debug-win-gcc-dll-x64" />
@@ -241,6 +242,9 @@
 			<Option target="debug-unix-gcc-so-x64" />
 		</Unit>
 		<Unit filename="include/posix/posixconf.hpp">
+			<Option target="debug-unix-gcc-so-x64" />
+		</Unit>
+		<Unit filename="include/posix/rwlock.hpp">
 			<Option target="debug-unix-gcc-so-x64" />
 		</Unit>
 		<Unit filename="include/posix/sockets.hpp">
@@ -301,6 +305,12 @@
 			<Option target="debug-win-gcc-static-x64" />
 			<Option target="release-win-gcc-dll-x64" />
 		</Unit>
+		<Unit filename="include/win/srw_lock.hpp">
+			<Option target="debug-win-gcc-static-x64" />
+			<Option target="debug-win-gcc-dll-x64" />
+			<Option target="release-win-gcc-static-x64" />
+			<Option target="release-win-gcc-dll-x64" />
+		</Unit>
 		<Unit filename="include/win/synch_socket_channel.hpp">
 			<Option target="debug-win-gcc-dll-x64" />
 			<Option target="release-win-gcc-static-x64" />
@@ -333,6 +343,7 @@
 		<Unit filename="src/charsetdetector.cpp" />
 		<Unit filename="src/charsets.cpp" />
 		<Unit filename="src/hashing.cpp" />
+		<Unit filename="src/memory_channel.cpp" />
 		<Unit filename="src/net/http_client.cpp" />
 		<Unit filename="src/net/secure_channel.cpp" />
 		<Unit filename="src/net/uri.cpp" />
