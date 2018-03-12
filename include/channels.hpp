@@ -25,7 +25,6 @@
 #include "scoped_array.hpp"
 #include "errorcheck.hpp"
 
-
 namespace io {
 
 /// \brief General input/output channel interface
@@ -342,40 +341,6 @@ std::size_t IO_PUBLIC_SYMBOL transmit_buffer(
     const uint8_t* buffer,
     std::size_t size) noexcept;
 
-inline void trasmit_buffer(std::error_code& ec, const s_write_channel& dst, byte_buffer& bb) noexcept
-{
-	const uint8_t* b = bb.position().get();
-	const std::size_t len = bb.length();
-	std::size_t transmited = transmit_buffer(ec, dst, b, len );
-	if(!ec)
-		bb.shift( transmited );
-}
-
-/// Unsafe version of transmit_buffer, throws an std::system_error in case of error
-/// when exceptions are on, otherwise call std::terminate
-inline std::size_t transmit_buffer(const s_write_channel& dst, const uint8_t* buffer,std::size_t size)
-{
-	std::error_code ec;
-	std::size_t ret = transmit_buffer(ec, dst, buffer, size);
-	check_error_code( ec );
-	return ret;
-}
-
-/// Transmits buffer of any literal of primitive type into channel
-template<typename T>
-inline std::size_t transmit_buffer(std::error_code& ec,
-                                   const s_write_channel& dst,const T* buffer, std::size_t size) noexcept
-{
-	static_assert( std::is_literal_type<T>::value ||
-	               std::is_trivial<T>::value
-	               ,"Literal or trivial type expected");
-	std::size_t ret = transmit_buffer(ec,
-	                                  dst,
-	                                  reinterpret_cast<const uint8_t*>(buffer),
-	                                  (size * sizeof(T) )
-	                                 );
-	return ret / sizeof(T);
-}
 
 /// Transmits all read channels data to destination write channel
 /// \param ec operation error code, contains error

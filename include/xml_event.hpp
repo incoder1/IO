@@ -20,6 +20,7 @@
 #include "stringpool.hpp"
 
 #include <algorithm>
+#include <functional>
 #include <set>
 
 namespace io {
@@ -184,8 +185,14 @@ private:
 class IO_PUBLIC_SYMBOL start_element_event final {
 private:
 
-	struct attr_less: public std::binary_function<attribute,attribute,bool>
+	struct attr_less
 	{
+      	typedef attribute first_argument_type;
+
+      	typedef attribute second_argument_type;
+
+      	typedef bool result_type;
+
      	bool operator()(const attribute& lsh, const attribute& rhs) const noexcept
      	{
      		return lsh.name() < rhs.name();

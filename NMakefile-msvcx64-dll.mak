@@ -29,17 +29,68 @@ LDFLAGS = /DLL /LTCG /LIBPATH:$(DEPS_LIBS)
 
 PCH = /Yustdafx.hpp /Fp$(OBJ)\stdafx.pch
 
-OBJECTS = stdafx.pch errorcheck.obj memory_traits.obj sockets.obj files.obj synch_socket_channel.obj memory_channel.obj secure_channel.obj console.obj shared_library.obj buffer.obj channels.obj hashing.obj stringpool.obj charsets.obj charsetdetector.obj unicode_bom.obj charsetcvt.obj text.obj uri.obj http_client.obj xml_error.obj xml_event.obj xml_source.obj xml_parse.obj xml_reader.obj
-LINK_OBJECTS = $(OBJ)\stdafx.obj $(OBJ)\errorcheck.obj $(OBJ)\memory_traits.obj $(OBJ)\sockets.obj $(OBJ)\files.obj $(OBJ)\synch_socket_channel.obj $(OBJ)\secure_channel.obj $(OBJ)\console.obj $(OBJ)\shared_library.obj $(OBJ)\buffer.obj $(OBJ)\channels.obj $(OBJ)\memory_channel.obj $(OBJ)\hashing.obj $(OBJ)\stringpool.obj $(OBJ)\charsets.obj $(OBJ)\charsetdetector.obj $(OBJ)\unicode_bom.obj $(OBJ)\charsetcvt.obj $(OBJ)\text.obj $(OBJ)\uri.obj $(OBJ)\http_client.obj $(OBJ)\xml_error.obj $(OBJ)\xml_event.obj $(OBJ)\xml_source.obj $(OBJ)\xml_parse.obj $(OBJ)\xml_reader.obj
+OBJECTS = stdafx.pch\
+	shared_library.obj\
+	memory_traits.obj\
+	buffer.obj\
+	hashing.obj\
+	channels.obj\
+	memory_channel.obj\
+	errorcheck.obj\
+	sockets.obj\
+	files.obj\
+	synch_socket_channel.obj\
+	secure_channel.obj\
+	console.obj\
+	stringpool.obj\
+	charsets.obj\
+	charsetdetector.obj\
+	unicode_bom.obj\
+	charsetcvt.obj\
+	text.obj\
+	uri.obj\
+	http_client.obj\
+	xml_error.obj\
+	xml_event.obj\
+	xml_source.obj\
+	xml_parse.obj\
+	xml_reader.obj
+
+LINK_OBJECTS = $(OBJ)\stdafx.obj\
+	$(OBJ)\shared_library.obj\
+	$(OBJ)\memory_traits.obj\
+	$(OBJ)\buffer.obj\
+	$(OBJ)\hashing.obj\
+	$(OBJ)\channels.obj\
+	$(OBJ)\memory_channel.obj\
+	$(OBJ)\errorcheck.obj\
+	$(OBJ)\sockets.obj\
+	$(OBJ)\files.obj\
+	$(OBJ)\synch_socket_channel.obj\
+	$(OBJ)\secure_channel.obj\
+	$(OBJ)\console.obj\
+	$(OBJ)\stringpool.obj\
+	$(OBJ)\charsets.obj\
+	$(OBJ)\charsetdetector.obj\
+	$(OBJ)\unicode_bom.obj\
+	$(OBJ)\charsetcvt.obj\
+	$(OBJ)\text.obj\
+	$(OBJ)\uri.obj\
+	$(OBJ)\http_client.obj\
+	$(OBJ)\xml_error.obj\
+	$(OBJ)\xml_event.obj\
+	$(OBJ)\xml_source.obj\
+	$(OBJ)\xml_parse.obj\
+	$(OBJ)\xml_reader.obj
 
 all: clean link
 	copy $(DEPS_LIBS)\iconv-2.dll $(TARGET)\iconv-2.dll
 	copy $(DEPS_LIBS)\gnutls.dll $(TARGET)\gnutls.dll
 
 clean:
-#	del $(OBJ) > nul
-#	del $(TARGET) > nul
+	if EXIST $(OBJ) ( rmdir /S /Q $(OBJ) )
 	mkdir $(OBJ)
+	if EXIST $(TARGET) ( rmdir /S /Q $(TARGET) )
 	mkdir $(TARGET)
 	
 link: compile
@@ -49,6 +100,19 @@ compile: $(OBJECTS)
 
 stdafx.pch:
 	$(CXX) $(CPPFLAGS) /Yc /Fp$(OBJ)\stdafx.pch /Fo$(OBJ)\stdafx.obj src\stdafx.cpp
+
+
+# generic
+buffer.obj:
+	$(CXX) $(CPPFLAGS) $(PCH) src\buffer.cpp /Fo$(OBJ)\buffer.obj
+channels.obj:
+	$(CXX) $(CPPFLAGS) $(PCH) src\channels.cpp /Fo$(OBJ)\channels.obj
+memory_channel.obj:
+	$(CXX) $(CPPFLAGS) $(PCH) src\memory_channel.cpp /Fo$(OBJ)\memory_channel.obj
+hashing.obj:
+	$(CXX) $(CPPFLAGS) $(PCH) src\hashing.cpp /Fo$(OBJ)\hashing.obj
+stringpool.obj:
+	$(CXX) $(CPPFLAGS) $(PCH) src\stringpool.cpp /Fo$(OBJ)\stringpool.obj
 
 # win only 
 memory_traits.obj:
@@ -65,18 +129,6 @@ console.obj:
 	$(CXX) $(CPPFLAGS) $(PCH) src\win\console.cpp /Fo$(OBJ)\console.obj
 shared_library.obj:
 	$(CXX) $(CPPFLAGS) $(PCH) src\shared_library.cpp /Fo$(OBJ)\shared_library.obj
-
-# generic	
-buffer.obj:
-	$(CXX) $(CPPFLAGS) $(PCH) src\buffer.cpp /Fo$(OBJ)\buffer.obj
-channels.obj:
-	$(CXX) $(CPPFLAGS) $(PCH) src\channels.cpp /Fo$(OBJ)\channels.obj
-memory_channel.obj:
-	$(CXX) $(CPPFLAGS) $(PCH) src\channels.cpp /Fo$(OBJ)\memory_channel.obj
-hashing.obj:
-	$(CXX) $(CPPFLAGS) $(PCH) src\hashing.cpp /Fo$(OBJ)\hashing.obj
-stringpool.obj:
-	$(CXX) $(CPPFLAGS) $(PCH) src\stringpool.cpp /Fo$(OBJ)\stringpool.obj
 	
 # charsets
 charsets.obj:

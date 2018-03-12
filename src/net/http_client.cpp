@@ -54,7 +54,7 @@ void request::join(std::error_code& ec, byte_buffer& to) const noexcept
 void request::send_all(std::error_code& ec, const s_write_channel& ch, byte_buffer& buff) const noexcept
 {
 	buff.flip();
-	trasmit_buffer(ec, ch, buff);
+	transmit_buffer(ec, ch, buff.position().get(), buff.size());
 }
 
 //get_request
