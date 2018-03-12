@@ -3,7 +3,7 @@
 // Example usage: xmlparse < xmlfilename[.xml] >
 // supported XML file text encoding Latin1(ASCII,ISO,Win1252 etc),
 // UTF-8, UTF-16 (LE,BE) or UTF-32(LE,BE)
-// for non UTF-8 encoding XML file should have byte order mark (BOM)
+// For non UTF-8 UNICODE encodings XML file should have byte order mark (BOM)
 
 // mini embedded version of winver.h
 // needed bu MinGW/64 headers which uses WinXP by
@@ -17,19 +17,20 @@
 #	endif // _WIN32_WINNT
 #endif
 
-// for file channesl
+// for file channels
 #include <files.hpp>
 // StAX XML parser
 #include <xml_parse.hpp>
 
+// C++ standard library
 #include <algorithm>
-#include <iostream>
 
-
+// Unicode console, if not supported by runtime
 #if defined(__IO_WINDOWS_BACKEND__) && defined(UNICODE)
-// Unicode console
 #	include <console.hpp>
 #	define NEED_UNICODE_CONSOLE
+# else
+#	include <iostream>
 #endif
 
 
@@ -38,9 +39,9 @@ using namespace io;
 // print XML start document event e.g. XML prologure section details
 void print_start_doc(std::ostream& stm,const xml::s_event_stream_parser& s)
 {
-	// extract and prase XML prologure
+	// extract and parse XML prologue
 	xml::document_event e = s->parse_start_doc();
-	// check parsing was succsess
+	// check parsing was success
 	if( !s->is_error() ) {
 		stm<< "start document:\n";
 		stm<<"\tversion: " << e.version();
@@ -54,7 +55,7 @@ static void print_instr(std::ostream& stm, const xml::s_event_stream_parser& s)
 {
 	// extract and parse processing instruction
 	xml::instruction_event e = s->parse_processing_instruction();
-	// check parsing was succsess
+	// check parsing was success
 	if( !s->is_error() ) {
 		stm<<"processing instruction:\n";
 		stm<<"\ttarget:" <<e.target();
@@ -67,7 +68,7 @@ static void print_start_element(std::ostream& stm, const xml::s_event_stream_par
 {
 	// extract and parse XML tag start
 	xml::start_element_event e = s->parse_start_element();
-	// check parsing was succsess
+	// check parsing was success
 	if( !s->is_error() ) {
 		stm<<"Start element:\n";
 		stm<<"\tprefix:"<<e.name().prefix();
@@ -83,6 +84,7 @@ static void print_start_element(std::ostream& stm, const xml::s_event_stream_par
 				stm << "\t\tname: " << attr.name() << " value: " << attr.value() << '\n';
 			} );
 		}
+		// flush to console
 		stm.flush();
 	}
 }
@@ -101,11 +103,11 @@ static void print_end_element(std::ostream& stm, const xml::s_event_stream_parse
 static void print_event(std::ostream& stm,const xml::s_event_stream_parser& s)
 {
 	switch( s->current_event() ) {
-	// this is start document event, i.e. XML prologure section
+	// this is start document event, i.e. XML prologue section
 	case xml::event_type::start_document:
 		print_start_doc(stm, s );
 		break;
-	// this is an XML processing istruction event
+	// this is an XML processing instruction event
 	case xml::event_type::processing_instruction:
 		print_instr( stm, s );
 		break;
