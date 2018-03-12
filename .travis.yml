@@ -19,7 +19,7 @@ matrix:
             - ubuntu-toolchain-r-test
           packages:
             - g++-7
-            - libcurl3-gnutls
+            - libcurl4-gnutls-dev
       env:
         - MATRIX_EVAL="CC=gcc-7 && CXX=g++-7"
         
