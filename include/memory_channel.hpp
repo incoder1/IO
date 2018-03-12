@@ -12,54 +12,67 @@
 
 namespace io {
 
-
-class memory_read_write_channel;
-DECLARE_IPTR(memory_read_write_channel);
-
-/// Memory buffer synchronous read-write channel
-class IO_PUBLIC_SYMBOL memory_read_write_channel final:public read_write_channel {
-	memory_read_write_channel(const memory_read_write_channel&) = delete;
-	memory_read_write_channel& operator=(const memory_read_write_channel&) = delete;
+/// \brief Memory buffer read channel
+class IO_PUBLIC_SYMBOL memory_read_channel final: public read_channel
+{
 private:
-	friend class nobadalloc<memory_read_write_channel>;
-	memory_read_write_channel(uint8_t* const block,const std::size_t capacity) noexcept;
+	friend class nobadalloc<memory_read_channel>;
+	memory_read_channel(byte_buffer&& data) noexcept;
 public:
-
-	/// Allocates memory buffer and constructs new memory channel
+	/// Open a memory buffer channel
 	/// \param ec operation error code
-	/// \param buffer_size memory buffer size
-	/// \return a smart reference on new memory channel
-	static s_memory_read_write_channel new_channel(std::error_code& ec, std::size_t buff_size) noexcept;
-
-	/// Releases memory block
-	virtual ~memory_read_write_channel() noexcept override;
-
-	/// Returns this channel to the initial state
-	void clear() noexcept;
-
-	/// Check this channel memory buffer is empty
-	/// \return whether this channel is empty
-	bool empty() const noexcept;
-
-	/// Check this channel memory buffer is full
-	/// \return whether this channel is full
-	bool full() const noexcept;
-
+	/// \param buff memory to read from
+	/// \return read channel smart reference
+	static s_read_channel open(std::error_code& ec, byte_buffer&& buff) noexcept;
+	virtual ~memory_read_channel() noexcept = default;
 	//! @copydoc read_channel::read(std::error_code,uint8_t*,std::size_t)
 	virtual std::size_t read(std::error_code& ec,uint8_t* const buff, std::size_t bytes) const noexcept override;
+private:
+	mutable byte_buffer data_;
+	mutable critical_section mtx_;
+};
+
+class memory_write_channel;
+DECLARE_IPTR(memory_write_channel);
+
+/// \brief Memory buffer write channel.
+/// Buffer starts from the initial size and exponentially grow until memory available
+class IO_PUBLIC_SYMBOL memory_write_channel final:public write_channel
+{
+private:
+	friend class nobadalloc<memory_write_channel>;
+	memory_write_channel(byte_buffer&& data) noexcept;
+public:
+
+	/// Opens new memory write channel
+	/// \param ec operation error code
+	/// \param initial_size initial buffer size
+	/// \return memory buffer write channel smart reference
+	static s_memory_write_channel open(std::error_code& ec, std::size_t initial_size) noexcept;
+
+
+	/// Opens new memory write channel with default initial buffer size (system page size)
+	/// \param ec operation error code
+	/// \return memory buffer write channel smart reference
+	static inline s_memory_write_channel open(std::error_code& ec) noexcept
+	{
+		return open( ec, memory_traits::page_size() );
+	}
+
+	virtual ~memory_write_channel() noexcept = default;
 
 	//! @copydoc write_channel::write(std::error_code,const uint8_t*,std::size_t)
 	virtual std::size_t write(std::error_code& ec, const uint8_t* buff,std::size_t size) const noexcept override;
 
+	/// Returns deep copy of underlying memory buffer
+	/// \param ec operation error code
+	/// \return deep copy of underlying memory buffer
+	byte_buffer data(std::error_code& ec) const noexcept;
+
 private:
-	uint8_t *block_;
-	const uint8_t* end_;
-	mutable uint8_t	*read_pos_;
-	mutable uint8_t *write_pos_;
-	mutable io::read_write_barrier rwb_;
+	mutable byte_buffer data_;
+	mutable critical_section mtx_;
 };
-
-
 
 } // namespace io
 

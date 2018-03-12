@@ -67,7 +67,7 @@ public:
 DECLARE_IPTR(read_channel);
 
 template <>
-class unsafe<s_read_channel> {
+class unsafe<read_channel> {
 public:
 	unsafe(s_read_channel&& ch) noexcept:
 		ec_(),
@@ -111,7 +111,7 @@ public:
 DECLARE_IPTR(write_channel);
 
 template <>
-class unsafe<s_write_channel> {
+class unsafe<write_channel> {
 public:
 	unsafe(s_write_channel&& ch) noexcept:
 		ec_(),
@@ -121,7 +121,7 @@ public:
 		ec_(),
 		ch_(ch)
 	{}
-	std::size_t write(const uint8_t* buff,std::size_t size) const
+	std::size_t write(const uint8_t* buff,const std::size_t size) const
 	{
 		std::size_t ret = ch_->write(ec_, buff, size);
 		io::check_error_code( ec_ );
@@ -149,7 +149,7 @@ public:
 DECLARE_IPTR(read_write_channel);
 
 template <>
-class unsafe<s_read_write_channel> {
+class unsafe<read_write_channel> {
 public:
 	unsafe(s_read_write_channel&& ch) noexcept:
 		ec_(),
@@ -159,13 +159,13 @@ public:
 		ec_(),
 		ch_(ch)
 	{}
-	std::size_t read(uint8_t* const buff, std::size_t bytes) const
+	std::size_t read(uint8_t* const buff,const std::size_t bytes) const
 	{
 		std::size_t ret = ch_->read( ec_, buff, bytes);
 		io::check_error_code( ec_ );
 		return ret;
 	}
-	std::size_t write(const uint8_t* buff,std::size_t size) const
+	std::size_t write(const uint8_t* buff,const std::size_t size) const
 	{
 		std::size_t ret = ch_->write( ec_, buff, size);
 		io::check_error_code( ec_ );
@@ -218,7 +218,7 @@ public:
 DECLARE_IPTR(random_access_channel);
 
 template <>
-class unsafe<s_random_access_channel> {
+class unsafe<random_access_channel> {
 public:
 	unsafe(s_random_access_channel&& ch) noexcept:
 		ec_(),

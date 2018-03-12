@@ -121,8 +121,8 @@ public:
 
     constexpr byte_buffer_iterator() noexcept:
         base_type(),
-        position_(nullptr) {
-    }
+        position_(nullptr)
+	{}
 
     constexpr byte_buffer_iterator(uint8_t* const position) noexcept:
         base_type(),
@@ -417,6 +417,7 @@ public:
     // binary primitives functions
 
 // MS VC++ defining int8_t as typedef char int8_t
+// and not strong type definition according to the C++ standard
 #ifndef _MSC_VER
     /// Puts a small value in its binary representation into current buffer
     /// \param small a small value
@@ -555,21 +556,11 @@ public:
 
 private:
 
-    byte_buffer(detail::mem_block&& arr, std::size_t capacity) noexcept:
-        arr_( std::move(arr) ),
-        capacity_(capacity),
-        position_(arr_.get()),
-        last_(arr_.get()) {
-    }
+    byte_buffer(detail::mem_block&& arr, std::size_t capacity) noexcept;
 
     template < typename T >
-    bool binary_put(const T v) {
-        const T volatile bin = v;
-        return 0 != put(
-                   reinterpret_cast<const uint8_t*> (
-                       const_cast<const T*>( &bin )
-                   ),
-                   sizeof(T) );
+    bool binary_put(const T& v) {
+        return 0 != put( reinterpret_cast<const uint8_t*> ( std::addressof( v ) ), sizeof(T) );
     }
 
     template< typename T >
@@ -596,31 +587,39 @@ public:
     /// \param size array length
     /// \return new buffer, or empty buffer if no more memory left
     template<typename T>
-    static inline byte_buffer wrap(const T* arr, std::size_t size) noexcept {
-        static_assert( std::is_fundamental<T>::value || std::is_trivial<T>::value, "Must be an array of trivail or fundamental type" );
+    static inline byte_buffer wrap(std::error_code& ec, const T* arr, std::size_t size) noexcept {
+        static_assert( std::is_fundamental<T>::value || std::is_trivial<T>::value, "Must be an array of trivial or fundamental type" );
         if(0 == size)
             return byte_buffer();
-        std::error_code ec;
         byte_buffer res = allocate(ec,  size * sizeof(T) );
-        if( ec )
-            return byte_buffer();
-        res.put(arr, size);
-        return byte_buffer( std::move(res) );
+        if( !ec ) {
+        	res.put(arr, size);
+        	res.flip();
+        	return byte_buffer( std::move(res) );
+        }
+        return byte_buffer();
     }
 
     template<typename T>
-    static byte_buffer wrap(const T* begin,const T* end) noexcept {
+    static byte_buffer wrap(std::error_code& ec, const T* begin,const T* end) noexcept {
         static_assert( std::is_fundamental<T>::value || std::is_trivial<T>::value, "Must be an array of trivail or fundamental type" );
-        if(end <= begin)
+        if(end <= begin) {
+			ec = std::make_error_code(std::errc::argument_out_of_domain);
             return byte_buffer();
-        return wrap( begin, memory_traits::distance(begin,end) * sizeof(T) );
+        }
+        return wrap( ec, begin, memory_traits::distance(begin,end) );
     }
 
+	/// Wrap C style zero ending string to buffer
+
     template<typename __char_type>
-    static inline byte_buffer wrap(const __char_type* str) noexcept {
+    static inline byte_buffer wrap(std::error_code& ec, const __char_type* str) noexcept {
+    	static_assert( !std::is_same<__char_type, bool>::value && std::numeric_limits<__char_type>::is_integer, "__char_type must be integer type, and not bool");
         typedef std::char_traits<__char_type> traits;
-        return wrap( str, traits::length(str)+1 );
+        // for C style ending + 1
+        return wrap( ec,  str, traits::length(str)+1 );
     }
+
 private:
     detail::mem_block arr_;
     std::size_t capacity_;
@@ -632,7 +631,7 @@ private:
 /// Converts this buffer into STL string of provided type by deep copying all bytes between
 /// buffer position and last iterators into STL string
 /// \return STL string storing buffer content
-/// \throw std::bad_alloc
+/// \throw potential std::bad_alloc
 template<class __char_type>
 inline std::basic_string<__char_type> to_string(byte_buffer& buff)
 {

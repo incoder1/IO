@@ -13,7 +13,8 @@ class read_write_barrier
 	read_write_barrier(const read_write_barrier&) = delete;
 	read_write_barrier& operator=(const read_write_barrier&) = delete;
 public:
-	read_write_barrier() noexcept
+	read_write_barrier() noexcept:
+		barier_()
 	{
 		::InitializeSRWLock(&barier_);
 	}

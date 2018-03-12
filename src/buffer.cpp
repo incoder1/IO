@@ -13,8 +13,15 @@
 
 namespace io {
 
+byte_buffer::byte_buffer(detail::mem_block&& arr, std::size_t capacity) noexcept:
+	arr_( std::forward<detail::mem_block>(arr) ),
+	capacity_(capacity),
+	position_(arr_.get()),
+	last_(arr_.get())
+{}
+
 byte_buffer::byte_buffer(byte_buffer&& other) noexcept:
-	arr_( std::forward<detail::mem_block>(other.arr_) ),
+	arr_( std::move(other.arr_) ),
 	capacity_(other.capacity_),
 	position_(other.position_),
 	last_(other.last_)

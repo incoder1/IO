@@ -3,71 +3,65 @@
 
 namespace io {
 
-s_memory_read_write_channel memory_read_write_channel::new_channel(std::error_code& ec, std::size_t buff_size) noexcept
+s_read_channel memory_read_channel::open(std::error_code& ec, byte_buffer&& buff) noexcept
 {
-   uint8_t* buff =  memory_traits::calloc_temporary<uint8_t>(buff_size);
-   if(nullptr == buff) {
-   		ec = std::make_error_code(std::errc::not_enough_memory);
-   		return s_memory_read_write_channel();
-   }
-   memory_read_write_channel *ret = nobadalloc<memory_read_write_channel>::construct(ec, buff, buff_size);
-   return nullptr != ret ? s_memory_read_write_channel(ret) : s_memory_read_write_channel() ;
+	memory_read_channel *ret = nobadalloc<memory_read_channel>::construct(ec, std::forward<byte_buffer>(buff) );
+	return io_likely(nullptr != ret) ? s_read_channel(ret) : s_read_channel();
 }
 
-memory_read_write_channel::memory_read_write_channel(uint8_t* const block,const std::size_t capacity) noexcept:
-	read_write_channel(),
-	block_( block ),
-	end_ (block + capacity),
-	read_pos_(block),
-	write_pos_(block),
-	rwb_()
+memory_read_channel::memory_read_channel(byte_buffer&& data) noexcept:
+	read_channel(),
+	data_( std::forward<byte_buffer>(data) ),
+	mtx_()
 {}
 
-memory_read_write_channel::~memory_read_write_channel()
+std::size_t memory_read_channel::read(std::error_code& ec,uint8_t* const buff, std::size_t bytes) const noexcept
 {
-	memory_traits::free_temporary( block_ );
+	if( data_.empty() )
+		return 0;
+	lock_guard lock(mtx_);
+	std::size_t available = data_.size();
+	std::size_t ret = (available >= bytes) ? bytes : available;
+	io_memmove(buff, data_.position().get(), ret);
+	data_.shift(ret);
+	return ret;
 }
 
-bool memory_read_write_channel::empty() const noexcept {
-	read_lock lock(rwb_);
-	return (block_ == read_pos_) && (block_ == write_pos_);
-}
+// memory_write_channel
 
-bool memory_read_write_channel::full() const noexcept {
-	read_lock lock(rwb_);
-	return end_ == write_pos_;
-}
-
-void memory_read_write_channel::clear() noexcept
+s_memory_write_channel memory_write_channel::open(std::error_code& ec, std::size_t initial_size) noexcept
 {
-	write_lock lock(rwb_);
-	read_pos_ = block_;
-	write_pos_ = block_;
-}
-
-std::size_t memory_read_write_channel::read(std::error_code& ec,uint8_t* const buff, std::size_t bytes) const noexcept
-{
-	read_lock lock(rwb_);
-    std::size_t avail = memory_traits::distance(read_pos_, write_pos_);
-    if(0 != avail) {
-		std::size_t ret = (avail <= bytes) ? bytes : avail;
-		io_memmove(buff, block_, bytes);
-		read_pos_ += ret;
-		return ret;
-    }
-    return 0;
-}
-
-std::size_t memory_read_write_channel::write(std::error_code& ec, const uint8_t* buff,std::size_t size) const noexcept
-{
-	write_lock lock(rwb_);
-    std::size_t avail = memory_traits::distance(write_pos_, end_);
-	if(0 != avail) {
- 		std::size_t ret = (avail < size) ? size : avail;
- 		io_memmove( write_pos_, buff, ret);
- 		write_pos_ += ret;
+	byte_buffer buff = byte_buffer::allocate(ec, initial_size);
+	if( io_likely(!ec) ) {
+		memory_write_channel *ret = nobadalloc<memory_write_channel>::construct(ec, std::move(buff) );
+		return io_likely(nullptr != ret) ? s_memory_write_channel(ret) : s_memory_write_channel();
 	}
-	return 0;
+	return s_memory_write_channel();
 }
+
+
+memory_write_channel::memory_write_channel(byte_buffer&& data) noexcept:
+	write_channel(),
+	data_( std::forward<byte_buffer>(data) ),
+	mtx_()
+{}
+
+std::size_t memory_write_channel::write(std::error_code& ec, const uint8_t* buff,std::size_t size) const noexcept
+{
+	lock_guard lock(mtx_);
+	if( size > data_.available() ) {
+		// grow result don't care in this point
+		data_.exp_grow();
+	}
+	return data_.put(buff, size);
+}
+
+byte_buffer memory_write_channel::data(std::error_code& ec) const noexcept
+{
+	lock_guard lock(mtx_);
+	data_.flip();
+	return byte_buffer::wrap(ec, data_.position().get(), data_.size() );
+}
+
 
 } // namespace io
