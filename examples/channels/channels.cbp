@@ -32,6 +32,9 @@
 				<Compiler>
 					<Add option="-O2" />
 					<Add option="-std=c++14" />
+					<Add option="-fno-exceptions" />
+					<Add option="-fno-rtti" />
+					<Add option="-mtune=native" />
 					<Add option="-DIO_SHARED_LIB" />
 				</Compiler>
 				<Linker>
