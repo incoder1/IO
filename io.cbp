@@ -337,6 +337,7 @@
 		<Unit filename="include/xml_reader.hpp" />
 		<Unit filename="include/xml_source.hpp" />
 		<Unit filename="include/xml_types.hpp" />
+		<Unit filename="include/xml_validator.hpp" />
 		<Unit filename="src/buffer.cpp" />
 		<Unit filename="src/channels.cpp" />
 		<Unit filename="src/charsetcvt.cpp" />
@@ -417,6 +418,7 @@
 		<Unit filename="src/xml_parse.cpp" />
 		<Unit filename="src/xml_reader.cpp" />
 		<Unit filename="src/xml_source.cpp" />
+		<Unit filename="src/xml_validator.cpp" />
 		<Extensions>
 			<code_completion />
 			<envvars />
