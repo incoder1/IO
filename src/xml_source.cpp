@@ -26,6 +26,28 @@ static constexpr unsigned int ISO_LATIN1_CP_CODE = 28591;
 static constexpr unsigned int WINDOWS_LATIN1_CP_CODE = 1252;
 static constexpr unsigned int UTF8_CP_CODE = 65001;
 
+
+static s_read_channel open_convert_channel(std::error_code& ec,io::byte_buffer& rb, const uint8_t* pos, const charset& ch, const s_read_channel &src) noexcept
+{
+	byte_buffer new_rb;
+	if( io_likely( utf_16le_bom::is(pos) || utf_16be_bom::is(pos) ) ) {
+		pos += 2;
+	} else if(utf_32be_bom::is(pos) || utf_32le_bom::is(pos) ) {
+		pos += 4;
+	}
+	new_rb = byte_buffer::allocate( ec, rb.capacity() );
+	if(ec)
+		return s_read_channel();
+	s_code_cnvtr cnv = code_cnvtr::open(ec,ch,
+										code_pages::UTF_8,
+										cnvrt_control::failure_on_failing_chars);
+	if(ec)
+		return s_read_channel();
+	cnv->convert(ec, pos, rb.size(), new_rb);
+	rb.swap(new_rb);
+	return conv_read_channel::open(ec, src, cnv );
+}
+
 // source
 s_source source::open(std::error_code& ec, const s_read_channel& src, byte_buffer&& rb) noexcept
 {
@@ -42,38 +64,17 @@ s_source source::open(std::error_code& ec, const s_read_channel& src, byte_buffe
 	}
 	charset ch = chdetstat.character_set();
 	s_read_channel text_channel;
-	switch( static_cast<unsigned int>(ch.code() ) )
-	{
-		// UTF-8 or latin1
+	switch( static_cast<unsigned int>(ch.code() ) ) {
+	// UTF-8 or latin1
 	case ASCII_CP_CODE:
 	case ISO_LATIN1_CP_CODE:
 	case WINDOWS_LATIN1_CP_CODE:
 	case UTF8_CP_CODE:
 		text_channel = src;
 		break;
-		// Create converter
+	// Create converter
 	default:
-		byte_buffer new_rb;
-		if(utf_16le_bom::is(pos) || utf_16be_bom::is(pos) ) {
-			pos += 2;
-			new_rb = byte_buffer::allocate( ec, rb.capacity() );
-		}
-		else if(utf_32be_bom::is(pos) || utf_32le_bom::is(pos) ) {
-			pos += 4;
-			new_rb = byte_buffer::allocate( ec, rb.capacity() );
-		} else {
-			new_rb = byte_buffer::allocate( ec, rb.capacity() << 2 );
-		}
-		if(ec)
-			return s_source();
-		s_code_cnvtr cnv = code_cnvtr::open(ec,ch,
-								code_pages::UTF_8,
-								cnvrt_control::failure_on_failing_chars);
-		if(ec)
-			return s_source();
-		cnv->convert(ec, pos, rb.size(), new_rb);
-		rb.swap(new_rb);
-		text_channel = conv_read_channel::open(ec, src, cnv );
+		text_channel = open_convert_channel(ec, rb, pos, ch, src );
 		if(ec)
 			return s_source();
 	}
@@ -121,7 +122,7 @@ source::~source() noexcept
 
 error source::read_more() noexcept
 {
-    rb_.clear();
+	rb_.clear();
 	if(  !rb_.empty() &&  rb_.capacity() < READ_BUFF_MAXIMAL_SIZE) {
 		if( !rb_.exp_grow() )
 			return error::out_of_memory;
@@ -141,8 +142,9 @@ error source::charge() noexcept
 	if(ec == error::ok && !rb_.empty()) {
 		pos_ = const_cast<char*>(rb_.position().cdata());
 		end_ = const_cast<char*>(rb_.last().cdata());
-	} else
-        pos_ = end_;
+	}
+	else
+		pos_ = end_;
 	return ec;
 }
 
@@ -152,14 +154,15 @@ inline void source::new_line_or_shift_col(const char ch)
 	if( cheq(ch,'\n') ) {
 		++row_;
 		col_ = 1;
-	} else
+	}
+	else
 		++col_;
 }
 
-// normalize line endings according XML spec
+// normalize line endings according W3C XML spec
 inline char source::normalize_lend(const char ch)
 {
-    char ret = ch;
+	char ret = ch;
 	if( cheq('\r', ret) ) {
 		if( io_likely( cheq('\n', *(pos_+1) ) ) ) {
 			++pos_;
@@ -179,7 +182,7 @@ char source::next() noexcept
 	if( io_unlikely( end_ == (pos_+1) ) ) {
 		last_ = charge();
 		if( pos_ == end_ || error::ok != last_ )
-            return _eof;
+			return _eof;
 	}
 	char ret = *pos_;
 	if( io_unlikely( char_shift_ > 1 ) ) {
@@ -187,9 +190,9 @@ char source::next() noexcept
 		++pos_;
 		return ret;
 	}
-	uint_fast8_t mbl = u8_char_size( ret );
+	uint8_t mbl = u8_char_size( ret );
 	switch( mbl ) {
-	case 1:
+	case io_likely(1):
 		ret = normalize_lend( ret );
 		break;
 	case 2:

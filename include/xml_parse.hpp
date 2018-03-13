@@ -204,11 +204,9 @@ private:
 
 	inline void putch(byte_buffer& buf, char i) noexcept
 	{
-		if( buf.full() ) {
-			if( io_unlikely( !buf.ln_grow() ) ) {
-				assign_error(error::out_of_memory);
-				return;
-			}
+		if( buf.full() && io_unlikely( !buf.ln_grow() )  ) {
+			assign_error(error::out_of_memory);
+			return;
 		}
 		buf.put( i );
 	}

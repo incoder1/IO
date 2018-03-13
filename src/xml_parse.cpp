@@ -339,6 +339,10 @@ byte_buffer event_stream_parser::read_entity() noexcept
 		do {
 			ch = char8_traits::to_int_type( next() );
 			switch(ch) {
+			case io_unlikely(EOF):
+			case LEFTB:
+				assign_error(error::illegal_markup);
+				return byte_buffer();
 			case RIGHTB:
 				putch( ret, static_cast<char>(ch) );
 				if( !is_error() ) {
@@ -346,15 +350,11 @@ byte_buffer event_stream_parser::read_entity() noexcept
 					return ret;
 				}
 				break;
-			case LEFTB:
-			case EOF:
-				assign_error(error::illegal_markup);
-				return byte_buffer();
 			default:
 				putch(ret, static_cast<char>(ch) );
 			}
 		}
-		while( !is_error() );
+		while( io_likely( !is_error() ) );
 	}
 	return byte_buffer();
 }

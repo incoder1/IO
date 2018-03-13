@@ -60,8 +60,10 @@ std::size_t memory_write_channel::write(std::error_code& ec, const uint8_t* buff
 {
 	lock_guard lock(mtx_);
 	if( size > data_.available() ) {
-		// grow result don't care in this point
-		data_.exp_grow();
+		if( !data_.exp_grow() && !data_.extend(size) ) {
+			ec = std::make_error_code(std::errc::not_enough_memory);
+            return 0;
+		}
 	}
 	return data_.put(buff, size);
 }
