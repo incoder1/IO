@@ -86,9 +86,11 @@ int main()
 	wcout << L"Type something please: ";
 	wcout.flush();
 
+
 	wchar_t str[256];
 	io_zerro_mem(str, 256 * sizeof(wchar_t) );
     std::wistream& wcin = io::console::in_wstream();
+
 	wcin >> str;
 
 	wcout <<L"Echo: ";

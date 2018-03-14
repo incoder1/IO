@@ -33,6 +33,8 @@ namespace detail {
 
 extern "C" void IO_PANIC_ATTR panic(int errcode, const char* message);
 
+void IO_PUBLIC_SYMBOL ios_check_error_code(const char* msg, std::error_code const &ec );
+
 } // namespace detail
 
 extern "C" void IO_PANIC_ATTR exit_with_current_error();

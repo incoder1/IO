@@ -94,7 +94,7 @@ std::size_t IO_PUBLIC_SYMBOL transmit_buffer(std::error_code& ec,
 				const s_write_channel& ch,
 				const uint8_t* buffer, std::size_t size) noexcept
 {
-	if(!ch || nullptr == buffer || size == 0) {
+	if( io_unlikely( !ch || nullptr == buffer || size == 0) ) {
 		ec = std::make_error_code( std::errc::invalid_argument );
 		return 0;
 	}
@@ -111,7 +111,7 @@ std::size_t IO_PUBLIC_SYMBOL transmit_buffer(std::error_code& ec,
 
 std::size_t IO_PUBLIC_SYMBOL transmit(std::error_code& ec,const s_read_channel& src, const s_write_channel& dst, uint16_t buff_size) noexcept
 {
-	if(!src || !dst || buff_size < 2 ) {
+	if( io_unlikely(!src || !dst || buff_size < 2 ) )  {
 		ec = std::make_error_code( std::errc::invalid_argument );
 		return 0;
 	}

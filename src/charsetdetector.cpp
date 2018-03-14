@@ -1,7 +1,21 @@
+/*
+ *
+ * Copyright (c) 2017
+ * Viktor Gubin
+ *
+ * Use, modification and distribution are subject to the
+ * Boost Software License, Version 1.0. (See accompanying file
+ * LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
+ *
+ */
 #include "stdafx.hpp"
 #include "charsetdetector.hpp"
 #include "strings.hpp"
-
+/*
+ This is C++ 11 minimal port of Mozilla universal character set detector
+ FIXME: Those state machines is over-complicated, an performance un-effective
+  Needed to be replaced with something else like https://github.com/google/compact_enc_det
+*/
 namespace io {
 
 namespace coding {

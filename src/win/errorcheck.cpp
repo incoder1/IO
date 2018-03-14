@@ -121,9 +121,26 @@ namespace detail {
 
 extern "C" void IO_PANIC_ATTR panic(int errcode, const char* message)
 {
-	print_error_message(errcode, message);
-	std::terminate();
+	exit_with_error_message(errcode, message);
 }
+
+void IO_PUBLIC_SYMBOL ios_check_error_code(const char* msg, std::error_code const &ec )
+{
+	if( io_likely( !ec ) )
+		return;
+#ifdef IO_NO_EXCEPTIONS
+	std::string m = ec.message();
+	std::size_t size = io_strlen(msg) + m.length() + 1;
+	char *errmsg = static_cast<char*>( io_alloca( size) );
+	io_zerro_mem(errmsg, size);
+    io_strcpy(errmsg, msg);
+    io_strcpy( ( (errmsg) + io_strlen(msg) ), m.data() );
+	panic( ec.value(), errmsg );
+#else
+	throw std::ios_base::failure( msg, ec );
+#endif
+}
+
 
 } // namespace detail
 

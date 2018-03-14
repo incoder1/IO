@@ -26,24 +26,6 @@
 
 namespace io {
 
-namespace {
-
-inline void ios_check_error_code(const char* msg, std::error_code const &ec )
-{
-	if(!ec)
-		return;
-#ifdef IO_NO_EXCEPTIONS
-	std::string m = ec.message();
-	std::size_t size = io_strlen(msg) + m.length() + 2;
-	char *errmsg = static_cast<char*>( io_alloca( size) );
-	std::snprintf(errmsg, size, "%s %s", msg, m.data() );
-	io::detail::panic(ec.value(), errmsg );
-#else
-	throw std::ios_base::failure( msg, ec );
-#endif
-}
-
-}
 
 template<typename __char_type, class __traits_type >
 class ochannel_streambuf final: public std::basic_streambuf<__char_type, __traits_type > {
@@ -78,7 +60,7 @@ public:
 	{
 		char_type *buff = new (std::nothrow) char_type[ buffer_size ];
 		if(nullptr == buff )
-			ios_check_error_code( "input stream buff ", std::make_error_code(std::errc::not_enough_memory) );
+			detail::ios_check_error_code( "input stream buff ", std::make_error_code(std::errc::not_enough_memory) );
 
 		this->setp( buff,  buff + buffer_size );
 	}
@@ -246,7 +228,7 @@ public:
 	{
 		char_type *buff = new (std::nothrow) char_type[ buffer_size ];
 		if(nullptr == buff )
-			ios_check_error_code( "input stream buff ", std::make_error_code(std::errc::not_enough_memory) );
+			detail::ios_check_error_code( "input stream buff ", std::make_error_code(std::errc::not_enough_memory) );
 		this->setg(buff, buff, buff);
 	}
 
@@ -298,7 +280,7 @@ private:
 	{
 		std::error_code ec;
 		std::size_t res = rch_->read(ec, reinterpret_cast<uint8_t*>( this->eback() ), buffer_size_);
-		ios_check_error_code( "input stream buff ", ec );
+		detail::ios_check_error_code( "input stream buff ", ec );
 		this->setg( this->eback(), this->eback(), this->eback() + res);
 		return res;
 	}
