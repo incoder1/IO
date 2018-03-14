@@ -35,14 +35,13 @@
 					<Add option="-std=c++14" />
 					<Add option="-fno-exceptions" />
 					<Add option="-fno-rtti" />
+					<Add option="-DIO_SHARED_LIB" />
 					<Add directory="../../deps/include" />
-					<Add directory="../../../boost_1_60_0" />
 				</Compiler>
 				<Linker>
 					<Add option="-s" />
 					<Add library="iconv.dll" />
-					<Add directory="../../deps/lib" />
-					<Add directory="../../bin/release-win-gcc-static-x64" />
+					<Add directory="../../bin/release-win-gcc-dll-x64" />
 				</Linker>
 			</Target>
 			<Target title="debug-unix-gcc-x64">
