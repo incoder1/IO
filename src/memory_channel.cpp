@@ -25,6 +25,9 @@ memory_read_channel::memory_read_channel(byte_buffer&& data) noexcept:
 	mtx_()
 {}
 
+memory_read_channel::~memory_read_channel()  noexcept
+{}
+
 std::size_t memory_read_channel::read(std::error_code& ec,uint8_t* const buff, std::size_t bytes) const noexcept
 {
 	if( data_.empty() )
@@ -54,6 +57,9 @@ memory_write_channel::memory_write_channel(byte_buffer&& data) noexcept:
 	write_channel(),
 	data_( std::forward<byte_buffer>(data) ),
 	mtx_()
+{}
+
+memory_write_channel::~memory_write_channel() noexcept
 {}
 
 std::size_t memory_write_channel::write(std::error_code& ec, const uint8_t* buff,std::size_t size) const noexcept

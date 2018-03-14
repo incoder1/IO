@@ -19,6 +19,7 @@
 
 #include <cstring>
 #include <iterator>
+#include <limits>
 #include <type_traits>
 
 namespace io {

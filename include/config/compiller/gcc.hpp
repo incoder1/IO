@@ -11,8 +11,8 @@
 #define __COMPILLER_CONFIG_GCC_HPP_INCLUDED__
 
 #if __cplusplus < 201103L
-#	error "This library requires at least C++ 11 standard compatiable compiler.\
-	Check your compiller options must have -std=c++[11,14,17,...]"
+#	 error "This library requires at least C++ 11 standard compatiable compiler.\
+	 Check your compiller options must have -std=c++[11,14,17,...]"
 #endif // CPP11 detection
 
 #pragma once

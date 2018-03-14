@@ -7,22 +7,26 @@
 		<Option compiler="gcc" />
 		<Build>
 			<Target title="debug-gcc-win64">
-				<Option output="bin/debug-gcc-win64/xml_read." prefix_auto="1" extension_auto="1" />
+				<Option platforms="Windows;" />
+				<Option output="bin/debug-gcc-win64/xml_read" prefix_auto="1" extension_auto="1" />
 				<Option object_output="obj/debug-gcc-win64/" />
 				<Option type="1" />
 				<Option compiler="gcc" />
 				<Compiler>
+					<Add option="-std=c++11" />
 					<Add option="-pg" />
-					<Add option="-Og" />
 					<Add option="-g" />
+					<Add option="-Og" />
 				</Compiler>
 				<Linker>
+					<Add option="-pg" />
 					<Add option="-pg -lgmon" />
 					<Add library="iconv" />
 					<Add directory="../../bin/debug-win-gcc-static-x64" />
 				</Linker>
 			</Target>
 			<Target title="release-gcc-win64">
+				<Option platforms="Windows;" />
 				<Option output="bin/release-win64/xml_read" prefix_auto="1" extension_auto="1" />
 				<Option object_output="obj/release-gcc-win64/" />
 				<Option type="1" />
@@ -34,6 +38,24 @@
 				<Linker>
 					<Add option="-s" />
 					<Add directory="../../bin/release-win-gcc-dll-x64" />
+				</Linker>
+			</Target>
+			<Target title="debug-gcc-unix-x64">
+				<Option platforms="Unix;Mac;" />
+				<Option output="bin/debug-gcc-unix-x64/xml_read" prefix_auto="1" extension_auto="1" />
+				<Option object_output="obj/debug-gcc-win64/" />
+				<Option type="1" />
+				<Option compiler="gcc" />
+				<Compiler>
+					<Add option="-std=c++11" />
+					<Add option="-pg" />
+					<Add option="-g" />
+					<Add option="-Og" />
+				</Compiler>
+				<Linker>
+					<Add option="-pg" />
+					<Add library="pthread" />
+					<Add directory="../../bin/debug-unix-gcc-so-x64" />
 				</Linker>
 			</Target>
 		</Build>

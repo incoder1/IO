@@ -44,6 +44,7 @@ const wchar_t* wmessage = L"Hello!\nПривет!\nПривіт!\nΧαιρετί
 
 int main()
 {
+
 	// writing wchar_t chars into UTF-8 file
 	io::cnl_wostream fout( prepare_file() );
 	fout << wmessage

@@ -56,7 +56,6 @@
 					<Add option="-pg" />
 					<Add option="-g" />
 					<Add option="-fexceptions" />
-					<Add option="-DIO_SHARED_LIB" />
 				</Compiler>
 				<Linker>
 					<Add option="-pg" />

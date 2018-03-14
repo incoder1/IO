@@ -32,64 +32,100 @@ template<typename __integer_type__> struct int_limits {};
 template<>
 struct int_limits<uint8_t> {
 	static constexpr const uint8_t min = 0;
+#ifdef __GNUG__
+    static constexpr const uint8_t max = __UINT8_MAX__;
+#else
 	static constexpr const uint8_t max = UCHAR_MAX;
+#endif
 	static constexpr const uint8_t max_str_len = 4;
 };
 
 template<>
 struct int_limits<int8_t> {
+#ifdef __GNUG__
+	static constexpr const int8_t min = static_cast<int8_t>(-__INT8_MAX__ - 1);
+	static constexpr const int8_t max = __INT8_MAX__;
+#else
 	static constexpr const int8_t min = SCHAR_MIN;
 	static constexpr const int8_t max = SCHAR_MAX;
+#endif // __GNUG__
 	static constexpr const uint8_t max_str_len = 5;
 };
 
 template<>
 struct int_limits<uint16_t> {
 	static constexpr const uint16_t min = 0;
+#ifdef __GNUG__
+    static constexpr const uint16_t max = __UINT16_MAX__;
+#else
 	static constexpr const uint16_t max = USHRT_MAX;
+#endif // __GNUG__
 	static constexpr const uint8_t max_str_len = 6;
 };
 
 template<>
 struct int_limits<int16_t> {
+#ifdef __GNUG__
+	static constexpr const uint16_t min = static_cast<uint16_t>(-__INT16_MAX__ - 1);
+	static constexpr const uint16_t max = __INT16_MAX__;
+#else
 	static constexpr const uint16_t min = SHRT_MIN;
 	static constexpr const uint16_t max = SHRT_MAX;
+#endif // __GNUG__
 	static constexpr const uint8_t max_str_len = 7;
 };
 
 template<>
 struct int_limits<uint32_t> {
+#ifdef __GNUG__
+	static constexpr const uint32_t min = 0;
+	static constexpr const uint32_t max = __UINT32_MAX__;
+#else
 	static constexpr const uint32_t min = 0;
 	static constexpr const uint32_t max = UINT_MAX;
+#endif // __GNUG__
 	static constexpr const uint8_t  max_str_len = 11;
 };
 
 
 template<>
 struct int_limits<int32_t> {
+#ifdef __GNUG__
+	static constexpr const uint32_t min = static_cast<uint32_t>(-__INT32_MAX__ - 1);
+	static constexpr const uint32_t max = __INT32_MAX__;
+#else
 	static constexpr const uint32_t min = INT_MIN;
 	static constexpr const uint32_t max = INT_MAX;
+#endif // __GNUG__
 	static constexpr const uint8_t  max_str_len = 12;
 };
 
 template<>
 struct int_limits<uint64_t> {
+#ifdef __GNUG__
+	static constexpr const uint64_t min = 0ULL;
+	static constexpr const uint64_t max = __UINT64_MAX__;
+#else
 	static constexpr const uint64_t min = 0;
 	static constexpr const uint64_t max = ULLONG_MAX;
+#endif // __GNUG__
 	static constexpr const uint8_t max_str_len = 21;
 };
 
 template<>
 struct int_limits<int64_t> {
-#if defined(LLONG_MIN) && defined(LLONG_MAX)
-	static constexpr const int64_t min = LLONG_MIN;
-	static constexpr const int64_t max = LLONG_MAX;
+#ifdef __GNUG__
+	static constexpr const uint64_t min = static_cast<uint64_t>(-__INT64_MAX__ - 1);
+	static constexpr const uint64_t max = __INT64_MAX__;
+#elif defined(LLONG_MIN) && defined(LLONG_MAX)
+	static constexpr const uint64_t min = LLONG_MIN;
+	static constexpr const uint64_t max = LLONG_MAX;
 #elif defined(_I64_MIN) && defined(_I64_MAX)
-	static constexpr const int64_t min = LLONG_MIN;
-	static constexpr const int64_t max = LLONG_MAX;
+	static constexpr const uint64_t min = LLONG_MIN;
+	static constexpr const uint64_t max = LLONG_MAX;
 #else
-	static constexpr const int64_t min = -9223372036854775808LL;
-	static constexpr const int64_t max = 9223372036854775807LL;
+	static constexpr const uint64_t min = -9223372036854775808LL;
+	static constexpr const uint64_t max = 9223372036854775807LL;
 #endif // defined
 	static constexpr const uint8_t  max_str_len = 22;
 };
@@ -303,7 +339,7 @@ struct generic_uint_cast {
 	typedef __int_type int_type;
 	typedef __char_t char_type;
 	typedef std::char_traits<char_type> char_traits;
-	typedef cast_traits<int_type,char_type> cast_traits;
+	typedef cast_traits<int_type,char_type> ctraits;
 private:
 	static constexpr const __int_type RADIX10 = static_cast<int_type>(10);
 	// Replace this if CPU not supporting native div/mod
@@ -316,12 +352,12 @@ private:
 	}
 	static inline char_type* format_u(int_type value, char_type* to) noexcept
 	{
-		char_type result[cast_traits::max_str_len];
-		char_type *s = &result[cast_traits::max_str_len];
+		char_type result[ctraits::max_str_len];
+		char_type *s = &result[ctraits::max_str_len];
 		*s = char_traits::to_char_type(0);
 		std::size_t len = 1;
 		do {
-			*(--s) = cast_traits::zerro_char + divmod(value, RADIX10);
+			*(--s) = ctraits::zerro_char + divmod(value, RADIX10);
 			++len;
 		} while( 0 != value );
 		return char_traits::move( to, s, len );
@@ -332,10 +368,10 @@ public:
 	{
 		switch(value) {
 		case 0:
-			char_traits::move(to,cast_traits::min_str,2);
+			char_traits::move(to,ctraits::min_str,2);
 			return to;
-		case cast_traits::max:
-			char_traits::move(to, cast_traits::max_str, cast_traits::max_str_len);
+		case ctraits::max:
+			char_traits::move(to, ctraits::max_str, ctraits::max_str_len);
 			return to;
 		default:
 			break;
@@ -363,7 +399,7 @@ struct generic_int_cast {
 	typedef __int_type int_type;
 	typedef __char_t char_type;
 	typedef std::char_traits<char_type> char_traits;
-	typedef cast_traits<int_type,char_type> cast_traits;
+	typedef cast_traits<int_type,char_type> ctraits;
 private:
 	static constexpr const __int_type RADIX10 = static_cast<int_type>(10);
 	static inline int8_t my_abs(int8_t x)
@@ -386,16 +422,16 @@ private:
 	}
 	static const char_type* format_a(int_type value,char_type* to) noexcept
 	{
-		char_type result[cast_traits::max_str_len];
-		char_type *s = &result[cast_traits::max_str_len];
+		char_type result[ctraits::max_str_len];
+		char_type *s = &result[ctraits::max_str_len];
 		bool need_msgn = value < 0;
 		*s = char_traits::to_char_type(0);
 		std::size_t len = need_msgn ? 2 : 1;
 		do {
-			*(--s) =  cast_traits::zerro_char +  divmod(value,RADIX10);
+			*(--s) =  ctraits::zerro_char +  divmod(value,RADIX10);
 			++len;
 		} while(0 != value);
-		if(need_msgn) *(--s) = cast_traits::minus_char;
+		if(need_msgn) *(--s) = ctraits::minus_char;
 		return char_traits::move( to, s, len );
 	}
 public:
@@ -404,13 +440,13 @@ public:
 	{
 		switch(value) {
 		case 0:
-			char_traits::move(to, cast_traits::zerro_str, 2);
+			char_traits::move(to, ctraits::zerro_str, 2);
 			return to;
-		case cast_traits::min:
-			char_traits::move(to,cast_traits::min_str,cast_traits::max_str_len);
+		case ctraits::min:
+			char_traits::move(to,ctraits::min_str,ctraits::max_str_len);
 			return to;
-		case cast_traits::max:
-			char_traits::move(to, cast_traits::max_str, cast_traits::max_str_len);
+		case ctraits::max:
+			char_traits::move(to, ctraits::max_str, ctraits::max_str_len);
 			return to;
 		default:
 			break;
@@ -444,7 +480,7 @@ public:
 	typedef __char_t char_type;
 	typedef std::char_traits<char_type> char_traits;
 private:
-	typedef strings<char_type> strings;
+	typedef strings<char_type> strings_traits;
 public:
 
 	static inline const char_type* byte_to_str(uint8_t v,char_type* to) noexcept
@@ -565,15 +601,15 @@ public:
 
 	static inline const char_type* boolean_to_str(bool value, char_type* to) noexcept {
 		if(value) {
-			char_traits::move(to, strings::true_str, 5);
+			char_traits::move(to, strings_traits::true_str, 5);
 		} else {
-			char_traits::move(to, strings::false_str, 6);
+			char_traits::move(to, strings_traits::false_str, 6);
 		}
 		return to;
 	}
 
 	static inline bool str_to_boolean(const char_type* from) noexcept {
-		return 0 == char_traits::compare(from, strings::true_str, 5);
+		return 0 == char_traits::compare(from, strings_traits::true_str, 5);
 	}
 
 };

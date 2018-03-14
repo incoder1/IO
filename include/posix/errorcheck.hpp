@@ -21,6 +21,10 @@
 #include <cstdio>
 #include <cstring>
 
+#ifndef IO_NO_EXCEPTIONS
+#   include <ios>
+#endif // IO_NO_EXCEPTIONS
+
 #define IO_PANIC_ATTR __attribute__ ((__noreturn__))
 
 namespace io {
@@ -36,15 +40,16 @@ inline void IO_PANIC_ATTR panic(int errcode, const char* message)
 }
 
 inline void ios_check_error_code(const char* msg, std::error_code const &ec )
+{
 	if(!ec)
 		return;
-#ifdef IO_NO_EXCEPTIONS
+//#ifdef IO_NO_EXCEPTIONS
 	static constexpr const char* __RED_FORMAT = "\033[01;31m%i %s%s\033[0m\n";
 	std::fprintf(stderr, __RED_FORMAT, ec.value(), msg, ec.message().data() );
 	std::exit( ec.value() );
-#else
-	throw std::ios_base::failure( msg, ec );
-#endif
+//#else
+//	throw std::ios_base::failure( msg, ec );
+//#endif
 }
 
 

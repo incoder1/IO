@@ -34,7 +34,7 @@ public:
 	/// \param buff memory to read from
 	/// \return read channel smart reference
 	static s_read_channel open(std::error_code& ec, byte_buffer&& buff) noexcept;
-	virtual ~memory_read_channel() noexcept = default;
+	virtual ~memory_read_channel() noexcept;
 	//! @copydoc read_channel::read(std::error_code,uint8_t*,std::size_t)
 	virtual std::size_t read(std::error_code& ec,uint8_t* const buff, std::size_t bytes) const noexcept override;
 private:
@@ -69,7 +69,7 @@ public:
 		return open( ec, memory_traits::page_size() );
 	}
 
-	virtual ~memory_write_channel() noexcept = default;
+	virtual ~memory_write_channel() noexcept;
 
 	//! @copydoc write_channel::write(std::error_code,const uint8_t*,std::size_t)
 	virtual std::size_t write(std::error_code& ec, const uint8_t* buff,std::size_t size) const noexcept override;
