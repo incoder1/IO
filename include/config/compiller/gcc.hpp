@@ -128,8 +128,8 @@
 #endif // IO_PUSH_IGNORE_UNUSED_PARAM
 
 
-#define io_likely(__expr__) __builtin_expect(!!(__expr__), true)
-#define io_unlikely(__expr__) __builtin_expect(!!(__expr__), false)
+#define io_likely(__expr__) __builtin_expect(!!(__expr__), 1)
+#define io_unlikely(__expr__) __builtin_expect(!!(__expr__), 0)
 
 namespace io {
 namespace detail {

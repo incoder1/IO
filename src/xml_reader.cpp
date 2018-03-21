@@ -25,7 +25,7 @@ void reader::to_next_state(std::error_code& ec) noexcept
 	bool done = false;
 	do {
 		state_ = parser_->scan_next();
-		switch(state_.current) {
+		switch(state_) {
 		case state_type::initial:
 			break;
 		case state_type::eod:
@@ -53,7 +53,7 @@ void reader::to_next_state(std::error_code& ec) noexcept
 
 start_element_event reader::next_tag_begin(std::error_code& ec) noexcept
 {
-	if(state_type::event != state_.current)
+	if(state_type::event != state_)
 		to_next_state(ec);
 	bool scaning = true;
 	while( scaning && !parse_error(ec) ) {
@@ -77,7 +77,7 @@ start_element_event reader::next_tag_begin(std::error_code& ec) noexcept
 	}
 	if(!ec) {
 		start_element_event ret = parser_->parse_start_element();
-		if( error::ok != state_.ec )
+		if( parser_->is_error() )
 			parser_->get_last_error(ec);
 		state_ = parser_->scan_next();
 		return std::move(ret);
@@ -87,14 +87,14 @@ start_element_event reader::next_tag_begin(std::error_code& ec) noexcept
 
 end_element_event reader::next_tag_end(std::error_code& ec) noexcept
 {
-	if(state_type::event != state_.current)
+	if(state_type::event != state_)
 		to_next_state(ec);
 	if(event_type::end_element != parser_->current_event()) {
 		ec = make_error_code(error::invalid_state);
 		return end_element_event();
 	}
 	end_element_event ret = parser_->parse_end_element();
-	if( error::ok != state_.ec )
+	if( parser_->is_error() )
 		parser_->get_last_error(ec);
 	else
 		state_ = parser_->scan_next();
@@ -103,7 +103,7 @@ end_element_event reader::next_tag_end(std::error_code& ec) noexcept
 
 const_string reader::next_characters(std::error_code& ec) noexcept
 {
-	if(state_type::characters != state_.current && state_type::cdata != state_.current) {
+	if(state_type::characters != state_ && state_type::cdata != state_) {
 		ec = make_error_code(error::invalid_state);
 		return const_string();
 	}
@@ -112,8 +112,8 @@ const_string reader::next_characters(std::error_code& ec) noexcept
 		return const_string();
 	std::size_t s = 0;
 	const_string chars;
-	while(state_type::characters == state_.current || state_type::cdata == state_.current) {
-		if(state_type::characters == state_.current)
+	while( is_characters() ) {
+		if(state_type::characters == state_)
 			chars = parser_->read_chars();
 		else
 			chars = parser_->read_cdata();

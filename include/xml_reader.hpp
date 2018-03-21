@@ -31,31 +31,39 @@ public:
 	/// \param parser StAX parser instance
 	explicit reader(s_event_stream_parser&& parser) noexcept;
 	/// Drop parser to the next tag
+	/// Check for tag self closing by start_element_event#empty_element
 	/// \param ec operation error code
+	/// \return start element event
 	start_element_event next_tag_begin(std::error_code& ec) noexcept;
 	/// Drop parser to the next tag end
 	/// WARN. Self closed tags do not handled by this method
 	/// \param ec operation error code
+	/// \return end element event
 	end_element_event next_tag_end(std::error_code& ec) noexcept;
 	/// Read current characters
 	/// \param ec operation error code
+	/// \return tag characters
 	const_string next_characters(std::error_code& ec) noexcept;
 
 private:
 	inline bool parse_error(std::error_code& ec) noexcept {
 		if(ec)
 			return true;
-		if( error::ok != state_.ec ) {
+		if( parser_->is_error() ) {
 			parser_->get_last_error(ec);
 			return true;
 		}
 		return false;
 	}
 
+	inline bool is_characters() noexcept {
+		return state_type::characters == state_ || state_type::cdata == state_;
+	}
+
 	void to_next_state(std::error_code& ec) noexcept;
 private:
 	s_event_stream_parser parser_;
-	state state_;
+	state_type state_;
 };
 
 

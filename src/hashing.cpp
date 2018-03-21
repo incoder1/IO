@@ -19,9 +19,8 @@ namespace detail {
 #ifndef IO_CPU_BITS_64
 
 // murmur3 hashing
-class murmur3
+namespace murmur3
 {
-private:
 	// an randomly selected number seed
 	static constexpr uint32_t SEED = 0xCAFEBABE;
 
@@ -67,8 +66,6 @@ private:
 		return result;
 	}
 
-public:
-
 	static inline uint32_t final_mix(uint32_t h) {
 		h ^= (h >> 16);
 		h *= MIX_MAGIC_0;
@@ -78,7 +75,7 @@ public:
 		return h;
 	}
 
-	static inline uint32_t hash(const uint8_t* key, std::size_t size) noexcept {
+	static uint32_t hash(const uint8_t* key, std::size_t size) noexcept {
 		uint32_t result = SEED;
 		const uint32_t *bstrt = reinterpret_cast<const uint32_t*>(key);
 		const uint32_t *bend = bstrt + (size >> 2);
@@ -98,16 +95,15 @@ public:
 		result ^= size;
 		return final_mix(result);
 	}
-};
+
+}
 
 // USE Google CityHash for 64 bit instruction set
 #else // 64 bit instruction set
 
 // Original hash function can be found https://github.com/google/cityhash
-class cityhash
+namespace cityhash
 {
-private:
-
 	static constexpr uint64_t k0 = 0xC3A5C85C97CB3127ULL;
 	static constexpr uint64_t k1 = 0xB492B66FBE98F273ULL;
 	static constexpr uint64_t k2 = 0x9AE16A3B2F90404FULL;
@@ -147,14 +143,9 @@ private:
 	}
 #endif // IO_IS_LITTLE_ENDIAN
 
-	static uint32_t rotate32(uint32_t val, int32_t shift) {
-		// Avoid shifting by 32: doing so yields an undefined result.
-		return shift == 0 ? val : ((val >> shift) | (val << (32 - shift)));
-	}
-
-	static inline uint64_t rotate(uint64_t val, int32_t shift) {
+	static inline uint64_t rotate(uint64_t val, uint32_t shift) {
 		// Avoid shifting by 64: doing so yields an undefined result.
-		return shift == 0 ? val : ((val >> shift) | (val << (64 - shift)));
+		return shift == 0 ? val : ((val >> shift) | (val << (64 - shift) ) );
 	}
 
 	static inline uint64_t shift_mix(uint64_t val) {
@@ -281,19 +272,18 @@ private:
 		return hash_len16(hash_len16(v.first, w.first) + shift_mix(y) * k1 + z, hash_len16(v.second, w.second) + x);
 	}
 
-public:
-
 	static uint64_t hash(const uint8_t* s, std::size_t count) noexcept {
-		if (count <= 16)
+		if ( io_likely(count <= 16) )
 			return hash_len0_to16(s, count);
-		else if (count <= 32)
+		else if ( io_likely(count <= 32 ) )
 			return hash_len17_to32(s, count);
 		else if (count <= 64)
 			return hash_len33_to_64(s, count);
 		else
 			return hash_over_64(s, count);
 	}
-};
+
+} // namespace cityhash
 
 #endif // IO_CPU_BITS_64
 
@@ -303,13 +293,8 @@ public:
 
 std::size_t IO_PUBLIC_SYMBOL hash_bytes(const uint8_t* bytes, std::size_t count) noexcept
 {
-#ifdef __GNUG__
-	if( __builtin_expect( (nullptr == bytes || 0 == count), 0) )
-		return 0;
-#else
 	if( nullptr == bytes || 0 == count )
 		return 0;
-#endif // __GNUG__
 	return detail::murmur3::hash( reinterpret_cast<const uint8_t*>(bytes), count );
 }
 
@@ -317,13 +302,8 @@ std::size_t IO_PUBLIC_SYMBOL hash_bytes(const uint8_t* bytes, std::size_t count)
 
 std::size_t IO_PUBLIC_SYMBOL hash_bytes(const uint8_t* bytes, std::size_t count) noexcept
 {
-#ifdef __GNUG__
-	if( __builtin_expect( (nullptr == bytes || 0 == count), 0) )
+	if( io_unlikely( nullptr == bytes || 0 == count ) )
 		return 0;
-#else
-	if( nullptr == bytes || 0 == count )
-		return 0;
-#endif // __GNUG__
 	return detail::cityhash::hash( bytes, count );
 }
 

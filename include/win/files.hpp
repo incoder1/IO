@@ -70,11 +70,7 @@ class IO_PUBLIC_SYMBOL file
 {
 	file(const file&) = delete;
 	file& operator=(const file&) = delete;
-private:
-	explicit file() noexcept:
-		name_()
-	{}
-
+	file() = delete;
 public:
 
 	explicit file(const char* name) noexcept;
@@ -98,7 +94,7 @@ public:
 
 	/// Returns true when file with this path exist
 	/// \return whether file exist
-	bool exist() noexcept;
+	bool exist() const noexcept;
 
 	/// Creates new file if it doesn't exist
 	/// \return whether file was created
@@ -109,6 +105,8 @@ public:
         return std::wstring( name_.get() );
 	}
 
+	/// Returns file size in byte
+	/// \return file size in bytes, 0 if file not exist
     std::size_t size() const noexcept;
 
 	/// Returns UTF-8 encoded file path

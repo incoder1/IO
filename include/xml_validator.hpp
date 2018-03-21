@@ -13,17 +13,14 @@ namespace io {
 
 namespace xml {
 
-namespace xs {
-
-	class model
-	{
-
-	};
-
-} // namespace xs
-
-constexpr const char* W3C_XML_SCHEMA_NS_URI = "http://www.w3.org/2001/XMLSchema";
 constexpr const char* XML_DTD = "http://www.w3.org/TR/REC-xml";
+constexpr const char* W3C_XML_SCHEMA_INSTANCE = "http://www.w3.org/2001/XMLSchema-instance";
+constexpr const char* W3C_XML_SCHEMA_NS_URI = "http://www.w3.org/2001/XMLSchema";
+constexpr const char* W3C_XML_SCHEMA_NS = "http://www.w3.org/2000/xmlns/";
+
+class grammar
+{
+};
 
 class IO_PUBLIC_SYMBOL schema:public object
 {
@@ -31,10 +28,9 @@ class IO_PUBLIC_SYMBOL schema:public object
 	schema& operator=(const schema&) = delete;
 public:
 
-	//static const char* W3C_XML_SCHEMA_INSTANCE_NS_URI;
 };
 
-class IO_PUBLIC_SYMBOL validator
+class IO_PUBLIC_SYMBOL validator:public object
 {
 };
 

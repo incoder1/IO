@@ -90,6 +90,7 @@ file::file(const wchar_t* name) noexcept:
 		std::char_traits<wchar_t>::copy(name_.get(), name, name_.len()-1 );
 }
 
+
 static inline win::synch_file_channel* new_channel(std::error_code& ec, ::HANDLE hnd) noexcept {
     return nobadalloc<win::synch_file_channel>::construct( ec, hnd);
 }
@@ -105,7 +106,7 @@ static inline win::synch_file_channel* create_file_channel(std::error_code& err,
 }
 
 
-bool file::exist() noexcept
+bool file::exist() const noexcept
 {
 	if( !name_ )
 		return false;
@@ -118,7 +119,7 @@ bool file::exist() noexcept
    return result;
 }
 
-bool file::create() noexcept
+bool file::create()  noexcept
 {
 	if(!name_)
 		return false;
@@ -133,6 +134,23 @@ bool file::create() noexcept
 		::CloseHandle(hnd);
 	}
 	return result;
+}
+
+std::size_t file::size() const noexcept
+{
+    if( exist() ) {
+		::HANDLE hnd = ::CreateFileW(
+						name_.get(),
+						GENERIC_READ, 0,
+						nullptr,
+						OPEN_EXISTING,
+						FILE_ATTRIBUTE_NORMAL, 0);
+		::LARGE_INTEGER ret;
+		::GetFileSizeEx(hnd, &ret);
+		::CloseHandle(hnd);
+		return static_cast<std::size_t>(ret.QuadPart);
+    }
+    return 0;
 }
 
 s_read_channel file::open_for_read(std::error_code& ec) noexcept {

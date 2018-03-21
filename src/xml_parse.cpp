@@ -313,11 +313,11 @@ qname event_stream_parser::extract_qname(const char* from, std::size_t& len) noe
 	return qname( std::move(prefix), std::move(local_name) );
 }
 
-state event_stream_parser::scan_next() noexcept
+state_type event_stream_parser::scan_next() noexcept
 {
 	if(state_type::eod != state_.current)
 		scan();
-	return state_;
+	return state_.current;
 }
 
 char event_stream_parser::skip_to_symbol(const char symbol) noexcept

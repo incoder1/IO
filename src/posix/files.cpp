@@ -11,9 +11,12 @@
 #include "stdafx.hpp"
 #include "files.hpp"
 
-#include <unistd.h>
-#include <fcntl.h>
 #include <cwchar>
+
+#include <fcntl.h>
+#include <sys/types.h>
+#include <sys/stat.h>
+#include <unistd.h>
 
 namespace io {
 
@@ -105,9 +108,19 @@ file::file(const wchar_t* name) noexcept:
 	}
 }
 
-bool file::exist() noexcept
+bool file::exist() const noexcept
 {
 	return -1 != ::access( name_.get(), F_OK );
+}
+
+std::size_t file::size() const noexcept
+{
+	if( exist() ) {
+		struct ::stat st;
+		::stat( name_.get(), &st);
+		return static_cast<std::size_t>(st.st_size);
+	}
+	return 0;
 }
 
 static constexpr int DEFAULT_FILE_PERMS = S_IRUSR | S_IWUSR | S_IRGRP | S_IWGRP | S_IROTH;

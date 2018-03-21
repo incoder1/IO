@@ -181,6 +181,8 @@ int main(int argc, const char** argv)
 	if( !sf.exist() ) {
 		cerr << sf.path() << " can not be found" << std::endl;
 		return ec.value();
+	} else {
+		cout <<  " Parsing " << sf.path() << ' ' << sf.size() << " bytes" << std::endl;
 	}
 	// Construct XML source
 	// Source will auto-detect XML file encoding, i.e. UTF-8, UTF-16[LE|BE] etc.
@@ -190,11 +192,11 @@ int main(int argc, const char** argv)
 	xml::s_event_stream_parser xs = xml::event_stream_parser::open(ec, std::move(src) );
 	io::check_error_code( ec );
 	// loop for StAX parsing
-	xml::state state;
+	xml::state_type state;
 	do {
 		// Scan for next XML state
 		state = xs->scan_next();
-		switch(state.current) {
+		switch(state) {
 		// skip initial state and end of document state
 		case xml::state_type::initial:
 		case xml::state_type::eod:
@@ -228,7 +230,7 @@ int main(int argc, const char** argv)
 			break;
 		}
 	// until state is enf of document
-	} while(xml::state_type::eod != state.current);
+	} while(xml::state_type::eod != state);
 	// check whether there were an error
 	if( xs->is_error() ) {
 		// convert error enumeration into std::error_code

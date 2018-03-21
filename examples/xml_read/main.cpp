@@ -31,6 +31,7 @@ where id and enabled fields stored as XML attributes and name stored as a tag
 #	endif // _WIN32_WINNT
 #endif
 
+
 #include <iostream>
 
 #include <files.hpp>
@@ -38,8 +39,7 @@ where id and enabled fields stored as XML attributes and name stored as a tag
 #include <xml_lexcast.hpp>
 
 /// A structure to parse into
-struct configuration
-{
+struct configuration {
 	std::size_t id;
 	bool enabled;
 	std::string name;
@@ -58,18 +58,19 @@ typedef io::xml::lexical_cast_traits<std::size_t> size_t_cast;
 typedef io::xml::lexical_cast_traits<bool> bool_cast;
 
 // De-serialize configuration structure from XML reader
-static configuration read_config(io::unsafe<io::xml::reader>& rd) {
+static configuration read_config(io::unsafe<io::xml::reader>& rd)
+{
 	configuration ret;
 	io::xml::start_element_event bev = rd.next_tag_begin();
-		// read id from attribute
-		io::const_string tmp = bev.get_attribute("id").first;
-	  	ret.id = size_t_cast::from_string( tmp.data() );
-	  	tmp = bev.get_attribute("enabled").first;
-	  	ret.enabled = bool_cast::from_string( tmp.data() );
-	  	// read name value from tag
-		bev = rd.next_tag_begin();
-		  ret.name = std::string( rd.next_characters().data() );
-		rd.next_tag_end();
+	// read id from attribute
+	io::const_string tmp = bev.get_attribute("id").first;
+	ret.id = size_t_cast::from_string( tmp.data() );
+	tmp = bev.get_attribute("enabled").first;
+	ret.enabled = bool_cast::from_string( tmp.data() );
+	// read name value from tag
+	bev = rd.next_tag_begin();
+	ret.name = std::string( rd.next_characters().data() );
+	rd.next_tag_end();
 	// goto </configuration>
 	rd.next_tag_end();
 	return ret;

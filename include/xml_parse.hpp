@@ -26,8 +26,7 @@ namespace io {
 namespace xml {
 
 /// \brief XML parsing states constants
-enum class state_type
-{
+enum class state_type {
 	/// initial state
 	initial,
 	/// end of document state, also occurs in case of parsing error including out of memory error
@@ -44,28 +43,6 @@ enum class state_type
 	event
 };
 
-/// \brief XML parser state
-struct state
-{
-	/// Current XML parsing error code
-	error ec;
-	/// Current XML parsing state
-	state_type current;
-
-	constexpr state(error errcd, state_type state) noexcept:
-        ec(errcd),
-        current(state)
-	{}
-
-	constexpr state() noexcept:
-        state(error::ok,state_type::initial)
-	{}
-
-    state(const state& other) = default;
-    state& operator=(const state& other) = default;
-    ~state() = default;
-
-};
 
 class event_stream_parser;
 
@@ -82,17 +59,32 @@ DECLARE_IPTR(event_stream_parser);
 ///  e.g. &nbsp; must be converted manually to ' ' </li>
 /// <li>No XML validation neither DTD neither XSD schema since parsing</li>
 /// <ul>
-class IO_PUBLIC_SYMBOL event_stream_parser:public object
-{
+class IO_PUBLIC_SYMBOL event_stream_parser:public object {
 private:
+
+	/// \brief XML parser state
+	struct state {
+		/// Current XML parsing error code
+		error ec;
+		/// Current XML parsing state
+		state_type current;
+		constexpr state(error errcd, state_type state) noexcept:
+			ec(errcd),
+			current(state)
+		{}
+		constexpr state() noexcept:
+			state(error::ok,state_type::initial)
+		{}
+	};
+
 	// we need 9 bytes only, but will use 16 for better align
 	static constexpr std::size_t MAX_SCAN_BUFF_SIZE = 16;
 
 	typedef std::unordered_set<
-			std::size_t,
-			std::hash<std::size_t>,
-			std::equal_to<std::size_t>,
-			io::h_allocator<std::size_t> > validated_set;
+	std::size_t,
+		std::hash<std::size_t>,
+		std::equal_to<std::size_t>,
+		io::h_allocator<std::size_t> > validated_set;
 
 	friend class nobadalloc<event_stream_parser>;
 	event_stream_parser(const event_stream_parser&) = delete;
@@ -112,7 +104,7 @@ public:
 
 	/// Scan XML source from current position to find next XML entity or characters
 	/// \return parser state after scanning
-	state scan_next() noexcept;
+	state_type scan_next() noexcept;
 
 	/// Checks parser in error state
 	/// \return true if parser in error state, false otherwise
@@ -193,8 +185,7 @@ private:
 
 	void assign_error(xml::error ec) noexcept;
 
-	inline bool check_buffer(byte_buffer& b) noexcept
-	{
+	inline bool check_buffer(byte_buffer& b) noexcept {
 		if(0 == b.capacity() ) {
 			assign_error(error::out_of_memory);
 			return false;
@@ -202,8 +193,7 @@ private:
 		return true;
 	}
 
-	inline void putch(byte_buffer& buf, char i) noexcept
-	{
+	inline void putch(byte_buffer& buf, char i) noexcept {
 		if( buf.full() && io_unlikely( !buf.ln_grow() )  ) {
 			assign_error(error::out_of_memory);
 			return;
@@ -219,8 +209,7 @@ private:
 	attribute extract_attribute(const char* from, std::size_t& len) noexcept;
 	bool validate_xml_name(const cached_string& str, bool attr) noexcept;
 
-	inline char next() noexcept
-	{
+	inline char next() noexcept {
 		char result = src_->next();
 		if( src_->eof() )
 			result = EOF;
@@ -228,7 +217,7 @@ private:
 	}
 
 	static __forceinline bool is_eof(char ch) noexcept {
-        return !std::char_traits<char>::not_eof(ch);
+		return !std::char_traits<char>::not_eof(ch);
 	}
 
 	static __forceinline bool sb_check(const char* sb) noexcept {

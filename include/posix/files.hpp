@@ -114,11 +114,15 @@ public:
 
 	/// Returns true when file with this path exist
 	/// \return whether file exist
-	bool exist() noexcept;
+	bool exist() const noexcept;
 
 	/// Creates new file if it doesn't exist
 	/// \return whether file was created
 	bool create() noexcept;
+
+	/// Returns file size in byte
+	/// \return file size in bytes, 0 if file not exist
+	std::size_t size() const noexcept;
 
 	/// Returns UCS-4 encoded file path
 	inline std::wstring wpath()  {
@@ -128,6 +132,8 @@ public:
 	inline std::string path() {
 		return std::string(name_.get());
 	}
+
+
 
 	/// Opens blocking read channel from this file
 	/// \param ec
