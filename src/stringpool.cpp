@@ -28,8 +28,7 @@ cached_string::cached_string(const char* str, std::size_t length) noexcept:
 	data_(nullptr)
 {
 	assert(nullptr != str && length > 0);
-	const std::size_t len = sizeof(std::size_t) + length + 1;
-	data_ = memory_traits::malloc_array<uint8_t>( len );
+	data_ = memory_traits::malloc_array<uint8_t>( sizeof(std::size_t) + length + 1 );
 	if(nullptr != data_) {
 		// set initial intrusive atomic reference count
 		std::size_t *rc = reinterpret_cast<std::size_t*>(data_);

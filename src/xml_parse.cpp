@@ -551,8 +551,8 @@ void event_stream_parser::skip_comment() noexcept
 		return;
 	}
 	sb_clear(scan_buf_);
-	static constexpr uint_fast16_t _ptrn = (HYPHEN << 8) | HYPHEN;
-	uint_fast16_t i = 0;
+	static constexpr uint16_t _ptrn = (HYPHEN << 8) | HYPHEN;
+	uint16_t i = 0;
 	char c;
 	do {
 		c = next();
@@ -593,7 +593,7 @@ byte_buffer event_stream_parser::read_until_double_separator(const int separator
 	}
 	while( !is_error() );
 	buff.flip();
-	if( !cheq(RIGHTB, next() ) ) {
+	if( io_unlikely( !cheq(RIGHTB, next() ) ) ) {
 		if(error::ok != state_.ec)
 			assign_error(ec);
 		return byte_buffer();
