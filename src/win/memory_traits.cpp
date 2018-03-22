@@ -26,7 +26,7 @@ private:
 	{}
 	static void do_destoroy() noexcept {
 		heap_allocator *tmp = _instance.load(std::memory_order_acquire);
-		if(nullptr != tmp) {
+		if( io_likely(nullptr != tmp) ) {
 			::HANDLE heap = tmp->heap_;
 			::HeapFree(heap, 0, tmp);
 			::HeapDestroy(heap);
@@ -37,12 +37,15 @@ private:
 		::HANDLE heap = ::HeapCreate(0,0,0);
 		if(INVALID_HANDLE_VALUE != heap) {
 			void *raw = ::HeapAlloc(heap, HEAP_NO_SERIALIZE, sizeof(heap_allocator) );
-			if(NULL != raw)
+			if( io_likely( NULL != raw) )
 				return new (raw) heap_allocator(heap);
 			else {
 				std::new_handler hnd = std::get_new_handler();
-				if(nullptr != hnd)
+				while(nullptr != hnd) {
 					hnd();
+				}
+				// nothing to do, terminate program normally
+				detail::panic(ENOMEM, "Out of memory");
 			}
 		}
 		return nullptr;

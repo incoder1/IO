@@ -43,24 +43,24 @@ inline void ios_check_error_code(const char* msg, std::error_code const &ec )
 {
 	if(!ec)
 		return;
-//#ifdef IO_NO_EXCEPTIONS
+#ifdef IO_NO_EXCEPTIONS
 	static constexpr const char* __RED_FORMAT = "\033[01;31m%i %s%s\033[0m\n";
 	std::fprintf(stderr, __RED_FORMAT, ec.value(), msg, ec.message().data() );
 	std::exit( ec.value() );
-//#else
-//	throw std::ios_base::failure( msg, ec );
-//#endif
+#else
+	throw std::ios_base::failure( msg, ec );
+#endif
 }
 
 
 } // namespace detail
 
-void inline IO_PANIC_ATTR exit_with_current_error()
+void inline exit_with_current_error()
 {
     detail::panic(errno, std::strerror(errno) );
 }
 
-inline  void IO_PANIC_ATTR exit_with_error_message(int exitcode, const char* message)
+inline void exit_with_error_message(int exitcode, const char* message)
 {
     detail::panic(exitcode, message);
 }

@@ -1,24 +1,32 @@
-#ifdef _WIN32
-#define _WIN32_WINNT 0x0600
-#endif // _WIN32
+#if _WIN32_WINNT < _WIN32_WINNT_VISTA
+#		undef _WIN32_WINNT
+#		define _WIN32_WINNT _WIN32_WINNT_VISTA
+#else
+#		define _WIN32_WINNT _WIN32_WINNT_VISTA
+#endif // _WIN32_WINNT
 
 #include <console.hpp>
-
+#include <files.hpp>
+#include <stream.hpp>
 
 #include "stubs.hpp"
 
-#include <iostream>
-#include <files.hpp>
-#include <stream.hpp>
-#include <xml_types.hpp>
+static const char* PROLOGUE = "<?xml version=\"1.0\" encoding=\"UTF-8\" ?>";
 
 
+static io::s_write_channel create_file_channel(const char* path) {
+	std::error_code ec;
+	io::file f( path );
+	io::s_write_channel ret = f.open_for_write(ec, io::write_open_mode::overwrite);
+	io::check_error_code(ec);
+	return ret;
+}
 
 #ifdef IO_XML_HAS_TO_XSD
 static const char* SCHEMA_BEGIN = "<xs:schema xmlns:xs=\"http://www.w3.org/2001/XMLSchema\">";
 
 void generate_xsd(app_settings& root, std::ostream& cout) {
-	io::cnl_ostream xsd( create_file_channel("generated-app-config.xsd") );
+	io::channel_ostream<char> xsd( create_file_channel("generated-app-config.xsd") );
 	xsd << io::unicode_cp::utf8;
 	xsd << PROLOGUE;
 	xsd << SCHEMA_BEGIN;
@@ -47,6 +55,7 @@ void generate_xsd(app_settings& root, std::ostream& cout) {
 int main()
 {
 	io::console::reset_err_color( io::text_color::light_red);
+	std::ostream& cout = io::console::out_stream();
 
 	app_settings root( primary_conf(1) );
 
@@ -58,18 +67,16 @@ int main()
 	app_settings::xml_type xt = root.to_xml_type();
 
 	io::channel_ostream<char> xml( create_file_channel("app-config.xml"));
-	//std::fstream xml("app-config.xml", std::ios_base::binary | std::ios_base::out );
 	xml << io::unicode_cp::utf8;
 	xml << PROLOGUE;
 	xt.marshal(xml,0);
 	xml.flush();
 
-	std::ostream& cout = io::console::out_stream();
 #if IO_XML_HAS_TO_XSD
 	generate_xsd(root,cout);
 #endif // IO_XML_HAS_TO_XSD
 
-// unmarshal back from memory
+	// unmarshal back from memory
 	//io::xml::unmarshaller<app_settings::xml_type> unmarshaller;
 	app_settings setings2 = app_settings::from_xml_type(xt);
 	app_settings::xml_type xt2 = root.to_xml_type();
@@ -84,4 +91,3 @@ int main()
 
 	return 0;
 }
-

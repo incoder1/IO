@@ -11,8 +11,7 @@
 #include <vector>
 #include <utility>
 
-#include <buffer.hpp>
-
+#include <memory_channel.hpp>
 #include "uri.hpp"
 
 namespace io {
@@ -23,18 +22,22 @@ namespace http {
 
 class header {
    public:
+   		/*
         header(const const_string& name, const const_string& value) noexcept:
             name_(name),
             value_(value)
         {}
+        */
         header(const_string&& name,const_string&& value) noexcept:
             name_( std::forward<const_string>(name) ),
             value_( std::forward<const_string>(value) )
         {}
-        bool to_bytes(byte_buffer& buff) const noexcept
-        {
-            return buff.put( name_.data() ) && buff.put(':') && buff.put( value_.data() ) && buff.put("\r\n", 2);
-        }
+		const_string name() const noexcept {
+			return name_;
+		}
+		const_string value() const noexcept {
+			return value_;
+		}
    private:
        const_string name_;
        const_string value_;
@@ -47,14 +50,13 @@ enum class method
 	// TODO: add all
 };
 
-typedef scoped_arr<header> headers;
+typedef std::vector<header> headers;
 
 class IO_PUBLIC_SYMBOL request:public virtual object
 {
 protected:
 	request(s_uri&& uri, headers&& hdrs) noexcept;
-	void join(std::error_code& ec, byte_buffer& to) const noexcept;
-	void send_all(std::error_code& ec, const s_write_channel& ch, byte_buffer& buff) const noexcept;
+	void join(std::error_code& ec, const s_write_channel& ch) const noexcept;
 public:
 	virtual void send(std::error_code& ec, const s_write_channel& ch) const noexcept = 0;
 private:
@@ -64,7 +66,7 @@ private:
 
 DECLARE_IPTR(request);
 
-s_request IO_PUBLIC_SYMBOL new_request(std::error_code& ec,method m, const s_uri& resource, std::initializer_list<header>&& hdrs) noexcept;
+s_request IO_PUBLIC_SYMBOL new_request(std::error_code& ec,method m, const s_uri& resource, std::vector<header>&& hdrs) noexcept;
 
 inline s_request new_request(std::error_code& ec,method m, const s_uri& resource) noexcept
 {
@@ -73,7 +75,7 @@ inline s_request new_request(std::error_code& ec,method m, const s_uri& resource
 				{"Accept","text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8"},
 				{"User-Agent", "io library"},
 				{"Accept-Charset","ISO-8859-1,utf-8;q=0.7,*;q=0.7"},
-				{"Connection"," close"}
+				{"Connection","close"}
 			} );
 }
 

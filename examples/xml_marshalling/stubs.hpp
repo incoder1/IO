@@ -2,10 +2,6 @@
 #define STUBS_HPP_INCLUDED
 
 #include <xml_types.hpp>
-#include <xml_binding.hpp>
-
-#include <vector>
-#include <string>
 
 #ifdef HAS_PRAGMA_ONCE
 #pragma once
@@ -87,9 +83,10 @@ private:
 struct primary_conf
 {
 public:
-	primary_conf(uint8_t id) noexcept:
+	explicit primary_conf(uint8_t id) noexcept:
 		id_(id)
 	{}
+
 	inline uint8_t id() const noexcept {
 		return id_;
 	}

@@ -565,7 +565,11 @@ public:
 
 	static inline const char_type* float_to_str(float v, char_type* to) noexcept {
 		char buff[32];
-		std::sprintf(buff, "%G", buff);
+#ifdef __GNUG__
+		__builtin_snprintf(buff, 32, "%G", v);
+#else
+		std::sprintf(buff, "%G", v);
+#endif // __GNUG__
 		return move_digits<char_type>::move( to, buff);
 	}
 
@@ -577,7 +581,11 @@ public:
 
 	static inline const char_type* double_to_str(double v, char_type* to) noexcept {
 		char buff[64];
+#ifdef __GNUG__
+		__builtin_snprintf(buff, 64, "%G", v);
+#else
 		std::sprintf(buff, "%G", buff);
+#endif // __GNUG__
 		return move_digits<char_type>::move( to, buff);
 	}
 
@@ -589,7 +597,11 @@ public:
 
 	static inline const char_type* longdouble_to_str(long double v,char_type* to) noexcept {
 		char buff[128];
+#ifdef __GNUG__
+		__builtin_snprintf(buff, 128, "%G", v);
+#else
 		std::sprintf(buff, "%G", buff);
+#endif // __GNUG__
 		return move_digits<char_type>::move( to, buff);
 	}
 
@@ -600,11 +612,10 @@ public:
 	}
 
 	static inline const char_type* boolean_to_str(bool value, char_type* to) noexcept {
-		if(value) {
+		if(value)
 			char_traits::move(to, strings_traits::true_str, 5);
-		} else {
+		else
 			char_traits::move(to, strings_traits::false_str, 6);
-		}
 		return to;
 	}
 

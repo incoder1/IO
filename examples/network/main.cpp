@@ -12,7 +12,6 @@
 
 #endif // _WIN32
 
-#include <iostream>
 #include <files.hpp>
 
 #include <net/uri.hpp>
@@ -23,18 +22,34 @@
 #include <stream.hpp>
 #include <scoped_array.hpp>
 
+#ifdef __IO_WINDOWS_BACKEND__
+
+static void log(const char* data,const std::size_t bytes)
+{
+	static ::HANDLE hcout = ::GetStdHandle(STD_OUTPUT_HANDLE);
+	::DWORD written;
+    ::WriteFile(hcout, data, bytes, &written, nullptr);
+}
+
+#else
+
+static void log(const char* data,const std::size_t bytes)
+{
+	::write(stdout, data, bytes);
+}
+
+#endif // __IO_WINDOWS_BACKEND__
+
 int main()
 {
 	using namespace io::net;
 	std::error_code ec;
 	//s_uri url = uri::parse(ec, "http://www.springframework.org/schema/beans/spring-beans-4.2.xsd");
 	s_uri url = uri::parse(ec, "https://www.springframework.org/beans/spring-beans-4.2.xsd");
-
-	//s_uri url = uri::parse(ec, "https://www.google.com");
 	io::check_error_code(ec);
 
 	io::check_error_code(ec);
-	std::cout << "connectig to: " << url->host() << std::endl;
+	std::printf("Connecting to: %s \n", url->host().data() );
 
     const socket_factory* sf = socket_factory::instance(ec);
 	s_socket tpc_socket = sf->client_tcp_socket(ec, url->host().data(),url->port() );
@@ -54,17 +69,15 @@ int main()
 	rq->send( ec, sch );
 	io::check_error_code( ec );
 
-	// 64k
+	// 2k
 	uint8_t tmp[2048];
 	std::size_t read;
 	do {
-		read = sch->read(ec, tmp, 2048 );
+		read = sch->read(ec, tmp, 2048);
 		if(read == 0)
 			break;
-		std::cout.write( reinterpret_cast<char*>(tmp), read);
+		log( reinterpret_cast<char*>(tmp), read);
 	} while(!ec);
-
-	std::cout.flush();
 
     return 0;
 }
