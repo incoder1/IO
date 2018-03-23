@@ -79,6 +79,7 @@ struct memory_traits {
 	/// WARN! do not use for memory allocated by calloc_temporary
 	static inline void free IO_PREVENT_MACRO (void * const ptr) noexcept
 	{
+		assert(nullptr != ptr);
 		// replace this one to use jemalloc/tcmalloc etc
 		std::free(ptr);
 	}

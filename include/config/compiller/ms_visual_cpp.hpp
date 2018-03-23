@@ -22,6 +22,9 @@
 
 #include <intrin.h>
 #include <stdint.h>
+#include <stdlib.h>
+#include <malloc.h>
+#include <string.h>
 
 #define HAS_PRAGMA_ONCE
 
@@ -58,8 +61,10 @@
 #endif
 
 #ifdef IO_CPU_BITS_64
-#	define io_size_t_abs(__x) llabs( (__x) )
+#	pragma intrinsic(_abs64)
+#	define io_size_t_abs(__x) _abs64( (__x) )
 #else
+#	pragma intrinsic(_labs)
 #	define io_size_t_abs(__x) labs( (__x) )
 #endif
 
@@ -69,6 +74,7 @@
 #define io_bswap32 _byteswap_ulong
 #define io_bswap64 _byteswap_uint64
 
+#pragma intrinsic(_alloca,memset)
 #define io_alloca(x) _alloca((x))
 
 #define io_memmove(__dst, __src, __bytes) memmove( (__dst), (__src), (__bytes) )
@@ -94,8 +100,6 @@
 #define io_strcspn(__s, __p) strcspn( (__s), (__p) )
 
 #define io_strpbrk(__s, __p) strpbrk( (__s), (__p) )
-
-#define io_strchr(__s,__c) strchr( (__s), (__c) )
 
 #define io_isalpha(__ch) isalpha((__ch))
 #define io_isspace(__ch) isspace((__ch))

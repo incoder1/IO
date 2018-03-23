@@ -14,17 +14,6 @@
 
 namespace io {
 
-// charset
-
-bool charset::operator==(const charset& rhs) const noexcept
-{
-	return code_ == rhs.code_;
-}
-
-bool charset::operator!=(const charset& rhs) const noexcept
-{
-	return code_ != rhs.code_;
-}
 
 // code_pages
 

@@ -43,52 +43,50 @@ public:
 	{}
 
 	/// Checks this charset points to a known code page
-	explicit operator bool() const noexcept
-	{
-        return char_max_ != 0 && code_ != 0;
+	explicit operator bool() const noexcept {
+		return char_max_ != 0 && code_ != 0;
 	}
 
 	/// Returns integer identifier of this character set, number is equal to Win32 id-s
 	/// \return charset integer identifier
-	constexpr inline uint32_t code() const
-	{
+	constexpr inline uint32_t code() const {
 		return code_;
 	}
 
 	/// Returns string identifier of this character set, names are the same as used by
 	/// POSIX libiconv
 	/// \return string identifier of this character set
-	constexpr inline const char* name() const
-	{
+	constexpr inline const char* name() const {
 		return name_;
 	}
 
 	/// Returns maximal width of a single character in bytes
 	/// \return maximal width of a single character
-	constexpr inline uint8_t char_max_size() const
-	{
+	constexpr inline uint8_t char_max_size() const {
 		return char_max_;
 	}
 
 	/// Returns whether this charset is point on an UNICODE representation code page
 	/// \return whether this charset is UNICODE representation
-	constexpr inline bool unicode() const
-	{
+	constexpr inline bool unicode() const {
 		return unicode_;
 	}
 
 	/// Checks charset equality
-	bool operator==(const charset& rhs) const noexcept;
+	bool operator==(const charset& rhs) const noexcept {
+		return code_ == rhs.code_;
+	}
 
 	/// Checks charset equality
-	bool operator!=(const charset& rhs) const noexcept;
+	bool operator!=(const charset& rhs) const noexcept {
+		return code_ != rhs.code_;
+	}
 
 private:
-	inline void swap(charset& with) noexcept
-	{
-        std::swap(unicode_, with.unicode_);
-        std::swap(char_max_, with.char_max_);
-        std::swap(code_, with.code_);
+	inline void swap(charset& with) noexcept {
+		std::swap(unicode_, with.unicode_);
+		std::swap(char_max_, with.char_max_);
+		std::swap(code_, with.code_);
 		std::swap(name_, with.name_);
 	}
 private:
@@ -102,8 +100,8 @@ private:
 
 /// Holds constants on supported character sets
 class IO_PUBLIC_SYMBOL code_pages {
-    code_pages(const code_pages&) = delete;
-    code_pages& operator=(code_pages&) = delete;
+	code_pages(const code_pages&) = delete;
+	code_pages& operator=(code_pages&) = delete;
 // to avoid externs, enums etc
 public:
 	/** UNICODE representations **/
@@ -148,7 +146,7 @@ public:
 	DECLARE_CHARSET(CP_1258)
 
 	/// Returns a character set for a name
-    static std::pair<bool, charset> for_name(const char* name) noexcept;
+	static std::pair<bool, charset> for_name(const char* name) noexcept;
 
 	/// Returns character set wich is default for current operating system API
 	/// I.e. UTF-16LE for Winfows or UTF-8 for Linux
@@ -159,8 +157,8 @@ public:
 	/// \return current locale charset
 	static const charset& platform_current() noexcept;
 private:
-    constexpr code_pages() noexcept
-    {}
+	constexpr code_pages() noexcept
+	{}
 };
 
 #undef DECLARE_CHARSET

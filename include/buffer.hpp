@@ -127,8 +127,8 @@ public:
 
     constexpr byte_buffer_iterator(uint8_t* const position) noexcept:
         base_type(),
-        position_(position) {
-    }
+        position_(position)
+	{}
 
     inline uint8_t operator*() const noexcept {
         return *position_;
@@ -236,11 +236,10 @@ private:
 
 /// \brief Movable only dynamic array container, with uint8_t* underlying memory array
 class IO_PUBLIC_SYMBOL byte_buffer {
-public:
-    typedef byte_buffer_iterator iterator;
-
     byte_buffer(const byte_buffer&) = delete;
     byte_buffer& operator=(byte_buffer&) = delete;
+public:
+    typedef byte_buffer_iterator iterator;
 
     /// Constructs an empty byte buffer without allocating any memory
     /// \see #allocate
@@ -383,7 +382,7 @@ public:
     /// \return count of elements put in this buffer, or 0 if memory block is to large
     template<typename T>
     inline std::size_t put(const T* arr, std::size_t count) noexcept {
-        static_assert( std::is_fundamental<T>::value || std::is_trivial<T>::value, "Must be an array of trivail or fundamental type" );
+        static_assert( std::is_fundamental<T>::value || std::is_trivial<T>::value, "Must be an array of trivial or fundamental type" );
         if(nullptr == arr || count == 0 )
             return 0;
         const uint8_t* b = reinterpret_cast<const uint8_t*>(arr);

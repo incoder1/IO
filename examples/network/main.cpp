@@ -12,15 +12,12 @@
 
 #endif // _WIN32
 
-#include <files.hpp>
 
 #include <net/uri.hpp>
 #include <net/secure_channel.hpp>
 #include <net/http_client.hpp>
 
 #include <errorcheck.hpp>
-#include <stream.hpp>
-#include <scoped_array.hpp>
 
 #ifdef __IO_WINDOWS_BACKEND__
 

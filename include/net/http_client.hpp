@@ -43,6 +43,7 @@ class header {
        const_string value_;
 };
 
+// FIXME: remove this enumeration
 enum class method
 {
 	get,
@@ -66,6 +67,7 @@ private:
 
 DECLARE_IPTR(request);
 
+// FIXME: refactor to factory
 s_request IO_PUBLIC_SYMBOL new_request(std::error_code& ec,method m, const s_uri& resource, std::vector<header>&& hdrs) noexcept;
 
 inline s_request new_request(std::error_code& ec,method m, const s_uri& resource) noexcept
