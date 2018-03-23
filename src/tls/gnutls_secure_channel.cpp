@@ -38,8 +38,8 @@ ssize_t session::pull(::gnutls_transport_ptr_t t, void * data, std::size_t max_s
 
 int session::client_handshake(::gnutls_session_t const peer) noexcept
 {
-    // ::gnutls_handshake_set_timeout(peer, GNUTLS_DEFAULT_HANDSHAKE_TIMEOUT);
-    // ::gnutls_handshake_set_timeout(peer, GNUTLS_INDEFINITE_TIMEOUT);
+    ::gnutls_handshake_set_timeout(peer, GNUTLS_DEFAULT_HANDSHAKE_TIMEOUT);
+    ::gnutls_handshake_set_timeout(peer, GNUTLS_INDEFINITE_TIMEOUT);
     int ret;
     do {
 		ret = ::gnutls_handshake(peer);
