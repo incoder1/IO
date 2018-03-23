@@ -13,22 +13,24 @@ SHARED_EXT=dll
 
 PLATFORM_SHARED_LINK_OPTIONS?=-shared -Wl,--dll -Wl,--output-def=$(TARGET)/libio.def -Wl,--out-implib=$(TARGET)/libio.a
 
-LIBS?=-liconv.dll -lgnutls.dll -lWs2_32
+LIBS?=-liconv.dll -lWs2_32 -lgnutls.dll 
 INCLUEDS?=-Iinclude -Iinclude/win -Iinclude/net -Isrc
 
 MMX_AND_SSE?= -mmmx -msse -msse2 -mssse3 -msse3 -msse4 -mavx
 OPTIMIZE?=-mtune=generic -O3 -fno-exceptions -fno-rtti -minline-stringops-dynamically -fdeclone-ctor-dtor -fdevirtualize-at-ltrans -mmovbe $(MMX_AND_SSE)
 SHARED-DEFINES?= -DIO_SHARED_LIB -DIO_BUILD
-DEFINES ?= -DNDEBUG $(SHARED-DEFINES)
+DEFINES ?= -DNDEBUG $(SHARED-DEFINES) -DIO_TLS_PROVIDER_GNUTLS
 CPPFLAGS?= -std=gnu++14 -fno-exceptions -fno-rtti -Winline -pedantic $(OPTIMIZE) $(INCLUEDS)
 LDFLAGS?= $(LIBS) -s
-
 
 MODULES=. win net
 
 SRC_DIR := $(addprefix ./src/,$(MODULES))
 SOURCE_FILES := $(foreach sdir,$(SRC_DIR),$(wildcard $(sdir)/*.cpp))
 OBJ_FILES := $(addprefix $(OBJ)/, $(notdir $(SOURCE_FILES:.cpp=.o)) )
+
+SOURCE_FILES := $(SOURCE_FILES) src/tls/gnutls_secure_channel.cpp
+OBJ_FILES := $(OBJ_FILES) $(OBJ)/gnutls_secure_channel.o
  
 DESTDIR?=target
  
@@ -49,6 +51,9 @@ $(OBJ)/%.o: src/win/%.cpp
 	$(CXX) $(CPPFLAGS) $(DEFINES) -iquoteobj$(OBJ)/stdafx.hpp.gch  -c $< -o $@
 	
 $(OBJ)/%.o: src/net/%.cpp
+	$(CXX) $(CPPFLAGS) $(DEFINES) -iquoteobj$(OBJ)/stdafx.hpp.gch -c $< -o $@
+	
+$(OBJ)/gnutls_secure_channel.o: src/tls/gnutls_secure_channel.cpp
 	$(CXX) $(CPPFLAGS) $(DEFINES) -iquoteobj$(OBJ)/stdafx.hpp.gch -c $< -o $@
 	
 clean:

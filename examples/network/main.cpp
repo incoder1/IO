@@ -12,6 +12,7 @@
 
 #endif // _WIN32
 
+#define IO_TLS_PROVIDER_GNUTSL
 
 #include <net/uri.hpp>
 #include <net/secure_channel.hpp>

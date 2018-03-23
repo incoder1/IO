@@ -9,7 +9,7 @@
  *
  */
 #include "stdafx.hpp"
-#include "secure_channel.hpp"
+#include "tls/gnutls_secure_channel.hpp"
 #include "threading.hpp"
 
 namespace io {

@@ -25,6 +25,9 @@ MODULES=. win net
 SRC_DIR := $(addprefix ./src/,$(MODULES))
 SOURCE_FILES := $(foreach sdir,$(SRC_DIR),$(wildcard $(sdir)/*.cpp))
 OBJ_FILES := $(addprefix $(OBJ)/, $(notdir $(SOURCE_FILES:.cpp=.o)) )
+
+SOURCE_FILES := $(SOURCE_FILES) src/tls/gnutls_secure_channel.cpp
+OBJ_FILES := $(OBJ_FILES) $(OBJ)/gnutls_secure_channel.o
  
 DESTDIR?=target
  
@@ -45,6 +48,9 @@ $(OBJ)/%.o: src/win/%.cpp
 	$(CXX) $(CPPFLAGS) $(DEFINES) -iquoteobj$(OBJ)/stdafx.hpp.gch  -c $< -o $@
 
 $(OBJ)/%.o: src/net/%.cpp
+	$(CXX) $(CPPFLAGS) $(DEFINES) -iquoteobj$(OBJ)/stdafx.hpp.gch -c $< -o $@
+	
+$(OBJ)/gnutls_secure_channel.o: src/tls/gnutls_secure_channel.cpp
 	$(CXX) $(CPPFLAGS) $(DEFINES) -iquoteobj$(OBJ)/stdafx.hpp.gch -c $< -o $@
 	
 clean:
