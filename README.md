@@ -1,3 +1,5 @@
+[![Build Status](https://travis-ci.org/incoder1/IO.svg?branch=master)](https://travis-ci.org/incoder1/IO)
+
 # IO
 
 IO is modern C++ (C++ 11 +) library for general propose input/output and XML processing
