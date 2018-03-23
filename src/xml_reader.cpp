@@ -107,7 +107,7 @@ const_string reader::next_characters(std::error_code& ec) noexcept
 		ec = make_error_code(error::invalid_state);
 		return const_string();
 	}
-	byte_buffer buff = byte_buffer::allocate(ec, 16);
+	byte_buffer buff = byte_buffer::allocate(ec, 128);
 	if(ec)
 		return const_string();
 	std::size_t s = 0;
