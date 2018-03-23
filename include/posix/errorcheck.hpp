@@ -48,7 +48,7 @@ inline void ios_check_error_code(const char* msg, std::error_code const &ec )
 	std::fprintf(stderr, __RED_FORMAT, ec.value(), msg, ec.message().data() );
 	std::exit( ec.value() );
 #else
-	throw std::ios_base::failure( msg, ec );
+	throw std::ios_base::failure( msg + ec.message() );
 #endif
 }
 
