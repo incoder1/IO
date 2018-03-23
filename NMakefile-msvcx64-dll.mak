@@ -18,7 +18,7 @@ SHARED_EXT=dll
 
 PLATFORM_SHARED_LINK_OPTIONS=
 
-LIBS=msvcrt.lib kernel32.lib user32.lib Ws2_32.lib iconv.dll.lib gnutls.lib 
+LIBS=msvcrt.lib kernel32.lib user32.lib Ws2_32.lib iconv.dll.lib
 INCLUEDS=/Iinclude /Iinclude\win /Iinclude\net /Isrc /I$(DEPS_INCLUDES)
 
 OPTIMIZE= /Ox /Oi /Zc:wchar_t
@@ -40,7 +40,7 @@ OBJECTS = stdafx.pch\
 	sockets.obj\
 	files.obj\
 	synch_socket_channel.obj\
-	secure_channel.obj\
+#	secure_channel.obj\
 	console.obj\
 	stringpool.obj\
 	charsets.obj\
@@ -67,7 +67,7 @@ LINK_OBJECTS = $(OBJ)\stdafx.obj\
 	$(OBJ)\sockets.obj\
 	$(OBJ)\files.obj\
 	$(OBJ)\synch_socket_channel.obj\
-	$(OBJ)\secure_channel.obj\
+#	$(OBJ)\secure_channel.obj\
 	$(OBJ)\console.obj\
 	$(OBJ)\stringpool.obj\
 	$(OBJ)\charsets.obj\
@@ -85,7 +85,6 @@ LINK_OBJECTS = $(OBJ)\stdafx.obj\
 
 all: clean link
 	copy $(DEPS_LIBS)\iconv-2.dll $(TARGET)\iconv-2.dll
-	copy $(DEPS_LIBS)\gnutls.dll $(TARGET)\gnutls.dll
 
 clean:
 	if EXIST $(OBJ) ( rmdir /S /Q $(OBJ) )
@@ -147,8 +146,8 @@ uri.obj:
 	$(CXX) $(CPPFLAGS) $(PCH) src\net\uri.cpp /Fo$(OBJ)\uri.obj
 http_client.obj:
 	$(CXX) $(CPPFLAGS) $(PCH) src\net\http_client.cpp /Fo$(OBJ)\http_client.obj
-secure_channel.obj:
-	$(CXX) $(CPPFLAGS) $(PCH) src\net\secure_channel.cpp /Fo$(OBJ)\secure_channel.obj
+#secure_channel.obj:
+#	$(CXX) $(CPPFLAGS) $(PCH) src\net\secure_channel.cpp /Fo$(OBJ)\secure_channel.obj
 	
 # XML
 xml_error.obj:
