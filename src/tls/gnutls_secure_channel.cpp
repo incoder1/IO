@@ -14,8 +14,6 @@
 
 namespace io {
 
-namespace net {
-
 namespace secure {
 
 // session
@@ -66,9 +64,6 @@ session session::client_session(std::error_code &ec, ::gnutls_certificate_creden
     ::gnutls_transport_set_ptr( ret.peer_, transport );
     ::gnutls_transport_set_push_function( ret.peer_, &session::push );
     ::gnutls_transport_set_pull_function( ret.peer_, &session::pull );
-    //  ::gnutls_transport_set_pull_timeout_function( ret.peer_, [](gnutls_transport_ptr_t t, unsigned int ms) {
-    //          ::gnutls_transport_set_errno(ret.peer_, EINTR );
-    //  } );
 
     err = client_handshake( ret.peer_ );
     if(GNUTLS_E_SUCCESS != err)
@@ -180,7 +175,5 @@ s_read_write_channel service::new_client_connection(std::error_code& ec, s_read_
 
 
 } // namespace secure
-
-} // namespace net
 
 } // namespace io

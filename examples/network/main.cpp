@@ -14,11 +14,12 @@
 
 #define IO_TLS_PROVIDER_GNUTSL
 
-#include <net/uri.hpp>
-#include <net/secure_channel.hpp>
-#include <net/http_client.hpp>
-
 #include <errorcheck.hpp>
+#include <network.hpp>
+
+#include <net/uri.hpp>
+#include <net/http_client.hpp>
+#include <net/secure_channel.hpp>
 
 #ifdef __IO_WINDOWS_BACKEND__
 
@@ -54,7 +55,7 @@ int main()
 	io::check_error_code(ec);
 
 
-	const io::net::secure::service *sec_service = io::net::secure::service::instance(ec);
+	const io::secure::service *sec_service = io::secure::service::instance(ec);
     io::check_error_code( ec );
     io::s_read_write_channel raw_ch = tpc_socket->connect(ec);
     io::check_error_code( ec );

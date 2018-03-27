@@ -184,25 +184,25 @@ protected:
 	random_access_channel() noexcept;
 public:
 	virtual ~random_access_channel() noexcept = 0;
-	/// Moving forward current device position
+	/// Moves current device position forward
 	/// \param ec
 	///		operation error code
 	/// \param size
 	///			moving offset
 	virtual std::size_t forward(std::error_code& err,std::size_t size) noexcept = 0;
-	/// Moving backward current device position
+	/// Moves current device position backward
 	/// \param ec
 	///		operation error code
 	/// \param size
 	///			moving offset
 	virtual std::size_t backward(std::error_code& err, std::size_t size) noexcept = 0;
-	/// Moving current device position forward from the device starting position
+	/// Moves current device position forward by offset from device begin
 	/// \param ec
 	///		operation error code
 	/// \param size
 	///			moving offset
 	virtual std::size_t from_begin(std::error_code& err, std::size_t size) noexcept = 0;
-	/// Moving current device position backward from the device ending position
+	/// Moves current device backward from device end
 	/// \param ec
 	///		operation error code
 	/// \param size

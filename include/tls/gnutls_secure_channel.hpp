@@ -38,11 +38,9 @@
 #include <gnutls/x509.h>
 
 #include <channels.hpp>
-#include <network.hpp>
+#include <threading.hpp>
 
 namespace io {
-
-namespace net {
 
 namespace secure {
 
@@ -156,7 +154,7 @@ private:
 class IO_PUBLIC_SYMBOL tls_channel final: public read_write_channel
 {
 public:
-	virtual ~tls_channel() noexcept;
+	virtual ~tls_channel() noexcept override;
 	virtual std::size_t read(std::error_code& ec,uint8_t* const buff, std::size_t bytes) const noexcept override;
 	virtual std::size_t write(std::error_code& ec, const uint8_t* buff,std::size_t size) const noexcept override;
 private:
@@ -184,8 +182,6 @@ private:
 
 
 } // namespace secure
-
-} // namespace net
 
 } // namespace io
 
