@@ -106,23 +106,14 @@ public:
 
     static session client_session(std::error_code &ec, ::gnutls_certificate_credentials_t crd,  s_read_write_channel&& socket) noexcept;
 
-    session(session&& other) noexcept:
-        peer_( other.peer_ ),
-        socket_( std::move( other.socket_ ) )
-    {
-        other.peer_ = nullptr;
-    }
+    ~session() noexcept;
+
+    session(session&& other) noexcept;
 
     session& operator=(session&& rhs) noexcept
     {
         session( std::forward<session>(rhs) ).swap( *this );
         return *this;
-    }
-
-    ~session() noexcept
-    {
-        if(nullptr != peer_)
-            ::gnutls_deinit( peer_ );
     }
 
     inline void swap(session& other) noexcept
@@ -166,14 +157,18 @@ private:
 
 
 class IO_PUBLIC_SYMBOL service {
+	service(const service&) = delete;
+	service& operator=(const service&) = delete;
 public:
     static const service* instance(std::error_code& ec) noexcept;
     ~service() noexcept;
 
     s_read_write_channel new_client_connection(std::error_code& ec, s_read_write_channel&& socket) const noexcept;
 private:
-    service(credentials&& creds) noexcept;
     static void destroy_gnu_tls_atexit() noexcept;
+    service(credentials&& creds) noexcept:
+    	creds_( std::forward<credentials>(creds) )
+	{}
 private:
     static std::atomic<service*> _instance;
     static critical_section _mtx;

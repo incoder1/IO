@@ -37,8 +37,12 @@ void IO_PUBLIC_SYMBOL ios_check_error_code(const char* msg, std::error_code cons
 
 } // namespace detail
 
-extern "C" void IO_PANIC_ATTR exit_with_current_error();
-extern "C" void IO_PANIC_ATTR exit_with_error_message(int exitcode, const char* message);
+extern "C" {
+
+void IO_PANIC_ATTR exit_with_current_error();
+void IO_PANIC_ATTR exit_with_error_message(int exitcode, const char* message);
+
+} // extern "C"
 
 } // namespace io
 

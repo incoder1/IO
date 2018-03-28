@@ -401,7 +401,7 @@
 		<Unit filename="src/stdafx.cpp">
 			<Option link="0" />
 			<Option weight="1" />
-			<Option target="&lt;{~None~}&gt;" />
+			<Option target="debug-win-gcc-static-x64" />
 		</Unit>
 		<Unit filename="src/stdafx.hpp">
 			<Option compile="1" />

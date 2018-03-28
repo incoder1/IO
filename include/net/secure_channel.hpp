@@ -7,7 +7,7 @@
 #pragma once
 #endif // HAS_PRAGMA_ONCE
 
-#ifdef IO_TLS_PROVIDER_GNUTSL
+#if defined(IO_TLS_PROVIDER_GNUTSL)
 #	include "tls/gnutls_secure_channel.hpp"
 #endif // IO_TLS_PROVIDER_GNUTSL
 

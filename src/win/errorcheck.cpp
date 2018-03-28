@@ -58,30 +58,6 @@ private:
 	::DWORD prevAttr_;
 };
 
-extern "C" void IO_PANIC_ATTR exit_with_current_error()
-{
-	::DWORD lastErr =::GetLastError();
-	if( NO_ERROR != lastErr ) {
-
-		output_swap oswap;
-
-		wchar_t msg[512];
-
-		::DWORD len = ::FormatMessageW(
-						  FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_IGNORE_INSERTS,
-						  NULL, lastErr,
-						  MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT),
-						  (::LPWSTR) &msg,
-						  256, NULL );
-
-		::DWORD written;
-		if( !::WriteFile( ::GetStdHandle(STD_ERROR_HANDLE), msg, len, &written, nullptr ) ) {
-			MessageBoxExW(NULL, msg, NULL, MB_OK | MB_ICONERROR, MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT) );
-		}
-	}
-	std::exit( lastErr );
-}
-
 static void print_error_message(int errcode,const char* message) noexcept
 {
 	std::size_t len = io_strlen(message) + 33;
@@ -105,18 +81,46 @@ static void print_error_message(int errcode,const char* message) noexcept
 	}
 }
 
-extern "C" void IO_PANIC_ATTR exit_with_error_message(int exitcode, const char* message)
+extern "C" {
+
+void IO_PANIC_ATTR exit_with_current_error()
+{
+	::DWORD lastErr =::GetLastError();
+	if( NO_ERROR != lastErr ) {
+
+		output_swap oswap;
+
+		wchar_t msg[512];
+
+		::DWORD len = ::FormatMessageW(
+						  FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_IGNORE_INSERTS,
+						  NULL, lastErr,
+						  MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT),
+						  (::LPWSTR) &msg,
+						  256, NULL );
+
+		::DWORD written;
+		if( !::WriteFile( ::GetStdHandle(STD_ERROR_HANDLE), msg, len, &written, nullptr ) ) {
+			MessageBoxExW(NULL, msg, NULL, MB_OK | MB_ICONERROR, MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT) );
+		}
+	}
+	std::exit( lastErr );
+}
+
+void IO_PANIC_ATTR exit_with_error_message(int exitcode, const char* message)
 {
 	print_error_message(exitcode, message);
 	std::exit( exitcode );
 }
 
-namespace detail {
-
-extern "C" void IO_PANIC_ATTR panic(int errcode, const char* message)
+void IO_PANIC_ATTR panic(int errcode, const char* message)
 {
 	exit_with_error_message(errcode, message);
 }
+
+} // extern "C"
+
+namespace detail {
 
 void IO_PUBLIC_SYMBOL ios_check_error_code(const char* msg, std::error_code const &ec )
 {
@@ -134,7 +138,6 @@ void IO_PUBLIC_SYMBOL ios_check_error_code(const char* msg, std::error_code cons
 	throw std::ios_base::failure( msg, ec );
 #endif
 }
-
 
 } // namespace detail
 
