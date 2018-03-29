@@ -39,6 +39,7 @@ static void log(const char* data,const std::size_t bytes)
 
 #endif // __IO_WINDOWS_BACKEND__
 
+
 int main()
 {
 	using namespace io::net;

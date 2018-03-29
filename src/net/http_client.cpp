@@ -17,7 +17,7 @@ namespace net {
 
 namespace http {
 
-inline const uint8_t* u8cast(const char* str) noexcept {
+inline const uint8_t* str_bytes(const char* str) noexcept {
 	return reinterpret_cast<const uint8_t*>(str);
 }
 
@@ -34,20 +34,20 @@ void request::join(std::error_code& ec, const s_write_channel& to) const noexcep
 	static constexpr const char* DELIM = "\r\n";
 	static const std::size_t DELIM_LEN = io_strlen(DELIM);
 	const_string path  = uri_->path();
-	to->write(ec, u8cast(path.data()), path.size() );
-	to->write(ec, u8cast(PROTO), PROTO_LEN );
+	to->write(ec, str_bytes(path.data()), path.size() );
+	to->write(ec, str_bytes(PROTO), PROTO_LEN );
 	const_string host = uri_->host();
-	to->write(ec, u8cast(host.data()), host.size() );
-	to->write(ec, u8cast(DELIM), DELIM_LEN);
+	to->write(ec, str_bytes(host.data()), host.size() );
+	to->write(ec, str_bytes(DELIM), DELIM_LEN);
 	for(auto it = hdrs_.cbegin(); it != hdrs_.cend(); ++it) {
 		const_string name = it->name();
-		to->write(ec, u8cast(name.data()), name.size() );
-		to->write(ec, u8cast(":"), 1);
+		to->write(ec, str_bytes(name.data()), name.size() );
+		to->write(ec, str_bytes(":"), 1);
 		const_string value = it->value();
-		to->write(ec, u8cast(value.data()), value.size() );
-		to->write(ec, u8cast(DELIM), DELIM_LEN);
+		to->write(ec, str_bytes(value.data()), value.size() );
+		to->write(ec, str_bytes(DELIM), DELIM_LEN);
 	}
-	to->write(ec, u8cast(DELIM), DELIM_LEN);
+	to->write(ec, str_bytes(DELIM), DELIM_LEN);
 }
 
 
@@ -73,7 +73,7 @@ public:
 	virtual void send(std::error_code& ec, const s_write_channel& ch) const noexcept override {
         static constexpr const char* TYPE = "GET ";
         static const std::size_t TYPE_LEN = io_strlen("GET ");
-        ch->write(ec, u8cast(TYPE), TYPE_LEN);
+        ch->write(ec, str_bytes(TYPE), TYPE_LEN);
         this->join(ec, ch);
 	}
 

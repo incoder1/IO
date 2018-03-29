@@ -16,6 +16,18 @@ namespace io {
 
 namespace secure {
 
+// credentials
+
+credentials credentials::system_trust_creds(std::error_code& ec) noexcept
+{
+	credentials ret;
+	if( GNUTLS_E_SUCCESS != ::gnutls_certificate_allocate_credentials( &ret.creds_ ) )
+		ec = std::make_error_code( std::errc::protocol_error );
+	else if( gnutls_certificate_set_x509_system_trust( ret.creds_ ) < 0 )
+		ec = std::make_error_code( std::errc::protocol_error );
+	return ret;
+}
+
 // session
 session::session(session&& other) noexcept:
 	peer_( other.peer_ ),
