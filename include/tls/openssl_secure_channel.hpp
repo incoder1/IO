@@ -80,11 +80,11 @@ public:
 		return *this;
 	}
 
-	bool hand_stake(std::error_code& ec, const s_read_write_channel& raw) noexcept;
+	bool hand_stake(std::error_code& ec,const char* host, const s_read_write_channel& raw) noexcept;
 
-	std::size_t read(std::error_code& ec, uint8_t * const to, std::size_t bytes) noexcept;
+	std::size_t read(std::error_code& ec, uint8_t * const to, std::size_t bytes) const noexcept;
 
-	std::size_t write(std::error_code& ec, const uint8_t *what, std::size_t length) noexcept;
+	std::size_t write(std::error_code& ec, const uint8_t *what, std::size_t length) const noexcept;
 
 	~session() noexcept;
 
@@ -98,6 +98,19 @@ private:
 	::SSL *ossl_;
 	::BIO *rbuf_;
 	::BIO *wbuf_;
+};
+
+class IO_PUBLIC_SYMBOL tls_channel final: public read_write_channel
+{
+public:
+	virtual ~tls_channel() noexcept override;
+	virtual std::size_t read(std::error_code& ec,uint8_t* const buff, std::size_t bytes) const noexcept override;
+	virtual std::size_t write(std::error_code& ec, const uint8_t* buff,std::size_t size) const noexcept override;
+private:
+    friend class nobadalloc<tls_channel>;
+    tls_channel(session&& tlssession) noexcept;
+private:
+    session session_;
 };
 
 class IO_PUBLIC_SYMBOL service {

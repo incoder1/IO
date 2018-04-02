@@ -105,14 +105,14 @@ static constexpr char32_t INVALID_CHAR = -1;
 
 namespace u8_decode {
 
-static constexpr char32_t SH2    = 6;
-static constexpr char32_t SH3    = 12;
-static constexpr char32_t SH4    = 18;
+static constexpr const char32_t SH2    = 6;
+static constexpr const char32_t SH3    = 12;
+static constexpr const char32_t SH4    = 18;
 
-static constexpr uint8_t TAIL_MASK  = 0x3F;
-static constexpr uint8_t B2_MASK    = 0x1F;
-static constexpr uint8_t B3_MASK    = 0x0F;
-static constexpr uint8_t B4_MASK    = 0x07;
+static constexpr const uint8_t TAIL_MASK  = 0x3F;
+static constexpr const uint8_t B2_MASK    = 0x1F;
+static constexpr const uint8_t B3_MASK    = 0x0F;
+static constexpr const uint8_t B4_MASK    = 0x07;
 
 static constexpr char tail(const uint8_t tail) noexcept
 {

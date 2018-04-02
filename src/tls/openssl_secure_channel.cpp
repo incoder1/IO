@@ -65,11 +65,13 @@ static bool initialze_context_from_sspi(::SSL_CTX* const sslctx) noexcept
 
 client_context client_context::create(std::error_code& ec) noexcept
 {
+	static constexpr const long flags = SSL_OP_NO_SSLv2 | SSL_OP_NO_SSLv3;
 	::SSL_CTX *ctx = ::SSL_CTX_new( ::TLSv1_2_client_method() );
 	if(nullptr == ctx) {
 		ec = std::make_error_code( std::errc::protocol_not_supported );
 		return client_context();
 	}
+	::SSL_CTX_set_options(ctx, flags);
 #ifdef __IO_WINDOWS_BACKEND__
 	if( !initialze_context_from_sspi(ctx) ) {
 		ec = std::make_error_code( std::errc::protocol_not_supported );
@@ -100,6 +102,7 @@ session session::open(std::error_code& ec,::SSL_CTX* const cntx) noexcept
     if(nullptr == rbuf || nullptr == wbuf ) {
 		ec = std::make_error_code(std::errc::not_enough_memory);
 		::SSL_free(ossl);
+		ossl = nullptr;
 		return session();
     }
 
@@ -133,19 +136,39 @@ session::~session() noexcept
 	}
 }
 
-bool session::hand_stake(std::error_code& ec, const s_read_write_channel& raw) noexcept
+bool session::hand_stake(std::error_code& ec,const char* host, const s_read_write_channel& raw) noexcept
 {
+
 	return false;
 }
 
-std::size_t session::read(std::error_code& ec, uint8_t * const to, std::size_t bytes) noexcept
+std::size_t session::read(std::error_code& ec, uint8_t * const to, std::size_t bytes) const noexcept
 {
 	return 0;
 }
 
-std::size_t session::write(std::error_code& ec, const uint8_t *what, std::size_t length) noexcept
+std::size_t session::write(std::error_code& ec, const uint8_t *what, std::size_t length) const noexcept
 {
 	return 0;
+}
+
+//tls_channel
+
+tls_channel::tls_channel(session&& tlssession) noexcept:
+	session_( std::forward<session>(tlssession) )
+{}
+
+tls_channel::~tls_channel() noexcept
+{}
+
+std::size_t tls_channel::read(std::error_code& ec,uint8_t* const buff, std::size_t bytes) const noexcept
+{
+	return session_.read(ec, buff, bytes);
+}
+
+std::size_t tls_channel::write(std::error_code& ec, const uint8_t* buff,std::size_t size) const noexcept
+{
+	return session_.write( ec, buff, size);
 }
 
 // service
