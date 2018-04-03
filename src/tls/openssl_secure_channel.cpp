@@ -97,12 +97,12 @@ session session::open(std::error_code& ec,::SSL_CTX* const cntx) noexcept
 		ec = std::make_error_code(std::errc::connection_aborted);
 		return session();
     }
-    ::BIO *rbuf = ::BIO_new( ::BIO_s_mem() );
-    ::BIO *wbuf = ::BIO_new( ::BIO_s_mem() );
+    static const std::size_t BUFF_SIZE = memory_traits::page_size();
+    ::BIO *rbuf = nullptr, *wbuf = nullptr;
+    ::BIO_new_bio_pair(&rbuf, BUFF_SIZE, &wbuf, BUFF_SIZE);
     if(nullptr == rbuf || nullptr == wbuf ) {
 		ec = std::make_error_code(std::errc::not_enough_memory);
 		::SSL_free(ossl);
-		ossl = nullptr;
 		return session();
     }
 
@@ -144,18 +144,47 @@ bool session::hand_stake(std::error_code& ec,const char* host, const s_read_writ
 
 std::size_t session::read(std::error_code& ec, uint8_t * const to, std::size_t bytes) const noexcept
 {
-	return 0;
+	ssize_t chunk;
+	uint8_t *pos = to;
+	std::size_t left = bytes;
+	do {
+		chunk = ::BIO_read( rbuf_, pos, left);
+		if(0 == chunk)
+			break;
+		if( chunk > 0) {
+			pos += static_cast<std::size_t>(chunk);
+			left -= static_cast<std::size_t>(chunk);
+		}
+	} while( (left > 0) || ::BIO_should_retry(rbuf_) );
+	if(chunk < 0)
+		ec = std::make_error_code( std::errc::broken_pipe );
+	return memory_traits::distance(to, pos);
 }
 
 std::size_t session::write(std::error_code& ec, const uint8_t *what, std::size_t length) const noexcept
 {
-	return 0;
+	const uint8_t *pos = what;
+	std::size_t left = length;
+	ssize_t chunk;
+	do {
+		chunk = ::BIO_write(wbuf_, pos, length);
+		if(0 == chunk)
+			break;
+		if(chunk > 0) {
+			pos += static_cast<std::size_t>(chunk);
+			left -= static_cast<std::size_t>(chunk);
+		}
+	} while( (left > 0) && ::BIO_should_retry(wbuf_)  );
+	if(chunk < 0)
+		ec = std::make_error_code( std::errc::broken_pipe );
+	return memory_traits::distance(what, pos);
 }
 
 //tls_channel
 
-tls_channel::tls_channel(session&& tlssession) noexcept:
-	session_( std::forward<session>(tlssession) )
+tls_channel::tls_channel(session&& tlssession,read_write_channel&& raw) noexcept:
+	session_( std::forward<session>(tlssession) ),
+	raw_( std::forward<read_write_channel>(raw) )
 {}
 
 tls_channel::~tls_channel() noexcept
@@ -163,12 +192,14 @@ tls_channel::~tls_channel() noexcept
 
 std::size_t tls_channel::read(std::error_code& ec,uint8_t* const buff, std::size_t bytes) const noexcept
 {
-	return session_.read(ec, buff, bytes);
+	std::size_t bread = raw_->read(ec, buff, bytes);
+	return !ec ? session_.read(ec, buff, bread) : 0;
 }
 
 std::size_t tls_channel::write(std::error_code& ec, const uint8_t* buff,std::size_t size) const noexcept
 {
-	return session_.write( ec, buff, size);
+	std::size_t ecrypted = session_.write( ec, buff, size);
+	return !ec ? session_.write(ec, ) : 0;
 }
 
 // service
