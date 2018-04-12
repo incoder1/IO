@@ -417,7 +417,7 @@ public:
     // binary primitives functions
 
 // MS VC++ defining int8_t as typedef char int8_t
-// and not strong type definition according to the C++ standard
+// and no strong type definition according to the C++ standard
 #ifndef _MSC_VER
     /// Puts a small value in its binary representation into current buffer
     /// \param small a small value

@@ -286,11 +286,14 @@ static constexpr inline bool no_zerro(const size_t x)
 	return 0 == ( (x-ONES) & ~x & HIGHS);
 }
 
+#ifdef io_strchr
 inline char* tstrchr(const char* s,char c)
 {
-#ifdef io_strchr
 	return io_strchr( const_cast<char*>(s), char8_traits::to_int_type(c) );
+}
 #else
+static char* IO_NO_INLINE two_way_strchr(const char* s,char c)
+{
 	const char *a = s;
 	const uint8_t uc = static_cast<uint8_t>(c);
 	if ( cheq('\0',c) )
@@ -313,8 +316,14 @@ inline char* tstrchr(const char* s,char c)
 		++s;
 	}
 	return a != s ? const_cast<char*>(s) : nullptr;
-#endif // io_strchr
 }
+
+inline char* tstrchr(const char* s,char c)
+{
+	return two_way_strchr(s,c);
+}
+
+#endif // io_strchr
 
 inline bool is_one_of(char what, const char* chars)
 {
@@ -356,27 +365,36 @@ inline const char *strstr2b(const char *s, const char *n)
 	return reinterpret_cast<const char*>( us-1 );
 }
 
+#ifndef io_isspace
+
 // search for first non whitespace
 template<typename __char_t>
 inline __char_t* find_first_symbol(const __char_t* s)
 {
 	typedef std::char_traits<__char_t> tr;
 	static constexpr int TAB = char8_traits::to_int_type('\t');
+#ifndef __GNUG__
 	static constexpr int LF = char8_traits::to_int_type('\n');
 	static constexpr int LT = char8_traits::to_int_type('\v');
 	static constexpr int FF = char8_traits::to_int_type('\f');
+#endif // __GNUG__
 	static constexpr int CR =  char8_traits::to_int_type('\r');
 	static constexpr int SPACE =  char8_traits::to_int_type(' ');
 	for(;;)  {
 		switch( tr::to_int_type( *s ) ) {
 		case 0:
 			return nullptr;
+#ifdef __GNUG__
+		case SPACE:
+		case TAB ... CR:
+#else
 		case TAB:
 		case LF:
 		case LT:
 		case FF:
 		case CR:
 		case SPACE:
+#endif // __GNUG__
 			++s;
 			continue;
 		default:
@@ -386,24 +404,26 @@ inline __char_t* find_first_symbol(const __char_t* s)
 	return const_cast<__char_t*>(s);
 }
 
-#ifdef io_isspace
+#else
+
 inline char* find_first_symbol(const char* s) {
 	char* ret = const_cast<char*>(s);
-	while( !cheq('\0',*ret) && io_isspace(*ret) )
+	while( io_isspace(*ret) )
 		++ret;
 	return ret;
 }
+
 #endif // io_isspace
 
 inline size_t xmlname_strspn(const char *s)
 {
-	static const char* pattern = "\t\n\v\f\r />";
+	static constexpr const char* pattern = "\t\n\v\f\r />";
 	return io_strcspn( s, pattern);
 }
 
 inline uint8_t u8_char_size(const char ch) {
-		if( static_cast<uint8_t>(ch) < 0x80U)
-			return 1;
+	if( io_likely(static_cast<uint8_t>(ch) < 0x80U) )
+		return 1;
 #ifdef IO_IS_LITTLE_ENDIAN
 		static constexpr unsigned int MB_SHIFT = ( sizeof(unsigned int) << 3 ) - 8;
 		unsigned int c = static_cast<unsigned int>(ch) << MB_SHIFT;
