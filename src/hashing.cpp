@@ -272,16 +272,30 @@ namespace cityhash
 		return hash_len16(hash_len16(v.first, w.first) + shift_mix(y) * k1 + z, hash_len16(v.second, w.second) + x);
 	}
 
+#ifdef __GNUG__
 	static uint64_t hash(const uint8_t* s, std::size_t count) noexcept {
-		if ( io_likely(count <= 16) )
+		switch( count ) {
+		case 0 ... 16:
 			return hash_len0_to16(s, count);
-		else if ( io_likely(count <= 32 ) )
+		case 17 ... 32:
+			return hash_len17_to32(s, count);
+		case 33 ... 64:
+			return hash_len33_to_64(s, count);
+		}
+		return hash_over_64(s, count);
+	}
+#else
+	static uint64_t hash(const uint8_t* s, std::size_t count) noexcept {
+		if ( count <= 16 )
+			return hash_len0_to16(s, count);
+		else if ( count <= 32  )
 			return hash_len17_to32(s, count);
 		else if (count <= 64)
 			return hash_len33_to_64(s, count);
 		else
 			return hash_over_64(s, count);
 	}
+#endif // __GNUG__
 
 } // namespace cityhash
 

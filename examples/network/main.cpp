@@ -21,6 +21,9 @@
 #include <net/http_client.hpp>
 #include <net/secure_channel.hpp>
 
+#include <fstream>
+#include <iostream>
+
 #ifdef __IO_WINDOWS_BACKEND__
 
 static void log(const char* data,const std::size_t bytes)
@@ -42,6 +45,11 @@ static void log(const char* data,const std::size_t bytes)
 
 int main()
 {
+	std::fstream f("foo.bar", std::ios::in | std::ios::out);
+    // use fstream::rdbuf() to get the filebuf
+    // then filebuf::fd() to get the file descriptor
+    std::cout << "file descriptor = " << (f.rdbuf())->fd() << std::endl;
+
 	using namespace io::net;
 	std::error_code ec;
 	//s_uri url = uri::parse(ec, "http://www.springframework.org/schema/beans/spring-beans-4.2.xsd");
