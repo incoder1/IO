@@ -153,13 +153,13 @@ static __forceinline uint32_t fetch_32(const uint8_t *p)
 }
 #endif // IO_IS_LITTLE_ENDIAN
 
-static inline uint64_t rotate(uint64_t val, uint32_t shift)
+static constexpr inline uint64_t rotate(const uint64_t val,const uint32_t shift)
 {
 	// Avoid shifting by 64: doing so yields an undefined result.
 	return shift == 0 ? val : ((val >> shift) | (val << (64 - shift) ) );
 }
 
-static inline uint64_t shift_mix(uint64_t val)
+static constexpr inline uint64_t shift_mix(uint64_t val)
 {
 	return val ^ (val >> 47);
 }
@@ -187,7 +187,7 @@ static inline uint64_t hash_len16(const uint64_t u,const uint64_t v,const uint64
 	return ret;
 }
 
-static uint64_t  hash_len0_to16(const uint8_t *s, std::size_t len) noexcept
+static uint64_t hash_len0_to16(const uint8_t *s, std::size_t len) noexcept
 {
 	if (len >= 8) {
 		uint64_t mul = k2 + len * 2;
@@ -213,7 +213,7 @@ static uint64_t  hash_len0_to16(const uint8_t *s, std::size_t len) noexcept
 	return k2;
 }
 
-static inline uint64_t hash_len17_to32(const uint8_t *s, size_t len)
+static uint64_t hash_len17_to32(const uint8_t *s, size_t len)
 {
 	uint64_t mul = k2 + len * 2;
 	uint64_t a = fetch_64(s) * k1;
@@ -224,7 +224,7 @@ static inline uint64_t hash_len17_to32(const uint8_t *s, size_t len)
 					  a + rotate(b + k2, 18) + c, mul);
 }
 
-static inline ullpair weak_hash_len32_with_seeds(uint64_t w, uint64_t x, uint64_t y, uint64_t z, uint64_t a, uint64_t b)
+static ullpair weak_hash_len32_with_seeds(uint64_t w, uint64_t x, uint64_t y, uint64_t z, uint64_t a, uint64_t b)
 {
 	a += w;
 	b = rotate(b + a + z, 21);
@@ -235,7 +235,7 @@ static inline ullpair weak_hash_len32_with_seeds(uint64_t w, uint64_t x, uint64_
 	return { a + z, b + c};
 }
 
-static inline ullpair weak_hash_len32_with_seeds(const uint8_t* s, uint64_t a, uint64_t b)
+static ullpair weak_hash_len32_with_seeds(const uint8_t* s, uint64_t a, uint64_t b)
 {
 	return weak_hash_len32_with_seeds(
 			   fetch_64(s),

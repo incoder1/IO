@@ -169,12 +169,9 @@ static IO_NO_INLINE error check_xml_name(const char* tn) noexcept
 			c += 4;
 			break;
 		default:
-#ifdef	_MSC_VER
-		__assume(0);
-#endif // _MSC_VER
 			return error::illegal_name;
 		}
-	} while('\0' != *c);
+	} while( !cheq('\0',*c) );
 	return error::ok;
 }
 
@@ -238,7 +235,7 @@ static error validate_tag_name(const char* name) noexcept
 	char first[3];
 	for(std::size_t i=0; i < 3; i++)
 		first[i] = latin1_to_lower(name[i]);
-	if( start_with(first, "xml", 3) )
+	if( start_with(first, PROLOGUE, 3) )
 		return error::illegal_name;
 	return check_xml_name(name);
 }
@@ -367,6 +364,13 @@ byte_buffer event_stream_parser::read_entity() noexcept
 
 document_event event_stream_parser::parse_start_doc() noexcept
 {
+	static constexpr const char* VERSION  = "version=\"";
+	static constexpr const char* ENCODING = "encoding=\"";
+	static constexpr const char* STANDALONE = "standalone=\"";
+	static const char YES[] = {'y','e','s'};
+	static const char NO[] = {'n','o'};
+	static const char END_PROLOGUE[] = {'?','>'};
+
 	check_event_parser_state(event_type::start_document, document_event )
 
 	byte_buffer buff( read_entity() );
@@ -381,15 +385,14 @@ document_event event_stream_parser::parse_start_doc() noexcept
 
 	const char* prologue = buff.position().cdata();
 	// extract version
-	char* i = io_strstr( const_cast<char*>(prologue), "version=\"");
+	char* i = io_strstr( const_cast<char*>(prologue), VERSION );
 
 	if(nullptr == i) {
 		assign_error(error::illegal_prologue);
 		return document_event();
 	}
 
-	// should be compiler optimized
-	i += io_strlen("version=\"");
+	i += 9; // i + strlen(VERSION)
 	char *stop = tstrchr(i, QNM);
 	if(nullptr == stop )  {
 		assign_error(error::illegal_prologue);
@@ -406,9 +409,9 @@ document_event event_stream_parser::parse_start_doc() noexcept
 	i = const_cast<char*>( stop + 1 );
 
 	// extract encoding if exist
-	const char* j = io_strstr(i, "encoding=\"");
+	const char* j = io_strstr(i, ENCODING);
 	if(nullptr != j) {
-		i = const_cast<char*>( j + io_strlen("encoding=\"") );
+		i = const_cast<char*>( j + 10 );
 		stop  = tstrchr( i, QNM );
 		if(nullptr == stop ) {
 			assign_error(error::illegal_prologue);
@@ -422,9 +425,10 @@ document_event event_stream_parser::parse_start_doc() noexcept
 		i = const_cast<char*> ( stop + 1 );
 	}
 	// extract standalone if exist
-	j = io_strstr(i, "standalone=\"");
+	j = io_strstr(i, STANDALONE);
 	if(nullptr != j) {
-		i = const_cast<char*> ( j + io_strlen("standalone=\"") );
+		// j + strlen(STANDALONE)
+		i = const_cast<char*> ( j + 12 );
 		stop  = tstrchr( i, QNM);
 		if(nullptr == stop ) {
 			assign_error(error::illegal_prologue);
@@ -434,9 +438,9 @@ document_event event_stream_parser::parse_start_doc() noexcept
 			assign_error(error::illegal_prologue);
 			return document_event();
 		}
-		standalone =  ( 0 == io_memcmp( i, "yes", 3) );
+		standalone =  ( 0 == io_memcmp( i, YES, 3) );
 		if( !standalone ) {
-			if( 0 != io_memcmp(i,"no",2) ) {
+			if( 0 != io_memcmp(i, NO, 2) ) {
 				assign_error(error::illegal_prologue);
 				return document_event();
 			}
@@ -444,7 +448,7 @@ document_event event_stream_parser::parse_start_doc() noexcept
 		i = const_cast<char*> ( stop + 1 );
 	}
 	// check error in this point
-	if( 0 != io_memcmp( find_first_symbol(i),"?>", 2) ) {
+	if( 0 != io_memcmp( find_first_symbol(i), END_PROLOGUE, 2) ) {
 		assign_error(error::illegal_prologue);
 		return document_event();
 	}
@@ -561,8 +565,8 @@ void event_stream_parser::skip_comment() noexcept
 		i = (i << 8) | c;
 	}
 	while( !is_error() && _ptrn != i );
-	i = next();
-	if( !cheq(RIGHTB,i) )
+	c = next();
+	if( !cheq(RIGHTB,c) )
 		assign_error(error::illegal_commentary);
 }
 
@@ -758,6 +762,14 @@ bool event_stream_parser::validate_xml_name(const cached_string& str, bool attr)
 		return true;
 	}
 	return true;
+}
+
+inline char event_stream_parser::next() noexcept
+{
+	char result = src_->next();
+	if( src_->eof() )
+		result = EOF;
+	return result;
 }
 
 start_element_event event_stream_parser::parse_start_element() noexcept

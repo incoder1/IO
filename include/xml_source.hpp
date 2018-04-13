@@ -89,7 +89,6 @@ private:
     inline char normalize_lend(const char ch);
     inline void new_line_or_shift_col(const char ch);
 private:
-    uint_fast8_t char_shift_;
     error last_;
     char *pos_;
     char *end_;

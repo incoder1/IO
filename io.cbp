@@ -132,6 +132,7 @@
 					<Add option="-mssse3" />
 					<Add option="-msse4" />
 					<Add option="-mavx" />
+					<Add option="-mavx2" />
 					<Add option="-DNDEBUG" />
 					<Add option="-DIO_SHARED_LIB" />
 					<Add directory="include" />

@@ -209,12 +209,7 @@ private:
 	attribute extract_attribute(const char* from, std::size_t& len) noexcept;
 	bool validate_xml_name(const cached_string& str, bool attr) noexcept;
 
-	inline char next() noexcept {
-		char result = src_->next();
-		if( src_->eof() )
-			result = EOF;
-		return result;
-	}
+	inline char next() noexcept;
 
 	static __forceinline bool is_eof(char ch) noexcept {
 		return !std::char_traits<char>::not_eof(ch);

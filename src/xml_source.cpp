@@ -26,13 +26,17 @@ static constexpr unsigned int ISO_LATIN1_CP_CODE = 28591;
 static constexpr unsigned int WINDOWS_LATIN1_CP_CODE = 1252;
 static constexpr unsigned int UTF8_CP_CODE = 65001;
 
+static constexpr char NL = '\n';
+static constexpr char CR = '\r';
+
 
 static s_read_channel open_convert_channel(std::error_code& ec,io::byte_buffer& rb, const uint8_t* pos, const charset& ch, const s_read_channel &src) noexcept
 {
 	byte_buffer new_rb;
 	if( io_likely( utf_16le_bom::is(pos) || utf_16be_bom::is(pos) ) ) {
 		pos += 2;
-	} else if(utf_32be_bom::is(pos) || utf_32le_bom::is(pos) ) {
+	}
+	else if(utf_32be_bom::is(pos) || utf_32le_bom::is(pos) ) {
 		pos += 4;
 	}
 	new_rb = byte_buffer::allocate( ec, rb.capacity() );
@@ -103,7 +107,6 @@ s_source source::create(std::error_code& ec,s_read_channel&& src) noexcept
 
 source::source(s_read_channel&& src, byte_buffer&& rb) noexcept:
 	object(),
-	char_shift_(1),
 	last_( error::ok ),
 	pos_(nullptr),
 	end_(nullptr),
@@ -151,7 +154,7 @@ error source::charge() noexcept
 // change position ids
 inline void source::new_line_or_shift_col(const char ch)
 {
-	if( cheq(ch,'\n') ) {
+	if( cheq(ch,NL) ) {
 		++row_;
 		col_ = 1;
 	}
@@ -163,14 +166,14 @@ inline void source::new_line_or_shift_col(const char ch)
 inline char source::normalize_lend(const char ch)
 {
 	char ret = ch;
-	if( cheq('\r', ret) ) {
-		if( io_likely( cheq('\n', *(pos_+1) ) ) ) {
+	if( cheq(CR, ret) ) {
+		if( io_likely( cheq(NL, *(pos_+1) ) ) ) {
 			++pos_;
 			++row_;
 			col_ = 1;
-			return '\n';
+			return NL;
 		}
-		ret = '\n';
+		ret = CR;
 	}
 	new_line_or_shift_col(ret);
 	return ret;
@@ -179,33 +182,26 @@ inline char source::normalize_lend(const char ch)
 
 char source::next() noexcept
 {
-	if( io_unlikely( end_ == (pos_+1) ) ) {
+	static const uint8_t UTF8_NEXT_MASK = 0xBF;
+	if(  io_unlikely(end_ == (pos_+1) ) ) {
 		last_ = charge();
 		if( pos_ == end_ || error::ok != last_ )
 			return _eof;
 	}
 	char ret = *pos_;
-	if( io_unlikely( char_shift_ > 1 ) ) {
-		--char_shift_;
-		++pos_;
+	++pos_;
+	if( io_unlikely(UTF8_NEXT_MASK == (ret & UTF8_NEXT_MASK) ) )
 		return ret;
-	}
-	uint8_t mbl = u8_char_size( ret );
-	switch( mbl ) {
+	switch( u8_char_size( ret ) ) {
 	case io_likely(1):
-		ret = normalize_lend( ret );
-		break;
+		return normalize_lend( ret );
 	case 2:
 	case 3:
 	case 4:
-		char_shift_ = mbl;
-		break;
-	default:
-		last_ = error::illegal_chars;
-		return _eof;
+		return ret;
 	}
-	++pos_;
-	return ret;
+	last_ = error::illegal_chars;
+	return _eof;
 }
 
 } // namespace xml
