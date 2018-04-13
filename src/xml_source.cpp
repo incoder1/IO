@@ -190,7 +190,7 @@ char source::next() noexcept
 	}
 	char ret = *pos_;
 	++pos_;
-	if( io_unlikely(UTF8_NEXT_MASK == (ret & UTF8_NEXT_MASK) ) )
+	if( io_unlikely(UTF8_NEXT_MASK == (ret | UTF8_NEXT_MASK) ) )
 		return ret;
 	switch( u8_char_size( ret ) ) {
 	case io_likely(1):
