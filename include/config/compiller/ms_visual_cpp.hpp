@@ -126,7 +126,7 @@
 
 #ifdef IO_CPU_INTEL
 
-#pragma intrinsic(__lzcnt)
+#pragma intrinsic(__lzcnt, _bittest)
 
 #define io_clz(__x) __lzcnt((__x))
 

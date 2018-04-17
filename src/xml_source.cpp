@@ -182,7 +182,7 @@ inline char source::normalize_lend(const char ch)
 
 char source::next() noexcept
 {
-	static const uint8_t UTF8_NEXT_MASK = 0xBF;
+
 	if(  io_unlikely(end_ == (pos_+1) ) ) {
 		last_ = charge();
 		if( pos_ == end_ || error::ok != last_ )
@@ -190,7 +190,7 @@ char source::next() noexcept
 	}
 	char ret = *pos_;
 	++pos_;
-	if( io_unlikely(UTF8_NEXT_MASK == (ret | UTF8_NEXT_MASK) ) )
+	if( io_unlikely( ismbnext(ret) ) )
 		return ret;
 	switch( u8_char_size( ret ) ) {
 	case io_likely(1):
@@ -199,9 +199,10 @@ char source::next() noexcept
 	case 3:
 	case 4:
 		return ret;
+	default:
+		last_ = error::illegal_chars;
+		return _eof;
 	}
-	last_ = error::illegal_chars;
-	return _eof;
 }
 
 } // namespace xml

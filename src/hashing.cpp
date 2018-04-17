@@ -20,6 +20,7 @@ namespace detail {
 
 // murmur3 hashing
 namespace murmur3 {
+
 // an randomly selected number seed
 static constexpr uint32_t SEED = 0xCAFEBABE;
 
@@ -108,6 +109,7 @@ static uint32_t hash(const uint8_t* key, std::size_t size) noexcept
 
 // Original hash function can be found https://github.com/google/cityhash
 namespace cityhash {
+
 static constexpr uint64_t k0 = 0xC3A5C85C97CB3127ULL;
 static constexpr uint64_t k1 = 0xB492B66FBE98F273ULL;
 static constexpr uint64_t k2 = 0x9AE16A3B2F90404FULL;

@@ -379,8 +379,16 @@ inline size_t xmlname_strspn(const char *s)
 	return io_strcspn( s, pattern);
 }
 
+inline constexpr bool ismbstart(const char c) {
+	return static_cast<uint8_t>(c) < uint8_t(0x80U);
+}
+
+inline constexpr bool ismbnext(const char c) {
+	return uint8_t(0xBFU) == uint8_t(c | 0xBFU);
+}
+
 inline uint8_t u8_char_size(const char ch) {
-	if( io_likely(static_cast<uint8_t>(ch) < 0x80U) )
+	if( io_likely( ismbstart(ch) ) )
 		return 1;
 #ifdef IO_IS_LITTLE_ENDIAN
 		static constexpr unsigned int MB_SHIFT = ( sizeof(unsigned int) << 3 ) - 8;
