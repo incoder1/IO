@@ -329,30 +329,23 @@ byte_buffer event_stream_parser::read_entity() noexcept
 {
 	std::error_code ec;
 	byte_buffer ret = byte_buffer::allocate(ec, MID_BUFF_SIZE);
-	if( check_buffer(ret) ) {
-		ret.put( scan_buf_ );
-		sb_clear( scan_buf_ );
-		int ch;
-		do {
-			ch = char8_traits::to_int_type( next() );
-			switch(ch) {
-			case io_unlikely(EOF):
-			case LEFTB:
-				assign_error(error::illegal_markup);
-				return byte_buffer();
-			case RIGHTB:
-				putch( ret, static_cast<char>(ch) );
-				if( !is_error() ) {
-					ret.flip();
-					return ret;
-				}
-				break;
-			default:
-				putch(ret, static_cast<char>(ch) );
-			}
+	if( io_unlikely( ec ) )
+		return byte_buffer();
+	ret.put( scan_buf_ );
+	sb_clear( scan_buf_ );
+	for(char c = next(); !is_error(); c = next() ) {
+		putch(ret, c );
+		switch( char8_traits::to_int_type(c) ) {
+		case LEFTB:
+		case io_unlikely(EOF):
+			assign_error(error::illegal_markup);
+			break;
+		case RIGHTB:
+			ret.flip();
+			return std::move(ret);
 		}
-		while( io_likely( !is_error() ) );
 	}
+	// error state
 	return byte_buffer();
 }
 

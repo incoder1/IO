@@ -298,6 +298,10 @@ static uint64_t hash_over_64(const uint8_t* s, std::size_t count) noexcept
 }
 
 #ifdef __GNUG__
+
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wpedantic"
+
 static uint64_t hash(const uint8_t* s, std::size_t count) noexcept
 {
 	switch( count ) {
@@ -310,6 +314,9 @@ static uint64_t hash(const uint8_t* s, std::size_t count) noexcept
 	}
 	return hash_over_64(s, count);
 }
+
+#pragma GCC diagnostic pop
+
 #else
 static uint64_t hash(const uint8_t* s, std::size_t count) noexcept
 {
