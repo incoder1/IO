@@ -325,12 +325,11 @@ public:
     /// \param byte a byte to put
     /// \return true whether byte was put and false if buffer was full before put attempt
     bool put(uint8_t byte) noexcept {
-        if( !full() ) {
-			*position_ = byte;
-			last_ = (++position_) + 1;
-			return true;
-        }
-        return false;
+        if( io_unlikely( full() ) )
+			return false;
+		*position_ = byte;
+		last_ = (++position_) + 1;
+		return true;
     }
 
     /// Puts single character into this buffer current position, and increses buffer position and last

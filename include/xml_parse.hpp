@@ -193,12 +193,13 @@ private:
 		return true;
 	}
 
-	inline void putch(byte_buffer& buf, char i) noexcept {
-		if( buf.full() && io_unlikely( !buf.ln_grow() )  ) {
-			assign_error(error::out_of_memory);
-			return;
+	inline void putch(byte_buffer& buf, char ch) noexcept {
+		while( io_unlikely( !buf.put(ch) ) ) {
+			if( !buf.ln_grow() ) {
+				assign_error(error::out_of_memory);
+				break;
+			}
 		}
-		buf.put( i );
 	}
 
 	char skip_to_symbol(char symbol) noexcept;
