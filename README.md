@@ -1,6 +1,8 @@
+IO
+======
 [![Build Status](https://travis-ci.org/incoder1/IO.svg?branch=master)](https://travis-ci.org/incoder1/IO)
+[![bs1-1.0](https://img.shields.io/badge/license-boost-blue.svg)](https://www.boost.org/LICENSE_1_0.txt)
 
-# IO
 
 IO is modern C++ (C++ 11 +) library for general propose input/output and XML processing
 
@@ -66,11 +68,11 @@ IO provides MurMur3 hash function for 32 bit instruction set and Google CityHash
 
 ### StAX XML PARSER
 
-Streaming API for XML parsing (XML POOL API) – a non-validating (except for XML syntax) parser for XML document with StAX API. 
-Exceptions and RTTI off mode supported. Errors including out of memory can be handled by error code.
+Streaming API for XML parsing (XML POOL API) – a non-validating (except for XML structure and syntax) parser for XML document with StAX API. 
+Exceptions and RTTI off mode supported. Errors including out of memory can be handled over the [std::error_code](http://en.cppreference.com/w/cpp/error/error_code).
 
 ### XML reading cursor API
-A StAX parser facade to simplify de-serializing C/C++ structures or classes from XML. See xml_deserializing
+A StAX parser facade to simplify de-serializing C/C++ structures or classes from XML. See [reading C++ structure from XML](https://github.com/incoder1/IO/wiki/Reading-structures-from-XML)
 
 ### XML MARSHALLER
 
@@ -87,32 +89,35 @@ Serialization is based on std::ostream, so it is not exception safe, e.g. you ne
 You should have C++ 11 compatible compiler with STD C++ library. Optionally you can use Boost library in order to have 
 fully compatible boost::intrusive_ptr.
 
-Lib iconv with support of the following character sets (code pages): 
-	Full UNICODE: UTF-8,UTF-16LE, UTF-16BE, UTF-32LE, UTF-32BE, UTF-7;
-	One byte code pages: US ASCII, ISO-8859-1…ISO-8859-16, KOI8-R, KOI8-U, KOI8-RU;
-	Windows one byte code pages: CP-1250 … CP-1258.
-	
-	GNU iconv and iconv from GLIB C tested as fully compatible
-	gnutls - http://www.gnutls.org/ for SLL/TLS secured network connections
+- [iconv](https://en.wikipedia.org/wiki/Iconv) with support of the following character sets 
+
+    Type | Code pages
+     --- | ---
+    **UNICODE** | `UTF-8`  `UTF-16LE`  `UTF-16BE`  `UTF-32LE`  `UTF-32BE`  `UTF-7` 
+    **One byte** | `US ASCII` `ISO-8859-1…ISO-8859-16` `KOI8-R` `KOI8-U` `KOI8-RU` 
+    **Windows** | `CP-1250 … CP-1258`
+    
+    [GNU iconv](https://www.gnu.org/software/libiconv/) and iconv API from GNU C Library tested
+    
+- [GnuTLS](http://www.gnutls.org/) for SLL/TLS secured network connections (GCC only)
 
 ## SUPPORTED OPERATING SYSTEMS AND COMPILERS
 
-Generally library should work with Microsoft Windows Vista + and any POSIX compliant (Unix like GNU/Linux FreeBSD or Mac OS X) 
-operating system with GCC 5+ or MS Visual C++ 15+
+Library supports Windows Vista+ and GNU Linux Operating systems With GCC 4.7+ or MS Visual C++ 15+ compilers. 
 
 	
 ### TESTED CONFIGURATIONS
 
-#### Microsoft Windows 
-		- Windows 7 GCC/G++ 5.1 -  MinGW64 (TDM build)
-		- Windows 7 GCC/G++ 7.2.0 MinGW64 (MSYS2 build)
-		- Windows 10 GCC/G++ 7.2.0 MinGW64 (MSYS2 build)
-		- Windows 10 MS Visual C++ 17 (x64)
-		
-#### GNU/Lunux
-	
-	- Fedora 23 GCC/G++ 6.3
-	- Fedora 26 GCC/G++ 7.1
+OS | Compiler | Version | Arhitecture
+--- | --- | --- | ---
+**Windows** | | |
+Windows 7  | GCC/G++ | 5.1 MinGW64 (TDM build) | x86_64
+Windows 7  | GCC/G++ | 7.2.0 MinGW64 (MSYS2 build) | x86_64	   
+Windows 10 | GCC/G++ | 7.2.0 MinGW64 (MSYS2 build) | x86_64
+Windows 10 | MS Visual C++ | 17 | x64 
+**GNU/Lunux** | | | 
+ Fedora 23 | GCC/G++ | 6.3 | x86_64   
+ Fedora 26 | GCC/G++ | 7.1 | x86_64 
 
 ## BUILDING
  
@@ -121,17 +126,16 @@ operating system with GCC 5+ or MS Visual C++ 15+
 
 Code::Blocks IDE project files bundled. There are predefined configurations for GCC. 
 
-
 For Windows GCC you can use MSYS2 MinGW64. Otherwise (for example TDM GCC etc. ) you need to 
 find/build 
 	- GNU iconv can be found at https://www.gnu.org/software/libiconv/
-	- GNU TLS 3.0+ https://www.gnutls.org/  with all dependencies 
+	- GnuTLS 3.0+ https://www.gnutls.org/  with all dependencies 
 
-	With MSYS2 it is better to install pre-build dependencies using pacman, like
-	- pacman -S libiconv
-	- pacman -S libgnutls-devel
+It is considered to install prebuilt binary dependencies using pacman for MSYS2 i.e.
+
+	- pacman -S libiconv-devel libgnutls-devel
 	
-### Building with CMake
+### Building with CMake (GCC only)
 To build with CMake build tool to can use following command
 
 > cmake . -DCMAKE_BUILD_TYPE=<Release|Debug> [-DBUILD_SHARED_LIBS=ON] [-DNO_EXCEPTIONS=ON] [-DNO_RTTI=ON]
@@ -152,18 +156,13 @@ You need Visual Studio or Visual Studio BuildTools version 15+
 Building is from command line using nmake tool. Source tree contains pre-build gnu iconv and gnutls in deps sup folder
 build for x64 (amd64|x86_64).
 
-GNU TLS for MS VC++ pre-build can be found at https://github.com/ShiftMediaProject/gnutls/releases
-
-
-To build the DLL, open command prompt execute vcvars64.bat from visual studio. 
-See
-https://docs.microsoft.com/en-us/dotnet/framework/tools/developer-command-prompt-for-vs
+To build the DLL, open command prompt execute [vcvars64.bat](https://docs.microsoft.com/en-us/dotnet/framework/tools/developer-command-prompt-for-vs) from visual studio. 
 
 Then goto IO source code root directory and execute
 
 >			nmake -f NMakefile-msvcx64-dll.mak
 
-		build result available in target/release-win-msvc-dll-x64
+  Build result available in `target/release-win-msvc-dll-x64` sub folder
 
 #### Windows with GCC (MinGW64) and GNU make
 
@@ -179,23 +178,23 @@ To build DLL release library use:
 
 >	 	make –f Makefile-mingw64-dll
 		
-		build result available in target/release-win-gcc-dll-x64 subfolder
+  Build result available in `target/release-win-gcc-dll-x64` subfolder
 
 #### Unix with GNU make
 
 >	 	make –f Makefile-unix-shared
 
-		build result available in target/release-unix-gcc-so-x86_64
+   Build result available in `target/release-unix-gcc-so-x86_64` subfolder
 
 ### EXAMPLE CODE
 
 Example applications located in examples sub-folder
 	
-	- chconv – character set (code pages) converting example 
-	- iostreams – C++ input streams and console compatibility example
-	- stringpool – string pool example
+	- chconv – converting characters between different code pages example 
+	- iostreams – C++ input/output streams and console compatibility example
+	- stringpool – dynamic memory stings pool example
 	- text – universal character set detector example
-	- xml_marshalling – compile time reflection plain C object XML marshalling and XSD generation example
-	- xmlparse – StAX XML parser example 
-	- xml_deserializing - Reading XML into C++ structure
+	- xmlparse – streaming API for XML parsing example 
+	- xml_parse_to_structures - Reading XML into C++ structures example
+	- write_structures_to_xml – compile time reflection plain C object XML marshalling and XSD generation example
 
