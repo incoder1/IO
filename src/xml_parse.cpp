@@ -831,21 +831,21 @@ end_element_event event_stream_parser::parse_end_element() noexcept
 void event_stream_parser::s_instruction_or_prologue() noexcept
 {
 	if(0 != nesting_) {
-		assign_error(error::parse_error);
+		assign_error(error::illegal_markup);
 		return;
 	}
 	char st[5] = "\0\0\0\0";
 	for(std::size_t i=0; i < 4; i++) {
 		st[i] = next();
 		if( is_eof( st[i] ) ) {
-			assign_error(error::parse_error);
+			assign_error(error::illegal_markup);
 			return;
 		}
 	}
 	sb_append( scan_buf_, st);
 	if(is_prologue(st)) {
 		if(state_type::initial != state_.current) {
-			assign_error(error::parse_error);
+			assign_error(error::illegal_prologue);
 			return;
 		}
 		current_ = event_type::start_document;
@@ -879,10 +879,8 @@ void event_stream_parser::s_comment_cdata_or_dtd() noexcept
 		state_.current = state_type::cdata;
 	else if(is_doc_type(st))
 		state_.current = state_type::dtd;
-	else {
-		// TODO: unknown instruction
-		assign_error(error::parse_error);
-	}
+	else
+		assign_error(error::illegal_markup);
 }
 
 
@@ -891,7 +889,7 @@ void event_stream_parser::s_entity() noexcept
 	if( cheq('\0',scan_buf_[1]) ) {
 		char ch = next();
 		if( is_eof(ch) ) {
-			assign_error(error::parse_error);
+			assign_error(error::illegal_markup);
 			return;
 		}
 		sb_append(scan_buf_, ch );
@@ -912,14 +910,12 @@ void event_stream_parser::s_entity() noexcept
 		current_ = event_type::end_element;
 		break;
 	default:
-		if( is_whitespace(second) ) {
-			assign_error(error::parse_error);
-		}
+		if( is_whitespace(second) )
+			assign_error( error::illegal_markup );
 		else {
 			state_.current = state_type::event;
 			current_ = event_type::start_element;
 		}
-		break;
 	}
 }
 
@@ -928,7 +924,7 @@ void event_stream_parser::scan() noexcept
 	if( 0 == nesting_ ) {
 		char ch = skip_to_symbol('<');
 		if( is_eof(ch) ) {
-			assign_error(error::parse_error);
+			assign_error(error::illegal_markup);
 			return;
 		}
 		sb_clear(scan_buf_);

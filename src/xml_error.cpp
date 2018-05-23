@@ -41,7 +41,7 @@ const char* error_category::cstr_message(int err_code) const noexcept
 	case error::illegal_attribute:
 		return "Tag have several attributes with the same name";
 	case error::illegal_chars:
-		return "Illegal UNICODE characters online";
+		return "Illegal UNICODE character";
 	case error::out_of_memory:
 		return "Not enough memory";
 	case error::illegal_name:
@@ -60,10 +60,7 @@ const char* error_category::cstr_message(int err_code) const noexcept
 		return "Root element is unbalanced";
 	case error::invalid_state:
 		return "Can not perform requested operation in current state";
-	case error::parse_error:
-		break;
 	}
-	return "General XML parsing error";
 }
 
 } //  namespace xml

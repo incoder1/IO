@@ -34,8 +34,7 @@ enum class error
 	illegal_commentary,
 	illegal_cdata_section,
 	root_element_is_unbalanced,
-	invalid_state,
-	parse_error
+	invalid_state
 };
 
 class IO_PUBLIC_SYMBOL error_category final: public std::error_category {
