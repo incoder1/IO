@@ -24,18 +24,30 @@ static const std::size_t MID_BUFF_SIZE = 64;
 static const std::size_t HUGE_BUFF_SIZE = 128;
 
 // unicode constants in digit forms, to handle endians
-static constexpr int LEFTB =  60; // '<';
-static constexpr int RIGHTB =  62; // '>';
-static constexpr int SRIGHTB = 93; // ']'
-static constexpr int QNM = 34; // '"'
-static constexpr int QM = 63; // '?'
-static constexpr int EM = 33;//'!';
-static constexpr int SPACE = 32;//' ';
-static constexpr int SOLIDUS = 47;// '/'
-static constexpr int HYPHEN = char8_traits::to_int_type('-');// '-'
-static constexpr int COLON = 58; // ':'
-static constexpr int ENDL = 0;
-static constexpr int iEOF = std::char_traits<char32_t>::eof();
+static constexpr const int LEFTB =  60; // '<';
+static constexpr const int RIGHTB =  62; // '>';
+static constexpr const int SRIGHTB = 93; // ']'
+static constexpr const int QNM = 34; // '"'
+static constexpr const int QM = 63; // '?'
+static constexpr const int EM = 33;//'!';
+static constexpr const int SPACE = 32;//' ';
+static constexpr const int SOLIDUS = 47;// '/'
+static constexpr const int HYPHEN = 45;// '-'
+static constexpr const int COLON = 58; // ':'
+static constexpr const int ENDL = 0;
+static constexpr const int iEOF = std::char_traits<char32_t>::eof();
+
+#ifdef UCHAR_MAX
+static constexpr const std::size_t MAX_DEPTH = UCHAR_MAX;
+#else
+
+#ifdef __GNUG__
+static constexpr const std::size_t MAX_DEPTH = __UINT8_MAX__;
+#else
+static constexpr const std::size_t MAX_DEPTH = 255;
+#endif // __GNUG__
+
+#endif // UCHAR_MAX
 
 static inline bool is_prologue(const char *s) noexcept
 {
@@ -195,7 +207,7 @@ static error check_xml_name(const char* tn) noexcept
 	char32_t *ch32 = nullptr;
 	if(0 == len)
 		return error::illegal_name;
-	else if(u32len < UCHAR_MAX) {
+	else if(u32len < MAX_DEPTH) {
 		// stack in this point
 		ch32 = static_cast<char32_t*>( io_alloca( u32len * sizeof(char32_t) ) );
 	}
@@ -208,7 +220,7 @@ static error check_xml_name(const char* tn) noexcept
 	std::size_t i = len, j = u32len;
 	if( !utf8_to_utf32(tn, i, ch32, j) ) {
 		// huge name, release memory for UCS-4
-		if(len > UCHAR_MAX)
+		if(len > MAX_DEPTH)
 			memory_traits::free_temporary( ch32 );
 		return error::illegal_name;
 	}
@@ -220,7 +232,7 @@ static error check_xml_name(const char* tn) noexcept
 		if( !is_xml_name_char( ch32[i] ) )
 			return error::illegal_name;
 	}
-	if(u32len > UCHAR_MAX)
+	if(u32len > MAX_DEPTH)
 		memory_traits::free_temporary( ch32 );
 	return error::ok;
 }
@@ -700,7 +712,7 @@ const_string event_stream_parser::read_cdata() noexcept
 attribute event_stream_parser::extract_attribute(const char* from, std::size_t& len) noexcept
 {
 	len = 0;
-	// skip leadin spaces, not copy them into name
+	// skip lead spaces, don't copy them into name
 	char *i = find_first_symbol(from);
 	if( nullptr == i || is_one_of(*i, SOLIDUS,RIGHTB) )
 		return attribute();
@@ -712,7 +724,7 @@ attribute event_stream_parser::extract_attribute(const char* from, std::size_t& 
 	// 2 symbols
 	i += 2;
 	start = i;
-	i = tstrchrn(i, char8_traits::to_char_type(QNM), UCHAR_MAX);
+	i = tstrchrn(i, char8_traits::to_char_type(QNM), MAX_DEPTH );
 	if(nullptr == i) {
 		assign_error(error::illegal_name);
 		return attribute();
@@ -834,7 +846,8 @@ void event_stream_parser::s_instruction_or_prologue() noexcept
 		assign_error(error::illegal_markup);
 		return;
 	}
-	char st[5] = "\0\0\0\0";
+	char st[5];
+	io_zerro_mem(st, 5);
 	for(std::size_t i=0; i < 4; i++) {
 		st[i] = next();
 		if( is_eof( st[i] ) ) {
