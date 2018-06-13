@@ -123,6 +123,7 @@
 
 #define io_likely(__expr__) !!(__expr__)
 #define io_unlikely(__expr__) !!(__expr__)
+#define io_unreachable __assume(0);
 
 #ifdef IO_CPU_INTEL
 

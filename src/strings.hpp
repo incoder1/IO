@@ -292,7 +292,8 @@ inline char* tstrchr(const char* s,char c)
 	return io_strchr( const_cast<char*>(s), char8_traits::to_int_type(c) );
 }
 #else
-static char* IO_NO_INLINE two_way_strchr(const char* s,char c)
+
+static char* IO_NO_INLINE strchr_impl(const char* s,char c) noexcept
 {
 	const char *a = s;
 	const uint8_t uc = static_cast<uint8_t>(c);
@@ -320,7 +321,7 @@ static char* IO_NO_INLINE two_way_strchr(const char* s,char c)
 
 inline char* tstrchr(const char* s,char c)
 {
-	return two_way_strchr(s,c);
+	return strchr_impl(s,c);
 }
 
 #endif // io_strchr
@@ -359,7 +360,7 @@ inline const char *strstr2b(const char *s, const char *n)
 	++us;
 	while(pw != sw) {
 		++us;
-		if( cheq('\0',*us) )
+		if( io_unlikely( cheq('\0',*us) ) )
 			return nullptr;
 		sw = (sw << 8) | uint16_t(*us);
 	}

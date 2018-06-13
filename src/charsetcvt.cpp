@@ -126,7 +126,7 @@ const char* chconv_error_category::cstr_message(int err_code) const
 	case converrc::success:
 		return "No error";
 	case converrc::no_buffer_space:
-		return "Destination buffer is to small to trascode all characters";
+		return "Destination buffer is to small to transcode all characters";
 	case converrc::invalid_multibyte_sequence:
 		return "Invalid multi-byte sequence";
 	case converrc::incomplete_multibyte_sequence:

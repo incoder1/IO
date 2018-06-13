@@ -14,7 +14,8 @@
 namespace io {
 
 // max size for stack mem buffer
-static constexpr std::size_t MAX_CONVB_STACK_SIZE = 1024;
+// 4k which is page size in most cases
+static constexpr std::size_t MAX_CONVB_STACK_SIZE = 4096;
 
 // conv_read_channel
 

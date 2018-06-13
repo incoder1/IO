@@ -30,36 +30,40 @@ bool error_category::equivalent (const std::error_code& code, int condition) con
 	return code.value() == condition;
 }
 
+
+
 const char* error_category::cstr_message(int err_code) const noexcept
 {
-	error ec = static_cast<error>(err_code);
-	switch(ec) {
-	case error::ok:
-		return "No errors";
+	switch( static_cast<error>(err_code) ) {
 	case error::io_error:
 		return "System input/output error";
-	case error::illegal_attribute:
-		return "Tag have several attributes with the same name";
-	case error::illegal_chars:
-		return "Illegal UNICODE character";
 	case error::out_of_memory:
 		return "Not enough memory";
+	case error::illegal_attribute:
+		return "Tag have several attributes with the same name";
+	case error::illegal_prologue:
+		return "Illegal XML prologue declaration";
+	case error::illegal_chars:
+		return "Illegal UNICODE character";
 	case error::illegal_name:
 		return "Tag or attribute name is illegal";
 	case error::illegal_markup:
 		return "XML node markup is incorrect";
-	case error::illegal_prologue:
-		return "Illegal XML prologue declaration";
-	case error::illegal_cdata_section:
-		return "Illegal <!CDATA[]]> section";
 	case error::illegal_dtd:
 		return "Illegal DTD declaration";
 	case error::illegal_commentary:
 		return "Illegal commentary";
+	case error::illegal_cdata_section:
+		return "Illegal <!CDATA[]]> section";
 	case error::root_element_is_unbalanced:
 		return "Root element is unbalanced";
 	case error::invalid_state:
 		return "Can not perform requested operation in current state";
+	case error::ok:
+		return "No errors";
+	default:
+		io_unreachable
+		return "No errors";
 	}
 }
 

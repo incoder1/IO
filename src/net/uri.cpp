@@ -75,7 +75,7 @@ static inline s_uri return_error(std::error_code& ec, std::errc code)
 	return s_uri();
 }
 
-static char to_lower_a(const char ch) noexcept
+static __forceinline char to_lower_a(const char ch) noexcept
 {
 #ifdef io_tolower
 	return io_tolower(ch);
@@ -84,7 +84,7 @@ static char to_lower_a(const char ch) noexcept
 #endif // io_tolower
 }
 
-static inline bool is_uppercase_a(const char ch) noexcept
+static __forceinline bool is_uppercase_a(const char ch) noexcept
 {
 #ifdef io_isupper
 	return io_isupper(ch);
@@ -110,37 +110,36 @@ static const char* str_to_lower_a(char* const dst, const char* src) noexcept
 uint16_t IO_NO_INLINE uri::default_port_for_scheme(const char* scheme) noexcept
 {
 	char sch[8];
-	typedef std::char_traits<char> c8t;
 	str_to_lower_a(sch, scheme);
-	if(0 == c8t::compare("echo", sch, 4) )
+	if(0 == io_memcmp("echo", sch, 4) )
 		return 7;
-	else if(0 == c8t::compare("daytime", sch, 7) )
+	else if(0 == io_memcmp("daytime", sch, 7) )
 		return 13;
-	else if(0 == c8t::compare("ftp", sch, 3) )
+	else if(0 == io_memcmp("ftp", sch, 3) )
 		return 21;
-	else if(0 == c8t::compare("ssh", sch, 3) )
+	else if(0 == io_memcmp("ssh", sch, 3) )
 		return 22;
-	else if( 0 == c8t::compare("telnet",sch,6) )
+	else if( 0 == io_memcmp("telnet",sch,6) )
 		return 23;
-	else if(0 == c8t::compare("mailto", sch, 6) )
+	else if(0 == io_memcmp("mailto", sch, 6) )
 		return 25;
-	else if(0 == c8t::compare("time", sch, 4 ) )
+	else if(0 == io_memcmp("time", sch, 4 ) )
 		return 37;
-	else if(0 == c8t::compare("name", sch, 4) )
+	else if(0 == io_memcmp("name", sch, 4) )
 		return 42;
-	else if(0 == c8t::compare("domain", sch, 6) )
+	else if(0 == io_memcmp("domain", sch, 6) )
 		return 53;
-	else if(0 == c8t::compare("gopher", sch, 6) )
+	else if(0 == io_memcmp("gopher", sch, 6) )
 		return 70;
-	else if(0 == c8t::compare("https", sch, 5 ) )
+	else if(0 ==  io_memcmp("https", sch, 5 ) )
 		return 443;
-	else if( 0 == c8t::compare("http", sch, 4) )
+	else if( 0 == io_memcmp("http", sch, 4) )
 		return 80;
-	else if( 0 == c8t::compare("npp", sch, 3) )
+	else if( 0 == io_memcmp("npp", sch, 3) )
 		return 92;
-	else if( 0 == c8t::compare("sftp", sch, 4) )
+	else if( 0 == io_memcmp("sftp", sch, 4) )
 		return 115;
-	else if( 0 == c8t::compare("irc", sch, 3) )
+	else if( 0 == io_memcmp("irc", sch, 3) )
 		return 6697;
 	return 0;
 }

@@ -311,8 +311,9 @@ static uint64_t hash(const uint8_t* s, std::size_t count) noexcept
 		return hash_len17_to32(s, count);
 	case 33 ... 64:
 		return hash_len33_to_64(s, count);
+	default:
+		return hash_over_64(s, count);
 	}
-	return hash_over_64(s, count);
 }
 
 #pragma GCC diagnostic pop

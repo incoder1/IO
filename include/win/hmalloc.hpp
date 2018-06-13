@@ -170,7 +170,6 @@ public:
 	constexpr h_allocator(const h_allocator<_Tp1>&) noexcept
 	{}
 
-	~h_allocator() noexcept = default;
 };
 
 

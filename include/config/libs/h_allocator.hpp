@@ -48,8 +48,8 @@ class heap_allocator_base {
 private:
 
 	template< typename _T>
-	static constexpr _T* uncast_void(void * const ptr) {
-#ifdef __GNUC__
+	static constexpr _T* uncast_void(void * const ptr) noexcept {
+#ifdef __GNUG__
 		return static_cast<_T*>( __builtin_assume_aligned(ptr, sizeof(_T) ) );
 #else
 		return static_cast<_T*>( ptr );

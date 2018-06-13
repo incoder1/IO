@@ -195,9 +195,18 @@ char source::next() noexcept
 	switch( u8_char_size( ret ) ) {
 	case io_likely(1):
 		return normalize_lend( ret );
+#ifdef __GNUG__
+
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wpedantic"
+	case 2 ... 4:
+#pragma GCC diagnostic pop
+
+#else
 	case 2:
 	case 3:
 	case 4:
+#endif // __GNUG__
 		return ret;
 	default:
 		last_ = error::illegal_chars;
