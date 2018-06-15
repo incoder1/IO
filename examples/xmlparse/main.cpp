@@ -243,6 +243,6 @@ int main(int argc, const char** argv)
 		return ec.value();
 	}
 	// Parsing is done
-	cout << "End of document" << std::endl;
+	cout << "End of document\n\t" <<  xs->row() << " rows processed" << std::endl;
 	return 0;
 }

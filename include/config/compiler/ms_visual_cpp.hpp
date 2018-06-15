@@ -95,7 +95,7 @@
 
 #define io_strlen(__s) strlen( (__s) )
 
-#define io_strcmp(__lsh,__rsh) strcmp( (__lsh), (__rhs) )
+#define io_strcmp(__lsh,__rhs) strcmp( (__lsh), (__rhs) )
 
 #define io_strcpy(__s1,__s2 ) strcpy( (__s1), (__s2) )
 

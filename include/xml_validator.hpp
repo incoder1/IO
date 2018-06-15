@@ -18,6 +18,7 @@ constexpr const char* W3C_XML_SCHEMA_INSTANCE = "http://www.w3.org/2001/XMLSchem
 constexpr const char* W3C_XML_SCHEMA_NS_URI = "http://www.w3.org/2001/XMLSchema";
 constexpr const char* W3C_XML_SCHEMA_NS = "http://www.w3.org/2000/xmlns/";
 
+/*
 class grammar
 {
 };
@@ -33,6 +34,7 @@ public:
 class IO_PUBLIC_SYMBOL validator:public object
 {
 };
+*/
 
 } // namespace xml
 

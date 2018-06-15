@@ -173,7 +173,7 @@ char source::normalize_lend(const char ch)
 char source::next() noexcept
 {
 
-	if(  io_unlikely(end_ == (pos_+1) ) ) {
+	if( end_ == (pos_+1) ) {
 		last_ = charge();
 		if( pos_ == end_ || error::ok != last_ )
 			return _eof;

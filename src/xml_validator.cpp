@@ -1,3 +1,4 @@
+#include "stdafx.hpp"
 #include "xml_validator.hpp"
 
 namespace io {
