@@ -18,6 +18,7 @@ standalone="yes"?>
 		<!ELEMENT άλφα (#PCDATA)>
 		<!ELEMENT βήτα (#PCDATA|άλφα|msg)*>
 	]>
+<!---->
 <!-- << ! Comment
 	lorem ipsum - dolor <>!$#$ --> 
 <test xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">

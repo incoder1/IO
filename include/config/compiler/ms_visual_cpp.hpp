@@ -87,6 +87,8 @@
 
 #define io_zerro_mem(__p,__bytes) memset( (__p), 0, (__bytes) )
 
+#define io_strcat(__dst,__src) strcat( (__dst) , (__src) )
+
 #define io_strstr(__s1,__s2) strstr( (__s1), (__s2) )
 
 #define io_strchr(__s,__c) strchr( (__s), (__c) )

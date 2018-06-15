@@ -202,9 +202,9 @@ private:
 		}
 	}
 
-	char skip_to_symbol(char symbol) noexcept;
+	//char skip_to_symbol(char symbol) noexcept;
 	byte_buffer read_entity() noexcept;
-	byte_buffer read_until_double_separator(const int separator,error ec) noexcept;
+	byte_buffer read_until_double_separator(int separator,error ec) noexcept;
 
 	qname extract_qname(const char* from, std::size_t& len) noexcept;
 	attribute extract_attribute(const char* from, std::size_t& len) noexcept;
@@ -237,8 +237,7 @@ private:
 	}
 
 	static __forceinline void sb_append(const char* sb,const char* str) noexcept {
-		char *i = const_cast<char*>( sb + sb_len(sb) );
-		io_strcpy( i, str);
+		io_strcat( const_cast<char*>(sb), str);
 	}
 
 private:

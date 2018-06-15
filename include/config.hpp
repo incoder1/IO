@@ -13,9 +13,9 @@
 
 
 #ifdef __GNUG__
-#	include "config/compiller/gcc.hpp"
+#	include "config/compiler/gcc.hpp"
 #elif defined(_MSC_VER)
-#	include "config/compiller/ms_visual_cpp.hpp"
+#	include "config/compiler/ms_visual_cpp.hpp"
 #endif // __GNUG__
 
 #ifdef HAS_PRAGMA_ONCE

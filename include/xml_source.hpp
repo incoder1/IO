@@ -86,8 +86,7 @@ private:
     source(s_read_channel&& src, byte_buffer&& rb) noexcept;
     error read_more() noexcept;
     error charge() noexcept;
-    inline char normalize_lend(const char ch);
-    inline void new_line_or_shift_col(const char ch);
+   char normalize_lend(const char ch);
 private:
     error last_;
     char *pos_;

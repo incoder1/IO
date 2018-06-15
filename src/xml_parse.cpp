@@ -15,9 +15,10 @@
 namespace io {
 namespace xml {
 
-static const char* PROLOGUE = "xml";
-static const char* CDATA = "[CDATA[";
-static const char* DOCTYPE  = "DOCTYPE";
+static constexpr const char* PROLOGUE = "xml";
+static const char* COMMENT = "<!--";
+static const char* CDATA    = "<![CDATA[";
+static const char* DOCTYPE  = "<!DOCTYPE";
 
 static const std::size_t SMALL_BUFF_SIZE = 32;
 static const std::size_t MID_BUFF_SIZE = 64;
@@ -56,17 +57,23 @@ static inline bool is_prologue(const char *s) noexcept
 
 static inline bool is_comment(const char *s) noexcept
 {
-	return start_with(s, "--", 2);
+	return start_with(s, COMMENT, 4);
 }
 
 static inline bool is_cdata(const char* s) noexcept
 {
-	return start_with(s, CDATA, 7);
+	return start_with(s, CDATA, 9);
 }
 
 static inline bool is_doc_type(const char *s) noexcept
 {
-	return start_with(s, DOCTYPE, 7);
+	return start_with(s, DOCTYPE, 9);
+}
+
+static std::size_t prefix_delimit(const char* src) noexcept
+{
+	static const char* DELIMS = "\t\n\v\f\r :/>";
+	return io_strcspn(src, DELIMS);
 }
 
 static std::size_t extract_prefix(std::size_t &start, const char* str) noexcept
@@ -82,8 +89,7 @@ static std::size_t extract_prefix(std::size_t &start, const char* str) noexcept
 			++s;
 		}
 	}
-	static const char* DELIMS = "\t\n\v\f\r :/>";
-	s += io_strcspn(s, DELIMS);
+	s += prefix_delimit(s);
 	if( !cheq(COLON, *s) ) {
 		start = 0;
 		return 0;
@@ -183,18 +189,19 @@ static IO_NO_INLINE error check_xml_name(const char* tn) noexcept
 		default:
 			return error::illegal_name;
 		}
-	} while( !cheq('\0',*c) );
+	}
+	while( !cheq('\0',*c) );
 	return error::ok;
 }
 
 #else
 
 static bool utf8_to_utf32(const char* src, std::size_t &slen, char32_t* dst, std::size_t &dlen) noexcept
-	std::error_code ec;
-	std::size_t ulen = transcode(ec,
-								 reinterpret_cast<const uint8_t*>(src),len,
-								 dst,dlen);
-	return !ec || 0 != ulen;
+std::error_code ec;
+std::size_t ulen = transcode(ec,
+							 reinterpret_cast<const uint8_t*>(src),len,
+							 dst,dlen);
+return !ec || 0 != ulen;
 }
 
 static error check_xml_name(const char* tn) noexcept
@@ -329,6 +336,7 @@ state_type event_stream_parser::scan_next() noexcept
 	return state_.current;
 }
 
+/*
 char event_stream_parser::skip_to_symbol(const char symbol) noexcept
 {
 	char i = next();
@@ -336,6 +344,7 @@ char event_stream_parser::skip_to_symbol(const char symbol) noexcept
 		i = next();
 	return i;
 }
+*/
 
 byte_buffer event_stream_parser::read_entity() noexcept
 {
@@ -575,7 +584,7 @@ void event_stream_parser::skip_comment() noexcept
 		assign_error(error::illegal_commentary);
 }
 
-byte_buffer event_stream_parser::read_until_double_separator(const int separator,error ec) noexcept
+byte_buffer event_stream_parser::read_until_double_separator(int separator,error ec) noexcept
 {
 	if( !sb_check(scan_buf_) ) {
 		assign_error(ec);
@@ -584,23 +593,20 @@ byte_buffer event_stream_parser::read_until_double_separator(const int separator
 	sb_clear(scan_buf_);
 	std::error_code errc;
 	byte_buffer buff = byte_buffer::allocate(errc, HUGE_BUFF_SIZE);
-	if(!check_buffer(buff))
+	if( !check_buffer(buff) )
 		return byte_buffer();
 	const uint16_t pattern = (separator << 8) | separator;
-	uint16_t i = 0;
 	char c;
+	uint16_t i = 0;
 	do {
 		c = next();
-		if( is_eof(c) ) {
-			assign_error(ec);
+		if( is_eof(c) )
 			break;
-		}
-		i = (i << 8) | static_cast<uint8_t>(c);
-		if(i == pattern)
-			break;
-		putch(buff, c);
+		else
+			putch(buff, c);
+		i = (i << 8) | uint16_t(c);
 	}
-	while( !is_error() );
+	while( pattern != i && !is_error() );
 	buff.flip();
 	if( io_unlikely( !cheq(RIGHTB, next() ) ) ) {
 		if(error::ok != state_.ec)
@@ -617,7 +623,10 @@ const_string event_stream_parser::read_comment() noexcept
 		return const_string();
 	}
 	byte_buffer tmp( read_until_double_separator(HYPHEN, error::illegal_commentary) );
-	return !tmp.empty() ? const_string( tmp.position().cdata(), tmp.last().cdata()-2 ) : const_string();
+	if( tmp.empty() || 0 == io_strcmp("--", tmp.position().cdata() ) )
+		return  const_string();
+	else
+		return const_string( tmp.position().cdata(), tmp.last().cdata()-3 );
 }
 
 const_string event_stream_parser::read_chars() noexcept
@@ -626,51 +635,33 @@ const_string event_stream_parser::read_chars() noexcept
 		assign_error(error::invalid_state);
 		return const_string();
 	}
-	// just "\n<" in scan stack
+	std::error_code ec;
+	byte_buffer ret = byte_buffer::allocate(ec,HUGE_BUFF_SIZE);
+	if( ec )
+		return const_string();
+	// just "\s<" in scan stack
 	if( cheq(LEFTB,scan_buf_[1]) && cheq('\0',scan_buf_[3]) ) {
 		char tmp[2] = { scan_buf_[0], '\0'};
 		sb_clear(scan_buf_);
-		scan_buf_[0] = char8_traits::to_char_type(LEFTB);
+		scan_buf_[0] = '<';
 		return const_string(tmp);
 	}
-	std::error_code ec;
-	byte_buffer ret = byte_buffer::allocate(ec,HUGE_BUFF_SIZE);
-	if(!check_buffer(ret))
-		return const_string();
-	if( !sb_check(scan_buf_) ) {
-		assign_error(error::root_element_is_unbalanced);
-		return const_string();
-	}
-	ret.put(scan_buf_);
-	bool reading = true;
-	int i;
-	do {
-		i = char8_traits::to_int_type( next() );
-		switch(i) {
-		case LEFTB:
-			reading = false;
-			break;
-		case RIGHTB:
-			sb_clear( scan_buf_ );
-			assign_error(error::illegal_chars);
-			return const_string();
-		case iEOF:
-			sb_clear( scan_buf_ );
+
+	for(char c = next(); !cheq(LEFTB, c) && !is_error(); c = next() ) {
+		if( io_unlikely( cheq(RIGHTB,c) || cheq(iEOF,c) ) ) {
 			assign_error(error::root_element_is_unbalanced);
-			return const_string();
-		default:
-			putch(ret, static_cast<char>(i) );
-			if( is_error() ) {
-				sb_clear( scan_buf_ );
-				return const_string();
-			}
+			break;
 		}
+		putch(ret, c);
 	}
-	while( reading );
+
+	if( is_error() )
+		return const_string();
+
 	sb_clear( scan_buf_ );
-	scan_buf_[0] = char8_traits::to_char_type(LEFTB);
+	scan_buf_[0] = '<';
 	ret.flip();
-	return const_string( ret.position().cdata(), ret.last().cdata() );
+	return ret.empty() ? const_string() :  const_string( ret.position().cdata(), ret.last().cdata() );
 }
 
 void event_stream_parser::skip_chars() noexcept
@@ -706,7 +697,7 @@ const_string event_stream_parser::read_cdata() noexcept
 	}
 	byte_buffer tmp( read_until_double_separator(SRIGHTB, error::illegal_cdata_section) );
 	tmp.flip();
-	return const_string( tmp.position().cdata(), tmp.last().cdata()-2 );
+	return const_string( tmp.position().cdata(), tmp.last().cdata()-3 );
 }
 
 attribute event_stream_parser::extract_attribute(const char* from, std::size_t& len) noexcept
@@ -846,17 +837,13 @@ void event_stream_parser::s_instruction_or_prologue() noexcept
 		assign_error(error::illegal_markup);
 		return;
 	}
-	char st[5];
-	io_zerro_mem(st, 5);
-	for(std::size_t i=0; i < 4; i++) {
-		st[i] = next();
-		if( is_eof( st[i] ) ) {
-			assign_error(error::illegal_markup);
-			return;
-		}
+	for(uint8_t i=2; i < 7; i++)
+		scan_buf_[i] = next();
+	if( !sb_check(scan_buf_) ) {
+		assign_error(error::illegal_markup);
+		return;
 	}
-	sb_append( scan_buf_, st);
-	if(is_prologue(st)) {
+	else if( is_prologue(scan_buf_+2) ) {
 		if(state_type::initial != state_.current) {
 			assign_error(error::illegal_prologue);
 			return;
@@ -872,25 +859,27 @@ void event_stream_parser::s_instruction_or_prologue() noexcept
 
 void event_stream_parser::s_comment_cdata_or_dtd() noexcept
 {
-	char st[8];
-	io_zerro_mem(st, 8);
-	st[0] = next();
-	st[1] = next();
-	if( is_comment(st) ) {
+	scan_buf_[2] = next();
+	scan_buf_[3] = next();
+	if( !sb_check(scan_buf_)  ) {
+		assign_error(error::root_element_is_unbalanced);
+		return;
+	}
+	if( is_comment(scan_buf_) ) {
 		state_.current =  state_type::comment;
 		return;
 	}
-	for(std::size_t i=2; i < 7; i++) {
-		st[i] = next();
-		if( is_eof(st[i]) ) {
-			assign_error(error::root_element_is_unbalanced);
-			return;
-		}
+	for(uint8_t i=4; i < 9; i++)
+		scan_buf_[i] = next();
+
+	if( !sb_check(scan_buf_) ) {
+		assign_error(error::root_element_is_unbalanced);
+		return;
 	}
-	sb_append(scan_buf_, st);
-	if( is_cdata(st) )
+
+	if( is_cdata(scan_buf_) )
 		state_.current = state_type::cdata;
-	else if(is_doc_type(st))
+	else if( is_doc_type(scan_buf_) )
 		state_.current = state_type::dtd;
 	else
 		assign_error(error::illegal_markup);
@@ -899,14 +888,7 @@ void event_stream_parser::s_comment_cdata_or_dtd() noexcept
 
 void event_stream_parser::s_entity() noexcept
 {
-	if( cheq('\0',scan_buf_[1]) ) {
-		char ch = next();
-		if( is_eof(ch) ) {
-			assign_error(error::illegal_markup);
-			return;
-		}
-		sb_append(scan_buf_, ch );
-	}
+	scan_buf_[1] = next();
 	int second = char8_traits::to_int_type( scan_buf_[1] );
 	switch( second ) {
 	case QM:
@@ -914,9 +896,6 @@ void event_stream_parser::s_entity() noexcept
 		break;
 	case EM:
 		s_comment_cdata_or_dtd();
-		break;
-	case iEOF:
-		assign_error(error::root_element_is_unbalanced);
 		break;
 	case SOLIDUS:
 		state_.current = state_type::event;
@@ -935,23 +914,23 @@ void event_stream_parser::s_entity() noexcept
 void event_stream_parser::scan() noexcept
 {
 	if( 0 == nesting_ ) {
-		char ch = skip_to_symbol('<');
-		if( is_eof(ch) ) {
-			assign_error(error::illegal_markup);
-			return;
+		for(char c = next(); c != '<'; c = next()) {
+			if( !is_whitespace(c) ) {
+				assign_error(error::illegal_markup);
+				return;
+			}
 		}
 		sb_clear(scan_buf_);
-		*scan_buf_ = char8_traits::to_char_type( LEFTB );
+		scan_buf_[0] = '<';
 	}
-	sb_append(scan_buf_, next() );
 	switch( char8_traits::to_int_type(*scan_buf_) ) {
-	case char8_traits::eof():
-		state_.current = state_type::eod;
-		if(0 != nesting_)
-			assign_error(error::root_element_is_unbalanced);
-		break;
 	case LEFTB:
 		s_entity();
+		break;
+	case iEOF:
+		state_.current = state_type::eod;
+		if( 0 != nesting_)
+			assign_error(error::root_element_is_unbalanced);
 		break;
 	default:
 		state_.current = state_type::characters;

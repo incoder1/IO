@@ -18,7 +18,6 @@
 					<Add option="-pedantic" />
 					<Add option="-std=c++11" />
 					<Add option="-pg" />
-					<Add option="-Og" />
 					<Add option="-g" />
 					<Add option="-fexceptions" />
 					<Add option="-DIO_BUILD" />
@@ -231,7 +230,7 @@
 		<Unit filename="include/charsetdetector.hpp" />
 		<Unit filename="include/charsets.hpp" />
 		<Unit filename="include/config.hpp" />
-		<Unit filename="include/config/compiller/gcc.hpp" />
+		<Unit filename="include/config/compiler/gcc.hpp" />
 		<Unit filename="include/config/libs/exceptions.hpp" />
 		<Unit filename="include/config/libs/h_allocator.hpp" />
 		<Unit filename="include/config/libs/intrusive_ptr.hpp" />

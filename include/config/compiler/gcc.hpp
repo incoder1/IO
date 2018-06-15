@@ -79,6 +79,8 @@
 
 #define io_strcpy(__s1,__s2) __builtin_strcpy( (__s1), (__s2) )
 
+#define io_strcat(__dst,__src) __builtin_strcat( (__dst) , (__src) )
+
 #define io_strcmp(__lsh,__rhs) __builtin_strcmp( (__lsh), (__rhs) )
 
 #define io_strcspn(__s, __p) __builtin_strcspn( (__s), (__p) )

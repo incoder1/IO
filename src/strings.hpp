@@ -385,7 +385,7 @@ inline constexpr bool single_byte(const char c) {
 }
 
 inline constexpr bool ismbnext(const char c) {
-	return uint8_t(0xBFU) == uint8_t(c | 0xBFU);
+	return 2 == ( uint8_t(c) >> 6);
 }
 
 inline uint8_t u8_char_size(const char ch) {

@@ -26,8 +26,8 @@ static constexpr unsigned int ISO_LATIN1_CP_CODE = 28591;
 static constexpr unsigned int WINDOWS_LATIN1_CP_CODE = 1252;
 static constexpr unsigned int UTF8_CP_CODE = 65001;
 
-static constexpr char NL = '\n';
-static constexpr char CR = '\r';
+static const char NL = '\n';
+static const char CR = '\r';
 
 
 static s_read_channel open_convert_channel(std::error_code& ec,io::byte_buffer& rb, const uint8_t* pos, const charset& ch, const s_read_channel &src) noexcept
@@ -126,13 +126,13 @@ source::~source() noexcept
 error source::read_more() noexcept
 {
 	rb_.clear();
-	if(  !rb_.empty() &&  rb_.capacity() < READ_BUFF_MAXIMAL_SIZE) {
-		if( !rb_.exp_grow() )
+	if(  !rb_.empty() && (rb_.capacity() < READ_BUFF_MAXIMAL_SIZE) ) {
+		if( io_unlikely( !rb_.exp_grow() ) )
 			return error::out_of_memory;
 	}
 	std::error_code ec;
 	size_t read = src_->read(ec, const_cast<uint8_t*>(rb_.position().get()), rb_.capacity() );
-	if(ec)
+	if( ec )
 		return error::io_error;
 	rb_.move(read);
 	rb_.flip();
@@ -142,7 +142,7 @@ error source::read_more() noexcept
 error source::charge() noexcept
 {
 	error ec = read_more();
-	if(ec == error::ok && !rb_.empty()) {
+	if( io_likely( ec == error::ok && !rb_.empty()) ) {
 		pos_ = const_cast<char*>(rb_.position().cdata());
 		end_ = const_cast<char*>(rb_.last().cdata());
 	}
@@ -151,32 +151,22 @@ error source::charge() noexcept
 	return ec;
 }
 
-// change position ids
-inline void source::new_line_or_shift_col(const char ch)
+
+// normalize line endings according W3C XML spec
+char source::normalize_lend(const char ch)
 {
-	if( cheq(ch,NL) ) {
+	if( CR == ch && NL == *pos_ ) {
+		++pos_;
+		++row_;
+		col_ = 1;
+		return NL;
+	} else if( ch == NL ) {
 		++row_;
 		col_ = 1;
 	}
 	else
 		++col_;
-}
-
-// normalize line endings according W3C XML spec
-inline char source::normalize_lend(const char ch)
-{
-	char ret = ch;
-	if( cheq(CR, ret) ) {
-		if( io_likely( cheq(NL, *(pos_+1) ) ) ) {
-			++pos_;
-			++row_;
-			col_ = 1;
-			return NL;
-		}
-		ret = CR;
-	}
-	new_line_or_shift_col(ret);
-	return ret;
+	return ch;
 }
 
 
@@ -190,28 +180,30 @@ char source::next() noexcept
 	}
 	char ret = *pos_;
 	++pos_;
-	if( io_unlikely( ismbnext(ret) ) )
+	if( ismbnext(ret) )
 		return ret;
-	switch( u8_char_size( ret ) ) {
-	case io_likely(1):
-		return normalize_lend( ret );
+	else
+		switch( u8_char_size( ret ) ) {
+		case 1:
+			return normalize_lend( ret );
 #ifdef __GNUG__
 
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wpedantic"
-	case 2 ... 4:
+		case 2 ... 4:
 #pragma GCC diagnostic pop
 
 #else
-	case 2:
-	case 3:
-	case 4:
+		case 2:
+		case 3:
+		case 4:
 #endif // __GNUG__
-		return ret;
-	default:
-		last_ = error::illegal_chars;
-		return _eof;
-	}
+			++col_;
+			return ret;
+		default:
+			last_ = error::illegal_chars;
+			return _eof;
+		}
 }
 
 } // namespace xml

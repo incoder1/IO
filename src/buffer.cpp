@@ -17,7 +17,7 @@ byte_buffer::byte_buffer(detail::mem_block&& arr, std::size_t capacity) noexcept
 	arr_( std::forward<detail::mem_block>(arr) ),
 	capacity_(capacity),
 	position_(arr_.get()),
-	last_(arr_.get())
+	last_(position_+1)
 {}
 
 byte_buffer::byte_buffer(byte_buffer&& other) noexcept:

@@ -278,7 +278,7 @@ public:
 	/// Returns whether this buffer position and last shows on buffer first byte
 	/// \return whether this buffer empty
 	inline bool empty() const noexcept {
-		return (position_ == nullptr) || ( position_==arr_.get() && last_ == (position_ + 1) );
+		return (position_ == nullptr) || ( last_ == (position_ + 1) );
 	}
 
 	/// Returns count of bytes this buffer can store
