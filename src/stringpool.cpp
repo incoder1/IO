@@ -47,15 +47,11 @@ cached_string::~cached_string() noexcept
 
 bool cached_string::blank() const noexcept
 {
-	const char *c = data();
-	while( *c != '\0') {
-#ifdef io_isspace
-		if( ! io_isspace( traits_type::to_int_type( *c ) ) )
-#else
-		if( !std::isspace( traits_type::to_int_type( *c ) ) )
-#endif // io_isspace
-			return false;
-		++c;
+	if( !empty() ) {
+		const char *c = data();
+		while( !io_isspace( traits_type::to_int_type( *c ) ) )
+			++c;
+		return '\0' != *c;
 	}
 	return true;
 }

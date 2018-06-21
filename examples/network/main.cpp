@@ -45,10 +45,6 @@ static void log(const char* data,const std::size_t bytes)
 
 int main()
 {
-	std::fstream f("foo.bar", std::ios::in | std::ios::out);
-    // use fstream::rdbuf() to get the filebuf
-    // then filebuf::fd() to get the file descriptor
-    std::cout << "file descriptor = " << (f.rdbuf())->fd() << std::endl;
 
 	using namespace io::net;
 	std::error_code ec;
