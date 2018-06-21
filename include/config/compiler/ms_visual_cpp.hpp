@@ -97,6 +97,8 @@
 
 #define io_strcmp(__lsh,__rhs) strcmp( (__lsh), (__rhs) )
 
+#define io_strncmp(__lsh,__rhs,__num) strncmp( (__lsh), (__rhs), (__num) )
+
 #define io_strcpy(__s1,__s2 ) strcpy( (__s1), (__s2) )
 
 #define io_strcspn(__s, __p) strcspn( (__s), (__p) )

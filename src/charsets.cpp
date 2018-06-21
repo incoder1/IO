@@ -63,7 +63,9 @@ DECLARE_CHARSET(CP_1258,1258,"CP1258",1,false) // ANSI/OEM Vietnamese; Vietnames
 
 #undef DECLARE_CHARSET
 
-const charset* ALL_SUPPORTED[] =
+static constexpr std::size_t MAX_SUPPORTED = 35;
+
+const charset* ALL_SUPPORTED[MAX_SUPPORTED] =
 {
     // unicode
     &code_pages::UTF_8,
@@ -109,14 +111,19 @@ const charset* ALL_SUPPORTED[] =
 /// Returns a character set for a name
 std::pair<bool, charset> code_pages::for_name(const char* name) noexcept
 {
-    if(nullptr == name || '\0' == *name)
-        return std::make_pair(false, platform_default() );
-    // slow search
-    for(std::size_t i=0; i < 35; i++) {
-        if( 0  == std::strcmp(ALL_SUPPORTED[i]->name(), name) )
-            return std::make_pair(true, charset( *ALL_SUPPORTED[i] ) );
+	std::pair<bool, charset> ret = {false, charset() };
+    if(nullptr != name && '\0' != *name) {
+		static constexpr std::size_t MAX_LEN = 11;
+    	// slow search
+    	for(std::size_t i=0; i < MAX_SUPPORTED; i++) {
+        	if( 0  == io_strncmp(ALL_SUPPORTED[i]->name(), name, MAX_LEN) ) {
+            	ret.first = true;
+            	ret.second = charset( *ALL_SUPPORTED[i] );
+            	break;
+        	}
+    	}
     }
-    return std::make_pair( false, platform_default() );
+    return ret;
 }
 
 const charset& code_pages::platform_default() noexcept {

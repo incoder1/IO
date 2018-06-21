@@ -83,6 +83,8 @@
 
 #define io_strcmp(__lsh,__rhs) __builtin_strcmp( (__lsh), (__rhs) )
 
+#define io_strncmp(__lsh,__rhs,__num) __builtin_strncmp( (__lsh), (__rhs), (__num) )
+
 #define io_strcspn(__s, __p) __builtin_strcspn( (__s), (__p) )
 
 #define io_strpbrk(__s, __p) __builtin_strpbrk( (__s), (__p) )

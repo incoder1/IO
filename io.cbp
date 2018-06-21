@@ -112,26 +112,21 @@
 				<Option createDefFile="1" />
 				<Option createStaticLib="1" />
 				<Compiler>
+					<Add option="-flto" />
 					<Add option="-O3" />
 					<Add option="-Weffc++" />
 					<Add option="-pedantic" />
 					<Add option="-Wall" />
 					<Add option="-std=c++14" />
-					<Add option="-fno-exceptions" />
-					<Add option="-fno-rtti" />
+					<Add option="-Wl,-allow-multiple-definition" />
+					<Add option="-mtune=generic" />
 					<Add option="-minline-stringops-dynamically" />
 					<Add option="-fdeclone-ctor-dtor" />
 					<Add option="-fdevirtualize-at-ltrans" />
-					<Add option="-mtune=generic" />
-					<Add option="-mmovbe" />
+					<Add option="-fvisibility=hidden" />
 					<Add option="-mmmx" />
 					<Add option="-msse" />
 					<Add option="-msse2" />
-					<Add option="-msse3" />
-					<Add option="-mssse3" />
-					<Add option="-msse4" />
-					<Add option="-mavx" />
-					<Add option="-mavx2" />
 					<Add option="-DNDEBUG" />
 					<Add option="-DIO_SHARED_LIB" />
 					<Add directory="include" />
@@ -141,7 +136,8 @@
 				</Compiler>
 				<Linker>
 					<Add option="-O3" />
-					<Add option="-s" />
+					<Add option="-flto" />
+					<Add option="-Wl,-allow-multiple-definition" />
 					<Add option="-mtune=generic" />
 					<Add option="-minline-stringops-dynamically" />
 					<Add option="-fdeclone-ctor-dtor" />
@@ -154,6 +150,7 @@
 					<Add option="-mssse3" />
 					<Add option="-msse4" />
 					<Add option="-mavx" />
+					<Add option="-mavx2" />
 					<Add library="iconv.dll" />
 					<Add library="Ws2_32" />
 					<Add library="gnutls" />

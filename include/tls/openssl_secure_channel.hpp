@@ -108,10 +108,10 @@ public:
 	virtual std::size_t write(std::error_code& ec, const uint8_t* buff,std::size_t size) const noexcept override;
 private:
     friend class nobadalloc<tls_channel>;
-    tls_channel(session&& tlssession,read_write_channel&& raw) noexcept;
+    tls_channel(session&& tlssession,s_read_write_channel&& raw) noexcept;
 private:
     session session_;
-    read_write_channel raw_;
+    s_read_write_channel raw_;
 };
 
 class IO_PUBLIC_SYMBOL service {

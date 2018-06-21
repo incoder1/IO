@@ -182,9 +182,9 @@ std::size_t session::write(std::error_code& ec, const uint8_t *what, std::size_t
 
 //tls_channel
 
-tls_channel::tls_channel(session&& tlssession,read_write_channel&& raw) noexcept:
+tls_channel::tls_channel(session&& tlssession,s_read_write_channel&& raw) noexcept:
 	session_( std::forward<session>(tlssession) ),
-	raw_( std::forward<read_write_channel>(raw) )
+	raw_( std::forward<s_read_write_channel>(raw) )
 {}
 
 tls_channel::~tls_channel() noexcept
@@ -199,7 +199,8 @@ std::size_t tls_channel::read(std::error_code& ec,uint8_t* const buff, std::size
 std::size_t tls_channel::write(std::error_code& ec, const uint8_t* buff,std::size_t size) const noexcept
 {
 	std::size_t ecrypted = session_.write( ec, buff, size);
-	return !ec ? session_.write(ec, ) : 0;
+	return 0;
+	//return !ec ? session_.write(ec, ) : 0;
 }
 
 // service

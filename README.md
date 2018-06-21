@@ -139,6 +139,7 @@ It is considered to install prebuilt binary dependencies using pacman for MSYS2 
 To build with CMake build tool to can use following command
 
 > cmake . -DCMAKE_BUILD_TYPE=<Release|Debug> [-DBUILD_SHARED_LIBS=ON] [-DNO_EXCEPTIONS=ON] [-DNO_RTTI=ON]
+> cmake --build .
 	
 	Result will be stored in  target/<Release|Debug>/lib sub-folder
 
@@ -167,6 +168,12 @@ Then goto IO source code root directory and execute
 #### Windows with GCC (MinGW64) and GNU make
 
 In case of Windows you must use MSYS2. 
+
+Make shure iconv-devel and gnutls-devel installed, if not istall them with
+
+> - pacman -S libiconv-devel libgnutls-devel
+
+command
 
 To build static release library use:
 		
