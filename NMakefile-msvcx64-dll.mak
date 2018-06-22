@@ -24,7 +24,7 @@ INCLUEDS=/Iinclude /Iinclude\win /Iinclude\net /Isrc /I$(DEPS_INCLUDES)
 OPTIMIZE= /Ox /Oi /Zc:wchar_t
 SHARED_DEFINES= /DIO_SHARED_LIB /DIO_BUILD
 DEFINES = $(SHARED_DEFINES) /DNDEBUG /DUNICODE
-CPPFLAGS = /c /nologo /GL /Zl /std:c++latest $(DEFINES) $(OPTIMIZE) $(INCLUEDS) 
+CPPFLAGS = /c /nologo /GL /Zl /utf-8 /std:c++latest $(DEFINES) $(OPTIMIZE) $(INCLUEDS) 
 LDFLAGS = /DLL /LTCG /LIBPATH:$(DEPS_LIBS)
 
 PCH = /Yustdafx.hpp /Fp$(OBJ)\stdafx.pch

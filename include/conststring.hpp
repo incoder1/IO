@@ -73,27 +73,31 @@ public:
 	{}
 
 	/// Shallow copy this string (inc reference count)
-	const_string(const const_string& other):
-		data_(other.data_) {
+	const_string(const const_string& other) noexcept:
+		data_(other.data_)
+	{
 		if(nullptr != data_)
 			// increase reference count
 			intrusive_add_ref(data_);
 	}
 
 	/// Copy assignment operator, shallow copy this string
-	const_string& operator=(const const_string& rhs) {
+	const_string& operator=(const const_string& rhs) noexcept
+	{
 		const_string(rhs).swap( *this );
 		return *this;
 	}
 
 	/// Movement constructor, default movement semantic
 	const_string(const_string&& other) noexcept:
-		data_(other.data_) {
+		data_(other.data_)
+	{
 		other.data_ = nullptr;
 	}
 
 	/// Movement assignment operator, default movement semantic
-	const_string& operator=(const_string&& other) noexcept {
+	const_string& operator=(const_string&& other) noexcept
+	{
 		const_string( std::forward<const_string>(other) ).swap( *this );
 		return *this;
 	}
@@ -190,7 +194,7 @@ public:
 		return empty() ? std::u32string() : transcode_to_u32( data(), size() );
 	}
 
-	/// Converts this string to system whide UNICODE (UTF-16/32 LE/BE OS and CPU byte order depends) representation
+	/// Converts this string to system wide UNICODE (UTF-16/32 LE/BE OS and CPU byte order depends) representation
 	inline std::wstring convert_to_ucs() const {
 		return empty() ? std::wstring() : transcode_to_ucs( data(), size() );
 	}

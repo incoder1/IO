@@ -30,21 +30,34 @@ static const char NL = '\n';
 static const char CR = '\r';
 
 
+static bool is_utf16(const uint8_t* bom)
+{
+	return utf_16le_bom::is(bom) || utf_16be_bom::is(bom);
+}
+
+static bool is_utf32(const uint8_t* bom)
+{
+	return utf_32be_bom::is(bom) || utf_32le_bom::is(bom);
+}
+
 static s_read_channel open_convert_channel(std::error_code& ec,io::byte_buffer& rb, const uint8_t* pos, const charset& ch, const s_read_channel &src) noexcept
 {
 	byte_buffer new_rb;
-	if( io_likely( utf_16le_bom::is(pos) || utf_16be_bom::is(pos) ) ) {
+
+	if( is_utf16(pos) )
 		pos += 2;
-	}
-	else if(utf_32be_bom::is(pos) || utf_32le_bom::is(pos) ) {
+	else if( is_utf32(pos) )
 		pos += 4;
-	}
+
 	new_rb = byte_buffer::allocate( ec, rb.capacity() );
 	if(ec)
 		return s_read_channel();
-	s_code_cnvtr cnv = code_cnvtr::open(ec,ch,
-										code_pages::UTF_8,
-										cnvrt_control::failure_on_failing_chars);
+	s_code_cnvtr cnv = code_cnvtr::open(
+						   ec,
+						   ch,
+						   code_pages::UTF_8,
+						   cnvrt_control::failure_on_failing_chars
+					   );
 	if(ec)
 		return s_read_channel();
 	cnv->convert(ec, pos, rb.size(), new_rb);
@@ -62,7 +75,8 @@ s_source source::open(std::error_code& ec, const s_read_channel& src, byte_buffe
 	charset_detect_status chdetstat = chdet->detect(ec, pos, rb.size() );
 	if( ec )
 		return s_source();
-	if( !chdetstat && (chdetstat.confidence() < 0.5f) ) {
+	static const double CONFIDENT = 0.5F;
+	if( !chdetstat && (chdetstat.confidence() < CONFIDENT) ) {
 		ec = make_error_code(converrc::not_supported);
 		return s_source();
 	}
@@ -75,6 +89,8 @@ s_source source::open(std::error_code& ec, const s_read_channel& src, byte_buffe
 	case WINDOWS_LATIN1_CP_CODE:
 	case UTF8_CP_CODE:
 		text_channel = src;
+		if( utf8_bom::is(pos) )
+			rb.shift( utf8_bom::len() );
 		break;
 	// Create converter
 	default:
@@ -82,9 +98,6 @@ s_source source::open(std::error_code& ec, const s_read_channel& src, byte_buffe
 		if(ec)
 			return s_source();
 	}
-	// skip BOM if any
-	if( utf8_bom::is(pos) )
-		rb.shift( utf8_bom::len() );
 	source *sc = nobadalloc<source>::construct(ec, std::move(text_channel), std::move(rb) );
 	return (nullptr == sc) ? s_source(): s_source(sc);
 }
@@ -160,7 +173,8 @@ char source::normalize_lend(const char ch)
 		++row_;
 		col_ = 1;
 		return NL;
-	} else if( ch == NL ) {
+	}
+	else if( ch == NL ) {
 		++row_;
 		col_ = 1;
 	}

@@ -336,16 +336,6 @@ state_type event_stream_parser::scan_next() noexcept
 	return state_.current;
 }
 
-/*
-char event_stream_parser::skip_to_symbol(const char symbol) noexcept
-{
-	char i = next();
-	while( !cheq( symbol, i) && !is_eof(i) )
-		i = next();
-	return i;
-}
-*/
-
 byte_buffer event_stream_parser::read_entity() noexcept
 {
 	std::error_code ec;
