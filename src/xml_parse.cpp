@@ -292,11 +292,20 @@ event_stream_parser::event_stream_parser(const s_source& src, s_string_pool&& po
 event_stream_parser::~event_stream_parser() noexcept
 {}
 
-void event_stream_parser::assign_error(error ec) noexcept
+inline void event_stream_parser::assign_error(error ec) noexcept
 {
 	state_.current = state_type::eod;
 	if(error::ok == state_.ec)
 		state_.ec = ec;
+}
+
+inline void event_stream_parser::putch(byte_buffer& buf, char ch) noexcept {
+	if( io_unlikely( !buf.put(ch) ) ) {
+			if(  io_unlikely( !buf.ln_grow() ) )
+				assign_error(error::out_of_memory);
+			else
+				buf.put(ch);
+	}
 }
 
 // extract name and namespace prefix if any
@@ -340,8 +349,10 @@ byte_buffer event_stream_parser::read_entity() noexcept
 {
 	std::error_code ec;
 	byte_buffer ret = byte_buffer::allocate(ec, MID_BUFF_SIZE);
-	if( io_unlikely( ec ) )
+	if(  io_unlikely(ec) ) {
+		assign_error(error::out_of_memory);
 		return byte_buffer();
+	}
 	ret.put( scan_buf_ );
 	sb_clear( scan_buf_ );
 	for(char c = next(); !is_error(); c = next() ) {
@@ -379,7 +390,7 @@ document_event event_stream_parser::parse_start_doc() noexcept
 
 	byte_buffer buff( read_entity() );
 
-	if( !check_buffer(buff) )
+	if( is_error() )
 		return document_event();
 
 	buff.shift(5);
@@ -463,7 +474,7 @@ instruction_event event_stream_parser::parse_processing_instruction() noexcept
 {
 	check_event_parser_state(event_type::processing_instruction, instruction_event)
 	byte_buffer buff = read_entity();
-	if( !check_buffer(buff) )
+	if( is_error() )
 		return instruction_event();
 	buff.move(1);
 	char *i = const_cast<char*>( buff.position().cdata() );
@@ -520,8 +531,10 @@ const_string event_stream_parser::read_dtd() noexcept
 	}
 	std::error_code ec;
 	byte_buffer dtd = byte_buffer::allocate(ec, MID_BUFF_SIZE);
-	if( ! check_buffer(dtd) )
+	if( ec ) {
+		assign_error(error::out_of_memory);
 		return const_string();
+	}
 	dtd.put(scan_buf_);
 	sb_clear(scan_buf_);
 	std::size_t brackets = 1;
@@ -583,8 +596,10 @@ byte_buffer event_stream_parser::read_until_double_separator(int separator,error
 	sb_clear(scan_buf_);
 	std::error_code errc;
 	byte_buffer buff = byte_buffer::allocate(errc, HUGE_BUFF_SIZE);
-	if( !check_buffer(buff) )
+	if( errc ) {
+		assign_error(error::out_of_memory);
 		return byte_buffer();
+	}
 	const uint16_t pattern = (separator << 8) | separator;
 	char c;
 	uint16_t i = 0;
@@ -598,7 +613,7 @@ byte_buffer event_stream_parser::read_until_double_separator(int separator,error
 	}
 	while( pattern != i && !is_error() );
 	buff.flip();
-	if( io_unlikely( !cheq(RIGHTB, next() ) ) ) {
+	if( io_unlikely( is_eof(c) || !cheq(RIGHTB, next() ) ) ) {
 		if(error::ok != state_.ec)
 			assign_error(ec);
 		return byte_buffer();
@@ -763,7 +778,7 @@ start_element_event event_stream_parser::parse_start_element() noexcept
 	check_event_parser_state(event_type::start_element, start_element_event);
 
 	byte_buffer buff = read_entity();
-	if( !check_buffer(buff) )
+	if( is_error() )
 		return start_element_event();
 	bool empty_element = cheq(SOLIDUS, *(buff.last().cdata()-3));
 	if( !empty_element )
@@ -812,7 +827,7 @@ end_element_event event_stream_parser::parse_end_element() noexcept
 	if(0 == nesting_)
 		state_.current =  state_type::eod;
 	byte_buffer buff = read_entity();
-	if( !check_buffer(buff) )
+	if( is_error() )
 		return end_element_event();
 	std::size_t len = 0;
 	qname name = extract_qname( buff.position().cdata(), len );

@@ -45,7 +45,7 @@ void byte_buffer::move(std::size_t offset) noexcept
 
 bool byte_buffer::extend(std::size_t extend_size) noexcept
 {
-	bool has_data = arr_ && nullptr != last_;
+	bool has_data = !empty();
 	capacity_ += extend_size;
 	uint8_t *new_data = static_cast<uint8_t*>( memory_traits::realloc(arr_.get(), capacity_) );
 	// out of memory
@@ -75,7 +75,8 @@ bool byte_buffer::exp_grow() noexcept
 
 bool byte_buffer::ln_grow() noexcept
 {
-	return extend ( capacity_ >> 1 );
+	std::size_t new_capacity = capacity_ >> 1;
+	return extend ( new_capacity > 1 ? new_capacity : capacity_+2 );
 }
 
 byte_buffer byte_buffer::allocate(std::error_code& ec, std::size_t capacity) noexcept

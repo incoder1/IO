@@ -182,25 +182,12 @@ private:
 	void s_characters_or_eod() noexcept;
 	void s_entity() noexcept;
 
+	// assign an error
+	inline void assign_error(xml::error ec) noexcept;
 
-	void assign_error(xml::error ec) noexcept;
-
-	inline bool check_buffer(byte_buffer& b) noexcept {
-		if(0 == b.capacity() ) {
-			assign_error(error::out_of_memory);
-			return false;
-		}
-		return true;
-	}
-
-	inline void putch(byte_buffer& buf, char ch) noexcept {
-		while( io_unlikely( !buf.put(ch) ) ) {
-			if( !buf.ln_grow() ) {
-				assign_error(error::out_of_memory);
-				break;
-			}
-		}
-	}
+	// put a byte into buffer
+	// extend when needed or assign error when no memory left
+	inline void putch(byte_buffer& buf, char ch) noexcept;
 
 	//char skip_to_symbol(char symbol) noexcept;
 	byte_buffer read_entity() noexcept;
