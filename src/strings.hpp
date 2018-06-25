@@ -360,7 +360,7 @@ inline const char *strstr2b(const char *s, const char *n)
 	++us;
 	while(pw != sw) {
 		++us;
-		if( io_unlikely( cheq('\0',*us) ) )
+		if( io_unlikely( '\0' == *us ) )
 			return nullptr;
 		sw = (sw << 8) | uint16_t(*us);
 	}
@@ -368,10 +368,8 @@ inline const char *strstr2b(const char *s, const char *n)
 }
 
 inline char* find_first_symbol(const char* s) {
-	char* ret = const_cast<char*>(s);
-	while( is_whitespace(*ret) )
-		++ret;
-	return ret;
+    static constexpr const char* pattern = "\t\n\v\f\r ";
+	return const_cast<char*>(s) + io_strspn(s, pattern);
 }
 
 inline size_t xmlname_strspn(const char *s)

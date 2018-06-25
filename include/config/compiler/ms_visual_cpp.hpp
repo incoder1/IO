@@ -101,6 +101,8 @@
 
 #define io_strcpy(__s1,__s2 ) strcpy( (__s1), (__s2) )
 
+#define io_strspn(__s, __p) strspn( (__s), (__p) )
+
 #define io_strcspn(__s, __p) strcspn( (__s), (__p) )
 
 #define io_strpbrk(__s, __p) strpbrk( (__s), (__p) )
