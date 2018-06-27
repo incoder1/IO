@@ -155,10 +155,18 @@ static __forceinline uint32_t fetch_32(const uint8_t *p)
 }
 #endif // IO_IS_LITTLE_ENDIAN
 
-static constexpr inline uint64_t rotate(const uint64_t val,const uint32_t shift)
+#ifdef _MSC_VER
+#	pragma intrinsic(_rotr64)
+#endif // _MSC_VER
+
+static __forceinline uint64_t rotate(const uint64_t val,const uint32_t shift)
 {
+#ifdef _MSC_VER
+	return _rotr64(val,shift);
+#else
 	// Avoid shifting by 64: doing so yields an undefined result.
 	return shift == 0 ? val : ((val >> shift) | (val << (64 - shift) ) );
+#endif // _MSC_VER
 }
 
 static constexpr inline uint64_t shift_mix(uint64_t val)
