@@ -134,8 +134,14 @@ const char* chconv_error_category::cstr_message(int err_code) const
 	case converrc::not_supported:
 		return "Conversion between provided code-pages is not supported";
 	case converrc::unknown:
+#ifdef LIBICONV_PLUG
+	io_unreachable
+#endif
 		break;
 	}
+#ifdef LIBICONV_PLUG
+	io_unreachable
+#endif
 	return "Character conversion error";
 }
 
@@ -171,7 +177,7 @@ s_code_cnvtr code_cnvtr::open(std::error_code& ec,
                               const charset& to,
                               cnvrt_control control) noexcept
 {
-	if( from.code() == to.code() ) {
+	if( !from || !to || from == to ) {
 		ec = make_error_code(converrc::not_supported);
 		return s_code_cnvtr();
 	}
