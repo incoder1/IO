@@ -159,7 +159,7 @@ static __forceinline uint32_t fetch_32(const uint8_t *p)
 #	pragma intrinsic(_rotr64)
 #endif // _MSC_VER
 
-static __forceinline uint64_t rotate(const uint64_t val,const uint32_t shift)
+static __forceinline uint64_t ror64(const uint64_t val,const uint32_t shift)
 {
 #ifdef _MSC_VER
 	return _rotr64(val,shift);
@@ -203,8 +203,8 @@ static uint64_t hash_len0_to16(const uint8_t *s, std::size_t len) noexcept
 		uint64_t mul = k2 + len * 2;
 		uint64_t a = fetch_64(s) + k2;
 		uint64_t b = fetch_64(s + len - 8);
-		uint64_t c = rotate(b, 37) * mul + a;
-		uint64_t d = (rotate(a, 25) + b) * mul;
+		uint64_t c = ror64(b, 37) * mul + a;
+		uint64_t d = (ror64(a, 25) + b) * mul;
 		return hash_len16(c, d, mul);
 	}
 	else if ( len >= 4 ) {
@@ -230,18 +230,18 @@ static uint64_t hash_len17_to32(const uint8_t *s, size_t len)
 	uint64_t b = fetch_64(s + 8);
 	uint64_t c = fetch_64(s + len - 8) * mul;
 	uint64_t d = fetch_64(s + len - 16) * k2;
-	return hash_len16(rotate(a + b, 43) + rotate(c, 30) + d,
-					  a + rotate(b + k2, 18) + c, mul);
+	return hash_len16(ror64(a + b, 43) + ror64(c, 30) + d,
+					  a + ror64(b + k2, 18) + c, mul);
 }
 
 static ullpair weak_hash_len32_with_seeds(uint64_t w, uint64_t x, uint64_t y, uint64_t z, uint64_t a, uint64_t b)
 {
 	a += w;
-	b = rotate(b + a + z, 21);
+	b = ror64(b + a + z, 21);
 	uint64_t c = a;
 	a += x;
 	a += y;
-	b += rotate(a, 44);
+	b += ror64(a, 44);
 	return { a + z, b + c};
 }
 
@@ -266,10 +266,10 @@ static uint64_t hash_len33_to_64(const uint8_t *s, size_t len) noexcept
 	uint64_t f = fetch_64(s + 24) * 9;
 	uint64_t g = fetch_64(s + len - 8);
 	uint64_t h = fetch_64(s + len - 16) * mul;
-	uint64_t u = rotate(a + g, 43) + (rotate(b, 30) + c) * 9;
+	uint64_t u = ror64(a + g, 43) + (ror64(b, 30) + c) * 9;
 	uint64_t v = ((a + g) ^ d) + f + 1;
 	uint64_t w = io_bswap64((u + v) * mul) + h;
-	uint64_t x = rotate(e + f, 42) + c;
+	uint64_t x = ror64(e + f, 42) + c;
 	uint64_t y = (io_bswap64((v + w) * mul) + g) * mul;
 	uint64_t z = e + f + c;
 	a = io_bswap64((x + z) * mul + y) + b;
@@ -290,11 +290,11 @@ static uint64_t hash_over_64(const uint8_t* s, std::size_t count) noexcept
 	// Decrease len to the nearest multiple of 64, and operate on 64-byte chunks.
 	count = (count - 1) & ~static_cast<size_t>(63);
 	do {
-		x = rotate(x + y + v.first + fetch_64(s + 8), 37) * k1;
-		y = rotate(y + v.second + fetch_64(s + 48), 42) * k1;
+		x = ror64(x + y + v.first + fetch_64(s + 8), 37) * k1;
+		y = ror64(y + v.second + fetch_64(s + 48), 42) * k1;
 		x ^= w.second;
 		y += v.first + fetch_64(s + 40);
-		z = rotate(z + w.first, 33) * k1;
+		z = ror64(z + w.first, 33) * k1;
 		v = weak_hash_len32_with_seeds(s, v.second * k1, x + w.first);
 		w = weak_hash_len32_with_seeds(s + 32, z + w.second, y + fetch_64(s + 16) );
 		std::swap(z, x);
