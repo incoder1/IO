@@ -1,19 +1,18 @@
 cmake_minimum_required(VERSION 3.4)
 
-project(io)
+project(io CXX)
 
 include_directories(include)
 include_directories(include/net)
-# for precompiled headers
-include_directories(src) 
+# for pre-compiled headers
+include_directories(src)
 
-set(CMAKE_BINARY_DIR target)
 
 file(GLOB PROJECT_SOURCE_PATH ${PROJECT_SOURCE_DIR}/src)
 file(GLOB COMMON_SRC ${PROJECT_SOURCE_PATH}/*.cpp ${PROJECT_SOURCE_PATH}/net/*.cpp)
 
-
 set(EXTRA_LIBS)
+set(CMAKE_BINARY_DIR target)
 
 if( WIN32 OR MSYS OR CYGWIN)
 	message( STATUS "Building IO for Microsoft Windows")
@@ -23,7 +22,6 @@ if( WIN32 OR MSYS OR CYGWIN)
 	if(MSYS OR CYGWIN)
 		set(THREADING threadwin)
 	endif()
-	
 	list(APPEND EXTRA_LIBS iconv.dll)
 	list(APPEND EXTRA_LIBS Ws2_32)
 elseif( UNIX AND NOT WIN32 AND NOT MSYS AND NOT CYGWIN)
@@ -37,27 +35,57 @@ endif()
 find_package(Boost 1.23.0)
 if(Boost_FOUND)
 	include_directories(${Boost_INCLUDE_DIRS})
-	add_definitions(-DIO_HAS_BOOST)
-endif()
-
-#GnuTLS is not exist for MS VC++ 
-if( NOT "${CMAKE_CXX_COMPILER_ID}" STREQUAL "MSVC" )
-	find_package(GnuTLS 3.0)
-	if(GNUTLS_FOUND)
-		include_directories(${GNUTLS_INCLUDE_DIR})
-		list(APPEND EXTRA_LIBS ${GNUTLS_LIBRARIES})
-		list(APPEND PLATFORM_SRC ${PROJECT_SOURCE_PATH}/tls/gnutls_secure_channel.cpp)
+	if(MSVC)
+		add_definitions(/DIO_HAS_BOOST)
+	else()
+		add_definitions(-DIO_HAS_BOOST)
 	endif()
 endif()
 
-set(DESTDIR lib)
-add_library(io ${COMMON_SRC} ${PLATFORM_SRC})
-target_link_libraries(io ${EXTRA_LIBS} )
-
-if(BUILD_SHARED_LIBS)
-  add_definitions(-DIO_SHARED_LIB)
-  add_definitions(-DIO_BUILD)
+#GnuTLS is not exist for MS VC++
+if( NOT MSVC )
+	find_package(GnuTLS 3.0)
+	if(GNUTLS_FOUND)
+	   add_definitions(-DIO_TLS_PROVIDER_GNUTSL ${GNUTLS_DEFINITIONS} )
+	   include_directories(${GNUTLS_INCLUDE_DIR})
+	   list(APPEND EXTRA_LIBS ${GNUTLS_LIBRARIES})
+	   list(APPEND PLATFORM_SRC ${PROJECT_SOURCE_PATH}/tls/gnutls_secure_channel.cpp)
+	else()
+		find_package(OpenSSL)
+		if(OPENSSL_FOUND)
+			message(STATUS "Using OpenSSL ${OPENSSL_VERSION}")
+			add_definitions(-DIO_TLS_PROVIDER_OPENSSL)
+			include_directories(${OPENSSL_INCLUDE_DIR})
+			list(APPEND EXTRA_LIBS ${OPENSSL_LIBRARIES})
+			list(APPEND PLATFORM_SRC ${PROJECT_SOURCE_PATH}/tls/openssl_secure_channel.cpp)
+			if( MSYS OR CYGWIN )
+				list(APPEND EXTRA_LIBS crypt32)
+				list(APPEND EXTRA_LIBS cryptui)
+			endif() # MSYS and Cygwin
+		endif() # OpenSSL
+	endif() # GNU TLS
+else()
+	list(APPEND EXTRA_LIBS msvcrt.lib)
+	list(APPEND EXTRA_LIBS kernel32.lib)
+	list(APPEND EXTRA_LIBS user32.lib)
+	list(APPEND EXTRA_LIBS Ws2_32.lib)
+	list(APPEND EXTRA_LIBS iconv.dll.lib)
+	list(APPEND EXTRA_LIBS Ws2_32.lib)
+	find_package(OpenSSL)
+	if(OPENSSL_FOUND)
+			message(STATUS "Using OpenSSL ${OPENSSL_VERSION}")
+			add_definitions(/DIO_TLS_PROVIDER_OPENSSL)
+			include_directories(${OPENSSL_INCLUDE_DIR})
+			list(APPEND EXTRA_LIBS ${OPENSSL_LIBRARIES})
+			list(APPEND PLATFORM_SRC ${PROJECT_SOURCE_PATH}/tls/openssl_secure_channel.cpp)
+			if(	MSYS OR CYGWIN )
+				list(APPEND EXTRA_LIBS crypt32.lib)
+				list(APPEND EXTRA_LIBS cryptui.lib)
+			endif() # MSYS and Cygwin
+	endif() # OpenSSL
 endif()
+
+
 
 if( ${CMAKE_BUILD_TYPE} STREQUAL "Release" )
  add_definitions(-DNDEBUG)
@@ -66,44 +94,69 @@ elseif(${CMAKE_BUILD_TYPE} STREQUAL "Debug")
 	set(LIBRARY_OUTPUT_PATH ${CMAKE_BINARY_DIR}/Debug/lib)
 endif()
 
-if( ${CMAKE_CXX_COMPILER_ID} STREQUAL "GNU" OR ${CMAKE_CXX_COMPILER_ID} STREQUAL "Clang")
-	if(CMAKE_CXX_CREATE_SHARED_LIBRARY)
+if(CMAKE_CXX_CREATE_SHARED_LIBRARY)
+	add_library(io SHARED ${COMMON_SRC} ${PLATFORM_SRC})
+else()
+	add_library(io ${COMMON_SRC} ${PLATFORM_SRC})
+endif()
+
+target_link_libraries(io ${EXTRA_LIBS})
+
+if( CMAKE_COMPILER_IS_GNUCXX )
+
+	if(BUILD_SHARED_LIBS)
+		add_definitions(-DIO_SHARED_LIB -DIO_BUILD)
+	endif()
+
+	if(BUILD_SHARED_LIBS)
 		set_target_properties(io PROPERTIES LINKER_LANGUAGE CXX)
 	else()
 		set_target_properties(io PROPERTIES LINKER_LANGUAGE AR)
 	endif()
-	
-	set(MMX_AND_SSE_FLAGS "-mmmx -msse -msse2 -mssse3 -msse3 -msse4 -mavx -mavx2")
-	set(RELEASE_OPTIMIZE_FLAGS "-mtune=generic -s -O3 -minline-stringops-dynamically -fdeclone-ctor-dtor -fdevirtualize-at-ltrans -mmovbe")
-		
+
+	if( ${CMAKE_SYSTEM_PROCESSOR} STREQUAL "x86_64")
+		set(CPU_SPECIFIC_FLAGS "-mtune=generic -mmmx -msse -msse2 -mssse3 -msse3 -msse4 -mavx -mavx2 -minline-stringops-dynamically -mmovbe")
+	else()
+		set(CPU_SPECIFIC_FLAGS "")
+	endif()
+
+	set(RELEASE_OPTIMIZE_FLAGS "-s -O3 -fdeclone-ctor-dtor -fdevirtualize-at-ltrans  ${CPU_SPECIFIC_FLAGS}")
+
 	if(NO_EXCEPTIONS)
 		set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fno-exceptions")
 	endif()
 	if(NO_RTTI)
 		set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fno-rtti")
 	endif()
-	
+
 	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")
-	if( WIN32 OR MSYS OR CYGWIN AND CMAKE_CXX_CREATE_SHARED_LIBRARY )
+	if( WIN32 OR MSYS OR CYGWIN AND BUILD_SHARED_LIBS )
 		set(LTO_FLAGS "-flto -Wl,-allow-multiple-definition")
 		set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS} ${LTO_FLAGS}")
-		set(CMAKE_SHARED_LINKER_FLAGS_RELEASE "${CMAKE_SHARED_LINKER_FLAGS} -s ${LTO_FLAGS} ${RELEASE_OPTIMIZE_FLAGS} ${MMX_AND_SSE_FLAGS}")
+		set(CMAKE_SHARED_LINKER_FLAGS_RELEASE "${CMAKE_SHARED_LINKER_FLAGS} -s ${LTO_FLAGS} ${RELEASE_OPTIMIZE_FLAGS}")
 	else()
-		set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS} ${RELEASE_OPTIMIZE_FLAGS} ${MMX_AND_SSE_FLAGS}" )
+		set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS} ${RELEASE_OPTIMIZE_FLAGS}" )
 		set(CMAKE_SHARED_LINKER_FLAGS_RELEASE "${CMAKE_SHARED_LINKER_FLAGS} -s")
-	endif()	
-	
-	set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS} -g -Og")
-	
-elseif("${CMAKE_CXX_COMPILER_ID}" STREQUAL "MSVC")
-	find_package(GnuICONV REQUIRED)
-	if (NOT BUILD_SHARED_LIBS)
-		foreach(flag_var CMAKE_CXX_FLAGS CMAKE_CXX_FLAGS_DEBUG CMAKE_CXX_FLAGS_RELEASE CMAKE_CXX_FLAGS_MINSIZEREL CMAKE_CXX_FLAGS_RELWITHDEBINFO)
-			if(${flag_var} MATCHES "/MD")
-			string(REGEX REPLACE "/MD" "/MT" ${flag_var} "${${flag_var}}")
-			endif(${flag_var} MATCHES "/MD")
-		endforeach(flag_var)
 	endif()
-	
+
+	set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS} -g -Og")
+
+elseif(MSVC)
+	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /std:c++latest /utf-8 /Zc:wchar_t")
+	add_definitions(/DUNICODE)
+	set(CMAKE_CXX_FLAGS_RELEASE  "${CMAKE_CXX_FLAGS} /Ox /Oi")
+	if(BUILD_SHARED_LIBS)
+		add_definitions(/DIO_SHARED_LIB /DIO_BUILD )
+		set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS} /GL")
+		set(CMAKE_SHARED_LINKER_FLAGS_RELEASE "${CMAKE_SHARED_LINKER_FLAGS} /DLL /LTCG")
+	endif()
+	if(NOT NO_EXCEPTIONS)
+		set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /EHsc")
+	endif()
+	if(NOT NO_RTTI)
+		set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /GR")
+	endif()
+	set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS} /ZI")
 endif()
+
 

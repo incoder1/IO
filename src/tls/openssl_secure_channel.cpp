@@ -10,11 +10,6 @@
 #	include <wincrypt.h>
 #	include <cryptuiapi.h>
 
-#	ifdef _MSC_VER
-#		pragma comment (lib, "crypt32.lib")
-#		pragma comment (lib, "cryptui.lib")
-#	endif // _MSC_VER
-
 #endif // __IO_WINDOWS_BACKEND__
 
 
@@ -35,27 +30,33 @@ static bool init_openssl() noexcept
 #ifdef __IO_WINDOWS_BACKEND__
 // get X509 certs from SSPI system trust store
 
-static bool initialze_context_from_sspi(::SSL_CTX* const sslctx) noexcept
+static bool load_system_trust_store(::SSL_CTX* const sslctx) noexcept
 {
-	static constexpr const wchar_t* SYS_NAME = L"HCURRENT_USER_STORE";
-	::HCERTSTORE sspi_store = ::CertOpenStore(
-								  CERT_STORE_PROV_SYSTEM, 0, 0,
-								  CERT_SYSTEM_STORE_CURRENT_USER,
-								  SYS_NAME);
+	static constexpr const wchar_t* SYS_NAME = L"ROOT";
+	::HCERTSTORE sspi_store = ::CertOpenSystemStoreW( 0, SYS_NAME);
 	if(NULL == sspi_store)
 		return false;
 	::X509_STORE *ossl_store  = ::SSL_CTX_get_cert_store( sslctx );
-	for(::PCCERT_CONTEXT sspi_cert = nullptr;;) {
-		sspi_cert = ::CertEnumCertificatesInStore(sspi_store, sspi_cert);
-		if(nullptr == sspi_cert)
-			break;
+	::PCCERT_CONTEXT sspi_cert = nullptr;
+	::X509 *ossl_cert;
+	while( nullptr != (sspi_cert = ::CertEnumCertificatesInStore(sspi_store, sspi_cert) ) ) {
 		::BYTE *raw = sspi_cert->pbCertEncoded;
 		::DWORD raw_size = sspi_cert->cbCertEncoded;
-		::X509 *ossl_cert = ::d2i_X509(nullptr, const_cast<const unsigned char**>(&raw), raw_size);
-		if(nullptr != ossl_cert)
+		ossl_cert = ::d2i_X509(nullptr, const_cast<const unsigned char**>(&raw), raw_size);
+		if(nullptr != ossl_cert) {
 			::X509_STORE_add_cert(ossl_store, ossl_cert);
+			::X509_free(ossl_cert);
+		}
 	}
 	::CertCloseStore(sspi_store, 0);
+	return true;
+}
+
+#else
+
+static bool load_system_trust_store(::SSL_CTX* const sslctx) noexcept
+{
+	// TODO: check whether implementation needed
 	return true;
 }
 
@@ -71,13 +72,12 @@ client_context client_context::create(std::error_code& ec) noexcept
 		ec = std::make_error_code( std::errc::protocol_not_supported );
 		return client_context();
 	}
+	::SSL_CTX_set_verify(ctx, SSL_VERIFY_NONE, NULL);
 	::SSL_CTX_set_options(ctx, flags);
-#ifdef __IO_WINDOWS_BACKEND__
-	if( !initialze_context_from_sspi(ctx) ) {
+	if( !load_system_trust_store(ctx) ) {
 		ec = std::make_error_code( std::errc::protocol_not_supported );
 		return client_context();
 	}
-#endif // __IO_WINDOWS_BACKEND__
 	return client_context( ctx );
 }
 
@@ -92,98 +92,78 @@ client_context::~client_context() noexcept
 
 session session::open(std::error_code& ec,::SSL_CTX* const cntx) noexcept
 {
-    ::SSL* ossl = ::SSL_new(cntx);
-    if(nullptr == ossl) {
+	::SSL* ossl = ::SSL_new(cntx);
+	if(nullptr == ossl) {
 		ec = std::make_error_code(std::errc::connection_aborted);
 		return session();
-    }
-    static const std::size_t BUFF_SIZE = memory_traits::page_size();
-    ::BIO *rbuf = nullptr, *wbuf = nullptr;
-    ::BIO_new_bio_pair(&rbuf, BUFF_SIZE, &wbuf, BUFF_SIZE);
-    if(nullptr == rbuf || nullptr == wbuf ) {
+	}
+	::BIO *interal = nullptr, *external = nullptr;
+	::BIO_new_bio_pair(&interal,  memory_traits::page_size(), &external, memory_traits::page_size());
+	if(nullptr == interal || nullptr == external ) {
 		ec = std::make_error_code(std::errc::not_enough_memory);
 		::SSL_free(ossl);
 		return session();
-    }
+	}
 
-    ::BIO_set_mem_eof_return(rbuf, 0);
-	::BIO_set_mem_eof_return(wbuf, 0);
+	::BIO_set_mem_eof_return(interal, EOF);
+	::BIO_set_mem_eof_return(external, EOF);
 
-	::SSL_set_bio(ossl, rbuf, wbuf);
-	return session(ossl, rbuf, wbuf);
+	::SSL_set_bio(ossl, interal, interal);
+	return session(ossl, interal, external);
 }
 
-session::session(::SSL* const ossl, ::BIO* const rbuf,::BIO* const wbub) noexcept:
+session::session(::SSL* const ossl, ::BIO* const internal,::BIO* const external) noexcept:
 	ossl_(ossl),
-	rbuf_(rbuf),
-	wbuf_(wbub)
-{}
+	internal_(internal),
+	external_(external)
+{
+}
 
 session::session(session&& c) noexcept:
-  session(c.ossl_,c.rbuf_,c.wbuf_)
+	session(c.ossl_,c.internal_,c.external_)
 {
 	c.ossl_ = nullptr;
-	c.rbuf_ = nullptr;
-	c.wbuf_ = nullptr;
+	c.internal_ = nullptr;
+	c.external_ = nullptr;
 }
 
 session::~session() noexcept
 {
 	if( nullptr != ossl_ ) {
-        ::BIO_free(rbuf_);
-		::BIO_free(wbuf_);
+		::BIO_free(internal_);
+		::BIO_free(external_);
 		::SSL_free(ossl_);
 	}
 }
 
-bool session::hand_stake(std::error_code& ec,const char* host, const s_read_write_channel& raw) noexcept
+std::size_t session::connect(uint8_t* const buff, uint16_t size) noexcept
 {
-
-	return false;
+	::BIO_do_connect(internal_);
+	return static_cast<std::size_t>( ::BIO_read(external_, buff, size) );
 }
 
-std::size_t session::read(std::error_code& ec, uint8_t * const to, std::size_t bytes) const noexcept
+std::size_t session::handshake(const uint8_t* buff, uint16_t size) noexcept
 {
-	ssize_t chunk;
-	uint8_t *pos = to;
-	std::size_t left = bytes;
-	do {
-		chunk = ::BIO_read( rbuf_, pos, left);
-		if(0 == chunk)
-			break;
-		if( chunk > 0) {
-			pos += static_cast<std::size_t>(chunk);
-			left -= static_cast<std::size_t>(chunk);
-		}
-	} while( (left > 0) || ::BIO_should_retry(rbuf_) );
-	if(chunk < 0)
-		ec = std::make_error_code( std::errc::broken_pipe );
-	return memory_traits::distance(to, pos);
+	::BIO_write(external_, buff, size);
+	::BIO_do_handshake(internal_);
 }
 
-std::size_t session::write(std::error_code& ec, const uint8_t *what, std::size_t length) const noexcept
+int session::decrypt(const uint8_t *what, uint8_t* const to, uint16_t size) const noexcept
 {
-	const uint8_t *pos = what;
-	std::size_t left = length;
-	ssize_t chunk;
-	do {
-		chunk = ::BIO_write(wbuf_, pos, length);
-		if(0 == chunk)
-			break;
-		if(chunk > 0) {
-			pos += static_cast<std::size_t>(chunk);
-			left -= static_cast<std::size_t>(chunk);
-		}
-	} while( (left > 0) && ::BIO_should_retry(wbuf_)  );
-	if(chunk < 0)
-		ec = std::make_error_code( std::errc::broken_pipe );
-	return memory_traits::distance(what, pos);
+	int decrypted = ::BIO_write(external_, static_cast<const void*>(what), size);
+	return decrypted > 0 ? ::SSL_read(ossl_, static_cast<void*>(to), decrypted ) : decrypted;
+}
+
+int session::encrypt(const uint8_t *what, uint8_t* const to, uint16_t size) const noexcept
+{
+	int encrypted = ::SSL_write(ossl_, static_cast<const void*>(what), size);
+	return encrypted > 0 ? ::BIO_read(external_, static_cast<void*>(to), encrypted) : encrypted;
 }
 
 //tls_channel
 
-tls_channel::tls_channel(session&& tlssession,s_read_write_channel&& raw) noexcept:
-	session_( std::forward<session>(tlssession) ),
+tls_channel::tls_channel(session&& ssl,s_read_write_channel&& raw) noexcept:
+	session_( std::forward<session>(ssl) ),
 	raw_( std::forward<s_read_write_channel>(raw) )
 {}
 
@@ -192,15 +172,36 @@ tls_channel::~tls_channel() noexcept
 
 std::size_t tls_channel::read(std::error_code& ec,uint8_t* const buff, std::size_t bytes) const noexcept
 {
-	std::size_t bread = raw_->read(ec, buff, bytes);
-	return !ec ? session_.read(ec, buff, bread) : 0;
+	static constexpr const std::size_t MAX = std::numeric_limits<uint16_t>::max();
+	std::size_t to_read  = bytes < MAX ? bytes: MAX;
+	uint8_t *tmp = memory_traits::calloc_temporary<uint8_t>(to_read);
+	if(nullptr == tmp) {
+		ec = std::make_error_code(std::errc::not_enough_memory);
+		return 0;
+	}
+	std::size_t read = raw_->read(ec, tmp, to_read);
+	if( 0 == read || ec ) {
+		memory_traits::free_temporary(tmp);
+		return 0;
+	}
+	std::size_t ret = static_cast<std::size_t>( session_.decrypt(tmp, buff, static_cast<uint16_t>(read) ) );
+	memory_traits::free_temporary(tmp);
+	return ret;
 }
 
 std::size_t tls_channel::write(std::error_code& ec, const uint8_t* buff,std::size_t size) const noexcept
 {
-	std::size_t ecrypted = session_.write( ec, buff, size);
-	return 0;
-	//return !ec ? session_.write(ec, ) : 0;
+	static constexpr const std::size_t MAX = std::numeric_limits<uint16_t>::max();
+	std::size_t chunk  = size < MAX ? size : MAX;
+	uint8_t *tmp = memory_traits::calloc_temporary<uint8_t>(chunk);
+	if(nullptr == tmp) {
+		ec = std::make_error_code(std::errc::not_enough_memory);
+		return 0;
+	}
+	int ret = session_.encrypt(buff, tmp, chunk);
+	transmit_buffer(ec, raw_, tmp, static_cast<std::size_t>(ret) );
+	memory_traits::free_temporary(tmp);
+	return ec ? 0 : static_cast<std::size_t>(ret);
 }
 
 // service
@@ -256,8 +257,16 @@ service::~service() noexcept
 
 s_read_write_channel service::new_client_connection(std::error_code& ec, s_read_write_channel&& socket) const noexcept
 {
-	ec = std::make_error_code(std::errc::protocol_not_supported);
-    return s_read_write_channel();
+	session ssl = session::open(ec, client_context_ .get() );
+	if(ec)
+		return s_read_write_channel();
+	uint8_t buff[ 4096 ];
+	std::size_t len = ssl.handshake(buff, 4096);
+	transmit_buffer(ec, socket, buff, len );
+	if(ec)
+		return s_read_write_channel();
+	tls_channel *ret = nobadalloc<tls_channel>::construct(ec, std::move(ssl), std::move(socket) );
+	return ec  ? s_read_write_channel() : s_read_write_channel(ret);
 }
 
 

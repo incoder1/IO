@@ -74,25 +74,29 @@ session session::client_session(std::error_code &ec, ::gnutls_certificate_creden
 {
 	session ret( std::forward<s_read_write_channel>(socket) );
 	int err = ::gnutls_init( &ret.peer_, GNUTLS_CLIENT);
-	if(err > 0)
-		ec = std::make_error_code( std::errc::connection_refused );
-	err = ::gnutls_set_default_priority(ret.peer_);
-	if(err > 0 )
-		ec = std::make_error_code( std::errc::connection_refused );
-
-	err = ::gnutls_credentials_set(ret.peer_, GNUTLS_CRD_CERTIFICATE, crd);
-	if(err > 0 )
-		ec = std::make_error_code( std::errc::connection_refused );
-
-	::gnutls_transport_ptr_t transport = reinterpret_cast<::gnutls_transport_ptr_t>( ret.socket_.get() );
-
-	::gnutls_transport_set_ptr( ret.peer_, transport );
-	::gnutls_transport_set_push_function( ret.peer_, &session::push );
-	::gnutls_transport_set_pull_function( ret.peer_, &session::pull );
-
-	err = client_handshake( ret.peer_ );
 	if(GNUTLS_E_SUCCESS != err)
 		ec = std::make_error_code( std::errc::connection_refused );
+	else {
+		err = ::gnutls_set_default_priority(ret.peer_);
+		if(GNUTLS_E_SUCCESS != err)
+			ec = std::make_error_code( std::errc::connection_refused );
+		else {
+			err = ::gnutls_credentials_set(ret.peer_, GNUTLS_CRD_CERTIFICATE, crd);
+			if(GNUTLS_E_SUCCESS != err)
+				ec = std::make_error_code( std::errc::connection_refused );
+			else {
+				::gnutls_transport_ptr_t transport = reinterpret_cast<::gnutls_transport_ptr_t>( ret.socket_.get() );
+
+				::gnutls_transport_set_ptr( ret.peer_, transport );
+				::gnutls_transport_set_push_function( ret.peer_, &session::push );
+				::gnutls_transport_set_pull_function( ret.peer_, &session::pull );
+
+				err = client_handshake( ret.peer_ );
+				if(GNUTLS_E_SUCCESS != err)
+					ec = std::make_error_code( std::errc::connection_refused );
+			}
+		}
+	}
 	return ret;
 }
 
@@ -100,8 +104,7 @@ session session::client_session(std::error_code &ec, ::gnutls_certificate_creden
 session::session(s_read_write_channel&& socket) noexcept:
 	peer_(nullptr),
 	socket_( std::forward<s_read_write_channel>( socket ) )
-{
-}
+{}
 
 std::size_t session::read(std::error_code& ec, uint8_t * const data, std::size_t max_size) const noexcept
 {

@@ -68,8 +68,8 @@ public:
 
 	constexpr session() noexcept:
 		ossl_(nullptr),
-		rbuf_(nullptr),
-		wbuf_(nullptr)
+		internal_(nullptr),
+		external_(nullptr)
 	{}
 
 	session(session&& c) noexcept;
@@ -80,11 +80,12 @@ public:
 		return *this;
 	}
 
-	bool hand_stake(std::error_code& ec,const char* host, const s_read_write_channel& raw) noexcept;
+	std::size_t connect(uint8_t * const buff, uint16_t size) noexcept;
+	std::size_t handshake(const uint8_t* buff, uint16_t size) noexcept;
 
-	std::size_t read(std::error_code& ec, uint8_t * const to, std::size_t bytes) const noexcept;
+	int decrypt(const uint8_t *what, uint8_t* const to, uint16_t size) const noexcept;
 
-	std::size_t write(std::error_code& ec, const uint8_t *what, std::size_t length) const noexcept;
+	int encrypt(const uint8_t *what, uint8_t* const to, uint16_t size) const noexcept;
 
 	~session() noexcept;
 
@@ -93,11 +94,11 @@ public:
 	}
 
 private:
-	session(::SSL* const ossl, ::BIO* const rbuf,::BIO* const wbub) noexcept;
+	session(::SSL* const ossl, ::BIO* const internal,::BIO* const external) noexcept;
 private:
 	::SSL *ossl_;
-	::BIO *rbuf_;
-	::BIO *wbuf_;
+	::BIO *internal_;
+	::BIO *external_;
 };
 
 class IO_PUBLIC_SYMBOL tls_channel final: public read_write_channel

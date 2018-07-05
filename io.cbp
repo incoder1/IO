@@ -215,6 +215,7 @@
 			<Add directory="include/net" />
 			<Add directory="src" />
 		</Compiler>
+		<Unit filename="CMakeLists.txt" />
 		<Unit filename="include/buffer.hpp" />
 		<Unit filename="include/channels.hpp" />
 		<Unit filename="include/charsetcvt.hpp" />
