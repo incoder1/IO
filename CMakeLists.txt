@@ -94,7 +94,7 @@ elseif(${CMAKE_BUILD_TYPE} STREQUAL "Debug")
 	set(LIBRARY_OUTPUT_PATH ${CMAKE_BINARY_DIR}/Debug/lib)
 endif()
 
-if(CMAKE_CXX_CREATE_SHARED_LIBRARY)
+if(BUILD_SHARED_LIBS)
 	add_library(io SHARED ${COMMON_SRC} ${PLATFORM_SRC})
 else()
 	add_library(io ${COMMON_SRC} ${PLATFORM_SRC})

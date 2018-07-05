@@ -28,5 +28,5 @@ before_install:
 script:  
   - mkdir build
   - cd build
-  - cmake .. -DCMAKE_BUILD_TYPE=Debug
+  - cmake .. -DCMAKE_BUILD_TYPE=Release -DBUILD_SHARED_LIBS=ON -DNO_EXCEPTIONS=ON -DNO_RTTI=ON
   - cmake --build .
