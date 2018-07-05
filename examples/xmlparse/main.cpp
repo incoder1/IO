@@ -243,6 +243,9 @@ int main(int argc, const char** argv)
 		return ec.value();
 	}
 	// Parsing is done
-	cout << "End of document\n\t" <<  xs->row() << " rows processed" << std::endl;
+	if( xs->row() > 1 )
+		cout << "End of document\n\t" <<  xs->row() << " rows processed" << std::endl;
+	else
+		cout << "End of document\n\t" <<  xs->col() << " symbols processed" << std::endl;
 	return 0;
 }
