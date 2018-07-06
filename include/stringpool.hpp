@@ -150,7 +150,7 @@ public:
 	/// \param rhs zero ending string check with
 	inline bool equal(const char* rhs) const noexcept {
 		const char *tmp = data();
-		return tmp == rhs ? true : 0 == std::strcmp(tmp, rhs);
+		return tmp == rhs ? true : 0 == io_strcmp(tmp, rhs);
 	}
 
 	/// Check this string equality
@@ -163,7 +163,7 @@ public:
 	/// Compare this string with another
 	bool operator<(const cached_string& rhs) const noexcept {
         return (data_ == rhs.data_) ? 0
-        :  std::strcmp( data(), rhs.data() ) < 0;
+        :  io_strcmp( data(), rhs.data() ) < 0;
 	}
 
 private:
@@ -208,8 +208,7 @@ public:
 
 	static s_string_pool create(std::error_code& ec) noexcept;
 
-	virtual ~string_pool() noexcept override
-	{}
+	virtual ~string_pool() noexcept override;
 
 	/// Returns a cached_string object for the raw character array.
 	/// Allocates memory, if string is not presented in this pool

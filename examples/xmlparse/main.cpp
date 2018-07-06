@@ -43,10 +43,10 @@ void print_start_doc(std::ostream& stm,const xml::s_event_stream_parser& s)
 	xml::document_event e = s->parse_start_doc();
 	// check parsing was success
 	if( !s->is_error() ) {
-		stm<< "start document:\n";
-		stm<<"\tversion: " << e.version();
-		stm<<" encoding: " << e.encoding();
-		stm<<" standalone: " << (e.standalone() ? "yes" : "no") << std::endl;
+	    stm << "start document:\n";
+	    stm << "\tversion: " << e.version();
+	    stm << " encoding: " << e.encoding();
+	    stm << " standalone: " << (e.standalone() ? "yes" : "no") << std::endl;
 	}
 }
 
@@ -70,9 +70,9 @@ static void print_start_element(std::ostream& stm, const xml::s_event_stream_par
 	xml::start_element_event e = s->parse_start_element();
 	// check parsing was success
 	if( !s->is_error() ) {
-		stm<<"Start element:\n";
-		stm<<"\tprefix:"<<e.name().prefix();
-		stm<<" name:"<< e.name().local_name();
+		stm << "Start element:\n";
+		stm << "\tprefix:"<<e.name().prefix();
+		stm << " name:"<< e.name().local_name();
 		// show whether  <tag attr="att"/> or <tag></tag>
 		// parser not generating end element events for
 		// self closing tags
@@ -94,8 +94,8 @@ static void print_end_element(std::ostream& stm, const xml::s_event_stream_parse
 {
 	xml::end_element_event e = s->parse_end_element();
 	if(!s->is_error()) {
-		stm<<"End element:\n\tprefix:" << e.name().prefix();
-		stm<<" name:" << e.name().local_name() << std::endl;
+		stm << "End element:\n\tprefix:" << e.name().prefix();
+		stm << " name:" << e.name().local_name() << std::endl;
 	}
 }
 
@@ -124,10 +124,9 @@ static void print_event(std::ostream& stm,const xml::s_event_stream_parser& s)
 
 // output a string into a stream
 
-static bool log_chars(std::ostream& strm,const char* msg, const const_string& chars)
+static void log_chars(std::ostream& strm,const char* msg, const const_string& chars)
 {
 	strm << msg << '\n' << chars << std::endl;
-    return true;
 }
 
 /// print xml characters
@@ -229,7 +228,7 @@ int main(int argc, const char** argv)
 			// xs->skip_chars();
 			break;
 		}
-	// until state is enf of document
+	// until state is end of document
 	} while(xml::state_type::eod != state);
 	// check whether there were an error
 	if( xs->is_error() ) {

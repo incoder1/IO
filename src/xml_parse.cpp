@@ -36,7 +36,6 @@ static constexpr const int SOLIDUS = 47;// '/'
 static constexpr const int HYPHEN = 45;// '-'
 static constexpr const int COLON = 58; // ':'
 static constexpr const int ENDL = 0;
-static constexpr const int iEOF = std::char_traits<char32_t>::eof();
 
 #ifdef UCHAR_MAX
 static constexpr const std::size_t MAX_DEPTH = UCHAR_MAX;
@@ -138,19 +137,19 @@ static constexpr char tail(const uint8_t tail) noexcept
 	return tail & TAIL_MASK;
 }
 
-static char32_t decode2(const uint8_t* mb2) noexcept
+static uint32_t decode2(const uint8_t* mb2) noexcept
 {
 	return ( (mb2[0] & B2_MASK) << SH2) + tail(mb2[1]);
 }
 
-static char32_t decode3(const uint8_t* mb3) noexcept
+static uint32_t decode3(const uint8_t* mb3) noexcept
 {
 	return ( (mb3[0] & B3_MASK) << SH3)  +
 		   ( tail(mb3[1]) << SH2) +
 		   ( tail(mb3[2]) );
 }
 
-static char32_t decode4(const uint8_t* mb4) noexcept
+static uint32_t decode4(const uint8_t* mb4) noexcept
 {
 	return ( (mb4[0] & B4_MASK) << SH4) +
 		   ( tail(mb4[1]) << SH3) +
@@ -168,62 +167,64 @@ using detail::decode4;
 
 #else
 
-static __forceinline char32_t decode2(const uint8_t* mb2) noexcept
+static __forceinline uint32_t decode2(const uint8_t* mb2) noexcept
 {
 	return io_bswap32( detail::decode2(mb2) );
 }
 
-static __forceinline char32_t decode3(const uint8_t* mb3) noexcept
+static __forceinline uint32_t decode3(const uint8_t* mb3) noexcept
 {
 	return io_bswap32( detail::decode3(mb3) );
 }
 
-static __forceinline char32_t decode4(const uint8_t* mb4) noexcept
+static __forceinline uint32_t decode4(const uint8_t* mb4) noexcept
 {
 	return io_bswap32( detail::decode4(mb4) );
 }
 
 #endif // IO_IS_LITTLE_ENDIAN
 
+
 } // namespace u8_decode
 
-static IO_NO_INLINE error check_xml_name(const char* tn) noexcept
+static constexpr const uint8_t* make_unsigned(const char* str) noexcept
+{
+	return reinterpret_cast<const uint8_t*>(str);
+}
+
+static error check_xml_name(const char* tn) noexcept
 {
 	const char* c = tn;
 	if( io_unlikely( ('\0' == *c) || is_digit(*c) ) )
 		return error::illegal_name;
-	do {
+	uint32_t utf32c;
+	while( '\0' != *c ) {
 		switch( u8_char_size(*c) ) {
 		case io_likely(1):
-			if( io_unlikely( !is_xml_name_char(static_cast<char32_t>(*c) ) ) )
-				return error::illegal_name;
+			utf32c =  *reinterpret_cast<const uint8_t*>(c);
 			++c;
 			break;
 		case 2:
-			if(!is_xml_name_char(u8_decode::decode2( reinterpret_cast<const uint8_t*>(c) ) ) )
-				return error::illegal_name;
+			utf32c = u8_decode::decode2( make_unsigned(c) );
 			c += 2;
 			break;
 		case 3:
-			if(!is_xml_name_char(u8_decode::decode3( reinterpret_cast<const uint8_t*>(c) ) ) )
-				return error::illegal_name;
+			utf32c = u8_decode::decode3( make_unsigned(c) );
 			c += 3;
 			break;
 		case 4:
-			if(!is_xml_name_char(u8_decode::decode4( reinterpret_cast<const uint8_t*>(c) ) ) )
-				return error::illegal_name;
+			utf32c = u8_decode::decode4( make_unsigned(c) );
 			c += 4;
 			break;
 		default:
+			io_unreachable
 			return error::illegal_name;
 		}
+		if( !is_xml_name_char(utf32c) )
+			return error::illegal_name;
 	}
-	while( !cheq('\0',*c) );
 	return error::ok;
 }
-
-
-
 
 static error validate_tag_name(const char* name) noexcept
 {
@@ -276,12 +277,13 @@ inline void event_stream_parser::assign_error(error ec) noexcept
 		state_.ec = ec;
 }
 
-inline void event_stream_parser::putch(byte_buffer& buf, char ch) noexcept {
+inline void event_stream_parser::putch(byte_buffer& buf, char ch) noexcept
+{
 	if( io_unlikely( !buf.put(ch) ) ) {
-			if(  io_unlikely( !buf.ln_grow() ) )
-				assign_error(error::out_of_memory);
-			else
-				buf.put(ch);
+		if(  io_unlikely( !buf.ln_grow() ) )
+			assign_error(error::out_of_memory);
+		else
+			buf.put(ch);
 	}
 }
 
@@ -484,7 +486,7 @@ void event_stream_parser::skip_dtd() noexcept
 	do {
 		i = next();
 		switch(i) {
-		case iEOF:
+		case EOF:
 			assign_error(error::illegal_dtd);
 			break;
 		case LEFTB:
@@ -519,7 +521,7 @@ const_string event_stream_parser::read_dtd() noexcept
 	do {
 		i = next();
 		switch(i) {
-		case iEOF:
+		case EOF:
 			assign_error(error::illegal_dtd);
 			return const_string();
 		case LEFTB:
@@ -628,14 +630,24 @@ const_string event_stream_parser::read_chars() noexcept
 		scan_buf_[0] = '<';
 		return const_string(tmp);
 	}
-
-	for(char c = next(); !cheq(LEFTB, c) && !is_error(); c = next() ) {
-		if( io_unlikely( cheq(RIGHTB,c) || cheq(iEOF,c) ) ) {
+	char c;
+	bool reading = true;
+	do {
+		c = next();
+		switch( char8_traits::to_int_type(c) )
+		{
+		case LEFTB:
+			reading = false;
+			break;
+		case RIGHTB:
+		case EOF:
 			assign_error(error::root_element_is_unbalanced);
 			break;
 		}
 		putch(ret, c);
-	}
+		if( io_unlikely( is_error() ) )
+			break;
+	} while( reading );
 
 	if( is_error() )
 		return const_string();
@@ -662,7 +674,7 @@ void event_stream_parser::skip_chars() noexcept
 			sb_clear( scan_buf_ );
 			assign_error(error::illegal_chars);
 			return;
-		case iEOF:
+		case EOF:
 			sb_clear( scan_buf_ );
 			assign_error(error::root_element_is_unbalanced);
 			return;
@@ -909,7 +921,7 @@ void event_stream_parser::scan() noexcept
 	case LEFTB:
 		s_entity();
 		break;
-	case iEOF:
+	case EOF:
 		state_.current = state_type::eod;
 		if( 0 != nesting_)
 			assign_error(error::root_element_is_unbalanced);

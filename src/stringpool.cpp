@@ -69,24 +69,29 @@ string_pool::string_pool() noexcept:
 	pool_()
 {}
 
+string_pool::~string_pool() noexcept
+{}
+
 
 const cached_string string_pool::get(const char* s, std::size_t count) noexcept
 {
 	if( io_unlikely( (nullptr == s || '\0' == *s || count == 0 ) ) )
 		return cached_string();
+
 	const std::size_t str_hash = io::hash_bytes(s,count);
 	pool_type::const_iterator it = pool_.find( str_hash );
 	if(  it != pool_.end() ) {
-		for(std::size_t i = pool_.count( str_hash ); i > 0 ; --i, ++it) {
+		std::size_t i = pool_.count( str_hash );
+		while(i > 0) {
 			if( io_likely( it->second.equal(s, count) ) )
 				return it->second;
+			--i;
+			++it;
 		}
 	}
+
 	std::pair<pool_type::iterator,bool> ret = pool_.emplace( str_hash, cached_string(s, count) );
-	if( io_likely(ret.second) )
-		return ret.first->second;
-	else
-		return cached_string(s, count);
+	return ret.second ? ret.first->second : cached_string(s, count);
 }
 
 

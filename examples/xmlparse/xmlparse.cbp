@@ -35,6 +35,7 @@
 				<Option compiler="gcc" />
 				<Option parameters="test.xml" />
 				<Compiler>
+					<Add option="-flto" />
 					<Add option="-O3" />
 					<Add option="-Weffc++" />
 					<Add option="-pedantic" />
@@ -49,6 +50,8 @@
 					<Add option="-DIO_SHARED_LIB" />
 				</Compiler>
 				<Linker>
+					<Add option="-O3" />
+					<Add option="-flto" />
 					<Add option="-s" />
 					<Add option="-fno-set-stack-executable" />
 					<Add library="iconv.dll" />

@@ -18,6 +18,7 @@
 					<Add option="-pedantic" />
 					<Add option="-std=c++11" />
 					<Add option="-pg" />
+					<Add option="-Og" />
 					<Add option="-g" />
 					<Add option="-fexceptions" />
 					<Add option="-DIO_BUILD" />
@@ -118,7 +119,6 @@
 					<Add option="-pedantic" />
 					<Add option="-Wall" />
 					<Add option="-std=c++14" />
-					<Add option="-Wl,-allow-multiple-definition" />
 					<Add option="-fno-exceptions" />
 					<Add option="-fno-rtti" />
 					<Add option="-DNDEBUG" />
@@ -129,13 +129,14 @@
 					<Add directory="$(#msys2.include)" />
 				</Compiler>
 				<Linker>
-					<Add option="-O3" />
 					<Add option="-flto" />
-					<Add option="-Wl,-allow-multiple-definition" />
-					<Add option="-minline-stringops-dynamically" />
+					<Add option="-s" />
 					<Add option="-fdeclone-ctor-dtor" />
 					<Add option="-fdevirtualize-at-ltrans" />
+					<Add option="-O3" />
+					<Add option="-Wl,-allow-multiple-definition" />
 					<Add option="-mtune=generic" />
+					<Add option="-minline-stringops-dynamically" />
 					<Add option="-mmovbe" />
 					<Add option="-mmmx" />
 					<Add option="-msse" />
