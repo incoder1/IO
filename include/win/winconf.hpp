@@ -65,6 +65,6 @@
 #	endif // __GNUG__
 #endif // IO_SHARED_LIB
 
-#include "hmalloc.hpp"
+#include "memory_traits.hpp"
 
 #endif // __IO_WINCONG_HPP_INCLUDED__

@@ -10,7 +10,7 @@
  */
 
 #include "stdafx.hpp"
-#include "hmalloc.hpp"
+#include "memory_traits.hpp"
 #include "criticalsection.hpp"
 
 #include <atomic>
@@ -37,7 +37,7 @@ private:
 		::HANDLE heap = ::HeapCreate(0,0,0);
 		if(INVALID_HANDLE_VALUE != heap) {
 			void *raw = ::HeapAlloc(heap, HEAP_NO_SERIALIZE, sizeof(heap_allocator) );
-			if( io_likely( NULL != raw) )
+			if( io_likely( nullptr != raw) )
 				return new (raw) heap_allocator(heap);
 			else {
 				std::new_handler hnd = std::get_new_handler();

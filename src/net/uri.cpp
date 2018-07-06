@@ -13,6 +13,7 @@
 #include "net/uri.hpp"
 
 #include <cstdlib>
+#include <limits>
 
 namespace io {
 
@@ -45,7 +46,7 @@ static inline bool is_reserved(char c)
 
 static inline bool is_user_info_character(char c)
 {
-	return is_unreserved(c) || is_sub_delim(c) || is_one_of(c,'%',':');
+	return is_unreserved(c) || is_one_of(c,'%',':') || is_sub_delim(c);
 }
 
 static inline bool is_authorety_character(char c)
@@ -230,9 +231,9 @@ s_uri uri::parse(std::error_code& ec, const char* str) noexcept
 			++e;
 		}
 		if(b != e)
-            path = const_string( b, e );
-        else
-            path = const_string("/");
+			path = const_string( b, e );
+		else
+			path = const_string("/");
 		if(path.empty())
 			return return_error(ec, std::errc::not_enough_memory);
 		b = e;
@@ -272,25 +273,25 @@ s_uri uri::parse(std::error_code& ec, const char* str) noexcept
 		memory_traits::free_temporary(normalized);
 
 	uri *ret = nobadalloc<uri>::construct(ec,
-	              std::move(scheme),
-	              port,
-	              std::move(host),
-	              std::move(user_info),
-	              std::move(path),
-	              std::move(query),
-	              std::move(fragment)
-					);
+										  std::move(scheme),
+										  port,
+										  std::move(host),
+										  std::move(user_info),
+										  std::move(path),
+										  std::move(query),
+										  std::move(fragment)
+										 );
 	return nullptr != ret ? s_uri(ret) : s_uri();
 }
 
 uri::uri(
-    const_string&& scheme,
-    uint16_t port,
-    const_string&& host,
-    const_string&& user_info,
-    const_string&& path,
-    const_string&& query,
-    const_string&& fragment) noexcept:
+	const_string&& scheme,
+	uint16_t port,
+	const_string&& host,
+	const_string&& user_info,
+	const_string&& path,
+	const_string&& query,
+	const_string&& fragment) noexcept:
 	port_(port),
 	scheme_(scheme),
 	host_( std::forward<const_string>(host) ),
@@ -300,6 +301,19 @@ uri::uri(
 	fragment_( std::forward<const_string>(fragment) )
 {}
 
+
+std::size_t uri::hash() const noexcept
+{
+	std::size_t ret = 0;
+	hash_combine( ret, scheme_.hash() );
+	hash_combine( ret, host_.hash() );
+	hash_combine( ret, user_info_.hash() );
+	hash_combine( ret, path_.hash() );
+	hash_combine( ret, query_.hash() );
+	hash_combine( ret, fragment_.hash() );
+	hash_combine( ret, port_ );
+	return ret;
+}
 
 
 }  // namespace net

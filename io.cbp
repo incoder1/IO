@@ -250,7 +250,7 @@
 		<Unit filename="include/posix/files.hpp">
 			<Option target="debug-unix-gcc-static-64bit" />
 		</Unit>
-		<Unit filename="include/posix/hmalloc.hpp">
+		<Unit filename="include/posix/memory_traits.hpp">
 			<Option target="debug-unix-gcc-static-64bit" />
 		</Unit>
 		<Unit filename="include/posix/posixconf.hpp">
@@ -321,10 +321,10 @@
 			<Option target="release-win-gcc-dll-x64" />
 			<Option target="debug-win-gcc-static-openssl-x64" />
 		</Unit>
-		<Unit filename="include/win/hmalloc.hpp">
+		<Unit filename="include/win/memory_traits.hpp">
 			<Option target="debug-win-gcc-static-x64" />
-			<Option target="release-win-gcc-static-x64" />
 			<Option target="debug-win-gcc-dll-x64" />
+			<Option target="release-win-gcc-static-x64" />
 			<Option target="release-win-gcc-dll-x64" />
 			<Option target="debug-win-gcc-static-openssl-x64" />
 		</Unit>

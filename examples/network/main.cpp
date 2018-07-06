@@ -12,7 +12,7 @@
 
 #endif // _WIN32
 
-#define IO_TLS_PROVIDER_GNUTSL
+//#define IO_TLS_PROVIDER_GNUTSL
 
 #include <errorcheck.hpp>
 #include <network.hpp>

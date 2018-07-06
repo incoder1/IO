@@ -35,6 +35,7 @@ public:
 	/// \param ec operation error code
 	/// \return start element event
 	start_element_event next_tag_begin(std::error_code& ec) noexcept;
+
 	/// Drop parser to the next tag end
 	/// WARN. Self closed tags do not handled by this method
 	/// \param ec operation error code

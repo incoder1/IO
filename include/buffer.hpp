@@ -564,7 +564,7 @@ private:
 
 	template< typename T >
 	inline T binary_get() {
-		static_assert( std::is_arithmetic<T>::value, "Must be an arithmetic type" );
+		static_assert( std::is_arithmetic<T>::value && ! std::is_pointer<T>::value, "Must be an arithmetic type" );
 		if( empty() )
 			return static_cast<T>( 0 );
 		T ret;

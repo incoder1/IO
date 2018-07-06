@@ -24,6 +24,6 @@
 
 #define IO_MALLOC_ATTR __attribute__ ((dllexport,malloc))
 
-#include  "hmalloc.hpp"
+#include  "memory_traits.hpp"
 
 #endif // __IO_POSIXCONF_HPP_INCLUDED__

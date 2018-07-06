@@ -28,7 +28,7 @@
 namespace io {
 
 namespace {
-	typedef std::char_traits<char> char8_traits;
+typedef std::char_traits<char> char8_traits;
 }
 
 /// Compares two characters
@@ -89,46 +89,37 @@ constexpr inline bool is_one_of(_cht1 what, _cht2 c1, _cht2 c2, _cht2 c3, _cht2 
 	return is_one_of(what,c1,c2,c3,c4,c5,c6,c7) || cheq(what, c8);
 }
 
-template<typename _cht1, typename _cht2>
-inline bool is_one_of(_cht1 what, std::initializer_list<_cht2> spn)
-{
-	for(auto it = spn.begin(); it != spn.end(); ++it)
-		if( cheq(what, *it) )
-			return true;
-	return false;
-}
-
 inline const char* find_delimiter(const char* where, const char* delimitters)
 {
 #ifdef  io_strpbrk
 	return io_strpbrk( where, delimitters);
 #else
-    return std::strpbrk( where, delimitters);
+	return std::strpbrk( where, delimitters);
 #endif // io_strcspn
 }
 
 // [A-Z] or [a-z] or [0-9] etc
 inline constexpr bool between(uint32_t first, uint32_t last, uint32_t ch)
 {
-	return ( ch <= last  ) && ( ch >= first );
+	return ( ch >= first ) && ( ch <= last  );
 }
 
 template<typename __char_t>
 inline constexpr bool is_alpha(__char_t ch)
 {
-    typedef std::char_traits<__char_t> chtr;
+	typedef std::char_traits<__char_t> chtr;
 #ifdef io_isalpha
-		return 0 != io_isalpha( chtr::to_int_type(ch) );
+	return 0 != io_isalpha( chtr::to_int_type(ch) );
 #else
 	return between(
-			char8_traits::to_int_type('a'),
-			char8_traits::to_int_type('z'),
-			chtr::to_int_type(ch) )
-		  ||
+			   char8_traits::to_int_type('a'),
+			   char8_traits::to_int_type('z'),
+			   chtr::to_int_type(ch) )
+		   ||
 		   between(
-			 char8_traits::to_int_type('A'),
-			 char8_traits::to_int_type('Z'),
-			 chtr::to_int_type(ch));
+			   char8_traits::to_int_type('A'),
+			   char8_traits::to_int_type('Z'),
+			   chtr::to_int_type(ch));
 #endif // io_isalpha
 }
 
@@ -142,11 +133,11 @@ inline constexpr bool is_whitespace(__char_t ch)
 	return io_isspace( tr::to_int_type(ch) );
 #else
 	return char8_traits::to_int_type(' ') == tr::to_int_type(ch)
-	       || between(
-				char8_traits::to_int_type('\t'),
-				char8_traits::to_int_type('\r'),
-				tr::to_int_type(ch)
-			  );
+		   || between(
+			   char8_traits::to_int_type('\t'),
+			   char8_traits::to_int_type('\r'),
+			   tr::to_int_type(ch)
+		   );
 #endif // io_isspace
 }
 
@@ -160,10 +151,10 @@ constexpr inline bool is_digit(_char_t ch)
 	return io_isdigit( tr::to_int_type(ch) );
 #else
 	return between(
-			char8_traits::to_int_type('0'),
-			char8_traits::to_int_type('9'),
-			tr::to_int_type(ch)
-		);
+			   char8_traits::to_int_type('0'),
+			   char8_traits::to_int_type('9'),
+			   tr::to_int_type(ch)
+		   );
 #endif // io_isdigit
 }
 
@@ -183,10 +174,10 @@ static constexpr inline bool is_uppercase_latin1(_char_t ch)
 	return io_isupper(tr::to_int_type(ch));
 #else
 	return between(
-				char8_traits::to_int_type('A'),
-				char8_traits::to_int_type('Z'),
-				tr::to_int_type(ch)
-			);
+			   char8_traits::to_int_type('A'),
+			   char8_traits::to_int_type('Z'),
+			   tr::to_int_type(ch)
+		   );
 #endif // io_isupper
 }
 
@@ -246,29 +237,29 @@ inline bool is_xml_name_start_char_lo(char32_t ch) noexcept
 inline bool is_xml_name_start_char(char32_t ch) noexcept
 {
 	return is_xml_name_start_char_lo(ch) ||
-	       between(0xC0,0xD6, ch)    ||
-	       between(0xD8,0xF6, ch)    ||
-	       between(0xF8,0x2FF,ch)    ||
-	       between(0x370,0x37D,ch)   ||
-	       between(0x37F,0x1FFF,ch)  ||
-	       between(0x200C,0x200D,ch) ||
-	       between(0x2070,0x218F,ch) ||
-	       between(0x2C00,0x2FEF,ch) ||
-	       between(0x3001,0xD7FF,ch) ||
-	       between(0xF900,0xFDCF,ch) ||
-	       between(0xFDF0,0xFFFD,ch) ||
-	       between(0x10000,0xEFFFF,ch);
+		   between(0xC0,0xD6, ch)    ||
+		   between(0xD8,0xF6, ch)    ||
+		   between(0xF8,0x2FF,ch)    ||
+		   between(0x370,0x37D,ch)   ||
+		   between(0x37F,0x1FFF,ch)  ||
+		   between(0x200C,0x200D,ch) ||
+		   between(0x2070,0x218F,ch) ||
+		   between(0x2C00,0x2FEF,ch) ||
+		   between(0x3001,0xD7FF,ch) ||
+		   between(0xF900,0xFDCF,ch) ||
+		   between(0xFDF0,0xFFFD,ch) ||
+		   between(0x10000,0xEFFFF,ch);
 }
 
 // Works only for UCS-4
 static constexpr inline bool is_xml_name_char(uint32_t ch) noexcept
 {
 	return is_digit(ch) ||
-	       // - | . | U+00B7
-	       is_one_of(ch,0x2D,0x2E,0xB7) ||
-	       is_xml_name_start_char(ch) ||
-	       between(0x0300,0x036F,ch)  ||
-	       between(0x203F,0x2040,ch);
+		   // - | . | U+00B7
+		   is_one_of(ch,0x2D,0x2E,0xB7) ||
+		   is_xml_name_start_char(ch) ||
+		   between(0x0300,0x036F,ch)  ||
+		   between(0x203F,0x2040,ch);
 }
 
 template<typename _char_t>
@@ -367,8 +358,9 @@ inline const char *strstr2b(const char *s, const char *n)
 	return reinterpret_cast<const char*>( us-1 );
 }
 
-inline char* find_first_symbol(const char* s) {
-    static constexpr const char* pattern = "\t\n\v\f\r ";
+inline char* find_first_symbol(const char* s)
+{
+	static constexpr const char* pattern = "\t\n\v\f\r ";
 	return const_cast<char*>(s) + io_strspn(s, pattern);
 }
 
@@ -378,24 +370,27 @@ inline size_t xmlname_strspn(const char *s)
 	return io_strcspn( s, pattern);
 }
 
-inline constexpr bool single_byte(const char c) {
+inline constexpr bool single_byte(const char c)
+{
 	return static_cast<uint8_t>(c) < uint8_t(0x80U);
 }
 
-inline constexpr bool ismbnext(const char c) {
+inline constexpr bool ismbnext(const char c)
+{
 	return 2 == ( uint8_t(c) >> 6);
 }
 
-inline uint8_t u8_char_size(const char ch) {
+inline uint8_t u8_char_size(const char ch)
+{
 	if( io_likely( single_byte(ch) ) )
 		return 1;
 #ifdef IO_IS_LITTLE_ENDIAN
-		static constexpr unsigned int MB_SHIFT = ( sizeof(unsigned int) << 3 ) - 8;
-		unsigned int c = static_cast<unsigned int>(ch) << MB_SHIFT;
+	static constexpr unsigned int MB_SHIFT = ( sizeof(unsigned int) << 3 ) - 8;
+	unsigned int c = static_cast<unsigned int>(ch) << MB_SHIFT;
 #else
-		unsigned int c = static_cast<unsigned int>(ch);
+	unsigned int c = static_cast<unsigned int>(ch);
 #endif // IO_IS_LITTLE_ENDIAN
-		return static_cast<unsigned int>( io_clz( ~c ) );
+	return static_cast<unsigned int>( io_clz( ~c ) );
 }
 
 

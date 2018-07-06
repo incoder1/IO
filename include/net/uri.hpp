@@ -9,6 +9,8 @@
 
 #include <functional>
 #include <ostream>
+#include <type_traits>
+
 #include <conststring.hpp>
 
 namespace io {
@@ -73,6 +75,17 @@ private:
         const_string&& path,
         const_string&& query,
         const_string&& fragment) noexcept;
+
+
+	template <typename T>
+	static constexpr inline void hash_combine(std::size_t& seed,const T& v) noexcept
+	{
+		static_assert(std::is_arithmetic<T>::value && !std::is_pointer<T>::value, " Only arithmetic non pointers");
+		const constexpr std::size_t PRIME =  0x9E3779B9;
+    	seed ^= v + PRIME + ( seed << 6 ) + ( seed >> 2);
+	}
+
+
 public:
     /// Returns this URI scheme
     /// \return scheme
@@ -117,16 +130,7 @@ public:
 
     /// Making hash value for this URI
     /// \return hash value for this URI
-    std::size_t hash() const noexcept {
-        static constexpr std::size_t PRIME = 31;
-        std::size_t ret = PRIME + scheme_.hash();
-        ret = PRIME * ret + host_.hash();
-        ret = PRIME * ret + user_info_.hash();
-        ret = PRIME * ret + path_.hash();
-        ret = PRIME * ret + query_.hash();
-        ret = PRIME * ret + fragment_.hash();
-        return PRIME * ret + static_cast<std::size_t>(port_);
-    }
+    std::size_t hash() const noexcept;
 
 private:
     uint16_t port_;
