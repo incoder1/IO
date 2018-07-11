@@ -192,6 +192,85 @@ static constexpr const uint8_t* make_unsigned(const char* str) noexcept
 	return reinterpret_cast<const uint8_t*>(str);
 }
 
+// Works only for UCS-4
+#ifdef __GNUG__
+
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wpedantic"
+
+static bool is_xml_name_char(uint32_t ch) noexcept
+{
+	switch( static_cast<uint32_t>(ch) ) {
+		case 0x5F:
+		case 0x3A:
+		case 0x2D:
+		case 0x2E:
+		case 0xB7:
+		case 0x30 ... 0x39:
+		case 0x41 ... 0x5A:
+		case 0x61 ... 0x7A:
+		case 0xC0 ... 0xD6:
+		case 0xD8 ... 0xF6:
+		case 0xF8 ... 0x2FF:
+		case 0x370 ... 0x37D:
+		case 0x37F ... 0x1FFF:
+		case 0x200C ... 0x200D:
+		case 0x203F ... 0x2040:
+		case 0x2070 ... 0x218F:
+		case 0x2C00 ... 0x2FEF:
+		case 0x0300 ... 0x036F:
+		case 0x3001 ... 0xD7FF:
+		case 0xF900 ... 0xFDCF:
+		case 0xFDF0 ... 0xFFFD:
+		case 0x10000 ... 0xEFFFF:
+			return true;
+		default:
+			return false;
+	}
+}
+
+
+#pragma GCC diagnostic pop
+
+#else
+
+static bool is_xml_name_start_char_lo(char32_t ch) noexcept
+{
+	// _ | :
+	return is_one_of(ch,0x5F,0x3A) || is_latin1(ch);
+}
+
+statics bool is_xml_name_start_char(char32_t ch) noexcept
+{
+	return is_xml_name_start_char_lo(ch) ||
+		   between(0xC0,0xD6, ch)    ||
+		   between(0xD8,0xF6, ch)    ||
+		   between(0xF8,0x2FF,ch)    ||
+		   between(0x370,0x37D,ch)   ||
+		   between(0x37F,0x1FFF,ch)  ||
+		   between(0x200C,0x200D,ch) ||
+		   between(0x2070,0x218F,ch) ||
+		   between(0x2C00,0x2FEF,ch) ||
+		   between(0x3001,0xD7FF,ch) ||
+		   between(0xF900,0xFDCF,ch) ||
+		   between(0xFDF0,0xFFFD,ch) ||
+		   between(0x10000,0xEFFFF,ch);
+}
+
+static bool is_xml_name_char(uint32_t ch) noexcept
+{
+	return is_digit(ch) ||
+		   // - | . | U+00B7
+		   is_one_of(ch,0x2D,0x2E,0xB7) ||
+		   is_xml_name_start_char(ch) ||
+		   between(0x0300,0x036F,ch)  ||
+		   between(0x203F,0x2040,ch);
+}
+
+#endif // __GNUG__
+
+
+
 static error check_xml_name(const char* tn) noexcept
 {
 	const char* c = tn;

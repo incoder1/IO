@@ -170,8 +170,9 @@ template<typename _char_t>
 static constexpr inline bool is_uppercase_latin1(_char_t ch)
 {
 	typedef std::char_traits<_char_t> tr;
-#ifdef io_isupper
-	return io_isupper(tr::to_int_type(ch));
+// MinGW always calling to library function
+#ifndef io_isupper
+	return io_isupper( tr::to_int_type(ch) );
 #else
 	return between(
 			   char8_traits::to_int_type('A'),
@@ -185,11 +186,11 @@ static constexpr inline bool is_uppercase_latin1(_char_t ch)
 template<typename _char_t>
 static constexpr inline bool is_lowercase_latin1(_char_t ch) noexcept
 {
-#ifdef io_islower
-	typedef std::char_traits<_char_t> tr;
-	return io_islower(tr::to_int_type(ch));
+// MinGW always calling to library function
+#ifndef io_islower
+	return io_islower( ch );
 #else
-	return between( char8_traits::to_int_type('a'), char8_traits::to_int_type('z'), ch );
+	return between( 'a', 'z', ch );
 #endif // io_islower
 }
 
@@ -202,65 +203,19 @@ static constexpr inline bool is_latin1(_char_t ch) noexcept
 
 inline char latin1_to_lower(const char ch) noexcept
 {
-#ifdef io_tolower
 	return io_tolower(ch);
-#else
-	return is_uppercase_latin1(ch) ? 'z' - ('Z' - ch) : ch;
-#endif // io_tolower
 }
 
 inline char latin1_to_upper(const char ch) noexcept
 {
-#ifdef io_toupper
 	return io_toupper(ch);
-#else
-	return is_lowercase_latin1(ch) ? 'Z' - ('z' - ch) : ch;
-#endif // io_toupper
 }
 
 inline bool start_with(const char* s,const char* pattern,std::size_t size) noexcept
 {
-#ifdef io_memcmp
 	return 0 == io_memcmp( static_cast<const void*>(s), static_cast<const void*>(pattern), size);
-#else
-	return 0 == char8_traits::compare(s, pattern, size );
-#endif // io_strcmp
 }
 
-inline bool is_xml_name_start_char_lo(char32_t ch) noexcept
-{
-	// _ | :
-	return is_one_of(ch,0x5F,0x3A) || is_latin1(ch);
-}
-
-// Works only for UCS-4
-inline bool is_xml_name_start_char(char32_t ch) noexcept
-{
-	return is_xml_name_start_char_lo(ch) ||
-		   between(0xC0,0xD6, ch)    ||
-		   between(0xD8,0xF6, ch)    ||
-		   between(0xF8,0x2FF,ch)    ||
-		   between(0x370,0x37D,ch)   ||
-		   between(0x37F,0x1FFF,ch)  ||
-		   between(0x200C,0x200D,ch) ||
-		   between(0x2070,0x218F,ch) ||
-		   between(0x2C00,0x2FEF,ch) ||
-		   between(0x3001,0xD7FF,ch) ||
-		   between(0xF900,0xFDCF,ch) ||
-		   between(0xFDF0,0xFFFD,ch) ||
-		   between(0x10000,0xEFFFF,ch);
-}
-
-// Works only for UCS-4
-static constexpr inline bool is_xml_name_char(uint32_t ch) noexcept
-{
-	return is_digit(ch) ||
-		   // - | . | U+00B7
-		   is_one_of(ch,0x2D,0x2E,0xB7) ||
-		   is_xml_name_start_char(ch) ||
-		   between(0x0300,0x036F,ch)  ||
-		   between(0x203F,0x2040,ch);
-}
 
 template<typename _char_t>
 inline constexpr std::size_t str_size(const _char_t* b, const _char_t* e)
@@ -277,11 +232,13 @@ static constexpr inline bool no_zerro(const size_t x)
 	return 0 == ( (x-ONES) & ~x & HIGHS);
 }
 
-#ifdef io_strchr
+#ifndef io_strchr
+
 inline char* tstrchr(const char* s,char c)
 {
 	return io_strchr( const_cast<char*>(s), char8_traits::to_int_type(c) );
 }
+
 #else
 
 static char* IO_NO_INLINE strchr_impl(const char* s,char c) noexcept
