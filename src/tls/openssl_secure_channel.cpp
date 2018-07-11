@@ -33,7 +33,7 @@ static bool init_openssl() noexcept
 static bool load_system_trust_store(::SSL_CTX* const sslctx) noexcept
 {
 	static constexpr const wchar_t* SYS_NAME = L"ROOT";
-	::HCERTSTORE sspi_store = ::CertOpenSystemStoreW( 0, SYS_NAME);
+	::HCERTSTORE sspi_store = ::CertOpenSystemStoreW( static_cast<HCRYPTPROV_LEGACY>(0), SYS_NAME);
 	if(NULL == sspi_store)
 		return false;
 	::X509_STORE *ossl_store  = ::SSL_CTX_get_cert_store( sslctx );

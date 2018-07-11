@@ -52,33 +52,46 @@ endpoint::endpoint(const std::shared_ptr<::addrinfo>& info) noexcept:
     addr_info_(info)
 {}
 
+static void addrin_set_port(::PSOCKADDR_IN addrin, uint16_t port) noexcept
+{
+	 addrin->sin_port = io_htons(port);
+}
+
+static void addrin_set_port(::PSOCKADDR_IN6 addrin, uint16_t port) noexcept
+{
+	 addrin->sin6_port = io_htons(port);
+}
+
+static uint16_t addrin_get_port(::PSOCKADDR_IN addrin) noexcept
+{
+	return io_htons(addrin->sin_port);
+}
+
+static uint16_t addrin_get_port(::PSOCKADDR_IN6 addrin) noexcept
+{
+	 return io_ntohs(addrin->sin6_port);
+}
+
 
 uint16_t endpoint::port() const noexcept
 {
     switch( family() ) {
     case ip_family::ip_v4:
-        return io_ntohs(
-                   reinterpret_cast<::PSOCKADDR_IN>(addr_info_->ai_addr)->sin_port
-               );
+        return addrin_get_port( reinterpret_cast<::PSOCKADDR_IN>(addr_info_->ai_addr) );
     case ip_family::ip_v6:
-        return io_ntohs(
-                   reinterpret_cast<::PSOCKADDR_IN6>(addr_info_->ai_addr)->sin6_port
-               );
-    default:
-        return 0;
+        return addrin_get_port( reinterpret_cast<::PSOCKADDR_IN6>(addr_info_->ai_addr) );
     }
 }
+
 
 void endpoint::set_port(uint16_t port) noexcept
 {
     switch( family() ) {
     case ip_family::ip_v4:
-        reinterpret_cast<::PSOCKADDR_IN>(addr_info_->ai_addr)->sin_port = io_htons(port);
+        addrin_set_port( reinterpret_cast<::PSOCKADDR_IN>(addr_info_->ai_addr), port);
         break;
     case ip_family::ip_v6:
-        reinterpret_cast<::PSOCKADDR_IN6>(addr_info_->ai_addr)->sin6_port = io_htons(port);
-        break;
-    default:
+        addrin_set_port(reinterpret_cast<::PSOCKADDR_IN6>(addr_info_->ai_addr), port);
         break;
     }
 }

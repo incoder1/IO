@@ -9,7 +9,7 @@ include_directories(src)
 
 
 file(GLOB PROJECT_SOURCE_PATH ${PROJECT_SOURCE_DIR}/src)
-file(GLOB COMMON_SRC ${PROJECT_SOURCE_PATH}/*.cpp ${PROJECT_SOURCE_PATH}/net/*.cpp)
+file(GLOB COMMON_SRC ${PROJECT_SOURCE_PATH}/stdafx.hpp ${PROJECT_SOURCE_PATH}/*.cpp ${PROJECT_SOURCE_PATH}/net/*.cpp)
 
 set(EXTRA_LIBS)
 set(CMAKE_BINARY_DIR target)
@@ -97,7 +97,7 @@ endif()
 if(BUILD_SHARED_LIBS)
 	add_library(io SHARED ${COMMON_SRC} ${PLATFORM_SRC})
 else()
-	add_library(io ${COMMON_SRC} ${PLATFORM_SRC})
+	add_library(io STATIC ${COMMON_SRC} ${PLATFORM_SRC})
 endif()
 
 target_link_libraries(io ${EXTRA_LIBS})
@@ -106,12 +106,7 @@ if( CMAKE_COMPILER_IS_GNUCXX )
 
 	if(BUILD_SHARED_LIBS)
 		add_definitions(-DIO_SHARED_LIB -DIO_BUILD)
-	endif()
-
-	if(BUILD_SHARED_LIBS)
 		set_target_properties(io PROPERTIES LINKER_LANGUAGE CXX)
-	else()
-		set_target_properties(io PROPERTIES LINKER_LANGUAGE AR)
 	endif()
 
 	if( ${CMAKE_SYSTEM_PROCESSOR} STREQUAL "x86_64")
@@ -129,8 +124,8 @@ if( CMAKE_COMPILER_IS_GNUCXX )
 		set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fno-rtti")
 	endif()
 
-	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")
-	if( WIN32 OR MSYS OR CYGWIN AND BUILD_SHARED_LIBS )
+	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=gnu++11")
+	if( (WIN32 OR MSYS OR CYGWIN) AND BUILD_SHARED_LIBS )
 		set(LTO_FLAGS "-flto -Wl,-allow-multiple-definition")
 		set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS} ${LTO_FLAGS}")
 		set(CMAKE_SHARED_LINKER_FLAGS_RELEASE "${CMAKE_SHARED_LINKER_FLAGS} -s ${LTO_FLAGS} ${RELEASE_OPTIMIZE_FLAGS}")
