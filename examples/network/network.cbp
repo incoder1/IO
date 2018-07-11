@@ -36,6 +36,7 @@
 					<Add option="-mtune=native" />
 					<Add option="-DNDEBUG" />
 					<Add option="-DIO_SHARED_LIB" />
+					<Add option="-DIO_TLS_PROVIDER_GNUTSL" />
 				</Compiler>
 				<Linker>
 					<Add option="-s" />

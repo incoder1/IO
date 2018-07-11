@@ -129,11 +129,11 @@
 					<Add directory="$(#msys2.include)" />
 				</Compiler>
 				<Linker>
+					<Add option="-O3" />
 					<Add option="-flto" />
 					<Add option="-s" />
 					<Add option="-fdeclone-ctor-dtor" />
 					<Add option="-fdevirtualize-at-ltrans" />
-					<Add option="-O3" />
 					<Add option="-Wl,-allow-multiple-definition" />
 					<Add option="-mtune=generic" />
 					<Add option="-minline-stringops-dynamically" />
