@@ -198,7 +198,7 @@ static constexpr inline bool is_lowercase_latin1(_char_t ch) noexcept
 template<typename _char_t>
 static constexpr inline bool is_latin1(_char_t ch) noexcept
 {
-	return is_uppercase_latin1(ch) || is_lowercase_latin1(ch);
+	return is_alpha(ch);
 }
 
 inline char latin1_to_lower(const char ch) noexcept
