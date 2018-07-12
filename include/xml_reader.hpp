@@ -46,11 +46,15 @@ public:
 	/// \return tag characters
 	const_string next_characters(std::error_code& ec) noexcept;
 
+	state_type next_state() const noexcept {
+		return state_;
+	}
+
 private:
 	inline bool parse_error(std::error_code& ec) noexcept {
-		if(ec)
+		if( io_unlikely(ec) ) {
 			return true;
-		if( parser_->is_error() ) {
+		} else if( parser_->is_error() ) {
 			parser_->get_last_error(ec);
 			return true;
 		}
@@ -99,6 +103,9 @@ public:
 		const_string ret = rd_.next_characters(ec_);
 		check_error_code(ec_);
 		return std::move(ret);
+	}
+	xml::state_type next_state() const noexcept {
+		return rd_.next_state();
 	}
 private:
 	xml::reader rd_;

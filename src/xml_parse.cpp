@@ -240,7 +240,7 @@ static bool is_xml_name_start_char_lo(char32_t ch) noexcept
 	return is_one_of(ch,0x5F,0x3A) || is_latin1(ch);
 }
 
-statics bool is_xml_name_start_char(char32_t ch) noexcept
+static bool is_xml_name_start_char(char32_t ch) noexcept
 {
 	return is_xml_name_start_char_lo(ch) ||
 		   between(0xC0,0xD6, ch)    ||
@@ -722,8 +722,9 @@ const_string event_stream_parser::read_chars() noexcept
 		case EOF:
 			assign_error(error::root_element_is_unbalanced);
 			break;
+		default:
+			putch(ret, c);
 		}
-		putch(ret, c);
 		if( io_unlikely( is_error() ) )
 			break;
 	} while( reading );
@@ -734,7 +735,7 @@ const_string event_stream_parser::read_chars() noexcept
 	sb_clear( scan_buf_ );
 	scan_buf_[0] = '<';
 	ret.flip();
-	return ret.empty() ? const_string() :  const_string( ret.position().cdata(), ret.last().cdata() );
+	return ret.empty() ? const_string() :  const_string( ret.position().cdata(), ret.length() );
 }
 
 void event_stream_parser::skip_chars() noexcept
@@ -835,10 +836,7 @@ bool event_stream_parser::validate_xml_name(const cached_string& str, bool attr)
 
 inline char event_stream_parser::next() noexcept
 {
-	char result = src_->next();
-	if( src_->eof() )
-		result = EOF;
-	return result;
+	return src_->next();
 }
 
 start_element_event event_stream_parser::parse_start_element() noexcept

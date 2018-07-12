@@ -134,7 +134,7 @@ const_string reader::next_characters(std::error_code& ec) noexcept
 		return const_string();
 	}
 	buff.flip();
-	return const_string(buff.position().cdata(), buff.last().cdata());
+	return const_string(buff.position().cdata(), buff.length());
 }
 
 } // namespace xml
