@@ -159,7 +159,7 @@ template<>
 struct strings<wchar_t> {
 	typedef wchar_t char_type;
 	static constexpr const wchar_t  zerro_char = L'0';
-	static constexpr const wchar_t  minus_char = '-';
+	static constexpr const wchar_t  minus_char = L'-';
 	static constexpr const wchar_t* zerro = L"0";
 	static constexpr const wchar_t* max_int_8 = L"127";
 	static constexpr const wchar_t* max_uint_16 = L"65535";
@@ -341,7 +341,7 @@ struct generic_uint_cast {
 	typedef std::char_traits<char_type> char_traits;
 	typedef cast_traits<int_type,char_type> ctraits;
 private:
-	static constexpr const __int_type RADIX10 = static_cast<int_type>(10);
+	static constexpr const __int_type RADIX10 = 10;
 	// Replace this if CPU not supporting native div/mod
 	// and/or complier shows bad optimization results
 	static inline uint_fast8_t divmod(int_type& n,uint_fast8_t radix) noexcept
@@ -449,9 +449,8 @@ public:
 			char_traits::move(to, ctraits::max_str, ctraits::max_str_len);
 			return to;
 		default:
-			break;
+			return format_a(value, to);
 		}
-		return format_a(value, to);
 	}
 
 	static int32_t str_to_int(const char_type* str) noexcept

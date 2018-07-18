@@ -17,6 +17,7 @@
 #pragma once
 #endif // HAS_PRAGMA_ONCE
 
+#include <algorithm>
 #include <chrono>
 #include <ostream>
 #include <iomanip>
@@ -792,8 +793,11 @@ public:
 			pretty_end(to,shift);
 			if(embd_shift > 0 ) ++embd_shift;
 		}
+
+
 		for(iterator it = cont_.cbegin(); it != cont_.cend(); ++it)
 			it->marshal(to, embd_shift);
+
 		if(has_wrapper_) {
 			pretty_begin(to,shift);
 			to << "</" << wrapper_name_ << '>';
@@ -1009,14 +1013,14 @@ public:
 	static constexpr const char* XS_TYPE = impl_t::XS_TYPE;
 
 	/// Recursivelly generate XSD from this XML type
-	/// \param to output stream to marahal
+	/// \param to output stream to marshal
 	void to_xsd(std::ostream& to)
 	{
 		self_->to_xsd(to);
 	}
 #endif // IO_XML_HAS_TO_XSD
 
-	/// Retuns specified element name
+	/// Returns specified element name
 	/// \return element name
 	inline const char* name() const
 	{

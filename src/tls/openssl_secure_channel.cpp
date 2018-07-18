@@ -66,14 +66,15 @@ static bool load_system_trust_store(::SSL_CTX* const sslctx) noexcept
 
 client_context client_context::create(std::error_code& ec) noexcept
 {
-	static constexpr const long flags = SSL_OP_NO_SSLv2 | SSL_OP_NO_SSLv3;
-	::SSL_CTX *ctx = ::SSL_CTX_new( ::TLSv1_2_client_method() );
+	static constexpr const long TLS_FLAGS = SSL_OP_NO_SSLv2 | SSL_OP_NO_SSLv3 | SSL_OP_NO_TLSv1 | SSL_OP_NO_COMPRESSION;
+	::SSL_CTX *ctx = ::SSL_CTX_new( ::SSLv23_method() );
+
 	if(nullptr == ctx) {
 		ec = std::make_error_code( std::errc::protocol_not_supported );
 		return client_context();
 	}
-	::SSL_CTX_set_verify(ctx, SSL_VERIFY_NONE, NULL);
-	::SSL_CTX_set_options(ctx, flags);
+	::SSL_CTX_set_verify(ctx, SSL_VERIFY_PEER, NULL);
+	::SSL_CTX_set_options(ctx, TLS_FLAGS);
 	if( !load_system_trust_store(ctx) ) {
 		ec = std::make_error_code( std::errc::protocol_not_supported );
 		return client_context();
@@ -98,7 +99,8 @@ session session::open(std::error_code& ec,::SSL_CTX* const cntx) noexcept
 		return session();
 	}
 	::BIO *interal = nullptr, *external = nullptr;
-	::BIO_new_bio_pair(&interal,  memory_traits::page_size(), &external, memory_traits::page_size());
+	//std::size_t bio_size = memory_traits::page_size();
+	::BIO_new_bio_pair(&interal, 0, &external, 0);
 	if(nullptr == interal || nullptr == external ) {
 		ec = std::make_error_code(std::errc::not_enough_memory);
 		::SSL_free(ossl);
@@ -108,7 +110,13 @@ session session::open(std::error_code& ec,::SSL_CTX* const cntx) noexcept
 	::BIO_set_mem_eof_return(interal, EOF);
 	::BIO_set_mem_eof_return(external, EOF);
 
+	::SSL_set_mode(ossl, SSL_MODE_AUTO_RETRY);
+
+	//::BIO_set_conn_hostname(external, ":https");
 	::SSL_set_bio(ossl, interal, interal);
+	::SSL_set_connect_state(ossl);
+	::SSL_connect(ossl);
+	::ERR_clear_error();
 	return session(ossl, interal, external);
 }
 
@@ -130,41 +138,70 @@ session::session(session&& c) noexcept:
 session::~session() noexcept
 {
 	if( nullptr != ossl_ ) {
-		::BIO_free(internal_);
-		::BIO_free(external_);
 		::SSL_free(ossl_);
+		::BIO_free(external_);
 	}
 }
 
-std::size_t session::connect(uint8_t* const buff, uint16_t size) noexcept
+
+ssize_t session::get_client_handshake_data(uint8_t* buff, uint16_t size) noexcept
 {
-	::BIO_do_connect(internal_);
-	return static_cast<std::size_t>( ::BIO_read(external_, buff, size) );
+	::BIO_ctrl_pending(external_);
+	return ::BIO_read(external_, buff , size );
 }
 
-std::size_t session::handshake(const uint8_t* buff, uint16_t size) noexcept
+ssize_t session::set_server_handshake_data(uint8_t* const buff, uint16_t size) noexcept
 {
-	::BIO_write(external_, buff, size);
-	::BIO_do_handshake(internal_);
+	ssize_t ret = ::BIO_write( external_, buff , size );
+	::BIO_ctrl_pending(external_);
+	::SSL_do_handshake(ossl_);
+	return ret;
 }
 
-int session::decrypt(const uint8_t *what, uint8_t* const to, uint16_t size) const noexcept
-{
-	int decrypted = ::BIO_write(external_, static_cast<const void*>(what), size);
-	return decrypted > 0 ? ::SSL_read(ossl_, static_cast<void*>(to), decrypted ) : decrypted;
+int session::get_error(int ret) {
+	return ::SSL_get_error(ossl_, ret);
 }
 
-int session::encrypt(const uint8_t *what, uint8_t* const to, uint16_t size) const noexcept
+bool session::handshake_done() noexcept
 {
-	int encrypted = ::SSL_write(ossl_, static_cast<const void*>(what), size);
-	return encrypted > 0 ? ::BIO_read(external_, static_cast<void*>(to), encrypted) : encrypted;
+	return SSL_is_init_finished(ossl_);
+}
+
+int session::decrypt(const uint8_t *what, std::size_t size, uint8_t* const to, std::size_t& decrypted) const noexcept
+{
+	int written = 0, e;
+	while(written < size) {
+		::BIO_ctrl_pending(external_);
+		e = ::BIO_write(external_, (what + written), (size-written) );
+		if( e < 0 )
+			return -1;
+		written += e;
+	}
+	int ret = ::SSL_read(ossl_, to, written);
+	decrypted = (ret > 0) ? static_cast<std::size_t>(ret) : 0;
+	return ret;
+}
+
+int session::encrypt(const uint8_t *what, std::size_t size, uint8_t* const to, std::size_t& encrypted) const noexcept
+{
+	int written = 0, e;
+	while(written < size) {
+		::BIO_ctrl_pending(external_);
+		e = ::BIO_write(external_, (what + written), (size-written) );
+		if( e < 0 )
+			return -1;
+		written += e;
+	}
+	int ret = ::SSL_read(ossl_, to, written);
+	encrypted = (ret > 0) ? static_cast<std::size_t>(ret) : 0;
+	return ret;
 }
 
 //tls_channel
 
-tls_channel::tls_channel(session&& ssl,s_read_write_channel&& raw) noexcept:
+tls_channel::tls_channel(session&& ssl,s_read_write_channel&& socket) noexcept:
 	session_( std::forward<session>(ssl) ),
-	raw_( std::forward<s_read_write_channel>(raw) )
+	socket_( std::forward<s_read_write_channel>(socket) )
 {}
 
 tls_channel::~tls_channel() noexcept
@@ -172,36 +209,27 @@ tls_channel::~tls_channel() noexcept
 
 std::size_t tls_channel::read(std::error_code& ec,uint8_t* const buff, std::size_t bytes) const noexcept
 {
-	static constexpr const std::size_t MAX = std::numeric_limits<uint16_t>::max();
-	std::size_t to_read  = bytes < MAX ? bytes: MAX;
-	uint8_t *tmp = memory_traits::calloc_temporary<uint8_t>(to_read);
-	if(nullptr == tmp) {
-		ec = std::make_error_code(std::errc::not_enough_memory);
+	std::size_t ret = socket_->read(ec, buff, bytes);
+	if(ec)
+		return 0;
+	if( session_.decrypt(buff, ret, buff, ret ) < 0 ) {
+		ec = std::make_error_code(std::errc::broken_pipe);
 		return 0;
 	}
-	std::size_t read = raw_->read(ec, tmp, to_read);
-	if( 0 == read || ec ) {
-		memory_traits::free_temporary(tmp);
-		return 0;
-	}
-	std::size_t ret = static_cast<std::size_t>( session_.decrypt(tmp, buff, static_cast<uint16_t>(read) ) );
-	memory_traits::free_temporary(tmp);
 	return ret;
 }
 
-std::size_t tls_channel::write(std::error_code& ec, const uint8_t* buff,std::size_t size) const noexcept
+std::size_t tls_channel::write(std::error_code& ec, const uint8_t* data,std::size_t size) const noexcept
 {
-	static constexpr const std::size_t MAX = std::numeric_limits<uint16_t>::max();
-	std::size_t chunk  = size < MAX ? size : MAX;
-	uint8_t *tmp = memory_traits::calloc_temporary<uint8_t>(chunk);
-	if(nullptr == tmp) {
-		ec = std::make_error_code(std::errc::not_enough_memory);
+	uint8_t buff[ 4096 ];
+	std::size_t ret = size < 4096 ? size : 4096;
+	std::size_t encrypted;
+	if( session_.encrypt( data, ret, buff, encrypted) < 0 ) {
+		ec = std::make_error_code(std::errc::broken_pipe);
 		return 0;
 	}
-	int ret = session_.encrypt(buff, tmp, chunk);
-	transmit_buffer(ec, raw_, tmp, static_cast<std::size_t>(ret) );
-	memory_traits::free_temporary(tmp);
-	return ec ? 0 : static_cast<std::size_t>(ret);
+	transmit_buffer(ec, socket_, buff, encrypted);
+	return ret;
 }
 
 // service
@@ -260,9 +288,29 @@ s_read_write_channel service::new_client_connection(std::error_code& ec, s_read_
 	session ssl = session::open(ec, client_context_ .get() );
 	if(ec)
 		return s_read_write_channel();
+	// TLS handshake
 	uint8_t buff[ 4096 ];
-	std::size_t len = ssl.handshake(buff, 4096);
-	transmit_buffer(ec, socket, buff, len );
+	ssize_t len;
+	do {
+		io_zerro_mem(buff, 4096);
+		len = ssl.get_client_handshake_data(buff, 4096);
+		if( (len < 0) && (SSL_ERROR_WANT_READ != ssl.get_error(len)) ) {
+			ec = std::make_error_code(std::errc::connection_refused);
+		} else {
+			transmit_buffer(ec, socket, buff, len );
+			if(ec)
+				break;
+			io_zerro_mem(buff, 4096);
+			for(len = 0; !ec && len == 0; )
+				len = socket->read(ec, buff, 4096);
+			if(!ec) {
+				len = ssl.set_server_handshake_data(buff, static_cast<uint16_t>(len) );
+				if(len < 0)
+					ec = std::make_error_code(std::errc::connection_refused);
+			}
+		}
+	}
+	while( !ec && !ssl.handshake_done() );
 	if(ec)
 		return s_read_write_channel();
 	tls_channel *ret = nobadalloc<tls_channel>::construct(ec, std::move(ssl), std::move(socket) );

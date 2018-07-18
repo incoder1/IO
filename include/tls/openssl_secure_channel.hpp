@@ -80,12 +80,16 @@ public:
 		return *this;
 	}
 
-	std::size_t connect(uint8_t * const buff, uint16_t size) noexcept;
-	std::size_t handshake(const uint8_t* buff, uint16_t size) noexcept;
+	ssize_t get_client_handshake_data(uint8_t* const buff, uint16_t size) noexcept;
+	ssize_t set_server_handshake_data(uint8_t* const buff, uint16_t size) noexcept;
 
-	int decrypt(const uint8_t *what, uint8_t* const to, uint16_t size) const noexcept;
+	bool handshake_done() noexcept;
 
-	int encrypt(const uint8_t *what, uint8_t* const to, uint16_t size) const noexcept;
+	int get_error(int ret);
+
+	int decrypt(const uint8_t *what, std::size_t size, uint8_t* const to, std::size_t& decrypted) const noexcept;
+
+	int encrypt(const uint8_t *what, std::size_t size, uint8_t* const to, std::size_t& encrypted) const noexcept;
 
 	~session() noexcept;
 
@@ -109,10 +113,10 @@ public:
 	virtual std::size_t write(std::error_code& ec, const uint8_t* buff,std::size_t size) const noexcept override;
 private:
     friend class nobadalloc<tls_channel>;
-    tls_channel(session&& tlssession,s_read_write_channel&& raw) noexcept;
+    tls_channel(session&& tlssession,s_read_write_channel&& socket) noexcept;
 private:
     session session_;
-    s_read_write_channel raw_;
+    s_read_write_channel socket_;
 };
 
 class IO_PUBLIC_SYMBOL service {

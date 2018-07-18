@@ -52,11 +52,7 @@ public:
 	void* operator new(std::size_t size)
 	{
 		void *ret = nullptr;
-#       ifdef __GNUG__
-            if(  __builtin_expect( nullptr == ( ret = memory_traits::malloc(size) ) , false) )
-#       else
-            if( nullptr == ( ret = memory_traits::malloc(size) ) )
-#       endif // __GNUG__
+		if( io_unlikely( nullptr == ( ret = memory_traits::malloc(size) ) ) )
             throw std::bad_alloc();
 		return ret;
 	}

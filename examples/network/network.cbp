@@ -69,6 +69,7 @@
 				<Compiler>
 					<Add option="-pg" />
 					<Add option="-g" />
+					<Add option="-DIO_TLS_PROVIDER_OPENSSL" />
 				</Compiler>
 				<Linker>
 					<Add option="-pg -lgmon" />
@@ -78,7 +79,7 @@
 					<Add library="iconv.dll" />
 					<Add library="ssl.dll" />
 					<Add library="crypto" />
-					<Add directory="../../bin/debug-win-gcc-static-x64" />
+					<Add directory="../../bin/debug-win-gcc-static-openssl-x64" />
 				</Linker>
 			</Target>
 		</Build>

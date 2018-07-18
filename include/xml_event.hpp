@@ -106,8 +106,7 @@ public:
 		value_( std::forward<const_string>(value) )
 	{}
 
-	~attribute() noexcept
-	{}
+	~attribute() noexcept = default;
 
 	/// Returns attribute name
 	/// \return attribute name
