@@ -82,7 +82,7 @@ const cached_string string_pool::get(const char* s, std::size_t count) noexcept
 	pool_type::const_iterator it = pool_.find( str_hash );
 	if(  it != pool_.end() ) {
 		std::size_t i = pool_.count( str_hash );
-		while(i > 0) {
+		while( io_likely(i > 0) ) {
 			if( io_likely( it->second.equal(s, count) ) )
 				return it->second;
 			--i;

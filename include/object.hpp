@@ -53,7 +53,7 @@ public:
 	{
 		void *ret = nullptr;
 		if( io_unlikely( nullptr == ( ret = memory_traits::malloc(size) ) ) )
-            throw std::bad_alloc();
+			throw std::bad_alloc();
 		return ret;
 	}
 

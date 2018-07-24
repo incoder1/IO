@@ -48,8 +48,8 @@ int main()
 
 	using namespace io::net;
 	std::error_code ec;
-	//s_uri url = uri::parse(ec, "http://www.springframework.org/schema/beans/spring-beans-4.2.xsd");
-	s_uri url = uri::parse(ec, "https://www.openssl.org");
+	s_uri url = uri::parse(ec, "https://www.springframework.org/schema/beans/spring-beans-4.2.xsd");
+	//s_uri url = uri::parse(ec, "https://www.openssl.org");
 	io::check_error_code(ec);
 
 	io::check_error_code(ec);

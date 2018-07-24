@@ -83,16 +83,17 @@ public:
 	pointer allocate(size_type __n, const void* px = nullptr) noexcept(no_exept_mode::is_nothrow)
 	{
 		assert( 0 != __n );
-		if(__n > 1) {
+		if( __n > 1) {
             void *ret = nullptr;
-		    if(nullptr != px)
-                ret = __memory_traits::realloc( const_cast<void*>(px),  __n * sizeof(value_type) );
-		    else
+		    if( io_likely(nullptr == px) )
                 ret = __memory_traits::malloc( __n * sizeof(value_type) );
+		    else {
+		 	   ret = __memory_traits::realloc( const_cast<void*>(px),  __n * sizeof(value_type) );
 #ifndef IO_NO_EXCEPTIONS
-            if(nullptr == ret)
-                throw std::bad_array_new_length();
+				if( io_unlikely(nullptr == ret) )
+                	throw std::bad_array_new_length();
 #endif // IO_NO_EXCEPTIONS
+		    }
             return uncast_void<value_type>(ret);
 		}
         return uncast_void<value_type>( __memory_traits::malloc( sizeof(value_type) ) );

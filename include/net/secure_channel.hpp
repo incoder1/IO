@@ -9,8 +9,8 @@
 
 #if defined(IO_TLS_PROVIDER_GNUTSL)
 #	include "tls/gnutls_secure_channel.hpp"
-#elif defined(IO_TLS_PROVIDER_OPENSSL)
-#	include "tls/openssl_secure_channel.hpp"
+#elif defined(IO_TLS_PROVIDER_MBEDTLS)
+#	include "tls/mbedtls_secure_channel.hpp"
 #else
 #	error Secure transport layer is not provided
 #endif // IO_TLS_PROVIDER_GNUTSL
