@@ -19,18 +19,18 @@ namespace secure {
 std::atomic<service*> service::_instance(nullptr);
 critical_section service::_mtx;
 
-static bool init_mbedtls(::mbedtls_ssl_context& contex,::mbedtls_ssl_config& config)
+static bool init_mbedtls(::mbedtls_ssl_context* const contex,::mbedtls_ssl_config* const config)
 {
-	::mbedtls_ssl_init(&contex);
-	::mbedtls_ssl_config_init(&config);
+	::mbedtls_ssl_init(contex);
+	::mbedtls_ssl_config_init(config);
 	if( 0 != mbedtls_ssl_config_defaults(
-				&config,
+				config,
 				MBEDTLS_SSL_IS_CLIENT,
                 MBEDTLS_SSL_TRANSPORT_STREAM,
 				MBEDTLS_SSL_PRESET_DEFAULT ) )
 		return false;
 	else
-        return 0 == ::mbedtls_ssl_setup(&contex,&config);
+        return 0 == ::mbedtls_ssl_setup(contex,config);
 }
 
 const service* service::instance(std::error_code& ec) noexcept
@@ -42,7 +42,7 @@ const service* service::instance(std::error_code& ec) noexcept
 		if(nullptr == ret) {
 			::mbedtls_ssl_context contex;
     		::mbedtls_ssl_config config;
-			if( init_mbedtls(contex,config) ) {
+			if( init_mbedtls( std::addressof(contex), std::addressof(config) ) ) {
 				std::atexit( &service::destroy_engine_atexit );
 				ret = new (std::nothrow) service( std::move(contex), std::move(config) );
 				if(nullptr == ret)

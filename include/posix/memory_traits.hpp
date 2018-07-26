@@ -131,6 +131,7 @@ public:
 	typedef T value_type;
 
 	typedef std::true_type propagate_on_container_move_assignment;
+    typedef std::true_type is_always_equal;
 
 	template<typename T1>
 	struct rebind {

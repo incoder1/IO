@@ -104,6 +104,12 @@
 #define io_bswap16(__x) __builtin_bswap16((__x))
 #define io_clz(__x) __builtin_clz((__x))
 
+#ifdef __LP64__
+#	define io_ctz(__x) __builtin_ctzll((__x))
+#else
+#	define io_ctz(__x) __builtin_ctzl((__x))
+#endif // __LP64__
+
 #ifndef __MINGW32__
 #	define io_bswap32(__x) __builtin_bswap32((__x))
 #else

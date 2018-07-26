@@ -77,7 +77,7 @@ private:
 
 } // namespace posix
 
-/// \brief file writting open modes constans
+/// \brief file writing open modes
 enum class write_open_mode
 {
 	/// Open an existing file and move file pointer to the end of it
@@ -89,7 +89,7 @@ enum class write_open_mode
 };
 
 
-/// \brief Filesystem file operations interface, POSIX implementation
+/// \brief File system file operations interface, POSIX implementation
 class IO_PUBLIC_SYMBOL file
 {
 
@@ -103,7 +103,7 @@ public:
 		name_( std::move(oth.name_) )
 	{}
 
-	file& operator=(file&& rhs)
+	file& operator=(file&& rhs) noexcept
 	{
 		file tmp( std::forward<file>(rhs) );
 		std::swap(name_, tmp.name_);
@@ -129,11 +129,10 @@ public:
         return transcode_to_ucs( name_.get(), std::strlen( name_.get() ) );
 	}
 
+	/// Returns UTF-8 encoded file path
 	inline std::string path() {
 		return std::string(name_.get());
 	}
-
-
 
 	/// Opens blocking read channel from this file
 	/// \param ec
@@ -147,7 +146,7 @@ public:
 	///    operation error code, contains error when file can not be opened
 	///    or out of memory state
 	/// \param mode
-	///    writting mode \see write_open_mode
+	///    writing mode \see write_open_mode
 	/// \throw never throws
 	s_write_channel open_for_write(std::error_code& ec, write_open_mode mode) noexcept;
 
@@ -156,7 +155,7 @@ public:
 	///    operation error code, contains error when can not be opened
 	///    or out of memory state
 	/// \param mode
-	///    writting mode \see write_open_mode
+	///    writing mode \see write_open_mode
 	/// \throw never throws
 	s_random_access_channel open_for_random_access(std::error_code& ec, write_open_mode mode) noexcept;
 private:

@@ -57,7 +57,7 @@
 #endif
 
 #if defined(_M_X64) || defined(_M_AMD64) || defined(_M_ARM64) || defined(_WIN64)
-#	define IO_CPU_BITS_64
+#	define IO_CPU_BITS_64 1
 #endif
 
 #ifdef IO_CPU_BITS_64
@@ -149,6 +149,29 @@ __forceinline int io_clz(unsigned long x )
 }
 
 #endif // Non intel impl
+
+#ifdef IO_CPU_BITS_64
+
+#	pragma intrinsic(_BitScanForward64)
+
+__forceinline int io_ctz(unsigned __int64 x)
+{
+	unsigned long ret = 0;
+	_BitScanForward64(&ret, x);
+	return  static_cast<int>(ret);
+}
+#else // 32 bit
+
+#	pragma intrinsic(__BitScanForward)
+
+__forceinline int io_ctz(unsigned long x )
+{
+	unsigned long long ret = 0;
+	_BitScanForward(&ret, x);
+	return  static_cast<int>(ret);
+}
+
+#endif // io_ctz
 
 namespace io {
 namespace detail {

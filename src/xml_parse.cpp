@@ -21,7 +21,7 @@ static const char* CDATA    = "<![CDATA[";
 static const char* DOCTYPE  = "<!DOCTYPE";
 
 static const std::size_t SMALL_BUFF_SIZE = 32;
-static const std::size_t MID_BUFF_SIZE = 64;
+static const std::size_t MEDIUM_BUFF_SIZE = 64;
 static const std::size_t HUGE_BUFF_SIZE = 128;
 
 // unicode constants in digit forms, to handle endians
@@ -77,7 +77,7 @@ static std::size_t prefix_delimit(const char* src) noexcept
 
 static std::size_t extract_prefix(std::size_t &start, const char* str) noexcept
 {
-	char *s = const_cast<char*>(str);
+	const char *s = str;
 	if( cheq(LEFTB,*s) ) {
 		if( cheq(SOLIDUS,*(s+1) ) ) {
 			start += 2;
@@ -406,7 +406,7 @@ state_type event_stream_parser::scan_next() noexcept
 byte_buffer event_stream_parser::read_entity() noexcept
 {
 	std::error_code ec;
-	byte_buffer ret = byte_buffer::allocate(ec, MID_BUFF_SIZE);
+	byte_buffer ret = byte_buffer::allocate(ec, MEDIUM_BUFF_SIZE);
 	if(  io_unlikely(ec) ) {
 		assign_error(error::out_of_memory);
 		return byte_buffer();
@@ -588,7 +588,7 @@ const_string event_stream_parser::read_dtd() noexcept
 		return const_string();
 	}
 	std::error_code ec;
-	byte_buffer dtd = byte_buffer::allocate(ec, MID_BUFF_SIZE);
+	byte_buffer dtd = byte_buffer::allocate(ec, MEDIUM_BUFF_SIZE);
 	if( ec ) {
 		assign_error(error::out_of_memory);
 		return const_string();

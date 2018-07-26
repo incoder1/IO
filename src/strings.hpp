@@ -232,7 +232,7 @@ static constexpr inline bool no_zerro(const size_t x)
 	return 0 == ( (x-ONES) & ~x & HIGHS);
 }
 
-#ifndef io_strchr
+#ifdef io_strchr
 
 inline char* tstrchr(const char* s,char c)
 {

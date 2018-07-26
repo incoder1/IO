@@ -54,7 +54,7 @@ private:
 
 } // namespace win
 
-/// \brief file writting open modes constans
+/// \brief file writing open modes
 enum class write_open_mode: ::DWORD
 {
 	/// Open an existing file and move file pointer to the end of it
@@ -65,7 +65,7 @@ enum class write_open_mode: ::DWORD
 	overwrite = CREATE_ALWAYS
 };
 
-/// \brief Filesystem file operations interface, windows implementation
+/// \brief File system file operations interface, windows implementation
 class IO_PUBLIC_SYMBOL file
 {
 	file(const file&) = delete;
@@ -110,7 +110,7 @@ public:
     std::size_t size() const noexcept;
 
 	/// Returns UTF-8 encoded file path
-	inline std::string path() const {
+	IO_NO_INLINE std::string path() const {
 		int asize = ::WideCharToMultiByte(
 							CP_UTF8, 0,
 							name_.get(), name_.len()-1,

@@ -152,9 +152,9 @@ critical_section service::_mtx;
 
 void service::destroy_gnu_tls_atexit() noexcept
 {
+	::gnutls_global_deinit();
 	service *srv = _instance.load(std::memory_order_relaxed);
 	if(nullptr != srv) {
-		::gnutls_global_deinit();
 		delete srv;
 	}
 }

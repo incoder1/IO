@@ -10,12 +10,20 @@
  */
 #include "stdafx.hpp"
 #include "buffer.hpp"
+#include <cstddef>
+#include <cmath>
+
+#if defined(_MSC_VER)
+#include <BaseTsd.h>
+typedef SSIZE_T ssize_t;
+#endif
 
 namespace io {
 
+
 byte_buffer::byte_buffer(detail::mem_block&& arr, std::size_t capacity) noexcept:
 	arr_( std::forward<detail::mem_block>(arr) ),
-	capacity_(capacity),
+	capacity_( capacity ),
 	position_(arr_.get()),
 	last_(position_+1)
 {}
@@ -43,16 +51,14 @@ void byte_buffer::move(std::size_t offset) noexcept
 	last_ = position_ + 1;
 }
 
-bool byte_buffer::extend(std::size_t extend_size) noexcept
+bool byte_buffer::realloc(std::size_t size) noexcept
 {
-	bool has_data = !empty();
-	capacity_ += extend_size;
-	uint8_t *new_data = static_cast<uint8_t*>( memory_traits::realloc(arr_.get(), capacity_) );
+	uint8_t *new_data = static_cast<uint8_t*>( memory_traits::realloc(arr_.get(), size) );
 	// out of memory
 	if(nullptr == new_data)
 		return false;
-
-	if( has_data ) {
+	capacity_ = size;
+	if( !empty() ) {
 		position_ = new_data + memory_traits::distance( arr_.get(), position_ );
 		last_ = new_data + memory_traits::distance(arr_.get(), last_);
 		const std::size_t tail =  memory_traits::distance(last_, (new_data + capacity_) );
@@ -63,20 +69,26 @@ bool byte_buffer::extend(std::size_t extend_size) noexcept
 		last_ = position_;
 		io_zerro_mem(position_, capacity_);
 	}
-
-	arr_ = detail::mem_block( new_data );
+	arr_.reset_ownership();
+	arr_ = std::move( detail::mem_block( new_data ) );
 	return true;
+}
+
+bool byte_buffer::extend(std::size_t extend_size) noexcept
+{
+	return realloc( capacity_ + extend_size );
 }
 
 bool byte_buffer::exp_grow() noexcept
 {
-	return extend ( capacity_ << 1 );
+	return realloc( capacity_ << 1 );
 }
+
 
 bool byte_buffer::ln_grow() noexcept
 {
-	std::size_t new_capacity = capacity_ >> 1;
-	return extend ( new_capacity > 1 ? new_capacity : capacity_+2 );
+	ssize_t gs =  1 << ( io_ctz(capacity_) - 1);
+	return extend( gs > 4 ?  static_cast<std::size_t>(gs) : capacity_ / 2 );
 }
 
 byte_buffer byte_buffer::allocate(std::error_code& ec, std::size_t capacity) noexcept

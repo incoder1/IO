@@ -27,6 +27,28 @@ namespace io {
 
 namespace secure {
 
+class session {
+    session(const session&) = delete;
+    session& operator=(const session&) = delete;
+public:
+	~session();
+private:
+
+};
+
+class IO_PUBLIC_SYMBOL tls_channel final: public read_write_channel
+{
+public:
+	virtual ~tls_channel() noexcept override;
+	virtual std::size_t read(std::error_code& ec,uint8_t* const buff, std::size_t bytes) const noexcept override;
+	virtual std::size_t write(std::error_code& ec, const uint8_t* buff,std::size_t size) const noexcept override;
+private:
+    friend class nobadalloc<tls_channel>;
+    tls_channel(session&& session) noexcept;
+private:
+    session session_;
+};
+
 
 class IO_PUBLIC_SYMBOL service {
 	service(const service&) = delete;

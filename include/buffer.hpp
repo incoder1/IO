@@ -47,13 +47,13 @@ public:
 	}
 
 	mem_block(mem_block&& other) noexcept:
-		px_( other.px_ ) {
+		px_( other.px_ )
+	{
 		other.px_ = nullptr;
 	}
 
 	mem_block& operator=(mem_block&& rhs) noexcept {
-		px_ = rhs.px_;
-		rhs.px_ = nullptr;
+		mem_block( static_cast<mem_block&&>(rhs) ).swap( *this );
 		return *this;
 	}
 
@@ -67,20 +67,24 @@ public:
 
 	static inline mem_block allocate(const std::size_t size) noexcept {
 		uint8_t *ptr = memory_traits::malloc_array<uint8_t>(size);
-		if(nullptr == ptr)
-			return mem_block();
-		return mem_block( ptr );
+		return (nullptr != ptr) ? mem_block( ptr ) : mem_block();
 	}
 
 	static inline mem_block wrap(const uint8_t* arr,const std::size_t size) noexcept {
-		mem_block ret = allocate(size);
-		if(ret)
-			std::memcpy( ret.get(), arr, size);
-		return std::move(ret);
+		uint8_t *ptr = memory_traits::malloc_array<uint8_t>(size);
+		if(nullptr != ptr)
+			std::memcpy( ptr, arr, size);
+		return mem_block( ptr );
 	}
 
 	inline void swap(mem_block& with) noexcept {
 		std::swap( px_, with.px_);
+	}
+
+	uint8_t* reset_ownership() noexcept {
+		uint8_t* ret = px_;
+		px_ = nullptr;
+		return ret;
 	}
 
 private:
@@ -137,17 +141,6 @@ public:
 		return reinterpret_cast<char*>(position_);
 	}
 
-	inline const wchar_t* wdata() const noexcept {
-		return reinterpret_cast<wchar_t*>(position_);
-	}
-
-	inline const char16_t* u16data() const noexcept {
-		return reinterpret_cast<char16_t*>(position_);
-	}
-
-	inline const char32_t* u32data() const noexcept {
-		return reinterpret_cast<char32_t*>(position_);
-	}
 
 	inline byte_buffer_iterator& operator++() noexcept {
 		++position_;
@@ -259,7 +252,7 @@ public:
 
 	/// Destroys this buffer and releases memory allocated by this buffer
 	/// If this buffer was moved to another object rval, do nothing
-	/// Otherwise apply std::free to the underlying memory buffer
+	/// Otherwise release allocated the underlying memory buffer
 	~byte_buffer() noexcept
 	{}
 
@@ -320,7 +313,7 @@ public:
 	/// \param byte a byte to put
 	/// \return true whether byte was put and false if buffer was full before put attempt
 	inline bool put(uint8_t byte) noexcept {
-		if( io_likely( last_ != (arr_.get() + capacity_) ) ) {
+		if( io_likely( !full() ) ) {
 			*position_ = byte;
 			last_ = (++position_) + 1;
 			return true;
@@ -410,7 +403,7 @@ public:
 	/// \return count of bytes put from std::basic_string, or 0 if not enough available space in this buffer
 	template<class _char_t>
 	inline std::size_t put(const std::basic_string<_char_t>& s) noexcept {
-		return s.empty() ? 0 : put( s.data(), s.length() * sizeof(_char_t) );
+		return s.empty() ? 0 : put( s.data(), (s.length() * sizeof(_char_t)) );
 	}
 
 	// binary primitives functions
@@ -541,7 +534,7 @@ public:
 	/// \throw never throws
 	bool extend(std::size_t extend_size) noexcept;
 
-	/// Exponentially grow this buffer by sq this buffer capacity
+	/// Exponential growth this buffer by sq this buffer capacity
 	/// If not enough memory, buffer will be kept in memory as is
 	/// \return true buffer was extended, false if not enough available memory
 	/// \throw never throws
@@ -559,6 +552,7 @@ private:
 
 	template < typename T >
 	bool binary_put(const T& v) {
+		static_assert( std::is_arithmetic<T>::value && ! std::is_pointer<T>::value, "Must be an arithmetic type" );
 		return 0 != put( reinterpret_cast<const uint8_t*> ( std::addressof( v ) ), sizeof(T) );
 	}
 
@@ -572,6 +566,8 @@ private:
 		shift( sizeof(T) );
 		return ret;
 	}
+
+	bool realloc(std::size_t size) noexcept;
 
 public:
 	/// Allocate a memory block for buffer from heap
@@ -588,13 +584,16 @@ public:
 	template<typename T>
 	static inline byte_buffer wrap(std::error_code& ec, const T* arr, std::size_t size) noexcept {
 		static_assert( std::is_fundamental<T>::value || std::is_trivial<T>::value, "Must be an array of trivial or fundamental type" );
-		if(0 == size)
-			return byte_buffer();
-		byte_buffer res = allocate(ec,  size * sizeof(T) );
-		if( !ec ) {
-			res.put(arr, size);
-			res.flip();
-			return byte_buffer( std::move(res) );
+		if(0 != size) {
+			const std::size_t capacity = size * sizeof(T);
+			detail::mem_block mb = detail::mem_block::wrap( arr, capacity );
+			if( mb ) {
+                byte_buffer ret( std::move(mb), capacity );
+				ret.move(capacity);
+				ret.flip();
+				return std::move( ret );
+			}
+			ec = std::make_error_code(std::errc::not_enough_memory);
 		}
 		return byte_buffer();
 	}
@@ -627,23 +626,6 @@ private:
 };
 
 
-/// Converts this buffer into STL string of provided type by deep copying all bytes between
-/// buffer position and last iterators into STL string
-/// \return STL string storing buffer content
-/// \throw potential std::bad_alloc
-template<class __char_type>
-inline std::basic_string<__char_type> to_string(byte_buffer& buff)
-{
-	typedef std::basic_string<__char_type> str_type;
-	typedef typename str_type::const_pointer char_ptr_t;
-	if(buff.empty())
-		return str_type();
-	char_ptr_t f = reinterpret_cast<char_ptr_t>(buff.position().get());
-	char_ptr_t l = reinterpret_cast<char_ptr_t>(buff.last().get());
-	str_type result(f,l-1);
-	result.shrink_to_fit();
-	return std::move(result);
-}
 
 } // namespace io
 
