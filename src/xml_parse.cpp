@@ -316,8 +316,22 @@ static error validate_tag_name(const char* name) noexcept
 	return check_xml_name(name);
 }
 
-static inline error validate_attribute_name(const char* name) noexcept
+static error validate_attribute_name(const char* name) noexcept
 {
+	std::size_t start = 0;
+	std::size_t count = extract_prefix(start, name);
+	if( count > 0) {
+		char *prefix = reinterpret_cast<char*>( io_alloca( count + 1 ) );
+		prefix[count] = 0;
+		io_memmove(prefix, name, count);
+		error ret = check_xml_name(prefix);
+		switch (ret) {
+		case error::ok:
+			return check_xml_name( (name + count + 1) );
+		default:
+			return ret;
+		}
+	}
 	return check_xml_name(name);
 }
 
@@ -789,9 +803,9 @@ attribute event_stream_parser::extract_attribute(const char* from, std::size_t& 
 	// 2 symbols
 	i += 2;
 	start = i;
-	i = tstrchrn(i, char8_traits::to_char_type(QNM), MAX_DEPTH );
+	i = io_strchr(i, QNM );
 	if(nullptr == i) {
-		assign_error(error::illegal_name);
+		assign_error(error::illegal_attribute);
 		return attribute();
 	}
 	byte_buffer val;
