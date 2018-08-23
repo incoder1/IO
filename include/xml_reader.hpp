@@ -30,6 +30,7 @@ public:
 	/// Construct an XML reader on top of StAX parser
 	/// \param parser StAX parser instance
 	explicit reader(s_event_stream_parser&& parser) noexcept;
+
 	/// Drop parser to the next tag
 	/// Check for tag self closing by start_element_event#empty_element
 	/// \param ec operation error code

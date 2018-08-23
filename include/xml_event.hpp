@@ -192,7 +192,7 @@ private:
 
       	typedef bool result_type;
 
-     	bool operator()(const attribute& lsh, const attribute& rhs) const noexcept
+     	__forceinline result_type operator()(const first_argument_type& lsh, const second_argument_type& rhs) const noexcept
      	{
      		return lsh.name() < rhs.name();
      	}
@@ -234,10 +234,12 @@ public:
 		return !attributes_.empty();
 	}
 
+	// returns iterator on first attribute
 	inline iterator attr_begin() const noexcept {
 		return attributes_.cbegin();
 	}
 
+	// returns iterator on last attribute
 	inline iterator attr_end() const noexcept {
 		return attributes_.cend();
 	}

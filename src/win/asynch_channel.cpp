@@ -25,19 +25,6 @@ asynch_channel::~asynch_channel() noexcept
 
 void asynch_channel::read(std::size_t bytes, std::size_t pos) const noexcept
 {
-	std::error_code ec;
-	uint8_t *buff = static_cast<uint8_t*>( memory_traits::malloc(bytes) );
-	if( nullptr == buff ) {
-		ec = std::make_error_code(std::errc::not_enough_memory);
-		on_read_finished(ec, pos, byte_buffer() );
-		return;
-	}
-	LARGE_INTEGER p;
-	p.QuadPart = pos;
-	::OVERLAPPED ovlp;
-	ovlp.Offset = p.LowPart;
-	ovlp.OffsetHigh = p.HighPart;
-	hch_.asynch_read(&ovlp, buff, bytes);
 }
 
 void asynch_channel::write(byte_buffer&& buff, std::size_t pos) const noexcept

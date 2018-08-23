@@ -36,7 +36,7 @@
 
 using namespace io;
 
-// print XML start document event e.g. XML prologure section details
+// print XML start document event e.g. XML prologue section details
 void print_start_doc(std::ostream& stm,const xml::s_event_stream_parser& s)
 {
 	// extract and parse XML prologue

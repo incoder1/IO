@@ -38,19 +38,27 @@ start_element_event::start_element_event(qname&& name, bool empty_element) noexc
 
 bool start_element_event::add_attribute(attribute&& attr) noexcept
 {
+#ifndef IO_NO_EXCEPTIONS
+	try {
+		return attributes_.emplace( std::forward<attribute>( attr )  ).second;
+	} catch(...) {
+		return false;
+	}
+#else
 	return attributes_.emplace( std::forward<attribute>( attr )  ).second;
+#endif // IO_NO_EXCEPTIONS
 }
 
 std::pair<const_string, bool> start_element_event::get_attribute(const char* attr_name) const noexcept
 {
-	iterator ret = std::find_if(attributes_.cbegin(), attributes_.cend(),
-				[attr_name] (const attribute& attr) noexcept {
+	auto name_equal = [attr_name] (const attribute& attr) noexcept {
 					return attr.name().equal(attr_name);
-				});
+				};
+	iterator ret = std::find_if(attributes_.cbegin(), attributes_.cend(), name_equal);
 	if( attributes_.cend() != ret)
-		return std::make_pair( ret->value(),true);
+		return { ret->value(), true };
 	else
-		return std::make_pair(const_string(), false);
+		return { const_string(), false };
 }
 
 } // namesapce xml

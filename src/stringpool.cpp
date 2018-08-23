@@ -89,9 +89,17 @@ const cached_string string_pool::get(const char* s, std::size_t count) noexcept
 			++it;
 		}
 	}
-
+#ifndef IO_NO_EXCEPTIONS
+	try {
+		std::pair<pool_type::iterator,bool> ret = pool_.emplace( str_hash, cached_string(s, count) );
+		return ret.second ? ret.first->second : cached_string(s, count);
+	} catch(...) {
+		return cached_string(s, count);
+	}
+#else
 	std::pair<pool_type::iterator,bool> ret = pool_.emplace( str_hash, cached_string(s, count) );
 	return ret.second ? ret.first->second : cached_string(s, count);
+#endif // IO_NO_EXCEPTIONS
 }
 
 

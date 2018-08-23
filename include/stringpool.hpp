@@ -162,8 +162,9 @@ public:
 
 	/// Compare this string with another
 	bool operator<(const cached_string& rhs) const noexcept {
-        return (data_ == rhs.data_) ? 0
-        :  io_strcmp( data(), rhs.data() ) < 0;
+        return (data_ == rhs.data_)
+        ? false
+        : (io_strcmp( data(), rhs.data() ) < 0);
 	}
 
 private:
