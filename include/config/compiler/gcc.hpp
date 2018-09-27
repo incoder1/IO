@@ -148,15 +148,14 @@ namespace io {
 namespace detail {
 
 /// GCC intrinsics for atomic pointer
-class atomic_traits {
-public:
-    static __forceinline std::size_t inc(std::size_t volatile *ptr) {
+namespace atomic_traits {
+     __forceinline std::size_t inc(std::size_t volatile *ptr) {
         return __atomic_add_fetch(ptr, 1, __ATOMIC_RELAXED);
     }
-    static __forceinline std::size_t dec(std::size_t volatile *ptr) {
+    __forceinline std::size_t dec(std::size_t volatile *ptr) {
         return __atomic_sub_fetch(ptr, 1, __ATOMIC_SEQ_CST);
     }
-};
+} // atomic_traits
 
 } // namespace detail
 } // namespace io

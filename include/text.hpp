@@ -85,7 +85,7 @@ public:
 	virtual std::size_t read(std::error_code& ec,uint8_t* const buff, std::size_t bytes) const noexcept override;
 	/// Destroys channel and releases all associated resources
 	/// \throw never throws
-	virtual ~conv_read_channel() noexcept;
+	virtual ~conv_read_channel() noexcept = default;
 private:
 	s_read_channel src_;
 	s_code_cnvtr conv_;

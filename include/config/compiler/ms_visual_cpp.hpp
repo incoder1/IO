@@ -177,38 +177,37 @@ namespace io {
 namespace detail {
 
 // MS VC++ atomic Intrinsics
-class atomic_traits {
-public:
+namespace atomic_traits {
 #	ifdef _M_X64 // 64 bit instruction set
-    static inline size_t inc(size_t volatile *ptr) {
-        __int64 volatile *p = reinterpret_cast<__int64 volatile*>(ptr);
+	__forceinline size_t inc(size_t volatile *ptr) {
+		__int64 volatile *p = reinterpret_cast<__int64 volatile*>(ptr);
 #	ifdef _M_ARM
-        return static_cast<size_t>( _InterlockedIncrement64_nf(p) );
+		return static_cast<size_t>( _InterlockedIncrement64_nf(p) );
 #	else
-        // Intel/AMD x64
-        return static_cast<size_t>( _InterlockedIncrement64(p) );
+		// Intel/AMD x64
+		return static_cast<size_t>( _InterlockedIncrement64(p) );
 #	endif // _M_ARM
-    }
-    static inline size_t dec(size_t volatile *ptr) {
-        __int64 volatile *p = reinterpret_cast<__int64 volatile*>(ptr);
-        return static_cast<size_t>( _InterlockedDecrement64(p) );
-    }
+	}
+	__forceinline size_t dec(size_t volatile *ptr) {
+		__int64 volatile *p = reinterpret_cast<__int64 volatile*>(ptr);
+		return static_cast<size_t>( _InterlockedDecrement64(p) );
+	}
 
 #	else // 32 bit instruction set
-    static inline size_t inc(size_t volatile *ptr) {
-        _long volatile *p = reinterpret_cast<long volatile*>(ptr);
+	__forceinline size_t inc(size_t volatile *ptr) {
+	_long volatile *p = reinterpret_cast<long volatile*>(ptr);
 #	ifdef _M_ARM
-        return static_cast<size_t>( _InterlockedIncrement_nf(p) );
+		return static_cast<size_t>( _InterlockedIncrement_nf(p) );
 #	else // Intel/AMD x32
-        return static_cast<size_t>( _InterlockedIncrement(p) );
+		return static_cast<size_t>( _InterlockedIncrement(p) );
 #	endif // _M_ARM
-    }
-    static inline size_t dec(size_t volatile *ptr) {
-        long volatile *p = reinterpret_cast<long volatile*>(ptr);
-        return static_cast<size_t>( _InterlockedDecrement(p) );
-    }
+	}
+	__forceinline size_t dec(size_t volatile *ptr) {
+		long volatile *p = reinterpret_cast<long volatile*>(ptr);
+		return static_cast<size_t>( _InterlockedDecrement(p) );
+	}
 #	endif // 32 bit instruction set
-}; // atomic_traits
+} // atomic_traits
 
 } // namespace detail
 } // namespace io

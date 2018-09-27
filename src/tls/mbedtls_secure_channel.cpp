@@ -42,7 +42,7 @@ const service* service::instance(std::error_code& ec) noexcept
 		if(nullptr == ret) {
 			::mbedtls_ssl_context contex;
     		::mbedtls_ssl_config config;
-			if( init_mbedtls( std::addressof(contex), std::addressof(config) ) ) {
+			if( init_mbedtls( &contex, &config ) ) {
 				std::atexit( &service::destroy_engine_atexit );
 				ret = new (std::nothrow) service( std::move(contex), std::move(config) );
 				if(nullptr == ret)

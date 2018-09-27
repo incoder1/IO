@@ -44,9 +44,6 @@ conv_read_channel::conv_read_channel(const s_read_channel& src,s_code_cnvtr&& co
 	conv_( std::forward<s_code_cnvtr>(conv) )
 {}
 
-conv_read_channel::~conv_read_channel() noexcept
-{
-}
 
 std::size_t conv_read_channel::read(std::error_code& ec,uint8_t* const buff, std::size_t bytes) const noexcept
 {

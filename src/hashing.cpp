@@ -301,7 +301,7 @@ static uint64_t hash_over_64(const uint8_t* s, std::size_t count) noexcept
 		s += 64;
 		count -= 64;
 	}
-	while (count);
+	while (0 != count);
 	return hash_len16(hash_len16(v.first, w.first) + shift_mix(y) * k1 + z, hash_len16(v.second, w.second) + x);
 }
 
