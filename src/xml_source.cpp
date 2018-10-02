@@ -166,15 +166,15 @@ error source::charge() noexcept
 
 
 // normalize line endings according W3C XML spec
-char source::normalize_lend(const char ch)
+inline char source::normalize_lend(const char ch)
 {
-	if( CR == ch && NL == *pos_ ) {
+	if( io_unlikely( CR == ch && NL == *pos_ ) ) {
 		++pos_;
 		++row_;
 		col_ = 1;
 		return NL;
 	}
-	else if( ch == NL ) {
+	else if( io_unlikely( ch == NL ) ) {
 		++row_;
 		col_ = 1;
 	}

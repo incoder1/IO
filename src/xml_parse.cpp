@@ -578,7 +578,7 @@ void event_stream_parser::skip_dtd() noexcept
 	std::size_t brackets = 1;
 	do {
 		i = next();
-		switch(i) {
+		switch( char8_traits::to_int_type(i) ) {
 		case EOF:
 			assign_error(error::illegal_dtd);
 			break;
@@ -613,7 +613,7 @@ const_string event_stream_parser::read_dtd() noexcept
 	int i;
 	do {
 		i = next();
-		switch(i) {
+		switch( char8_traits::to_int_type(i) ) {
 		case EOF:
 			assign_error(error::illegal_dtd);
 			return const_string();
@@ -677,15 +677,15 @@ byte_buffer event_stream_parser::read_until_double_separator(int separator,error
 	uint16_t i = 0;
 	do {
 		c = next();
-		if( is_eof(c) )
+		if( io_unlikely( is_eof(c) ) )
 			break;
 		else
 			putch(buff, c);
 		i = (i << 8) | uint16_t(c);
 	}
-	while( pattern != i && !is_error() );
+	while( pattern != i && io_likely(!is_error()) );
 	buff.flip();
-	if( io_unlikely( is_eof(c) || !cheq(RIGHTB, next() ) ) ) {
+	if( is_eof(c) || !cheq(RIGHTB, next() ) ) {
 		if(error::ok != state_.ec)
 			assign_error(ec);
 		return byte_buffer();
@@ -768,7 +768,7 @@ void event_stream_parser::skip_chars() noexcept
 			sb_clear( scan_buf_ );
 			assign_error(error::illegal_chars);
 			return;
-		case EOF:
+		case io_unlikely(EOF):
 			sb_clear( scan_buf_ );
 			assign_error(error::root_element_is_unbalanced);
 			return;

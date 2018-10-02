@@ -337,7 +337,7 @@ inline constexpr bool ismbnext(const char c)
 	return 2 == ( uint8_t(c) >> 6);
 }
 
-inline uint8_t u8_char_size(const char ch)
+inline int u8_char_size(const char ch)
 {
 	if( io_likely( single_byte(ch) ) )
 		return 1;
@@ -347,7 +347,7 @@ inline uint8_t u8_char_size(const char ch)
 #else
 	unsigned int c = static_cast<unsigned int>(ch);
 #endif // IO_IS_LITTLE_ENDIAN
-	return static_cast<unsigned int>( io_clz( ~c ) );
+	return static_cast<int>( io_clz( ~c ) );
 }
 
 

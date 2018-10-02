@@ -1000,8 +1000,8 @@ public:
 		self_( new impl_t(name, std::forward<A>(att), std::forward<E>(el) ) )
 	{}
 
-	/// Recursivelly marshal this object into output stream
-	/// \param to output stream to marahal
+	/// Marshal this object into output stream recursive
+	/// \param to output stream to marshal into
 	/// \param shift pretty print shift, 0 - no pretty print i.e. single line
 	void marshal(std::ostream& to,const uint8_t shift) const
 	{
@@ -1012,7 +1012,7 @@ public:
 
 	static constexpr const char* XS_TYPE = impl_t::XS_TYPE;
 
-	/// Recursivelly generate XSD from this XML type
+	/// Recursive generate XSD from this XML type
 	/// \param to output stream to marshal
 	void to_xsd(std::ostream& to)
 	{
