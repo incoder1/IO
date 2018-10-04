@@ -61,7 +61,7 @@ public:
 		return nullptr != px_;
 	}
 
-	inline uint8_t* get() const {
+	__forceinline uint8_t* get() const noexcept {
 		return px_;
 	}
 

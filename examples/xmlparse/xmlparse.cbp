@@ -36,7 +36,6 @@
 				<Option parameters="test.xml" />
 				<Compiler>
 					<Add option="-flto" />
-					<Add option="-O3" />
 					<Add option="-Weffc++" />
 					<Add option="-pedantic" />
 					<Add option="-Wextra" />
@@ -44,7 +43,6 @@
 					<Add option="-std=c++14" />
 					<Add option="-fno-exceptions" />
 					<Add option="-fno-rtti" />
-					<Add option="-mtune=native" />
 					<Add option="-DNDEBUG" />
 					<Add option="-DUNICODE" />
 					<Add option="-DIO_SHARED_LIB" />
@@ -52,8 +50,8 @@
 				<Linker>
 					<Add option="-O3" />
 					<Add option="-flto" />
-					<Add option="-s" />
 					<Add option="-fno-set-stack-executable" />
+					<Add option="-mtune=native" />
 					<Add library="iconv.dll" />
 					<Add directory="../../bin/release-win-gcc-dll-x64" />
 				</Linker>

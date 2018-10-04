@@ -18,7 +18,6 @@
 					<Add option="-pedantic" />
 					<Add option="-std=c++11" />
 					<Add option="-pg" />
-					<Add option="-Og" />
 					<Add option="-g" />
 					<Add option="-fexceptions" />
 					<Add option="-DIO_TLS_PROVIDER_GNUTSL" />

@@ -327,17 +327,17 @@ inline size_t xmlname_strspn(const char *s)
 	return io_strcspn( s, pattern);
 }
 
-inline constexpr bool single_byte(const char c)
+__forceinline constexpr bool single_byte(const char c)
 {
 	return static_cast<uint8_t>(c) < uint8_t(0x80U);
 }
 
-inline constexpr bool ismbnext(const char c)
+__forceinline bool ismbnext(const char c) noexcept
 {
 	return 2 == ( uint8_t(c) >> 6);
 }
 
-inline int u8_char_size(const char ch)
+__forceinline unsigned int u8_char_size(const char ch)
 {
 	if( io_likely( single_byte(ch) ) )
 		return 1;
@@ -347,7 +347,7 @@ inline int u8_char_size(const char ch)
 #else
 	unsigned int c = static_cast<unsigned int>(ch);
 #endif // IO_IS_LITTLE_ENDIAN
-	return static_cast<int>( io_clz( ~c ) );
+	return static_cast<unsigned int>( io_clz( ~c ) );
 }
 
 

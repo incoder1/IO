@@ -42,17 +42,17 @@ session::~session() noexcept
 		::gnutls_deinit( peer_ );
 }
 
-ssize_t session::push(::gnutls_transport_ptr_t t, const void * data, std::size_t size)
+ssize_t session::push(::gnutls_transport_ptr_t t, const void * data, std::size_t size) noexcept
 {
-	read_write_channel *tr = reinterpret_cast<read_write_channel*>(t);
+	const read_write_channel *tr = reinterpret_cast<read_write_channel*>(t);
 	std::error_code ec;
 	std::size_t ret = tr->write( ec, static_cast<const uint8_t*>(data), size);
 	return ec ?  -1 : ret;
 }
 
-ssize_t session::pull(::gnutls_transport_ptr_t t, void * data, std::size_t max_size)
+ssize_t session::pull(::gnutls_transport_ptr_t t, void * data, std::size_t max_size) noexcept
 {
-	read_write_channel *tr = reinterpret_cast<read_write_channel*>(t);
+	const read_write_channel *tr = reinterpret_cast<read_write_channel*>(t);
 	std::error_code ec;
 	std::size_t ret = tr->read( ec, static_cast<uint8_t*>(data), max_size);
 	return ec ?  -1 : ret;
@@ -65,7 +65,7 @@ int session::client_handshake(::gnutls_session_t const peer) noexcept
 	do {
 		ret = ::gnutls_handshake(peer);
 	}
-	while( (GNUTLS_E_SUCCESS != ret) && (::gnutls_error_is_fatal(ret) > 0) );
+	while( ret < 0 && 0 == ::gnutls_error_is_fatal(ret) );
 	return ret;
 }
 
@@ -76,6 +76,7 @@ session session::client_session(std::error_code &ec, ::gnutls_certificate_creden
 	if(GNUTLS_E_SUCCESS != err)
 		ec = std::make_error_code( std::errc::connection_refused );
 	else {
+		/* Use default priorities */
 		err = ::gnutls_set_default_priority(ret.peer_);
 		if(GNUTLS_E_SUCCESS != err)
 			ec = std::make_error_code( std::errc::connection_refused );
@@ -84,11 +85,13 @@ session session::client_session(std::error_code &ec, ::gnutls_certificate_creden
 			if(GNUTLS_E_SUCCESS != err)
 				ec = std::make_error_code( std::errc::connection_refused );
 			else {
-				::gnutls_transport_ptr_t transport = reinterpret_cast<::gnutls_transport_ptr_t>( ret.socket_.get() );
 
-				::gnutls_transport_set_ptr( ret.peer_, transport );
 				::gnutls_transport_set_push_function( ret.peer_, &session::push );
 				::gnutls_transport_set_pull_function( ret.peer_, &session::pull );
+				::gnutls_transport_set_pull_timeout_function(ret.peer_, ::gnutls_system_recv_timeout);
+
+				::gnutls_transport_ptr_t transport = reinterpret_cast<::gnutls_transport_ptr_t>( ret.socket_.get() );
+				::gnutls_transport_set_ptr( ret.peer_, transport );
 
 				err = client_handshake( ret.peer_ );
 				if(GNUTLS_E_SUCCESS != err)
@@ -167,6 +170,11 @@ const service* service::instance(std::error_code& ec) noexcept
 		ret = _instance.load(std::memory_order_consume);
 		if(nullptr == ret) {
 			if( GNUTLS_E_SUCCESS == ::gnutls_global_init() ) {
+
+				::gnutls_global_set_log_function([] (int e, const char *msg) {
+						std::printf("%i %s", e, msg);
+				});
+
 				credentials xcred = credentials::system_trust_creds(ec);
 				if(!ec) {
 					std::atexit( &service::destroy_gnu_tls_atexit );

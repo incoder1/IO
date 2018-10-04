@@ -201,31 +201,31 @@ static constexpr const uint8_t* make_unsigned(const char* str) noexcept
 static bool is_xml_name_char(uint32_t ch) noexcept
 {
 	switch( static_cast<uint32_t>(ch) ) {
-		case 0x5F:
-		case 0x3A:
-		case 0x2D:
-		case 0x2E:
-		case 0xB7:
-		case 0x30 ... 0x39:
-		case 0x41 ... 0x5A:
-		case 0x61 ... 0x7A:
-		case 0xC0 ... 0xD6:
-		case 0xD8 ... 0xF6:
-		case 0xF8 ... 0x2FF:
-		case 0x370 ... 0x37D:
-		case 0x37F ... 0x1FFF:
-		case 0x200C ... 0x200D:
-		case 0x203F ... 0x2040:
-		case 0x2070 ... 0x218F:
-		case 0x2C00 ... 0x2FEF:
-		case 0x0300 ... 0x036F:
-		case 0x3001 ... 0xD7FF:
-		case 0xF900 ... 0xFDCF:
-		case 0xFDF0 ... 0xFFFD:
-		case 0x10000 ... 0xEFFFF:
-			return true;
-		default:
-			return false;
+	case 0x5F:
+	case 0x3A:
+	case 0x2D:
+	case 0x2E:
+	case 0xB7:
+	case 0x30 ... 0x39:
+	case 0x41 ... 0x5A:
+	case 0x61 ... 0x7A:
+	case 0xC0 ... 0xD6:
+	case 0xD8 ... 0xF6:
+	case 0xF8 ... 0x2FF:
+	case 0x370 ... 0x37D:
+	case 0x37F ... 0x1FFF:
+	case 0x200C ... 0x200D:
+	case 0x203F ... 0x2040:
+	case 0x2070 ... 0x218F:
+	case 0x2C00 ... 0x2FEF:
+	case 0x0300 ... 0x036F:
+	case 0x3001 ... 0xD7FF:
+	case 0xF900 ... 0xFDCF:
+	case 0xFDF0 ... 0xFFFD:
+	case 0x10000 ... 0xEFFFF:
+		return true;
+	default:
+		return false;
 	}
 }
 
@@ -370,10 +370,10 @@ inline void event_stream_parser::assign_error(error ec) noexcept
 		state_.ec = ec;
 }
 
-inline void event_stream_parser::putch(byte_buffer& buf, char ch) noexcept
+__forceinline void event_stream_parser::putch(byte_buffer& buf, char ch) noexcept
 {
-	if( io_unlikely( !buf.put(ch) ) ) {
-		if(  io_unlikely( !buf.ln_grow() ) )
+	if(  !buf.put(ch) ) {
+		if(  !buf.ln_grow()  )
 			assign_error(error::out_of_memory);
 		else
 			buf.put(ch);
@@ -431,7 +431,7 @@ byte_buffer event_stream_parser::read_entity() noexcept
 		putch(ret, c );
 		switch( char8_traits::to_int_type(c) ) {
 		case LEFTB:
-		case io_unlikely(EOF):
+		case EOF:
 			assign_error(error::illegal_markup);
 			break;
 		case RIGHTB:
@@ -717,7 +717,7 @@ const_string event_stream_parser::read_chars() noexcept
 	if( ec )
 		return const_string();
 	// just "\s<" in scan stack
-	if( cheq(LEFTB,scan_buf_[1]) && cheq('\0',scan_buf_[3]) ) {
+	if( 0 == io_memcmp( (scan_buf_+1),"<", 2)  ) {
 		char tmp[2] = { scan_buf_[0], '\0'};
 		sb_clear(scan_buf_);
 		scan_buf_[0] = '<';
@@ -727,21 +727,23 @@ const_string event_stream_parser::read_chars() noexcept
 	bool reading = true;
 	do {
 		c = next();
-		switch( char8_traits::to_int_type(c) )
-		{
+		switch( char8_traits::to_int_type(c) ) {
 		case LEFTB:
 			reading = false;
 			break;
 		case RIGHTB:
 		case EOF:
+			reading = false;
 			assign_error(error::root_element_is_unbalanced);
 			break;
 		default:
-			putch(ret, c);
+			if( io_unlikely( !ret.put(c) && (!ret.exp_grow() || !ret.put(c) ) ) ) {
+				reading = false;
+				assign_error(error::out_of_memory);
+			}
 		}
-		if( io_unlikely( is_error() ) )
-			break;
-	} while( reading );
+	}
+	while( reading );
 
 	if( is_error() )
 		return const_string();

@@ -108,7 +108,7 @@ public:
 
 	/// Checks parser in error state
 	/// \return true if parser in error state, false otherwise
-	inline bool is_error() const noexcept {
+	__forceinline bool is_error() const noexcept {
 		return error::ok != state_.ec;
 	}
 
@@ -187,7 +187,7 @@ private:
 
 	// put a byte into buffer
 	// extend when needed or assign error when no memory left
-	inline void putch(byte_buffer& buf, char ch) noexcept;
+	__forceinline void putch(byte_buffer& buf, char ch) noexcept;
 
 	//char skip_to_symbol(char symbol) noexcept;
 	byte_buffer read_entity() noexcept;

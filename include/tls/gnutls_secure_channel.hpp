@@ -124,9 +124,9 @@ private:
 
     static int client_handshake(::gnutls_session_t peer) noexcept;
 
-    static ssize_t push(::gnutls_transport_ptr_t t, const void *data, std::size_t size);
+    static ssize_t push(::gnutls_transport_ptr_t trpt, const void *data, std::size_t size) noexcept;
 
-    static ssize_t pull(::gnutls_transport_ptr_t t, void * data, std::size_t max_size);
+    static ssize_t pull(::gnutls_transport_ptr_t trpt, void * data, std::size_t max_size) noexcept;
 
 private:
     ::gnutls_session_t peer_;
