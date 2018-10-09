@@ -318,20 +318,6 @@ static error validate_tag_name(const char* name) noexcept
 
 static error validate_attribute_name(const char* name) noexcept
 {
-	std::size_t start = 0;
-	std::size_t count = extract_prefix(start, name);
-	if( count > 0) {
-		char *prefix = reinterpret_cast<char*>( io_alloca( count + 1 ) );
-		prefix[count] = 0;
-		io_memmove(prefix, name, count);
-		error ret = check_xml_name(prefix);
-		switch (ret) {
-		case error::ok:
-			return check_xml_name( (name + count + 1) );
-		default:
-			return ret;
-		}
-	}
 	return check_xml_name(name);
 }
 
@@ -517,20 +503,14 @@ document_event event_stream_parser::parse_start_doc() noexcept
 		// j + strlen(STANDALONE)
 		i = const_cast<char*> ( j + 12 );
 		stop  = tstrchr( i, QNM);
-		if(nullptr == stop ) {
-			assign_error(error::illegal_prologue);
-			return document_event();
-		}
-		if(str_size(i,stop) > 3) {
+		if(nullptr == stop || (str_size(i,stop) > 3) ) {
 			assign_error(error::illegal_prologue);
 			return document_event();
 		}
 		standalone =  ( 0 == io_memcmp( i, YES, 3) );
-		if( !standalone ) {
-			if( 0 != io_memcmp(i, NO, 2) ) {
-				assign_error(error::illegal_prologue);
-				return document_event();
-			}
+		if( !standalone &&  ( 0 != io_memcmp(i, NO, 2) ) ) {
+			assign_error(error::illegal_prologue);
+			return document_event();
 		}
 		i = const_cast<char*> ( stop + 1 );
 	}
@@ -574,11 +554,9 @@ void event_stream_parser::skip_dtd() noexcept
 		assign_error(error::invalid_state);
 		return;
 	}
-	int i;
 	std::size_t brackets = 1;
 	do {
-		i = next();
-		switch( char8_traits::to_int_type(i) ) {
+		switch( char8_traits::to_int_type( next() ) ) {
 		case EOF:
 			assign_error(error::illegal_dtd);
 			break;
@@ -801,7 +779,16 @@ attribute event_stream_parser::extract_attribute(const char* from, std::size_t& 
 	i = const_cast<char*>( io::strstr2b( start, "=\"") );
 	if(nullptr == i)
 		return attribute();
-	cached_string name = pool_->get( start, str_size(start, i) );
+
+	cached_string np;
+	cached_string ln;
+	char *tmp = tstrchrn( start, COLON, str_size(start,i) );
+	if(nullptr != tmp) {
+        np = pool_->get( start,  str_size(start, tmp) );
+        start = tmp + 1;
+	}
+	ln = pool_->get(start, str_size(start, i) );
+
 	// 2 symbols
 	i += 2;
 	start = i;
@@ -829,7 +816,8 @@ attribute event_stream_parser::extract_attribute(const char* from, std::size_t& 
 		++i;
 	}
 	len = str_size(from, i);
-	return attribute( name, const_string(val.position().cdata(), val.last().cdata()) );
+
+	return attribute( qname( std::move(np), std::move(ln) ) , const_string(val.position().cdata(), val.last().cdata()) );
 }
 
 bool event_stream_parser::validate_xml_name(const cached_string& str, bool attr) noexcept
@@ -882,8 +870,12 @@ start_element_event event_stream_parser::parse_start_element() noexcept
 		std::size_t offset = 0;
 		attribute attr( extract_attribute(left,offset) );
 		while(offset != 0) {
-			if( !validate_xml_name( attr.name(), true ) ) {
-				assign_error( error::illegal_chars );
+			qname attr_name = attr.name();
+			if( ( attr_name.has_prefix() && !validate_xml_name(attr_name.prefix(), true) )
+				||
+				  !validate_xml_name( attr.name().local_name(), true )
+			  ) {
+				assign_error( error::illegal_attribute );
 				return start_element_event();
 			}
 			if( ! result.add_attribute( std::move(attr) ) ) {

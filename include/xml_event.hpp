@@ -87,53 +87,7 @@ private:
 
 class event_stream_parser;
 
-/// \brief XML tag attribute
-class IO_PUBLIC_SYMBOL attribute {
-public:
-
-	attribute(const attribute&) noexcept = default;
-	attribute& operator=(const attribute&) noexcept = default;
-	attribute(attribute&&) noexcept = default;
-	attribute& operator=(attribute&&) noexcept = default;
-
-	constexpr attribute() noexcept:
-		name_(),
-		value_()
-	{}
-
-	attribute(const cached_string& name,const_string&& value) noexcept:
-		name_( name ),
-		value_( std::forward<const_string>(value) )
-	{}
-
-	~attribute() noexcept = default;
-
-	/// Returns attribute name
-	/// \return attribute name
-	inline cached_string name() const noexcept {
-		return name_;
-	}
-
-	/// Returns attribute value
-	/// \return attribute value, in string representation
-	inline const_string value() const noexcept {
-		return value_;
-	}
-
-	void swap(attribute& rhs) noexcept {
-		name_.swap(rhs.name_);
-		value_.swap(rhs.value_);
-	}
-
-	bool operator==(const attribute& rhs) const noexcept {
-		return name_ == rhs.name_;
-	}
-private:
-	cached_string name_;
-	const_string value_;
-};
-
-/// \brief qualified tag name
+/// \brief qualified name
 class qname final {
 public:
 
@@ -164,20 +118,80 @@ public:
 
 	/// Returns name space prefix if present
 	/// \return name space prefix of empty string if it is not present
-	inline cached_string prefix() const  {
+	inline cached_string prefix() const noexcept {
 		return prefix_;
 	}
 
 
 	/// Returns tag local name
 	/// \return tag local name
-	inline cached_string local_name() const {
+	inline cached_string local_name() const noexcept {
 		return local_name_;
+	}
+
+	inline bool operator==(const qname& rhs) const noexcept {
+		return prefix_.equal(rhs.prefix_.data()) && local_name_.equal(rhs.local_name_.data());
+	}
+
+	inline bool operator<(const qname& rhs) const {
+		if( prefix_ == rhs.prefix_ )
+			return local_name_ < rhs.local_name_;
+		return prefix_ < rhs.prefix_;
+	}
+
+	inline bool equal(const char* prefix, const char* name) const noexcept
+	{
+        return prefix_.equal(prefix) && local_name_.equal(name);
 	}
 
 private:
 	cached_string prefix_;
 	cached_string local_name_;
+};
+
+/// \brief XML tag attribute
+class IO_PUBLIC_SYMBOL attribute {
+public:
+
+	attribute(const attribute&) noexcept = default;
+	attribute& operator=(const attribute&) noexcept = default;
+	attribute(attribute&&) noexcept = default;
+	attribute& operator=(attribute&&) noexcept = default;
+	~attribute() noexcept = default;
+
+	constexpr attribute() noexcept:
+		name_(),
+		value_()
+	{}
+
+	attribute(qname&& name,const_string&& value) noexcept:
+		name_( std::forward<qname>(name) ),
+		value_( std::forward<const_string>(value) )
+	{}
+
+	/// Returns attribute name
+	/// \return attribute name
+	inline qname name() const noexcept {
+		return name_;
+	}
+
+	/// Returns attribute value
+	/// \return attribute value, in string representation
+	inline const_string value() const noexcept {
+		return value_;
+	}
+
+	void swap(attribute& rhs) noexcept {
+		name_.swap(rhs.name_);
+		value_.swap(rhs.value_);
+	}
+
+	bool operator==(const attribute& rhs) const noexcept {
+		return name_ == rhs.name_;
+	}
+private:
+	qname name_;
+	const_string value_;
 };
 
 
@@ -244,7 +258,7 @@ public:
 		return attributes_.cend();
 	}
 
-	std::pair<const_string, bool> get_attribute(const char* attr_name) const noexcept;
+	std::pair<const_string, bool> get_attribute(const char* prefix, const char* attr_name) const noexcept;
 
 	inline void swap(start_element_event& other) noexcept {
 		name_.swap(other.name_);

@@ -49,10 +49,10 @@ bool start_element_event::add_attribute(attribute&& attr) noexcept
 #endif // IO_NO_EXCEPTIONS
 }
 
-std::pair<const_string, bool> start_element_event::get_attribute(const char* attr_name) const noexcept
+std::pair<const_string, bool> start_element_event::get_attribute(const char* prefix, const char* name) const noexcept
 {
-	auto name_equal = [attr_name] (const attribute& attr) noexcept {
-					return attr.name().equal(attr_name);
+	auto name_equal = [prefix,name] (const attribute& attr) noexcept {
+					return attr.name().equal(prefix, name);
 				};
 	iterator ret = std::find_if(attributes_.cbegin(), attributes_.cend(), name_equal);
 	if( attributes_.cend() != ret)

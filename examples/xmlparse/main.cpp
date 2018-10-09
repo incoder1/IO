@@ -71,7 +71,10 @@ static void print_start_element(std::ostream& stm, const xml::s_event_stream_par
 	// check parsing was success
 	if( !s->is_error() ) {
 		stm << "Start element:\n";
-		stm << "\tprefix:"<<e.name().prefix();
+
+		if( e.name().has_prefix() )
+			stm << "\tprefix:"<<e.name().prefix();
+
 		stm << " name:"<< e.name().local_name();
 		// show whether  <tag attr="att"/> or <tag></tag>
 		// parser not generating end element events for
@@ -81,7 +84,11 @@ static void print_start_element(std::ostream& stm, const xml::s_event_stream_par
 		if( e.has_attributes() ) {
 			stm<<"\tattributes:\n";
 			std::for_each(e.attr_begin(), e.attr_end(), [&stm] (const xml::attribute& attr) {
-				stm << "\t\tname: " << attr.name() << " value: " << attr.value() << '\n';
+				io::xml::qname attr_name = attr.name();
+				if( attr_name.has_prefix() )
+					stm << "\t\t prefix: " << attr_name.prefix() << " name: " << attr_name.local_name() << " value: " << attr.value() << '\n';
+				else
+					stm << "\t\tname: " << attr_name.local_name() << " value: " << attr.value() << '\n';
 			} );
 		}
 		// flush to console

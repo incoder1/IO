@@ -212,7 +212,7 @@ public:
 		return empty() ? 0 : traits_type::length( data() );
 	}
 
-	/// Hash this string bytes (murmur3 for 32bit, cityhash for 64 bit)
+	/// Hash this string bytes (murmur3 for 32bit, Cityhash for 64 bit)
 	/// \return string content hash
 	inline std::size_t hash() const noexcept {
 		return empty() ? io::hash_bytes( data(), size() ) : 0;

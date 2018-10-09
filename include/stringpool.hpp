@@ -150,7 +150,12 @@ public:
 	/// \param rhs zero ending string check with
 	inline bool equal(const char* rhs) const noexcept {
 		const char *tmp = data();
-		return tmp == rhs ? true : 0 == io_strcmp(tmp, rhs);
+		if( tmp == rhs || ( empty() && (nullptr == rhs  || '\0' == *rhs ) ) )
+			return true;
+		else if(nullptr == rhs)
+			return false;
+		else
+			return 0 == io_strcmp(tmp, rhs);
 	}
 
 	/// Check this string equality
