@@ -51,14 +51,14 @@ bool start_element_event::add_attribute(attribute&& attr) noexcept
 
 std::pair<const_string, bool> start_element_event::get_attribute(const char* prefix, const char* name) const noexcept
 {
-	auto name_equal = [prefix,name] (const attribute& attr) noexcept {
-					return attr.name().equal(prefix, name);
-				};
-	iterator ret = std::find_if(attributes_.cbegin(), attributes_.cend(), name_equal);
+	iterator ret = std::find_if(attributes_.cbegin(), attributes_.cend(),
+				[prefix,name] (const attribute& attr) noexcept {
+								return attr.name().equal(prefix, name);
+				} );
 	if( attributes_.cend() != ret)
-		return { ret->value(), true };
+		return std::make_pair( ret->value(), true );
 	else
-		return { const_string(), false };
+		return std::make_pair( const_string(), false );
 }
 
 } // namesapce xml

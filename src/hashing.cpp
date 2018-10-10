@@ -121,14 +121,14 @@ typedef struct  {
 	uint64_t second;
 } ullpair;
 
-static inline uint64_t unaligned_load64(const uint8_t *p)
+static inline uint64_t unaligned_load64(const uint8_t *p) noexcept
 {
 	uint64_t result;
 	io_memmove( static_cast<void*>(&result), p, sizeof(result) );
 	return result;
 }
 
-static inline uint32_t unaligned_load32(const uint8_t *p)
+static inline uint32_t unaligned_load32(const uint8_t *p) noexcept
 {
 	uint32_t result;
 	io_memmove( static_cast<void*>(&result), p, sizeof(result) );
@@ -136,20 +136,23 @@ static inline uint32_t unaligned_load32(const uint8_t *p)
 }
 
 #ifdef IO_IS_LITTLE_ENDIAN
-static uint64_t fetch_64(const uint8_t *p)
+static uint64_t fetch_64(const uint8_t *p) noexcept
 {
 	return unaligned_load64(p);
 }
-static uint32_t fetch_32(const uint8_t *p)
+
+static uint32_t fetch_32(const uint8_t *p) noexcept
 {
 	return unaligned_load32(p);
 }
 #else
-static __forceinline uint64_t fetch_64(const uint8_t *p)
+
+static __forceinline uint64_t fetch_64(const uint8_t *p) noexcept
 {
 	return io_bswap64( unaligned_load64(p) );
 }
-static __forceinline uint32_t fetch_32(const uint8_t *p)
+
+static __forceinline uint32_t fetch_32(const uint8_t *p) noexcept
 {
 	return io_bswap32( unaligned_load32(p) );
 }
@@ -159,7 +162,7 @@ static __forceinline uint32_t fetch_32(const uint8_t *p)
 #	pragma intrinsic(_rotr64)
 #endif // _MSC_VER
 
-static __forceinline uint64_t ror64(const uint64_t val,const uint32_t shift)
+static __forceinline uint64_t ror64(const uint64_t val,const uint32_t shift) noexcept
 {
 #ifdef _MSC_VER
 	return _rotr64(val,shift);
@@ -169,12 +172,12 @@ static __forceinline uint64_t ror64(const uint64_t val,const uint32_t shift)
 #endif // _MSC_VER
 }
 
-static constexpr inline uint64_t shift_mix(uint64_t val)
+static constexpr inline uint64_t shift_mix(uint64_t val) noexcept
 {
 	return val ^ (val >> 47);
 }
 
-static inline uint64_t hash_len16(uint64_t u, uint64_t v)
+static inline uint64_t hash_len16(uint64_t u, uint64_t v) noexcept
 {
 	// Murmur-inspired hashing.
 	uint64_t a = (u ^ v) * K_MUL;
@@ -186,7 +189,7 @@ static inline uint64_t hash_len16(uint64_t u, uint64_t v)
 }
 
 // mur
-static inline uint64_t hash_len16(const uint64_t u,const uint64_t v,const uint64_t mul)
+static inline uint64_t hash_len16(const uint64_t u,const uint64_t v,const uint64_t mul) noexcept
 {
 	// Murmur-inspired hashing.
 	uint64_t mur_a = (u ^ v) * mul;
@@ -223,7 +226,7 @@ static uint64_t hash_len0_to16(const uint8_t *s, std::size_t len) noexcept
 	return k2;
 }
 
-static uint64_t hash_len17_to32(const uint8_t *s, size_t len)
+static uint64_t hash_len17_to32(const uint8_t *s, size_t len) noexcept
 {
 	uint64_t mul = k2 + len * 2;
 	uint64_t a = fetch_64(s) * k1;
@@ -234,7 +237,7 @@ static uint64_t hash_len17_to32(const uint8_t *s, size_t len)
 					  a + ror64(b + k2, 18) + c, mul);
 }
 
-static ullpair weak_hash_len32_with_seeds(uint64_t w, uint64_t x, uint64_t y, uint64_t z, uint64_t a, uint64_t b)
+static ullpair weak_hash_len32_with_seeds(uint64_t w, uint64_t x, uint64_t y, uint64_t z, uint64_t a, uint64_t b) noexcept
 {
 	a += w;
 	b = ror64(b + a + z, 21);
@@ -245,7 +248,7 @@ static ullpair weak_hash_len32_with_seeds(uint64_t w, uint64_t x, uint64_t y, ui
 	return { a + z, b + c};
 }
 
-static ullpair weak_hash_len32_with_seeds(const uint8_t* s, uint64_t a, uint64_t b)
+static ullpair weak_hash_len32_with_seeds(const uint8_t* s, uint64_t a, uint64_t b) noexcept
 {
 	return weak_hash_len32_with_seeds(
 			   fetch_64(s),

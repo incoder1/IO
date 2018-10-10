@@ -111,19 +111,15 @@ const charset* ALL_SUPPORTED[MAX_SUPPORTED] =
 /// Returns a character set for a name
 std::pair<bool, charset> code_pages::for_name(const char* name) noexcept
 {
-	std::pair<bool, charset> ret = {false, charset() };
+	static constexpr std::size_t MAX_LEN = 11;
     if(nullptr != name && '\0' != *name) {
-		static constexpr std::size_t MAX_LEN = 11;
     	// slow search
     	for(std::size_t i=0; i < MAX_SUPPORTED; i++) {
-        	if( 0  == io_strncmp(ALL_SUPPORTED[i]->name(), name, MAX_LEN) ) {
-            	ret.first = true;
-            	ret.second = charset( *ALL_SUPPORTED[i] );
-            	break;
-        	}
+        	if( 0  == io_strncmp(ALL_SUPPORTED[i]->name(), name, MAX_LEN) )
+				return std::make_pair(false, *ALL_SUPPORTED[i] );
     	}
     }
-    return ret;
+    return std::make_pair( false, charset() );
 }
 
 const charset& code_pages::platform_default() noexcept {

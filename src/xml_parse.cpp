@@ -200,7 +200,7 @@ static constexpr const uint8_t* make_unsigned(const char* str) noexcept
 
 static bool is_xml_name_char(uint32_t ch) noexcept
 {
-	switch( static_cast<uint32_t>(ch) ) {
+	switch( ch ) {
 	case 0x5F:
 	case 0x3A:
 	case 0x2D:

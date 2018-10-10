@@ -101,8 +101,13 @@ static void print_end_element(std::ostream& stm, const xml::s_event_stream_parse
 {
 	xml::end_element_event e = s->parse_end_element();
 	if(!s->is_error()) {
-		stm << "End element:\n\tprefix:" << e.name().prefix();
-		stm << " name:" << e.name().local_name() << std::endl;
+		io::xml::qname el_name = e.name();
+
+		stm << "End element:\n";
+		if( el_name.has_prefix() )
+			stm << " prefix:" << el_name.prefix();
+
+		stm << " name:" << el_name.local_name() << std::endl;
 	}
 }
 

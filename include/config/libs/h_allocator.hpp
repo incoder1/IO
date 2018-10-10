@@ -83,15 +83,17 @@ public:
 	pointer allocate(size_type __n, const void* px = nullptr) noexcept(no_exept_mode::is_nothrow)
 	{
 		assert( 0 != __n );
-		if( __n > 1) {
+		if( io_unlikely( __n > 1) ) {
             void *ret = nullptr;
 		    if( io_likely(nullptr == px) )
                 ret = __memory_traits::malloc( __n * sizeof(value_type) );
 		    else {
 		 	   ret = __memory_traits::realloc( const_cast<void*>(px),  __n * sizeof(value_type) );
-#ifndef IO_NO_EXCEPTIONS
 				if( io_unlikely(nullptr == ret) )
-                	throw std::bad_array_new_length();
+#ifndef IO_NO_EXCEPTIONS
+					throw std::bad_array_new_length();
+#else
+					return nullptr;
 #endif // IO_NO_EXCEPTIONS
 		    }
             return uncast_void<value_type>(ret);
@@ -107,7 +109,7 @@ public:
 	}
 
 	template<typename _Up, typename... _Args>
-	__forceinline void construct(_Up* __p, _Args&&... __args) noexcept( noexcept( _Up(std::forward<_Args>(__args)...) ) )
+	__forceinline void construct(_Up* const __p, _Args&&... __args) noexcept( noexcept( _Up(std::forward<_Args>(__args)...) ) )
 	{
 		assert(nullptr != __p);
 		::new( static_cast<void *>(__p) ) _Up(std::forward<_Args>(__args)...);
