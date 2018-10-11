@@ -1,7 +1,7 @@
 ﻿<?xml	
-		version="1.0"	
+		version='1.0'	
 	        encoding="UTF-8"
-standalone="yes"?>
+standalone='yes'?>
 		
 <?xml-stylesheet type="text/xsl" href="style.xsl" ?>
 <!DOCTYPE test [
@@ -24,15 +24,15 @@ standalone="yes"?>
 <test xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
 	<msg 
 		attr0="ключь" 
-			attr1="второй
-	ключь" >
+			attr1='второй
+	ключь' >
 	</msg> 
-	<!-- internal comentary --> <msg attr0="άλφα" attr1="βήτα" />
+	<!-- internal comentary --> <msg attr0="άλφα" attr1='βήτα' />
 	<βήτα>
 		<άλφα/>
 		AAA
 		<άλφα /><άλφα></άλφα>
-		<msg attr0="άλφα" attr1="βήτα">
+		<msg attr0='άλφα' attr1="βήτα">
 			Latine scriptum
 			English inscription
 			Русская надпись

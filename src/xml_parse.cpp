@@ -25,17 +25,20 @@ static const std::size_t MEDIUM_BUFF_SIZE = 64;
 static const std::size_t HUGE_BUFF_SIZE = 128;
 
 // unicode constants in digit forms, to handle endians
+static constexpr const int ENDL = 0;
 static constexpr const int LEFTB =  60; // '<';
 static constexpr const int RIGHTB =  62; // '>';
 static constexpr const int SRIGHTB = 93; // ']'
 static constexpr const int QNM = 34; // '"'
-static constexpr const int QM = 63; // '?'
-static constexpr const int EM = 33;//'!';
+static constexpr const int APH = 39; // '\''
 static constexpr const int SPACE = 32;//' ';
+static constexpr const int EM = 33;//'!';
 static constexpr const int SOLIDUS = 47;// '/'
 static constexpr const int HYPHEN = 45;// '-'
 static constexpr const int COLON = 58; // ':'
-static constexpr const int ENDL = 0;
+static constexpr const int ES = 61 ; // '='
+static constexpr const int QM = 63; // '?'
+
 
 #ifdef UCHAR_MAX
 static constexpr const std::size_t MAX_DEPTH = UCHAR_MAX;
@@ -433,12 +436,12 @@ byte_buffer event_stream_parser::read_entity() noexcept
 
 document_event event_stream_parser::parse_start_doc() noexcept
 {
-	static constexpr const char* VERSION  = "version=\"";
-	static constexpr const char* ENCODING = "encoding=\"";
-	static constexpr const char* STANDALONE = "standalone=\"";
-	static const char YES[] = {'y','e','s'};
-	static const char NO[] = {'n','o'};
-	static const char END_PROLOGUE[] = {'?','>'};
+	static constexpr const char* VERSION  = "version=";
+	static constexpr const char* ENCODING = "encoding=";
+	static constexpr const char* STANDALONE = "standalone=";
+	static constexpr const char* YES = "yes";
+	static constexpr const char* NO = "no";
+	static constexpr const char* END_PROLOGUE = "?>";
 
 	check_event_parser_state(event_type::start_document, document_event )
 
@@ -460,9 +463,14 @@ document_event event_stream_parser::parse_start_doc() noexcept
 		assign_error(error::illegal_prologue);
 		return document_event();
 	}
-
-	i += 9; // i + strlen(VERSION)
-	char *stop = tstrchr(i, QNM);
+	i += 8; // i + strlen(VERSION)
+	int sep = char8_traits::to_int_type( *i );
+	if( !is_one_of(sep,QNM,APH) ) {
+		assign_error(error::illegal_prologue);
+		return document_event();
+	} else
+		++i;
+	char *stop = tstrchr(i, sep);
 	if(nullptr == stop )  {
 		assign_error(error::illegal_prologue);
 		return document_event();
@@ -480,8 +488,14 @@ document_event event_stream_parser::parse_start_doc() noexcept
 	// extract encoding if exist
 	const char* j = io_strstr(i, ENCODING);
 	if(nullptr != j) {
-		i = const_cast<char*>( j + 10 );
-		stop  = tstrchr( i, QNM );
+		i = const_cast<char*>( j + 9 );
+		sep = char8_traits::to_int_type( *i );
+		if( !is_one_of(sep,QNM,APH) ) {
+			assign_error(error::illegal_prologue);
+			return document_event();
+		} else
+			++i;
+		stop  = tstrchr( i, sep );
 		if(nullptr == stop ) {
 			assign_error(error::illegal_prologue);
 			return document_event();
@@ -497,8 +511,14 @@ document_event event_stream_parser::parse_start_doc() noexcept
 	j = io_strstr(i, STANDALONE);
 	if(nullptr != j) {
 		// j + strlen(STANDALONE)
-		i = const_cast<char*> ( j + 12 );
-		stop  = tstrchr( i, QNM);
+		i = const_cast<char*> ( j + 11 );
+		sep = char8_traits::to_int_type( *i );
+		if( !is_one_of(sep,QNM,APH) ) {
+			assign_error(error::illegal_prologue);
+			return document_event();
+		} else
+			++i;
+		stop  = tstrchr( i, sep );
 		if(nullptr == stop || (str_size(i,stop) > 3) ) {
 			assign_error(error::illegal_prologue);
 			return document_event();
@@ -764,6 +784,15 @@ const_string event_stream_parser::read_cdata() noexcept
 	return const_string( tmp.position().cdata(), tmp.last().cdata()-3 );
 }
 
+/*
+EntityValue	   ::=   	'"' ([^%&"] | PEReference | Reference)* '"'
+			|  "'" ([^%&'] | PEReference | Reference)* "'"
+AttValue	   ::=   	'"' ([^<&"] | Reference)* '"'
+			|  "'" ([^<&'] | Reference)* "'"
+SystemLiteral	   ::=   	('"' [^"]* '"') | ("'" [^']* "'")
+PubidLiteral	   ::=   	'"' PubidChar* '"' | "'" (PubidChar - "'")* "'"
+PubidChar	   ::=   	#x20 | #xD | #xA | [a-zA-Z0-9] | [-'()+,./:=?;!*#@$_%]
+*/
 attribute event_stream_parser::extract_attribute(const char* from, std::size_t& len) noexcept
 {
 	len = 0;
@@ -771,9 +800,11 @@ attribute event_stream_parser::extract_attribute(const char* from, std::size_t& 
 	char *i = find_first_symbol(from);
 	if( nullptr == i || is_one_of(*i, SOLIDUS,RIGHTB) )
 		return attribute();
+
 	char* start = i;
-	i = const_cast<char*>( io::strstr2b( start, "=\"") );
-	if(nullptr == i)
+	i = tstrchr(start, ES);
+	int val_sep = char8_traits::to_int_type( *(++i) );
+	if( nullptr == i || !is_one_of( val_sep, QNM, APH) )
 		return attribute();
 
 	cached_string np;
@@ -783,12 +814,13 @@ attribute event_stream_parser::extract_attribute(const char* from, std::size_t& 
         np = pool_->get( start,  str_size(start, tmp) );
         start = tmp + 1;
 	}
-	ln = pool_->get(start, str_size(start, i) );
+	ln = pool_->get(start, str_size(start, i-1) );
 
 	// extract attribute value
-	i += 2; // skip ="
+	i += 1; // skip ( "|' )
 	start = i;
-	i = io_strchr(i, QNM );
+	// find closing value separator
+	i = io_strchr(i, val_sep );
 	if(nullptr == i) {
 		assign_error(error::illegal_attribute);
 		return attribute();
