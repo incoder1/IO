@@ -94,7 +94,7 @@ bool byte_buffer::ln_grow() noexcept
 byte_buffer byte_buffer::allocate(std::error_code& ec, std::size_t capacity) noexcept
 {
 	detail::mem_block block( detail::mem_block::allocate(capacity) );
-	if( !block ) {
+	if( io_unlikely( !block ) ) {
 		ec = std::make_error_code(std::errc::not_enough_memory);
 		return byte_buffer();
 	}

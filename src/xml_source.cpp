@@ -16,7 +16,6 @@ namespace io {
 
 namespace xml {
 
-static const char _eof = std::char_traits<char>::eof();
 
 const std::size_t source::READ_BUFF_INITIAL_SIZE = memory_traits::page_size(); // 4k in most cases
 const std::size_t source::READ_BUFF_MAXIMAL_SIZE = 0x1000000; // 16 m
@@ -166,20 +165,25 @@ error source::charge() noexcept
 
 
 // normalize line endings according W3C XML spec
-inline char source::normalize_lend(const char ch)
+inline char source::normalize_line_endings(const char ch)
 {
-	if( io_unlikely( CR == ch && NL == *pos_ ) ) {
-		++pos_;
-		++row_;
-		col_ = 1;
-		return NL;
-	}
-	else if( io_unlikely( ch == NL ) ) {
-		++row_;
-		col_ = 1;
-	}
-	else
+	switch( ch ) {
+	case CR:
+		if( io_likely( NL == *pos_ ) ) {
+			++pos_;
+			++row_;
+			col_ = 1;
+			return NL;
+		}
 		++col_;
+		break;
+	case NL:
+		++row_;
+		col_ = 1;
+		break;
+	default:
+		++col_;
+	}
 	return ch;
 }
 
@@ -187,10 +191,10 @@ inline char source::normalize_lend(const char ch)
 char source::next() noexcept
 {
 
-	if( end_ == (pos_+1) ) {
+	if( io_unlikely( end_ == (pos_+1) ) ) {
 		last_ = charge();
 		if( pos_ == end_ || error::ok != last_ )
-			return _eof;
+			return char8_traits::to_char_type( char8_traits::eof() );
 	}
 	char ret = *pos_;
 	++pos_;
@@ -198,8 +202,8 @@ char source::next() noexcept
 		return ret;
 	else
 		switch( u8_char_size( ret ) ) {
-		case 1:
-			return normalize_lend( ret );
+		case io_likely(1):
+			return normalize_line_endings( ret );
 #ifdef __GNUG__
 
 #pragma GCC diagnostic push
@@ -208,15 +212,13 @@ char source::next() noexcept
 #pragma GCC diagnostic pop
 
 #else
-		case 2:
-		case 3:
-		case 4:
+		case 2: case 3: case 4:
 #endif // __GNUG__
 			++col_;
 			return ret;
 		default:
 			last_ = error::illegal_chars;
-			return _eof;
+			return char8_traits::to_char_type( char8_traits::eof() );
 		}
 }
 

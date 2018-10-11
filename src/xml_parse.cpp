@@ -797,27 +797,37 @@ attribute event_stream_parser::extract_attribute(const char* from, std::size_t& 
 		assign_error(error::illegal_attribute);
 		return attribute();
 	}
-	byte_buffer val;
-	if( str_size(start,i) > 0) {
-		if( !val.extend( str_size(start,i+1) ) ) {
-			assign_error(error::out_of_memory);
-			return attribute();
+	const std::size_t val_size = str_size(start,i);
+    const_string value;
+	if( val_size > 0) {
+		char* val = nullptr;
+        if( io_likely(val_size <= MEDIUM_BUFF_SIZE) ) {
+			val = static_cast<char*>( io_alloca(val_size+1) );
+			val[val_size] = '\0';
+		} else {
+            val = memory_traits::calloc_temporary<char>( val_size+1 );
+            if( io_unlikely(nullptr == val) ) {
+				assign_error(error::out_of_memory);
+				return attribute();
+            }
 		}
-		// normalize
+		// normalize attribute value
+		char *v = val;
 		for(char *ch = start; ch != i; ch++) {
 			if( between('\t','\r',*ch) )
-				putch(val, ' ');
+				*v = ' ';
 			else
-				putch(val,*ch);
-			if(is_error())
-				return attribute();
+				*v = *ch;
+			++v;
 		}
-		val.flip();
+		value = const_string(val, val_size);
+		if( io_unlikely(val_size > MEDIUM_BUFF_SIZE) )
+			memory_traits::free_temporary(val);
 		++i;
 	}
 	len = str_size(from, i);
 
-	return attribute( qname( std::move(np), std::move(ln) ) , const_string(val.position().cdata(), val.last().cdata()) );
+	return attribute( qname( std::move(np), std::move(ln) ), std::move(value) );
 }
 
 bool event_stream_parser::validate_xml_name(const cached_string& str, bool attr) noexcept
