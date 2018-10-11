@@ -358,12 +358,8 @@ inline void event_stream_parser::assign_error(error ec) noexcept
 
 __forceinline void event_stream_parser::putch(byte_buffer& buf, char ch) noexcept
 {
-	if(  !buf.put(ch) ) {
-		if(  !buf.ln_grow()  )
+	if( io_unlikely( !buf.put(ch) && ( !buf.ln_grow() || !buf.put(ch) ) ) )
 			assign_error(error::out_of_memory);
-		else
-			buf.put(ch);
-	}
 }
 
 // extract name and namespace prefix if any
@@ -645,7 +641,7 @@ byte_buffer event_stream_parser::read_until_double_separator(int separator,error
 	}
 	sb_clear(scan_buf_);
 	std::error_code errc;
-	byte_buffer buff = byte_buffer::allocate(errc, HUGE_BUFF_SIZE);
+	byte_buffer ret = byte_buffer::allocate(errc, HUGE_BUFF_SIZE);
 	if( errc ) {
 		assign_error(error::out_of_memory);
 		return byte_buffer();
@@ -655,20 +651,20 @@ byte_buffer event_stream_parser::read_until_double_separator(int separator,error
 	uint16_t i = 0;
 	do {
 		c = next();
-		if( io_unlikely( is_eof(c) ) )
-			break;
-		else
-			putch(buff, c);
+		if( io_unlikely( !ret.put(c) &&  (!ret.exp_grow() || !ret.put(c) ) ) ) {
+			assign_error(error::out_of_memory);
+			return byte_buffer();
+		}
 		i = (i << 8) | uint16_t(c);
 	}
-	while( pattern != i && io_likely(!is_error()) );
-	buff.flip();
+	while( (pattern != i || is_eof(i) ) && io_likely(!is_error()) );
+	ret.flip();
 	if( is_eof(c) || !cheq(RIGHTB, next() ) ) {
 		if(error::ok != state_.ec)
 			assign_error(ec);
 		return byte_buffer();
 	}
-	return std::move(buff);
+	return std::move(ret);
 }
 
 const_string event_stream_parser::read_comment() noexcept
@@ -789,8 +785,8 @@ attribute event_stream_parser::extract_attribute(const char* from, std::size_t& 
 	}
 	ln = pool_->get(start, str_size(start, i) );
 
-	// 2 symbols
-	i += 2;
+	// extract attribute value
+	i += 2; // skip ="
 	start = i;
 	i = io_strchr(i, QNM );
 	if(nullptr == i) {
@@ -801,7 +797,7 @@ attribute event_stream_parser::extract_attribute(const char* from, std::size_t& 
     const_string value;
 	if( val_size > 0) {
 		char* val = nullptr;
-        if( io_likely(val_size <= MEDIUM_BUFF_SIZE) ) {
+        if( io_likely(val_size <= HUGE_BUFF_SIZE) ) {
 			val = static_cast<char*>( io_alloca(val_size+1) );
 			val[val_size] = '\0';
 		} else {
@@ -821,7 +817,7 @@ attribute event_stream_parser::extract_attribute(const char* from, std::size_t& 
 			++v;
 		}
 		value = const_string(val, val_size);
-		if( io_unlikely(val_size > MEDIUM_BUFF_SIZE) )
+		if( io_unlikely(val_size > HUGE_BUFF_SIZE) )
 			memory_traits::free_temporary(val);
 		++i;
 	}
