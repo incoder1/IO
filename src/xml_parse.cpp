@@ -784,15 +784,6 @@ const_string event_stream_parser::read_cdata() noexcept
 	return const_string( tmp.position().cdata(), tmp.last().cdata()-3 );
 }
 
-/*
-EntityValue	   ::=   	'"' ([^%&"] | PEReference | Reference)* '"'
-			|  "'" ([^%&'] | PEReference | Reference)* "'"
-AttValue	   ::=   	'"' ([^<&"] | Reference)* '"'
-			|  "'" ([^<&'] | Reference)* "'"
-SystemLiteral	   ::=   	('"' [^"]* '"') | ("'" [^']* "'")
-PubidLiteral	   ::=   	'"' PubidChar* '"' | "'" (PubidChar - "'")* "'"
-PubidChar	   ::=   	#x20 | #xD | #xA | [a-zA-Z0-9] | [-'()+,./:=?;!*#@$_%]
-*/
 attribute event_stream_parser::extract_attribute(const char* from, std::size_t& len) noexcept
 {
 	len = 0;
