@@ -33,16 +33,7 @@ namespace win {
 struct memory_traits {
 
 	/// returns OS page size
-	static inline std::size_t page_size() noexcept
-	{
-		static ::DWORD ret = 0;
-		if(0 == ret) {
-			::SYSTEM_INFO si;
-			::GetSystemInfo(&si);
-			ret = si.dwPageSize;
-		}
-		return static_cast<std::size_t>( ret );
-	}
+	static std::size_t page_size() noexcept;
 
 	/// General propose memory allocation
 	static inline void* malloc IO_PREVENT_MACRO (std::size_t bytes) noexcept

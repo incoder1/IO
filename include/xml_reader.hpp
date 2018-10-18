@@ -61,11 +61,6 @@ private:
 		}
 		return false;
 	}
-
-	inline bool is_characters() noexcept {
-		return state_type::characters == state_ || state_type::cdata == state_;
-	}
-
 	void to_next_state(std::error_code& ec) noexcept;
 private:
 	s_event_stream_parser parser_;

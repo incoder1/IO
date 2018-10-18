@@ -101,6 +101,7 @@ end_element_event reader::next_tag_end(std::error_code& ec) noexcept
 	return std::move(ret);
 }
 
+
 const_string reader::next_characters(std::error_code& ec) noexcept
 {
 	if(state_type::characters != state_ && state_type::cdata != state_) {
@@ -110,31 +111,45 @@ const_string reader::next_characters(std::error_code& ec) noexcept
 	byte_buffer buff = byte_buffer::allocate(ec, 128);
 	if(ec)
 		return const_string();
-	std::size_t s = 0;
+	std::size_t s;
 	const_string chars;
-	while( is_characters() ) {
-		if(state_type::characters == state_)
+	for(;;) {
+		switch( state_ ) {
+		case state_type::characters:
 			chars = parser_->read_chars();
-		else
+			break;
+		case state_type::cdata:
 			chars = parser_->read_cdata();
-		if( parser_->is_error() ) {
+			break;
+		case state_type::comment:
+			parser_->skip_comment();
+			break;
+		case state_type::event:
+			if(event_type::processing_instruction != parser_->current_event() ) {
+				buff.flip();
+				return const_string(buff.position().cdata(), buff.length());
+			}
+			else
+				parser_->parse_processing_instruction();
+			break;
+		case state_type::eod:
 			parser_->get_last_error(ec);
 			return const_string();
+		case state_type::initial:
+		case state_type::dtd:
+			io_unreachable
+			break;
 		}
+		state_ = parser_->scan_next();
 		s = chars.size();
-		if( buff.available() < s && !buff.extend( s + 1 ) ) {
-			parser_->get_last_error(ec);
+		if( io_unlikely(buff.available() < s && !buff.extend( s + 1 ) ) ) {
+			ec = std::make_error_code( std::errc::not_enough_memory );
 			return const_string();
 		}
 		buff.put( chars.data() );
-		state_ = parser_->scan_next();
 	}
-	if( parser_->is_error() ) {
-		parser_->get_last_error(ec);
-		return const_string();
-	}
-	buff.flip();
-	return const_string(buff.position().cdata(), buff.length());
+	io_unreachable
+	return const_string();
 }
 
 } // namespace xml

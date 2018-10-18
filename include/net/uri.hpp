@@ -76,16 +76,6 @@ private:
         const_string&& query,
         const_string&& fragment) noexcept;
 
-
-	template <typename T>
-	static constexpr inline void hash_combine(std::size_t& seed,const T& v) noexcept
-	{
-		static_assert(std::is_arithmetic<T>::value && !std::is_pointer<T>::value, " Only arithmetic non pointers");
-		const constexpr std::size_t PRIME =  0x9E3779B9;
-    	seed ^= v + PRIME + ( seed << 6 ) + ( seed >> 2);
-	}
-
-
 public:
     /// Returns this URI scheme
     /// \return scheme

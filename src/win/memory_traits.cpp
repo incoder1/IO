@@ -17,6 +17,18 @@
 
 namespace io {
 
+
+std::size_t memory_traits::page_size() noexcept
+{
+	static ::DWORD ret = 0;
+	if(0 == ret) {
+		::SYSTEM_INFO si;
+		::GetSystemInfo(&si);
+		ret = si.dwPageSize;
+	}
+	return static_cast<std::size_t>( ret );
+}
+
 namespace win {
 
 class heap_allocator {

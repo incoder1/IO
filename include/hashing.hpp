@@ -33,6 +33,14 @@ inline std::size_t hash_bytes(const T* bytes,std::size_t count) noexcept {
 	return hash_bytes( reinterpret_cast<const uint8_t*>(bytes), (count*sizeof(T)) );
 }
 
+template <typename T>
+constexpr inline void hash_combine(std::size_t& seed,const T& v) noexcept
+{
+	static_assert(std::is_arithmetic<T>::value && !std::is_pointer<T>::value, " Only arithmetic non pointers");
+	const constexpr std::size_t PRIME =  0x9E3779B9;
+	seed ^= v + PRIME + ( seed << 6 ) + ( seed >> 2);
+}
+
 } // namespace io
 
 #endif // __IO_HASHING_HPP_INCLUDED__
