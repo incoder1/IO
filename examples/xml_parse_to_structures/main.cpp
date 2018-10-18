@@ -68,10 +68,10 @@ static configuration read_config(io::unsafe<io::xml::reader>& rd)
 	tmp = bev.get_attribute("","enabled").first;
 	ret.enabled = bool_cast::from_string( tmp.data() );
 	// read name value from tag
-	bev = rd.next_tag_begin();
-	ret.name = std::string( rd.next_characters().data() );
+	rd.next_tag_begin();
+		ret.name = std::string( rd.next_characters().data() );
 	rd.next_tag_end();
-	// goto </configuration>
+	// read </configuration>
 	rd.next_tag_end();
 	return ret;
 }
@@ -89,14 +89,18 @@ int main()
 
 	io::unsafe<io::xml::reader> rd( std::move(psr) );
 	// goto <configurations>
-	rd.next_tag_begin();
+	io::xml::start_element_event start_el = rd.next_tag_begin();
+	if( !start_el.name().equal("","configurations") ) {
+		std::cerr << "Unexpected element: " << start_el.name().local_name() << std::endl;
+		return -1;
+	}
 
 	// De-serialize configurations
-	for(int i=0; i < 2; i++)
+	rd.to_next_state();
+	while( rd.is_tag_begin_next() ) {
 		std::cout << '\t' << read_config(rd) << std::endl;
-
-	// check </configurations>
-	rd.next_tag_end();
+		rd.to_next_state();
+	}
 
 	return 0;
 }

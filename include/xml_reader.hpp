@@ -51,6 +51,12 @@ public:
 		return state_;
 	}
 
+	void to_next_state(std::error_code& ec) noexcept;
+
+	bool is_tag_begin_next() noexcept;
+	bool is_characters_next() noexcept;
+	bool is_tag_end_next() noexcept;
+
 private:
 	inline bool parse_error(std::error_code& ec) noexcept {
 		if( io_unlikely(ec) ) {
@@ -61,7 +67,7 @@ private:
 		}
 		return false;
 	}
-	void to_next_state(std::error_code& ec) noexcept;
+
 private:
 	s_event_stream_parser parser_;
 	state_type state_;
@@ -102,6 +108,20 @@ public:
 	}
 	xml::state_type next_state() const noexcept {
 		return rd_.next_state();
+	}
+	void to_next_state() noexcept
+	{
+		rd_.to_next_state(ec_);
+		check_error_code(ec_);
+	}
+	bool is_tag_begin_next() noexcept {
+		return rd_.is_tag_begin_next();
+	}
+	bool is_characters_next() noexcept {
+		return rd_.is_characters_next();
+	}
+	bool is_tag_end_next() noexcept {
+		return rd_.is_tag_end_next();
 	}
 private:
 	xml::reader rd_;

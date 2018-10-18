@@ -85,6 +85,21 @@ start_element_event reader::next_tag_begin(std::error_code& ec) noexcept
 	return start_element_event();
 }
 
+bool reader::is_tag_begin_next() noexcept
+{
+	return state_type::event == state_ && event_type::start_element == parser_->current_event();
+}
+
+bool reader::is_characters_next() noexcept
+{
+	return state_type::characters == state_;
+}
+
+bool reader::is_tag_end_next() noexcept
+{
+	return state_type::event == state_ && event_type::end_element == parser_->current_event();
+}
+
 end_element_event reader::next_tag_end(std::error_code& ec) noexcept
 {
 	if(state_type::event != state_)
