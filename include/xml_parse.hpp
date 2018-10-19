@@ -98,6 +98,20 @@ public:
 	/// \param source an XML source data
 	static s_event_stream_parser open(std::error_code& ec,s_source&& src) noexcept;
 
+	/// Constructs new XML parser from an read_channel
+	/// \param ec contains system error code when parser can not be constructed,
+	/// 		for example in case of out of memory or nullptr pointed source
+	/// \param src an XML source data
+	static s_event_stream_parser open(std::error_code& ec,s_read_channel&& src) noexcept;
+
+	/// Constructs new XML parser from an read_channel
+	/// \param ec contains system error code when parser can not be constructed,
+	/// 		for example in case of out of memory or nullptr pointed source
+	/// \param src an XML source data
+	inline static s_event_stream_parser open(std::error_code& ec,const s_read_channel& src) noexcept
+	{
+		return open(ec, s_read_channel(src) );
+	}
 
 	/// Destroy parser and releases associated resources
 	virtual ~event_stream_parser() noexcept override;

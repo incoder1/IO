@@ -36,6 +36,7 @@ where id and enabled fields stored as XML attributes and name stored as a tag
 
 
 #include <iostream>
+#include <vector>
 
 #include <files.hpp>
 #include <xml_reader.hpp>
@@ -50,7 +51,7 @@ struct configuration {
 
 std::ostream& operator<<(std::ostream& s, const configuration& cnd)
 {
-	s << "configuration id=\"" << cnd.id << "\" enabled=" << (cnd.enabled ? "yes" : "no")  << " name=\"" << cnd.name << '"';
+	s << "configuration id: " << cnd.id << " enabled: " << (cnd.enabled ? "yes" : "no ")  << " name: " << cnd.name;
 	return s;
 }
 
@@ -79,13 +80,16 @@ static configuration read_config(io::unsafe<io::xml::reader>& rd)
 	return ret;
 }
 
-int main()
+int main(int argc, const char** argv)
 {
+
 	io::file sf("test-config.xml");
+	if( !sf.exist() ) {
+		std::cerr << sf.path() << " is not exit" << std::endl;
+		return -1;
+	}
 	std::error_code ec;
-	io::xml::s_source src = io::xml::source::create(ec, sf.open_for_read(ec) );
-	io::check_error_code( ec );
-	io::xml::s_event_stream_parser psr = io::xml::event_stream_parser::open(ec, std::move(src) );
+	io::xml::s_event_stream_parser psr = io::xml::event_stream_parser::open(ec, sf.open_for_read(ec) );
 	io::check_error_code( ec );
 
 	std::cout<< "Configurations read from XML\n" << std::endl;
@@ -98,12 +102,18 @@ int main()
 		return -1;
 	}
 
+	std::vector<configuration> configurations;
+
 	// De-serialize configurations
 	rd.to_next_state();
 	while( rd.is_tag_begin_next() ) {
-		std::cout << '\t' << read_config(rd) << std::endl;
+		configurations.emplace_back( read_config(rd) );
 		rd.to_next_state();
 	}
+
+	// Display results
+	for(configuration cnf: configurations)
+		std::cout << '\t' << cnf << std::endl;
 
 	return 0;
 }

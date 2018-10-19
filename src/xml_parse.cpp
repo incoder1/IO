@@ -262,6 +262,12 @@ s_event_stream_parser event_stream_parser::open(std::error_code& ec,s_source&& s
 	return s_event_stream_parser( nobadalloc<event_stream_parser>::construct( ec, src, std::move(pool) ) );
 }
 
+s_event_stream_parser event_stream_parser::open(std::error_code& ec,s_read_channel&& src) noexcept
+{
+	s_source xmlsrc = source::create(ec, std::forward<s_read_channel>(src) );
+	return !ec ? open(ec, std::move(xmlsrc) ) : s_event_stream_parser();
+}
+
 event_stream_parser::event_stream_parser(const s_source& src, s_string_pool&& pool) noexcept:
 	object(),
 	src_(src),
