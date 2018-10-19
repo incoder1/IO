@@ -140,7 +140,7 @@ const_string reader::next_characters(std::error_code& ec) noexcept
 			parser_->skip_comment();
 			break;
 		case state_type::event:
-			if(event_type::processing_instruction != parser_->current_event() ) {
+			if( io_likely( event_type::processing_instruction != parser_->current_event() ) ) {
 				buff.flip();
 				return const_string(buff.position().cdata(), buff.length());
 			}

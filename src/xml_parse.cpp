@@ -54,7 +54,7 @@ static constexpr const std::size_t MAX_DEPTH = 255;
 
 static inline bool is_prologue(const char *s) noexcept
 {
-	return start_with(s, PROLOGUE, 3) && is_whitespace( *(s+3) );
+	return start_with(s, PROLOGUE, 3) && is_whitespace( s[3] );
 }
 
 static inline bool is_comment(const char *s) noexcept
@@ -119,81 +119,6 @@ static std::size_t extract_local_name(std::size_t& start,const char* str) noexce
 	return memory_traits::distance(str,s-1) - (start-1);
 }
 
-static constexpr char32_t INVALID_CHAR = -1;
-
-namespace u8_decode {
-
-namespace detail {
-
-static constexpr const char32_t SH2    = 6;
-static constexpr const char32_t SH3    = 12;
-static constexpr const char32_t SH4    = 18;
-
-static constexpr const uint8_t TAIL_MASK  = 0x3F;
-static constexpr const uint8_t B2_MASK    = 0x1F;
-static constexpr const uint8_t B3_MASK    = 0x0F;
-static constexpr const uint8_t B4_MASK    = 0x07;
-
-
-static constexpr char tail(const uint8_t tail) noexcept
-{
-	return tail & TAIL_MASK;
-}
-
-static uint32_t decode2(const uint8_t* mb2) noexcept
-{
-	return ( (mb2[0] & B2_MASK) << SH2) + tail(mb2[1]);
-}
-
-static uint32_t decode3(const uint8_t* mb3) noexcept
-{
-	return ( (mb3[0] & B3_MASK) << SH3)  +
-		   ( tail(mb3[1]) << SH2) +
-		   ( tail(mb3[2]) );
-}
-
-static uint32_t decode4(const uint8_t* mb4) noexcept
-{
-	return ( (mb4[0] & B4_MASK) << SH4) +
-		   ( tail(mb4[1]) << SH3) +
-		   ( tail(mb4[2]) << SH2) +
-		   tail(mb4[3]);
-}
-
-}
-
-#ifdef IO_IS_LITTLE_ENDIAN
-
-using detail::decode2;
-using detail::decode3;
-using detail::decode4;
-
-#else
-
-static __forceinline uint32_t decode2(const uint8_t* mb2) noexcept
-{
-	return io_bswap32( detail::decode2(mb2) );
-}
-
-static __forceinline uint32_t decode3(const uint8_t* mb3) noexcept
-{
-	return io_bswap32( detail::decode3(mb3) );
-}
-
-static __forceinline uint32_t decode4(const uint8_t* mb4) noexcept
-{
-	return io_bswap32( detail::decode4(mb4) );
-}
-
-#endif // IO_IS_LITTLE_ENDIAN
-
-
-} // namespace u8_decode
-
-static constexpr const uint8_t* make_unsigned(const char* str) noexcept
-{
-	return reinterpret_cast<const uint8_t*>(str);
-}
 
 // Works only for UCS-4
 #ifdef __GNUG__
@@ -281,21 +206,21 @@ static error check_xml_name(const char* tn) noexcept
 		return error::illegal_name;
 	uint32_t utf32c;
 	while( '\0' != *c ) {
-		switch( u8_char_size(*c) ) {
+		switch( utf8::char_size(*c) ) {
 		case io_likely(1):
-			utf32c =  *reinterpret_cast<const uint8_t*>(c);
+			utf32c = static_cast<uint32_t>( char8_traits::to_int_type(*c) );
 			++c;
 			break;
 		case 2:
-			utf32c = u8_decode::decode2( make_unsigned(c) );
+			utf32c = utf8::decode2( c );
 			c += 2;
 			break;
 		case 3:
-			utf32c = u8_decode::decode3( make_unsigned(c) );
+			utf32c = utf8::decode3( c );
 			c += 3;
 			break;
 		case 4:
-			utf32c = u8_decode::decode4( make_unsigned(c) );
+			utf32c = utf8::decode4( c );
 			c += 4;
 			break;
 		default:
@@ -347,6 +272,14 @@ event_stream_parser::event_stream_parser(const s_source& src, s_string_pool&& po
 	nesting_(0)
 {
 	validated_.reserve(64);
+	for(char c = next(); c != '<'; c = next()) {
+		if( io_unlikely(!is_whitespace(c)) ) {
+			assign_error(error::illegal_markup);
+			return;
+		}
+	}
+	sb_clear(scan_buf_);
+	scan_buf_[0] = '<';
 }
 
 event_stream_parser::~event_stream_parser() noexcept
@@ -428,10 +361,16 @@ byte_buffer event_stream_parser::read_entity() noexcept
 	return byte_buffer();
 }
 
-#define check_event_parser_state( _EVENT_TYPE, _ERR_RET_TYPE )\
+#define check_state( _STATE_TYPE, _EMPTY_RET_TYPE)\
+	if( state_.current != _STATE_TYPE ) {\
+		assign_error(error::invalid_state);\
+		return _EMPTY_RET_TYPE();\
+	}
+
+#define check_event_parser_state( _EVENT_TYPE, _EMPTY_RET_TYPE )\
     if(state_type::event != state_.current || current_ != _EVENT_TYPE ) { \
         assign_error(error::invalid_state); \
-        return _ERR_RET_TYPE(); \
+        return _EMPTY_RET_TYPE(); \
     }
 
 document_event event_stream_parser::parse_start_doc() noexcept
@@ -591,10 +530,7 @@ void event_stream_parser::skip_dtd() noexcept
 
 const_string event_stream_parser::read_dtd() noexcept
 {
-	if(state_type::dtd != state_.current) {
-		assign_error(error::invalid_state);
-		return const_string();
-	}
+	check_state(state_type::dtd, const_string)
 	std::error_code ec;
 	byte_buffer dtd = byte_buffer::allocate(ec, MEDIUM_BUFF_SIZE);
 	if( ec ) {
@@ -689,10 +625,7 @@ byte_buffer event_stream_parser::read_until_double_separator(int separator,error
 
 const_string event_stream_parser::read_comment() noexcept
 {
-	if(state_type::comment != state_.current) {
-		assign_error(error::invalid_state);
-		return const_string();
-	}
+    check_state(state_type::comment, const_string)
 	byte_buffer tmp( read_until_double_separator(HYPHEN, error::illegal_commentary) );
 	if( tmp.empty() || 0 == io_strcmp("--", tmp.position().cdata() ) )
 		return  const_string();
@@ -702,10 +635,7 @@ const_string event_stream_parser::read_comment() noexcept
 
 const_string event_stream_parser::read_chars() noexcept
 {
-	if(state_type::characters != state_.current) {
-		assign_error(error::invalid_state);
-		return const_string();
-	}
+	check_state(state_type::characters, const_string)
 	std::error_code ec;
 	byte_buffer ret = byte_buffer::allocate(ec,HUGE_BUFF_SIZE);
 	if( ec )
@@ -775,10 +705,7 @@ void event_stream_parser::skip_chars() noexcept
 
 const_string event_stream_parser::read_cdata() noexcept
 {
-	if(state_type::cdata != state_.current) {
-		assign_error(error::invalid_state);
-		return const_string();
-	}
+	check_state(state_type::cdata, const_string)
 	byte_buffer tmp( read_until_double_separator(SRIGHTB, error::illegal_cdata_section) );
 	tmp.flip();
 	return const_string( tmp.position().cdata(), tmp.last().cdata()-3 );
@@ -1010,7 +937,7 @@ void event_stream_parser::s_entity() noexcept
 		current_ = event_type::end_element;
 		break;
 	default:
-		if( is_whitespace(second) )
+		if( io_unlikely( is_whitespace(second) ) )
 			assign_error( error::illegal_markup );
 		else {
 			state_.current = state_type::event;
@@ -1021,16 +948,6 @@ void event_stream_parser::s_entity() noexcept
 
 void event_stream_parser::scan() noexcept
 {
-	if( 0 == nesting_ ) {
-		for(char c = next(); c != '<'; c = next()) {
-			if( !is_whitespace(c) ) {
-				assign_error(error::illegal_markup);
-				return;
-			}
-		}
-		sb_clear(scan_buf_);
-		scan_buf_[0] = '<';
-	}
 	switch( char8_traits::to_int_type(*scan_buf_) ) {
 	case LEFTB:
 		s_entity();

@@ -32,6 +32,172 @@ typedef void* iconv_t;
 
 namespace io {
 
+
+namespace utf8 {
+
+namespace detail {
+
+static constexpr const char32_t SH2    = 6;
+static constexpr const char32_t SH3    = 12;
+static constexpr const char32_t SH4    = 18;
+
+static constexpr const uint8_t TAIL_MASK  = 0x3F;
+static constexpr const uint8_t B2_MASK    = 0x1F;
+static constexpr const uint8_t B3_MASK    = 0x0F;
+static constexpr const uint8_t B4_MASK    = 0x07;
+
+#ifdef IO_IS_LITTLE_ENDIAN
+static constexpr const unsigned int MBSHIFT = (sizeof(unsigned int) << 3 ) - 8;
+#endif // IO_IS_LITTLE_ENDIAN
+
+inline constexpr char tail(const uint8_t tail) noexcept
+{
+	return tail & TAIL_MASK;
+}
+
+inline constexpr const uint8_t* make_unsigned(const char* str) noexcept
+{
+	return reinterpret_cast<const uint8_t*>(str);
+}
+
+inline constexpr uint32_t decode2(const uint8_t* mb2) noexcept
+{
+	return static_cast<char32_t>( ( (mb2[0] & B2_MASK) << SH2) + tail(mb2[1]) );
+}
+
+inline constexpr char32_t decode3(const uint8_t* mb3) noexcept
+{
+	return static_cast<char32_t>( ( (mb3[0] & B3_MASK) << SH3)  +
+		   ( tail(mb3[1]) << SH2) +
+		   ( tail(mb3[2]) ) );
+}
+
+inline constexpr char32_t decode4(const uint8_t* mb4) noexcept
+{
+	return static_cast<char32_t>( ( (mb4[0] & B4_MASK) << SH4) +
+		   ( tail(mb4[1]) << SH3) +
+		   ( tail(mb4[2]) << SH2) +
+		   tail(mb4[3]) );
+}
+
+}
+
+/// Checks a byte is UTF-8 single byte character
+inline constexpr bool isonebyte(const char c)
+{
+	return static_cast<uint8_t>(c) < uint8_t(0x80U);
+}
+
+/// Checks a byte is UTF-8 character tail byte
+inline constexpr bool ismbtail(const char c) noexcept
+{
+	return 2 == ( uint8_t(c) >> 6);
+}
+
+/// Returns UTF-8 character size in bytes, based on first UTF-8 byte
+inline constexpr unsigned int char_size(const char ch)
+{
+	return io_likely( isonebyte(ch) )
+	? 1
+	:
+	// bit scan forward on inverted value gives number of leading multibyte bits
+	// works much faster then mask check series on CPU which supports clz or bt instruction
+	// (most of CPU supporting it)
+#ifdef IO_IS_LITTLE_ENDIAN
+	static_cast<unsigned int>( io_clz( ~( static_cast<unsigned int>(ch) << detail::MBSHIFT  ) ) );
+#else
+	static_cast<unsigned int>( io_clz( ~ ( static_cast<unsigned int>(ch) ) ) );
+#endif // IO_IS_LITTLE_ENDIAN
+}
+
+/// Returns whether symbol if first byte of UTF-8 multibyte character
+/// \return true when c points on UTF-8 mutibyte character first byte, otherwise false
+inline constexpr bool ismblead(const char c)
+{
+	return char_size(c) > 2;
+}
+
+#ifdef IO_IS_LITTLE_ENDIAN
+
+using detail::decode2;
+using detail::decode3;
+using detail::decode4;
+
+#else
+
+// invert byte ordering in case of big endian
+
+inline constexpr char32_t decode2(const uint8_t* mb2) noexcept
+{
+	return io_bswap32( detail::decode2(mb2) );
+}
+
+inline constexpr char32_t decode3(const uint8_t* mb3) noexcept
+{
+	return io_bswap32( detail::decode3(mb3) );
+}
+
+inline constexpr char32_t decode4(const uint8_t* mb4) noexcept
+{
+	return io_bswap32( detail::decode4(mb4) );
+}
+
+#endif // IO_IS_LITTLE_ENDIAN
+
+inline constexpr uint32_t decode2(const char* mb2) noexcept
+{
+	return decode2( detail::make_unsigned(mb2) );
+}
+
+inline constexpr char32_t decode3(const char* mb3) noexcept
+{
+	return decode3( detail::make_unsigned(mb3) );
+}
+
+inline constexpr char32_t decode4(const char* mb4) noexcept
+{
+	return decode3( detail::make_unsigned(mb4) );
+}
+
+/// Converts a UTF-8 single/multibyte character to full UNICODE UTF-32 value,
+/// endianes depends on current CPU
+/// \param dst destination UTF-32 character, or U'\0' when end of line reached or invalid source character value
+/// \param src pointer to the UTF-8 character value
+/// \return string position after src UTF-8 or nullptr when end of line reached or decoding failed
+inline const char* mbtochar32(char32_t& dst, const char* src)
+{
+	switch( char_size(*src) ) {
+	case 1:
+		dst = static_cast<char32_t>( *src );
+		return U'0' != dst ? src + 1: nullptr;
+	case 2:
+		dst = decode2( src );
+		return src + 2;
+	case 3:
+		dst = decode3( src );
+		return src + 3;
+	case 4:
+		dst = decode4( src );
+		return src + 4;
+	default:
+		break;
+	}
+	dst = U'\0';
+	return nullptr;
+}
+
+/// Returns UTF-8 string length in logical UNICODE characters
+/// \param u8str source UTF-8 string
+/// \return length in characters
+inline std::size_t strlength(const char* u8str) noexcept {
+	std::size_t ret = 0;
+	for(const char *c = u8str; '\0' != *c; c += char_size(*c) )
+		++ret;
+	return ret;
+}
+
+} // namespace u8
+
 /// \brief Character set conversation (transcoding) error code
 enum converrc: int {
 	/// conversation was success

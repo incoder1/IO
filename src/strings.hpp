@@ -299,55 +299,15 @@ inline std::size_t tstrchr(const _char_t *str, _char_t character)
 	return traits_t::find(str, traits_t::length(str), character);
 }
 
-inline const char *strstr2b(const char *s, const char *n)
+
+__forceinline char* find_first_symbol(const char* s)
 {
-	const uint8_t *un = reinterpret_cast<const uint8_t*>(n);
-	const uint16_t pw = (*un << 8) | *(un+1);
-	const uint8_t *us = reinterpret_cast<const uint8_t*>(s);
-	uint16_t sw = (*us << 8) | *(us+1);
-	++us;
-	while(pw != sw) {
-		++us;
-		if( io_unlikely( '\0' == *us ) )
-			return nullptr;
-		sw = (sw << 8) | uint16_t(*us);
-	}
-	return reinterpret_cast<const char*>( us-1 );
+	return const_cast<char*>(s) + io_strspn(s, "\t\n\v\f\r ");
 }
 
-inline char* find_first_symbol(const char* s)
+__forceinline size_t xmlname_strspn(const char *s)
 {
-	static constexpr const char* pattern = "\t\n\v\f\r ";
-	return const_cast<char*>(s) + io_strspn(s, pattern);
-}
-
-inline size_t xmlname_strspn(const char *s)
-{
-	static constexpr const char* pattern = "\t\n\v\f\r />";
-	return io_strcspn( s, pattern);
-}
-
-__forceinline constexpr bool single_byte(const char c)
-{
-	return static_cast<uint8_t>(c) < uint8_t(0x80U);
-}
-
-__forceinline bool ismbnext(const char c) noexcept
-{
-	return 2 == ( uint8_t(c) >> 6);
-}
-
-__forceinline unsigned int u8_char_size(const char ch)
-{
-	if( io_likely( single_byte(ch) ) )
-		return 1;
-#ifdef IO_IS_LITTLE_ENDIAN
-	static constexpr unsigned int MB_SHIFT = ( sizeof(unsigned int) << 3 ) - 8;
-	unsigned int c = static_cast<unsigned int>(ch) << MB_SHIFT;
-#else
-	unsigned int c = static_cast<unsigned int>(ch);
-#endif // IO_IS_LITTLE_ENDIAN
-	return static_cast<unsigned int>( io_clz( ~c ) );
+	return io_strcspn( s, "\t\n\v\f\r />");
 }
 
 

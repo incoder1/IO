@@ -72,7 +72,6 @@ string_pool::string_pool() noexcept:
 string_pool::~string_pool() noexcept
 {}
 
-
 const cached_string string_pool::get(const char* s, std::size_t count) noexcept
 {
 	if( io_unlikely( (nullptr == s || '\0' == *s || count == 0 ) ) )
@@ -80,14 +79,16 @@ const cached_string string_pool::get(const char* s, std::size_t count) noexcept
 
 	const std::size_t str_hash = io::hash_bytes(s,count);
 	pool_type::const_iterator it = pool_.find( str_hash );
-	if(  it != pool_.end() ) {
+	if( it != pool_.end() ) {
 		std::size_t i = pool_.count( str_hash );
-		while( io_likely(i > 0) ) {
-			if( io_likely( it->second.equal(s, count) ) )
-				return it->second;
-			--i;
-			++it;
+		if( io_unlikely(i > 1) ) {
+			do {
+				if( it->second.equal(s, count) )
+					break;
+				++it;
+			} while( --i > 0 );
 		}
+		return it->second;
 	}
 #ifndef IO_NO_EXCEPTIONS
 	try {

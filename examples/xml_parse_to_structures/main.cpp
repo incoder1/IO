@@ -18,6 +18,9 @@ where id and enabled fields stored as XML attributes and name stored as a tag
 	<configuration id="1" enabled="false">
 		<name>Test configuration <![CDATA[<1>]]></name>
 	</configuration>
+	<configuration id="2" enabled="false">
+		<name>Test configuration <![CDATA[<2>]]></name>
+	</configuration>
 </configurations>
 
 */
@@ -53,7 +56,7 @@ std::ostream& operator<<(std::ostream& s, const configuration& cnd)
 
 // for converting characters into std::size_t
 // can be replaced with boost lexical_cast
-// or std::string_stream etc
+// or  std::stringstream etc
 typedef io::xml::lexical_cast_traits<std::size_t> size_t_cast;
 typedef io::xml::lexical_cast_traits<bool> bool_cast;
 

@@ -38,32 +38,8 @@ private:
 		return static_cast<size_t>(0) == detail::atomic_traits::dec(p);
 	}
 
-#ifdef IO_IS_LITTLE_ENDIAN
-	static constexpr unsigned int MB_SHIFT = ( sizeof(unsigned int) << 3 ) - 8;
-#endif // IO_IS_LITTLE_ENDIAN
-
-	// returns UTF-8 character size in bytes
-	static unsigned int u8_mblen(const uint8_t* mb) noexcept {
-		if( static_cast<unsigned int>(mb[0]) < 0x80U)
-			return 1;
-#ifdef IO_IS_LITTLE_ENDIAN
-		unsigned int c = static_cast<unsigned int>(mb[0]) << MB_SHIFT;
-#else
-		unsigned int c = static_cast<unsigned int>(mb[0]);
-#endif // IO_IS_LITTLE_ENDIAN
-		return static_cast<unsigned int>( io_clz( ~c ) );
-	}
 
 public:
-
-	/// Returns UTF-8 string length in logical UNICODE characters
-	/// \return length in characters
-	static std::size_t utf8_length(const char* u8str) noexcept {
-		std::size_t ret = 0;
-		for(const uint8_t *c = reinterpret_cast<const uint8_t*>(u8str); '\0' != *c; c += u8_mblen(c) )
-			++ret;
-		return ret;
-	}
 
 	typedef std::char_traits<char> traits_type;
 
@@ -202,7 +178,7 @@ public:
 	///Returns string length in UNICODE characters
 	/// \return string length in characters
 	inline std::size_t length() const noexcept {
-		return empty() ? 0 : utf8_length( data() );
+		return empty() ? 0 : utf8::strlength( data() );
 	}
 
 

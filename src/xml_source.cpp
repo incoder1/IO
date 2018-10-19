@@ -198,10 +198,10 @@ char source::next() noexcept
 	}
 	char ret = *pos_;
 	++pos_;
-	if( ismbnext(ret) )
+	if( utf8::ismbtail(ret) )
 		return ret;
 	else
-		switch( u8_char_size( ret ) ) {
+		switch( utf8::char_size( ret ) ) {
 		case io_likely(1):
 			return normalize_line_endings( ret );
 #ifdef __GNUG__
