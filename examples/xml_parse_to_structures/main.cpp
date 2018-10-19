@@ -85,7 +85,7 @@ int main(int argc, const char** argv)
 
 	io::file sf("test-config.xml");
 	if( !sf.exist() ) {
-		std::cerr << sf.path() << " is not exit" << std::endl;
+		std::cerr << sf.path() << " is not exist" << std::endl;
 		return -1;
 	}
 	std::error_code ec;
