@@ -23,25 +23,11 @@
 
 namespace io {
 
-namespace {
-
-class no_exept_mode {
-	no_exept_mode() = delete;
-	~no_exept_mode() = delete;
-	no_exept_mode(const no_exept_mode&) = delete;
-	no_exept_mode operator=(const no_exept_mode&) = delete;
-public:
 #ifdef IO_NO_EXCEPTIONS
-	static constexpr bool is_nothrow = true;
+	typedef std::true_type no_exceptions_mode_t;
 #else
-	static constexpr bool is_nothrow = false;
+	typedef std::false_type no_exceptions_mode_t;
 #endif // IO_NO_EXCEPTIONS
-};
-
-
-} // namesapace
-
-
 
 template<typename T, class __memory_traits>
 class heap_allocator_base {
@@ -49,11 +35,7 @@ private:
 
 	template< typename _T>
 	static constexpr _T* uncast_void(void * const ptr) noexcept {
-#ifdef __GNUG__
-		return static_cast<_T*>( __builtin_assume_aligned(ptr, sizeof(_T) ) );
-#else
 		return static_cast<_T*>( ptr );
-#endif
 	}
 
 public:
@@ -80,23 +62,20 @@ public:
 		return std::addressof(__x);
 	}
 
-	pointer allocate(size_type __n, const void* px = nullptr) noexcept(no_exept_mode::is_nothrow)
+	pointer allocate(size_type __n, const void* px = nullptr) noexcept(no_exceptions_mode_t::value)
 	{
 		assert( 0 != __n );
-		if( io_unlikely( __n > 1) ) {
+		if( __n > 1 ) {
             void *ret = nullptr;
 		    if( io_likely(nullptr == px) )
                 ret = __memory_traits::malloc( __n * sizeof(value_type) );
-		    else {
+		    else
 		 	   ret = __memory_traits::realloc( const_cast<void*>(px),  __n * sizeof(value_type) );
-				if( io_unlikely(nullptr == ret) )
-#ifndef IO_NO_EXCEPTIONS
+			#ifndef IO_NO_EXCEPTIONS
+			if( io_unlikely(nullptr == ret) )
 					throw std::bad_array_new_length();
-#else
-					return nullptr;
-#endif // IO_NO_EXCEPTIONS
-		    }
-            return uncast_void<value_type>(ret);
+			#endif
+	        return uncast_void<value_type>(ret);
 		}
         return uncast_void<value_type>( __memory_traits::malloc( sizeof(value_type) ) );
 	}
