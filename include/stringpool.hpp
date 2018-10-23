@@ -203,7 +203,7 @@ inline std::basic_ostream<char32_t>& operator<<(std::basic_iostream<char32_t>& o
 * Allocates memory for the binary equal string only once
 * This can be used to save memory for storing string similar string objects
 */
-class IO_PUBLIC_SYMBOL string_pool:public object {
+class IO_PUBLIC_SYMBOL string_pool final:public object {
 	string_pool(const string_pool&) = delete;
 	string_pool& operator=(const string_pool&) = delete;
 private:
@@ -235,7 +235,7 @@ public:
 
 	/// Returns count of strings cached by this pool
 	/// \return count of strings
-	inline std::size_t size() const {
+	inline std::size_t size() const noexcept {
 		return pool_.size();
 	}
 private:

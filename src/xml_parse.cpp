@@ -259,7 +259,7 @@ s_event_stream_parser event_stream_parser::open(std::error_code& ec,s_source&& s
 	s_string_pool pool = string_pool::create(ec);
 	if(!pool)
 		return s_event_stream_parser();
-	return s_event_stream_parser( nobadalloc<event_stream_parser>::construct( ec, src, std::move(pool) ) );
+	return s_event_stream_parser( nobadalloc<event_stream_parser>::construct( ec, std::forward<s_source>(src), std::move(pool) ) );
 }
 
 s_event_stream_parser event_stream_parser::open(std::error_code& ec,s_read_channel&& src) noexcept
@@ -268,9 +268,9 @@ s_event_stream_parser event_stream_parser::open(std::error_code& ec,s_read_chann
 	return !ec ? open(ec, std::move(xmlsrc) ) : s_event_stream_parser();
 }
 
-event_stream_parser::event_stream_parser(const s_source& src, s_string_pool&& pool) noexcept:
+event_stream_parser::event_stream_parser(s_source&& src, s_string_pool&& pool) noexcept:
 	object(),
-	src_(src),
+	src_( std::forward<s_source>(src) ),
 	state_(),
 	current_(event_type::start_document),
 	pool_(std::forward<s_string_pool>(pool)),
@@ -746,7 +746,7 @@ attribute event_stream_parser::extract_attribute(const char* from, std::size_t& 
 	ln = pool_->get(start, str_size(start, i-1) );
 
 	// extract attribute value
-	i += 1; // skip ( "|' )
+	i += 1; // skip ( "|' ) separator
 	start = i;
 	// find closing value separator
 	i = io_strchr(i, val_sep );

@@ -42,8 +42,7 @@ template<class T>
 const char* extract_xsd_type_name()
 {
 	char *tn = const_cast<char*>( typeid(T).name() );
-	while( (*tn <= '9') && ( *tn >= '0') )
-		++tn;
+	for( ; io_isdigit(*tn); ++tn);
 	return tn;
 }
 
