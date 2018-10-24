@@ -1,13 +1,9 @@
 #ifndef __VIEW_HPP_INCLUDED__
 #define __VIEW_HPP_INCLUDED__
 
-#include <object.hpp>
-#include <cstring>
-#include <cstdlib>
 #include <cmath>
 
-#define GLFW_INCLUDE_GLEXT 1
-#include <GLFW/glfw3.h>
+#include "openglload.hpp"
 
 #include "scene.hpp"
 

@@ -12,12 +12,16 @@
 				<Option type="1" />
 				<Option compiler="gcc" />
 				<Compiler>
+					<Add option="-pg" />
+					<Add option="-Og" />
 					<Add option="-g" />
 					<Add option="-D_WIN32_WINNT=0x0600" />
 					<Add directory="include" />
 				</Compiler>
 				<Linker>
+					<Add option="-pg -lgmon" />
 					<Add library="glfw3.dll" />
+					<Add library="glew32" />
 					<Add library="opengl32" />
 					<Add directory="../../bin/debug-win-gcc-static-x64" />
 				</Linker>
@@ -28,13 +32,15 @@
 				<Option type="0" />
 				<Option compiler="gcc" />
 				<Compiler>
-					<Add option="-O2" />
+					<Add option="-O3" />
+					<Add option="-D_WIN32_WINNT=0x0600" />
 					<Add option="-DIO_SHARED_LIB" />
 					<Add directory="include" />
 				</Compiler>
 				<Linker>
 					<Add option="-s" />
 					<Add library="glfw3.dll" />
+					<Add library="glew32" />
 					<Add library="opengl32" />
 					<Add directory="../../bin/release-win-gcc-dll-x64" />
 				</Linker>
@@ -49,10 +55,15 @@
 		<Linker>
 			<Add library="io" />
 		</Linker>
+		<Unit filename="include/openglload.hpp" />
 		<Unit filename="include/scene.hpp" />
+		<Unit filename="include/shader.hpp" />
+		<Unit filename="include/vbo.hpp" />
 		<Unit filename="include/view.hpp" />
-		<Unit filename="main.cpp" />
+		<Unit filename="src/main.cpp" />
 		<Unit filename="src/scene.cpp" />
+		<Unit filename="src/shader.cpp" />
+		<Unit filename="src/vbo.cpp" />
 		<Unit filename="src/view.cpp" />
 		<Extensions>
 			<code_completion />

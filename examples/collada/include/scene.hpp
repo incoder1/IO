@@ -1,5 +1,5 @@
-#ifndef SCENE_HPP_INCLUDED
-#define SCENE_HPP_INCLUDED
+#ifndef __SCENE_HPP_INCLUDED__
+#define __SCENE_HPP_INCLUDED__
 
 #include <glm/mat4x4.hpp>
 #include <glm/gtc/matrix_transform.hpp>
@@ -20,7 +20,7 @@ public:
 
 private:
 	glm::mat4 model_;
-	glm::mat4 world_;
+	glm::mat4 view_;
 	glm::vec3 light_position_;
 
 	float modelx_;
@@ -30,4 +30,4 @@ private:
 
 } // namespace engine
 
-#endif // SCENE_HPP_INCLUDED
+#endif // __SCENE_HPP_INCLUDED__

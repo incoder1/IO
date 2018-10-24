@@ -6,10 +6,15 @@ namespace engine  {
 // frame_view
 frame_view::frame_view(unsigned int widht, unsigned int height,const char* title):
 	frame_(nullptr),
+	scn_(1.0f, 1.0f, 2.0f, 20.0f),
 	width_(widht),
-	height_(height),
-	scn_(1.0f, 1.0f, 2.0f, 20.0f)
+	height_(height)
 {
+	::glfwWindowHint(GLFW_CONTEXT_CREATION_API, GLFW_NATIVE_CONTEXT_API);
+	::glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_ANY_PROFILE);
+	::glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
+	::glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 1);
+
 	frame_ = ::glfwCreateWindow(widht, height, title, nullptr, nullptr);
 	::glfwWindowHint(GLFW_VISIBLE, GLFW_FALSE);
 	::glfwWindowHint(GLFW_RESIZABLE, GLFW_TRUE);
