@@ -49,6 +49,24 @@ shader::~shader() noexcept
     	::glDeleteShader(hsdr_);
 }
 
+// vao
+vao vao::create(::GLsizei size)
+{
+	::GLuint *arr = new ::GLuint [size];
+	::glGenVertexArrays(size, arr );
+	return vao( arr, size );
+}
+
+vao::~vao() noexcept
+{
+	if(nullptr != arr_) {
+		for(::GLsizei i =0; i < size_; i++)
+			::glDisableVertexAttribArray(arr_[i]);
+		::glDeleteVertexArrays(size_, arr_);
+		delete [] arr_;
+	}
+}
+
 
 // program
 s_program program::create(shader&& vertex, shader&& fragment)
@@ -72,10 +90,6 @@ program::program(shader&& vertex, shader&& fragment):
 
 program::~program() noexcept
 {
-	std::for_each(vao_.begin(), vao_.end(), [] (int vbo)  {
-		::glDisableVertexAttribArray(vbo);
-	});
-	::glDeleteVertexArrays( vao_.size(), &vao_[0] );
 	std::for_each(shaders_.begin(), shaders_.end(), [this] (const shader& sh) {
           ::glDetachShader(hprg_, sh.handle() );
 	} );
@@ -128,11 +142,8 @@ void program::stop()
 
 void program::gen_vertex_attrib_arrays(std::size_t count)
 {
-    for(std::size_t i=0; i < count; i++) {
-    	vao_.emplace_back(0);
-    }
-	::glGenVertexArrays(count, &vao_[0] );
-	if (GL_NO_ERROR != ::glGetError() )
+	vao_ = vao::create( count );
+ 	if (GL_NO_ERROR != ::glGetError() )
 		throw std::runtime_error("Can not initialize GLSL program vertex attributes");
 }
 

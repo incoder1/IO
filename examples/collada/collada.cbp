@@ -55,12 +55,14 @@
 		<Linker>
 			<Add library="io" />
 		</Linker>
+		<Unit filename="include/model.hpp" />
 		<Unit filename="include/openglload.hpp" />
 		<Unit filename="include/scene.hpp" />
 		<Unit filename="include/shader.hpp" />
 		<Unit filename="include/vbo.hpp" />
 		<Unit filename="include/view.hpp" />
 		<Unit filename="src/main.cpp" />
+		<Unit filename="src/model.cpp" />
 		<Unit filename="src/scene.cpp" />
 		<Unit filename="src/shader.cpp" />
 		<Unit filename="src/vbo.cpp" />

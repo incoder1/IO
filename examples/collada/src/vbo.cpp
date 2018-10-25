@@ -7,14 +7,14 @@ namespace gl {
 //buffer
 s_buffer buffer::create(const void* data, std::size_t size, buffer_type bt, data_type dt, stride st, buffer_usage u)
 {
-    ::GLuint id[1] = {0};
-    ::glGenBuffers(1,id);
-	::glBindBuffer( static_cast<GLenum>(bt), id[0] );
+    ::GLuint id;
+    ::glGenBuffers(1,&id);
+	::glBindBuffer( static_cast<GLenum>(bt), id );
 	::glBufferData( static_cast<GLenum>(bt), size, data, static_cast<GLenum>(u) );
 	if(GL_OUT_OF_MEMORY == ::glGetError() )
 		throw std::bad_array_new_length();
-	::glBindBuffer(static_cast<GLenum>(bt), id[0] );
-	return s_buffer(new buffer(id[0],bt,dt, size, st,u) );
+	::glBindBuffer(static_cast<GLenum>(bt), id );
+	return s_buffer(new buffer(id,bt,dt, size, st,u) );
 }
 
 

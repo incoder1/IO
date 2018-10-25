@@ -77,7 +77,7 @@ private:
 		{}
 	};
 
-	// we need 9 bytes only, but will use 16 for better align
+	// we need 9 bytes only, but will use 16 for better alignment
 	static constexpr std::size_t MAX_SCAN_BUFF_SIZE = 16;
 
 	typedef std::unordered_set<
@@ -126,6 +126,8 @@ public:
 		return error::ok != state_.ec;
 	}
 
+	/// Constructs std::error_code from error code enumeration
+	/// \param ec reference on std::error_code to hold error value and string message
 	inline void get_last_error(std::error_code& ec) const noexcept {
 		ec = std::make_error_code( state_.ec );
 	}
@@ -181,7 +183,7 @@ public:
 	/// Extracts normalized XML characters, i.e. tag body
 	const_string read_chars() noexcept;
 
-	/// Skip characters until next tag declaration e.g. '>  <next-tag>' or 'text <![CDATA[ some data]]>'
+	/// Skip characters until next tag declaration e.g. '>  <next-tag>' or ' lorem ipsum <![CDATA[ <some data> ]]>'
 	void skip_chars() noexcept;
 
 	/// Extract raw XML characters declared in <!CDATA[]]> section

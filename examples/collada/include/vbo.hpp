@@ -83,6 +83,7 @@ public:
 
 	static s_buffer create(const void* data, std::size_t size, buffer_type bt, data_type dt, stride st, buffer_usage u);
 
+
 	virtual ~buffer() noexcept override;
 
 	bool bind() noexcept;

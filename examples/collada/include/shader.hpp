@@ -41,6 +41,50 @@ private:
 	shader_type type_;
 };
 
+class vao {
+	vao(const vao&) = delete;
+	vao& operator=(const vao&) = delete;
+private:
+
+	constexpr vao(::GLuint* const arr, ::GLsizei size) noexcept:
+		arr_(arr),
+		size_(size)
+	{}
+
+public:
+	static vao create(::GLsizei size);
+
+	constexpr vao() noexcept:
+		vao(nullptr, 0)
+	{}
+
+	vao(vao&& c) noexcept:
+		arr_( c.arr_ ),
+		size_( c.size_ )
+	{
+		c.arr_ = nullptr;
+		c.size_ = 0;
+	}
+
+	vao& operator=(vao&& rhs) noexcept
+	{
+		vao( std::forward<vao>(rhs) ).swap( *this );
+		return *this;
+	}
+
+	~vao() noexcept;
+
+	inline void swap(vao& other) noexcept
+	{
+        std::swap(arr_, other.arr_);
+        std::swap(size_, other.size_);
+	}
+
+private:
+	::GLuint *arr_;
+	::GLsizei size_;
+};
+
 class program;
 DECLARE_IPTR(program);
 class program final:public io::object {
@@ -61,7 +105,7 @@ public:
 private:
 	::GLuint hprg_;
 	std::vector<shader> shaders_;
-	std::vector<::GLuint> vao_;
+	vao vao_;
 };
 
 } // namespace gl

@@ -278,14 +278,18 @@ event_stream_parser::event_stream_parser(s_source&& src, s_string_pool&& pool) n
 	nesting_(0)
 {
 	validated_.reserve(64);
-	for(char c = next(); c != '<'; c = next()) {
-		if( io_unlikely(!is_whitespace(c)) ) {
-			assign_error(error::illegal_markup);
-			return;
-		}
+	// skip any leading spaces if any
+	char c;
+	do {
+		c = next();
+	} while( is_whitespace(c) && !is_error() );
+	// XML starting from some invalid value
+	if( io_unlikely( !cheq(c,LEFTB) ) ) {
+		assign_error(error::illegal_markup);
+	} else {
+		sb_clear(scan_buf_);
+		scan_buf_[0] = '<';
 	}
-	sb_clear(scan_buf_);
-	scan_buf_[0] = '<';
 }
 
 event_stream_parser::~event_stream_parser() noexcept
@@ -304,7 +308,7 @@ __forceinline void event_stream_parser::putch(byte_buffer& buf, char ch) noexcep
 			assign_error(error::out_of_memory);
 }
 
-// extract name and namespace prefix if any
+// extract local name and namespace prefix if any
 qname event_stream_parser::extract_qname(const char* from, std::size_t& len) noexcept
 {
 	cached_string prefix;
@@ -325,10 +329,12 @@ qname event_stream_parser::extract_qname(const char* from, std::size_t& len) noe
 	}
 	len += start+count;
 	char* left = const_cast<char*>( from + len);
+	// check for empty tag
 	if( cheq(SOLIDUS,*left) ) {
 		++len;
 		++left;
 	}
+	// check for possible attributes
 	if(cheq(RIGHTB,*left))
 		++len;
 	return qname( std::move(prefix), std::move(local_name) );
@@ -341,6 +347,8 @@ state_type event_stream_parser::scan_next() noexcept
 	return state_.current;
 }
 
+// extracts an xml entity declaration from stream
+// and perform basic XML syntax validation, like '<' symbol inside attribute value etc
 byte_buffer event_stream_parser::read_entity() noexcept
 {
 	std::error_code ec;
