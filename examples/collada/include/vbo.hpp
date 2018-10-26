@@ -17,6 +17,28 @@ enum class data_type: ::GLenum {
 	DOUBLE = GL_DOUBLE
 };
 
+inline ::GLuint sizeof_data_type( data_type dt) {
+	switch(dt) {
+	case data_type::BYTE:
+		return sizeof(::GLbyte);
+	case data_type::UNSIGNED_BYTE:
+		return sizeof(::GLubyte);
+	case data_type::SHORT:
+		return sizeof(::GLshort);
+	case data_type::UNSIGNED_SHORT:
+		return sizeof(::GLushort);
+	case data_type::INT:
+		return sizeof(::GLint);
+	case data_type::UNSIGNED_INT:
+		return sizeof(::GLuint);
+	case data_type::FLOAT:
+		return sizeof(::GLfloat);
+	case data_type::DOUBLE:
+		return sizeof(::GLdouble);
+	}
+	return 0;
+}
+
 enum class buffer_type: ::GLenum {
 	/// Vertex attributes. Requires: OpenGL 1.5+
 	ARRAY_BUFFER = GL_ARRAY_BUFFER,
@@ -48,12 +70,6 @@ enum class buffer_type: ::GLenum {
 	UNIFORM_BUFFER = GL_UNIFORM_BUFFER
 };
 
-enum class stride: ::GLenum {
-	ONE   = 1,
-	TWO   = 2,
-	THREE = 3,
-	FOUR  = 4
-};
 
 enum class buffer_usage: ::GLenum {
 
@@ -78,10 +94,10 @@ class buffer: public io::object
 	buffer(const buffer&) = delete;
 	buffer& operator=(const buffer&) = delete;
 private:
-	buffer(::GLuint id,buffer_type bt,data_type dt,std::size_t size, stride st, buffer_usage u) noexcept;
+	buffer(::GLuint id,buffer_type bt,data_type dt,std::size_t size,buffer_usage u) noexcept;
 public:
 
-	static s_buffer create(const void* data, std::size_t size, buffer_type bt, data_type dt, stride st, buffer_usage u);
+	static s_buffer create(const void* data, std::size_t size, buffer_type bt, data_type dt, buffer_usage u);
 
 
 	virtual ~buffer() noexcept override;
@@ -106,11 +122,6 @@ public:
 		return size_;
 	}
 
-	inline stride element_stride() const noexcept
-	{
-        return stride_;
-	}
-
 	inline buffer_usage usage() const noexcept
 	{
 		return usage_;
@@ -121,7 +132,6 @@ private:
 	buffer_type type_;
 	data_type data_type_;
 	std::size_t size_;
-	stride stride_;
 	buffer_usage usage_;
 	std::atomic_flag bound_;
 };

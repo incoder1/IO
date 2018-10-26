@@ -21,13 +21,11 @@ public:
 private:
 	::GLFWwindow *frame_;
 	scene scn_;
-	int width_;
-	int height_;
 	int mouse_prev_x_;
 	int mouse_prev_y_;
-	double angle_x_;
-	double angle_y_;
-	double zoom_;
+	float angle_x_;
+	float angle_y_;
+	float zoom_;
 };
 
 } // engine

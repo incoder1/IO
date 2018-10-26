@@ -140,26 +140,32 @@ void program::stop()
 	::glUseProgram(0);
 }
 
+/*
 void program::gen_vertex_attrib_arrays(std::size_t count)
 {
-	vao_ = vao::create( count );
+	//vao_ = vao::create( count );
  	if (GL_NO_ERROR != ::glGetError() )
 		throw std::runtime_error("Can not initialize GLSL program vertex attributes");
 }
+*/
 
-void program::pass_vertex_attrib_array(::GLsizei attr_no, const s_buffer& vbo, bool normalized)
+void program::pass_vertex_attrib_array(::GLsizei attr_no, const s_buffer& vbo, bool normalized,uint8_t stride, uint8_t pack, uint8_t offset)
 {
 	if (buffer_type::ARRAY_BUFFER != vbo->type() )
 		throw std::runtime_error("Array buffer expected");
-	::glEnableVertexAttribArray(attr_no);
 	vbo->bind();
+	::GLuint size_of_data = sizeof_data_type(vbo->element_type());
+    ::GLuint vertex_stride = pack * size_of_data;
+    ::GLuint ofptr = size_of_data * offset;
 	::glVertexAttribPointer(
-			attr_no,
-			vbo->size(),
-			static_cast<::GLenum>( vbo->element_type() ),
-			normalized,
-			static_cast<::GLenum>(vbo->element_stride()),
-			nullptr);
+				attr_no,
+				stride,
+				static_cast<::GLenum>( vbo->element_type() ),
+				normalized,
+				vertex_stride,
+				reinterpret_cast<void*>( ofptr )
+			);
+	::glEnableVertexAttribArray(attr_no);
 	vbo->unbind();
 	if (GL_NO_ERROR != ::glGetError())
 		throw std::runtime_error("Can not pass vertex attributes array");

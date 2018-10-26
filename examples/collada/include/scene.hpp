@@ -3,6 +3,7 @@
 
 #include <glm/mat4x4.hpp>
 #include <glm/gtc/matrix_transform.hpp>
+#include <glm/gtc/type_ptr.hpp>
 
 namespace engine  {
 
@@ -16,7 +17,9 @@ public:
 
 	void move_model_near(float distance);
 
-	glm::mat4 get_mvp();
+
+	const float* get_veiw_mat() noexcept;
+	const float* get_mvp() noexcept;
 
 private:
 	glm::mat4 model_;

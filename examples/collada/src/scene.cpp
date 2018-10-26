@@ -1,5 +1,9 @@
 #include "scene.hpp"
 
+#include <iostream>
+#define GLM_ENABLE_EXPERIMENTAL
+#include <glm/gtx/string_cast.hpp>
+
 namespace engine  {
 
 // scene
@@ -42,9 +46,16 @@ void scene::move_model_near(float distance)
 	view_ = glm::translate( view_, glm::vec3(0.0f, 0.0f, -distance) );
 }
 
-glm::mat4 scene::get_mvp()
+const float* scene::get_veiw_mat() noexcept
 {
-	return model_ * view_ * glm::mat4(1.0f);
+	return glm::value_ptr(view_);
+}
+
+const float* scene::get_mvp() noexcept
+{
+	static glm::mat4 projection(1.0F);
+	glm::mat4 ret = model_ * view_ * projection;
+	return glm::value_ptr(ret);
 }
 
 
