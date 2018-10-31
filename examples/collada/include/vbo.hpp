@@ -2,6 +2,7 @@
 #define __VBO_HPP_INCLUDED__
 
 #include <object.hpp>
+#include <vector>
 #include "openglload.hpp"
 
 namespace gl {
@@ -17,7 +18,8 @@ enum class data_type: ::GLenum {
 	DOUBLE = GL_DOUBLE
 };
 
-inline ::GLuint sizeof_data_type( data_type dt) {
+inline ::GLuint sizeof_data_type( data_type dt)
+{
 	switch(dt) {
 	case data_type::BYTE:
 		return sizeof(::GLbyte);
@@ -89,8 +91,7 @@ enum class buffer_usage: ::GLenum {
 class buffer;
 DECLARE_IPTR(buffer);
 
-class buffer: public io::object
-{
+class buffer: public io::object {
 	buffer(const buffer&) = delete;
 	buffer& operator=(const buffer&) = delete;
 private:
@@ -99,6 +100,13 @@ public:
 
 	static s_buffer create(const void* data, std::size_t size, buffer_type bt, data_type dt, buffer_usage u);
 
+	static inline s_buffer create(const float* data, std::size_t size, buffer_type bt, buffer_usage u) {
+		return create(data, (size*sizeof(float)), bt, data_type::FLOAT, u);
+	}
+
+	static inline s_buffer create(const std::vector<float>& data, buffer_type bt, buffer_usage u) {
+		return create( std::addressof( *data.begin() ), data.size(), bt, u);
+	}
 
 	virtual ~buffer() noexcept override;
 
@@ -107,23 +115,19 @@ public:
 
 	void swap(buffer& other) noexcept;
 
-	inline buffer_type type() const noexcept
-	{
+	inline buffer_type type() const noexcept {
 		return type_;
 	}
 
-	inline data_type element_type() const noexcept
-	{
+	inline data_type element_type() const noexcept {
 		return data_type_;
 	}
 
-	inline std::size_t size() const noexcept
-	{
+	inline std::size_t size() const noexcept {
 		return size_;
 	}
 
-	inline buffer_usage usage() const noexcept
-	{
+	inline buffer_usage usage() const noexcept {
 		return usage_;
 	}
 

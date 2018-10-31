@@ -4,6 +4,12 @@
 #include "openglload.hpp"
 #include "model.hpp"
 
+#ifndef _USE_MATH_DEFINES
+#define _USE_MATH_DEFINES
+#endif // _USE_MATH_DEFINES
+
+#include <cmath>
+
 namespace engine  {
 
 class frame_view {
@@ -14,11 +20,8 @@ public:
 	~frame_view() noexcept;
 	void show(const model* md);
 
-	/* TODO: replace with model when ready */
-	gl::s_program initialize_GLSL();
-
-
 private:
+
 	::GLFWwindow *frame_;
 	scene scn_;
 	int mouse_prev_x_;

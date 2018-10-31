@@ -2,61 +2,46 @@
 
 #include <iostream>
 #define GLM_ENABLE_EXPERIMENTAL
-#include <glm/gtx/string_cast.hpp>
 
 namespace engine  {
 
 // scene
 scene::scene(float width, float height,float eye_distance,float depth):
-	model_(1.0f),
-	view_( glm::frustum(
-			-width, width,
-			-height, height,
-			eye_distance,
-			depth) ),
-	light_position_(0.0f, 0.0f, eye_distance+1.0f),
-	modelx_(0.0f),
-	modely_(0.0f),
-	modelz_(0.0f)
-{
-}
+	width_(width),
+	height_(height),
+	eye_distance_(eye_distance),
+	depth_(depth),
+	angle_x_(0.0f),
+	angle_y_(0.0F),
+	distance_z_( -(eye_distance+1.0F) )
+{}
 
 
-void scene::rotate_model(float x_rad, float y_rad, float z_rad)
+void scene::rotate_model(float x_rad, float y_rad)
 {
 	// rotate axis
-	modelx_ += x_rad;
-	modely_ += y_rad;
-	modelz_ += z_rad;
-	// load identity
-	model_ = glm::mat4(1.0);
-	// rotate xyz
-	model_ = glm::rotate(model_,  modelx_, glm::vec3( 1.0f, 0.0f, 0.0f ) );
-	model_ = glm::rotate(model_,  modely_, glm::vec3( 0.0f, 1.0f, 0.0f ) );
-	model_ = glm::rotate(model_,  modelz_, glm::vec3( 0.0f, 0.0f, 1.0f ) );
+	angle_x_ = x_rad;
+	angle_y_ = y_rad;
 }
 
-void scene::move_model_far(float distance)
+void scene::move_model(float distance)
 {
-	view_ = glm::translate( view_, glm::vec3(0.0f, 0.0f, distance) );
+	distance_z_ = distance;
 }
 
-void scene::move_model_near(float distance)
+void  scene::get_matrix(glm::mat4 &prj, glm::mat4& mv) const
 {
-	view_ = glm::translate( view_, glm::vec3(0.0f, 0.0f, -distance) );
-}
+	prj = glm::frustum( -width_,width_, -height_,height_, eye_distance_, depth_);
 
-const float* scene::get_veiw_mat() noexcept
-{
-	return glm::value_ptr(view_);
-}
+	prj = glm::translate(prj, glm::vec3(0.0F, 0.0F, distance_z_));
 
-const float* scene::get_mvp() noexcept
-{
-	static glm::mat4 projection(1.0F);
-	glm::mat4 ret = model_ * view_ * projection;
-	return glm::value_ptr(ret);
-}
+	mv = glm::lookAt(
+			 glm::vec3(0.0F,0.0F,1.0F),
+			 glm::vec3(0.0F,0.0F,0.0F),
+			 glm::vec3(0.0F,1.0F,0.0F));
 
+	mv = glm::rotate(mv, angle_x_, glm::vec3(-1.0f, 0.0f, 0.0f));
+	mv = glm::rotate(mv, angle_y_, glm::vec3(0.0f, 1.0f, 0.0f));
+}
 
 } // namespace engine

@@ -11,24 +11,22 @@ class scene {
 public:
 	scene(float width, float height,float eye_distance,float depth);
 
-	void rotate_model(float x_rad, float y_rad, float z_rad);
+	void rotate_model(float x_rad, float y_rad);
 
-	void move_model_far(float distance);
+	void move_model(float distance);
 
-	void move_model_near(float distance);
-
-
-	const float* get_veiw_mat() noexcept;
-	const float* get_mvp() noexcept;
+	void get_matrix(glm::mat4 &prj, glm::mat4& mv) const;
 
 private:
-	glm::mat4 model_;
-	glm::mat4 view_;
-	glm::vec3 light_position_;
 
-	float modelx_;
-	float modely_;
-	float modelz_;
+	float width_;
+	float height_;
+	float eye_distance_;
+	float depth_;
+
+	float angle_x_;
+	float angle_y_;
+	float distance_z_;
 };
 
 } // namespace engine
