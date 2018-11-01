@@ -12,8 +12,7 @@ s_buffer buffer::create(const void* data, std::size_t size, buffer_type bt, data
 	::glBindBuffer( static_cast<GLenum>(bt), id );
 	::glBufferData( static_cast<GLenum>(bt), size, data, static_cast<GLenum>(u) );
 	::glBindBuffer(static_cast<GLenum>(bt), 0 );
-	if (GL_NO_ERROR != ::glGetError() )
-			throw std::runtime_error("Error create VBO");
+	validate_opengl("Error create VBO");
 	return s_buffer(new buffer(id,bt,dt, size,u) );
 }
 

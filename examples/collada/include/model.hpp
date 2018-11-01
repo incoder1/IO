@@ -25,7 +25,7 @@ DECLARE_IPTR(model);
 class untextured_static_mesh final: public model
 {
 public:
-	untextured_static_mesh(const float *vertex, std::size_t vsize,const uint32_t* index,std::size_t isize);
+	untextured_static_mesh(const float *vertex, std::size_t vsize,const uint32_t* indexes,std::size_t isize);
 	virtual void draw(const scene& scn) const override;
 	virtual ~untextured_static_mesh() noexcept = default;
 private:

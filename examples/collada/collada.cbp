@@ -33,13 +33,15 @@
 				<Option type="0" />
 				<Option compiler="gcc" />
 				<Compiler>
-					<Add option="-O3" />
+					<Add option="-flto" />
 					<Add option="-D_WIN32_WINNT=0x0600" />
 					<Add option="-DIO_SHARED_LIB" />
 					<Add directory="include" />
 					<Add directory="include/loader" />
 				</Compiler>
 				<Linker>
+					<Add option="-O3" />
+					<Add option="-flto" />
 					<Add option="-s" />
 					<Add library="glfw3.dll" />
 					<Add library="glew32" />
@@ -64,6 +66,7 @@
 		<Unit filename="include/openglload.hpp" />
 		<Unit filename="include/scene.hpp" />
 		<Unit filename="include/shader.hpp" />
+		<Unit filename="include/texture.hpp" />
 		<Unit filename="include/vbo.hpp" />
 		<Unit filename="include/view.hpp" />
 		<Unit filename="src/collada/loader.cpp" />
@@ -71,6 +74,7 @@
 		<Unit filename="src/model.cpp" />
 		<Unit filename="src/scene.cpp" />
 		<Unit filename="src/shader.cpp" />
+		<Unit filename="src/texture.cpp" />
 		<Unit filename="src/vbo.cpp" />
 		<Unit filename="src/view.cpp" />
 		<Extensions>

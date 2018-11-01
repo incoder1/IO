@@ -102,13 +102,13 @@ untextured_static_mesh::untextured_static_mesh(const float *vertex, std::size_t 
 	normalMatUL_(-1)
 {
 	vbo_ = gl::buffer::create( vertex, vsize,
-						  gl::buffer_type::ARRAY_BUFFER,
-						  gl::buffer_usage::STATIC_DRAW
-											);
+							   gl::buffer_type::ARRAY_BUFFER,
+							   gl::buffer_usage::STATIC_DRAW
+							 );
 	ibo_ = gl::buffer::create( index, isize_*sizeof(uint32_t),
-							gl::buffer_type::ELEMENT_ARRAY_BUFFER,
-							gl::data_type::UNSIGNED_INT,
-							gl::buffer_usage::STATIC_DRAW );
+							   gl::buffer_type::ELEMENT_ARRAY_BUFFER,
+							   gl::data_type::UNSIGNED_INT,
+							   gl::buffer_usage::STATIC_DRAW );
 
 	gl::shader vertex_sh(gl::shader_type::vertex, VERTEX_SHADER );
 	gl::shader fragment_sh(gl::shader_type::fragment, FRAGMENT_SHADER );
@@ -136,14 +136,13 @@ void untextured_static_mesh::draw(const scene& scn) const
 	scn.get_matrix(projection_mat,model_view_mat);
 
 	program_->start();
-		::glUniformMatrix4fv(mvpUL_, 1, GL_FALSE, glm::value_ptr( projection_mat * model_view_mat ) );
-		::glUniformMatrix4fv(modelVeiwMatUL_, 1, GL_FALSE, glm::value_ptr( model_view_mat ) );
-		::glUniformMatrix4fv(normalMatUL_, 1, GL_FALSE, glm::value_ptr( model_view_mat ) );
-		//::glDrawArrays(GL_QUADS, 0, 24);
+	::glUniformMatrix4fv(mvpUL_, 1, GL_FALSE, glm::value_ptr( projection_mat * model_view_mat ) );
+	::glUniformMatrix4fv(modelVeiwMatUL_, 1, GL_FALSE, glm::value_ptr( model_view_mat ) );
+	::glUniformMatrix4fv(normalMatUL_, 1, GL_FALSE, glm::value_ptr( model_view_mat ) );
 
-		ibo_->bind();
-			::glDrawElements(GL_TRIANGLES, isize_, GL_UNSIGNED_INT, 0);
-		ibo_->unbind();
+	ibo_->bind();
+	::glDrawElements(GL_TRIANGLES, isize_, GL_UNSIGNED_INT, 0);
+	ibo_->unbind();
 
 	program_->stop();
 }

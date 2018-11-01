@@ -14,16 +14,23 @@ frame_view::frame_view(unsigned int widht, unsigned int height,const char* title
 	zoom_(-5.0F)
 {
 	::glfwWindowHint(GLFW_CONTEXT_CREATION_API, GLFW_NATIVE_CONTEXT_API);
-	::glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_ANY_PROFILE);
-	::glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
-	::glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 1);
-	::glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GLFW_FALSE);
+#ifdef __APPLE__
+	::glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT,GL_TRUE);
+	::glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
+	::glfwWindowHint(GLFW_SAMPLES, 8);
+#endif
+	::glfwWindowHint(GLFW_DOUBLEBUFFER, GLFW_TRUE);
+	::glfwWindowHint(GLFW_CONTEXT_RELEASE_BEHAVIOR, GLFW_RELEASE_BEHAVIOR_FLUSH);
 	::glfwWindowHint(GLFW_VISIBLE, GLFW_FALSE);
 	::glfwWindowHint(GLFW_RESIZABLE, GLFW_TRUE);
-	::glfwWindowHint(GLFW_SAMPLES, 8);
+
+	::glfwSetErrorCallback( [](int errc, const char *msg) {
+			throw std::runtime_error(msg);
+	} );
+
 	frame_ = ::glfwCreateWindow(widht, height, title, nullptr, nullptr);
-	if(nullptr == frame_)
-		throw std::bad_alloc();
+
+	::glfwSetCursor(frame_, ::glfwCreateStandardCursor(GLFW_HAND_CURSOR) );
 
 	::glfwSetWindowUserPointer(frame_, this );
 
@@ -90,7 +97,7 @@ void frame_view::show(const s_model& md)
 		scn_.rotate_model(angle_x_, angle_y_);
 
 		::glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-		::glClearDepth(1.0f);
+		::glClearDepth(1.0F);
 		::glfwGetFramebufferSize(frame_, &w, &h);
 		::glViewport(0, 0, w, h);
 		::glClearColor(1.0F, 1.0F, 1.0F, 1.0F);

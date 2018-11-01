@@ -139,9 +139,7 @@ void program::pass_vertex_attrib_array(::GLsizei attr_no, const s_buffer& vbo, b
 	);
 	::glEnableVertexAttribArray(attr_no);
 	vbo->unbind();
-	if (GL_NO_ERROR != glGetError())
-		throw std::runtime_error("Can not pass vertex attributes array");
-
+	validate_opengl("Can not pass vertex attributes array");
 }
 
 void program::bind_attrib_location(::GLsizei attr_no, const char* name)

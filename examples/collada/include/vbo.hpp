@@ -141,7 +141,6 @@ private:
 };
 
 
-
 } // namespace gl
 
 #endif // __VBO_HPP_INCLUDED__
