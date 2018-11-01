@@ -1,7 +1,5 @@
+#include "stdafx.hpp"
 #include "scene.hpp"
-
-#include <iostream>
-#define GLM_ENABLE_EXPERIMENTAL
 
 namespace engine  {
 

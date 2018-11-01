@@ -1,3 +1,4 @@
+#include "stdafx.hpp"
 #include "shader.hpp"
 
 namespace gl {

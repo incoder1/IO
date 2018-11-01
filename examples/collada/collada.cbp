@@ -3,7 +3,6 @@
 	<FileVersion major="1" minor="6" />
 	<Project>
 		<Option title="collada" />
-		<Option pch_mode="2" />
 		<Option compiler="gcc" />
 		<Build>
 			<Target title="debug-gcc-win64">
@@ -18,6 +17,7 @@
 					<Add option="-D_WIN32_WINNT=0x0600" />
 					<Add directory="include" />
 					<Add directory="include/loader" />
+					<Add directory="src" />
 				</Compiler>
 				<Linker>
 					<Add option="-pg -lgmon" />
@@ -38,6 +38,7 @@
 					<Add option="-DIO_SHARED_LIB" />
 					<Add directory="include" />
 					<Add directory="include/loader" />
+					<Add directory="src" />
 				</Compiler>
 				<Linker>
 					<Add option="-O3" />
@@ -74,6 +75,10 @@
 		<Unit filename="src/model.cpp" />
 		<Unit filename="src/scene.cpp" />
 		<Unit filename="src/shader.cpp" />
+		<Unit filename="src/stdafx.hpp">
+			<Option compile="1" />
+			<Option weight="0" />
+		</Unit>
 		<Unit filename="src/texture.cpp" />
 		<Unit filename="src/vbo.cpp" />
 		<Unit filename="src/view.cpp" />

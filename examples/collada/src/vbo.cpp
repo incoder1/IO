@@ -1,6 +1,6 @@
-#include "vbo.hpp"
-#include <new>
+#include "stdafx.hpp"
 
+#include "vbo.hpp"
 
 namespace gl {
 

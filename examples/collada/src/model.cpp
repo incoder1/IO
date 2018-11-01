@@ -1,3 +1,4 @@
+#include "stdafx.hpp"
 #include "model.hpp"
 
 namespace engine {

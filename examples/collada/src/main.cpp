@@ -1,5 +1,6 @@
-#include "view.hpp"
+#include "stdafx.hpp"
 
+#include "view.hpp"
 #include <iostream>
 
 static const float COLORED_QUBE_VERTEX[216] = {
@@ -24,10 +25,10 @@ static const float COLORED_QUBE_VERTEX[216] = {
 	 1.0F, -1.0F, 1.0F,	1.0F, 0.0F, 0.0F,	0.0F, 0.0F, 1.0F,
 
 	// Back Quad
-	 1.0F, -1.0F,-1.0F,	1.0F, 1.0F, 0.0F,	0.0F, 0.0F,-1.0F,
-	-1.0F,-1.0F,-1.0F, 1.0F, 1.0F, 0.0F,	0.0F, 0.0F,-1.0F,
-	-1.0F, 1.0F, -1.0F,	1.0F, 1.0F, 0.0F,	0.0F, 0.0F,-1.0F,
-	 1.0F, 1.0F, -1.0F,	1.0F, 1.0F, 0.0F,	0.0F, 0.0F,-1.0F,
+	 1.0F,-1.0F,-1.0F,	1.0F, 1.0F, 0.0F,	0.0F, 0.0F,-1.0F,
+	-1.0F,-1.0F,-1.0F,	1.0F, 1.0F, 0.0F,	0.0F, 0.0F,-1.0F,
+	-1.0F, 1.0F,-1.0F,	1.0F, 1.0F, 0.0F,	0.0F, 0.0F,-1.0F,
+	 1.0F, 1.0F,-1.0F,	1.0F, 1.0F, 0.0F,	0.0F, 0.0F,-1.0F,
 
 	// Left Quad
 	-1.0F, 1.0F, 1.0F,	0.0F, 0.0F, 1.0F,	-1.0F, 0.0F, 0.0F,

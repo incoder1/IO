@@ -1,3 +1,4 @@
+#include "stdafx.hpp"
 #include "texture.hpp"
 
 #include <cmath>

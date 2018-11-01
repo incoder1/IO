@@ -1,3 +1,4 @@
+#include "stdafx.hpp"
 #include "view.hpp"
 
 namespace engine  {

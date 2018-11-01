@@ -26,7 +26,7 @@ class critical_section
 private:
 	static constexpr ::DWORD SPIN_COUNT = 4000;
 public:
-	constexpr critical_section() noexcept:
+	critical_section() noexcept:
 		cs_()
 	{
 		::InitializeCriticalSectionAndSpinCount(&cs_, SPIN_COUNT);
