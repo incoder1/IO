@@ -9,7 +9,6 @@
 
 namespace engine {
 
-
 class model: public io::object
 {
 protected:
@@ -20,14 +19,27 @@ public:
 	virtual void draw(const scene& scn) const = 0;
 };
 
-class mesh_model:public model {
+DECLARE_IPTR(model);
+
+
+class untextured_static_mesh final: public model
+{
 public:
-	mesh_model();
-	virtual ~mesh_model() override;
+	untextured_static_mesh(const float *vertex, std::size_t vsize,const uint32_t* index,std::size_t isize);
 	virtual void draw(const scene& scn) const override;
+	virtual ~untextured_static_mesh() noexcept = default;
 private:
-    gl::s_program program_;
+	static const char* VERTEX_SHADER;
+	static const char* FRAGMENT_SHADER;
+	gl::s_program program_;
+	gl::s_buffer vbo_;
+	gl::s_buffer ibo_;
+	std::size_t isize_;
+	::GLint mvpUL_;
+	::GLint modelVeiwMatUL_;
+	::GLint normalMatUL_;
 };
+
 
 } // namespace engine
 
