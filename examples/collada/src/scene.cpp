@@ -38,8 +38,8 @@ void  scene::get_matrix(glm::mat4 &prj, glm::mat4& mv) const
 			 glm::vec3(0.0F,0.0F,0.0F),
 			 glm::vec3(0.0F,1.0F,0.0F));
 
-	mv = glm::rotate(mv, angle_x_, glm::vec3(-1.0f, 0.0f, 0.0f));
-	mv = glm::rotate(mv, angle_y_, glm::vec3(0.0f, 1.0f, 0.0f));
+	mv = glm::rotate(mv, angle_x_, glm::vec3(-1.0F, 0.0F, 0.0F));
+	mv = glm::rotate(mv, angle_y_, glm::vec3(0.0F, 1.0F, 0.0F));
 }
 
 } // namespace engine

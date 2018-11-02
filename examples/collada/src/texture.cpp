@@ -12,10 +12,12 @@ static void tex2d_generate_mipmaps(::GLsizei width, ::GLint minFiler, ::GLint ma
 	::glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, minFiler);
 	::glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, magFileter);
 	static const double ln_2 = std::log(2.0);
-	 double maxLevel = ( std::log( static_cast<double>(width) ) / ln_2 ) - 1.0;
-	::glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAX_LEVEL, static_cast<::GLint>(maxLevel) );
+	double maxLevel = ( std::log( static_cast<double>(width) ) / ln_2 ) - 1.0;
+	::GLuint mipmapsMax = static_cast<::GLuint>(  std::lround(std::abs(maxLevel) ) );
+	::glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAX_LEVEL, mipmapsMax);
 	::glGenerateMipmap(GL_TEXTURE_2D);
 }
+
 
 s_texture texture::texture2d(::GLsizei width, ::GLsizei height, ::GLint format, texture_filter filtering, const void* pixels)
 {
@@ -78,6 +80,13 @@ texture::~texture() noexcept
 {
 	::glDeleteTextures(1, &id_);
 }
+
+// USE GDI+ as PNG decoder
+#ifdef _WIN32
+
+#include <Gdiplus.h>
+
+#endif // _WIN32
 
 s_texture load_2d_texture_png(const io::s_read_channel& src, texture_filter filter)
 {

@@ -30,7 +30,7 @@ namespace win {
 #define IO_PREVENT_MACRO
 
 /// memory functions traits concept
-struct memory_traits {
+struct IO_PUBLIC_SYMBOL memory_traits {
 
 	/// returns OS page size
 	static std::size_t page_size() noexcept;

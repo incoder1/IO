@@ -4,6 +4,7 @@
 
 #include <atomic>
 #include <object.hpp>
+#include <buffer.hpp>
 #include "openglload.hpp"
 
 #endif // ___STDAFX_HPP__INCLUDED__

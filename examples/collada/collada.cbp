@@ -24,6 +24,8 @@
 					<Add library="glfw3.dll" />
 					<Add library="glew32" />
 					<Add library="opengl32" />
+					<Add library="ole32" />
+					<Add library="windowscodecs" />
 					<Add directory="../../bin/debug-win-gcc-static-x64" />
 				</Linker>
 			</Target>
@@ -36,6 +38,7 @@
 					<Add option="-flto" />
 					<Add option="-D_WIN32_WINNT=0x0600" />
 					<Add option="-DIO_SHARED_LIB" />
+					<Add option="-DNDEBUG" />
 					<Add directory="include" />
 					<Add directory="include/loader" />
 					<Add directory="src" />
@@ -52,6 +55,8 @@
 					<Add library="glfw3.dll" />
 					<Add library="glew32" />
 					<Add library="opengl32" />
+					<Add library="ole32" />
+					<Add library="windowscodecs" />
 					<Add directory="../../bin/release-win-gcc-dll-x64" />
 				</Linker>
 			</Target>
@@ -59,6 +64,7 @@
 		<Compiler>
 			<Add option="-Wall" />
 			<Add option="-std=c++14" />
+			<Add option="-mavx2" />
 			<Add directory="include" />
 			<Add directory="include/collada" />
 			<Add directory="../../include" />
@@ -68,6 +74,7 @@
 		</Linker>
 		<Unit filename="include/collada/loader.hpp" />
 		<Unit filename="include/collada/types.hpp" />
+		<Unit filename="include/image.hpp" />
 		<Unit filename="include/model.hpp" />
 		<Unit filename="include/openglload.hpp" />
 		<Unit filename="include/scene.hpp" />
@@ -76,6 +83,8 @@
 		<Unit filename="include/vbo.hpp" />
 		<Unit filename="include/view.hpp" />
 		<Unit filename="src/collada/loader.cpp" />
+		<Unit filename="src/directx_image_loader.cpp" />
+		<Unit filename="src/image.cpp" />
 		<Unit filename="src/main.cpp" />
 		<Unit filename="src/model.cpp" />
 		<Unit filename="src/scene.cpp" />
