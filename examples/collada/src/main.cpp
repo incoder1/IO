@@ -1,7 +1,10 @@
 #include "stdafx.hpp"
-
 #include "view.hpp"
+#include "image.hpp"
+#include "files.hpp"
+
 #include <iostream>
+
 
 static const float COLORED_QUBE_VERTEX[216] = {
 	// Coordinate  | Color | Normal
@@ -63,6 +66,7 @@ int main(int argc, const char** argv)
 		try {
 			engine::frame_view view(640,480,"Collada model view");
 			engine::s_model md( new engine::untextured_static_mesh(COLORED_QUBE_VERTEX,216,CUBE_INDEX,36) );
+
 			view.show(md);
 
 			return 0;
