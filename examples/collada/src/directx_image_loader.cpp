@@ -236,11 +236,11 @@ static s_IWICFormatConverter create_format_converter(const s_IWICImagingFactory&
 		throw std::runtime_error("Can't obtain frame");
 	hr = ret->Initialize(
 			 frame,
-			 GUID_WICPixelFormat32bppRGBA,
+			 ::GUID_WICPixelFormat32bppRGBA,
 			 WICBitmapDitherTypeNone,
 			 nullptr,// Specify a particular palette
 			 0.0F,// Alpha threshold
-			 WICBitmapPaletteTypeCustom// Palette translation type
+			 ::WICBitmapPaletteTypeCustom// Palette translation type
 		 );
 	if(!SUCCEEDED(hr))
 		throw std::runtime_error("Image decoding failed");

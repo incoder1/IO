@@ -81,16 +81,5 @@ texture::~texture() noexcept
 	::glDeleteTextures(1, &id_);
 }
 
-// USE GDI+ as PNG decoder
-#ifdef _WIN32
-
-#include <Gdiplus.h>
-
-#endif // _WIN32
-
-s_texture load_2d_texture_png(const io::s_read_channel& src, texture_filter filter)
-{
-	return s_texture();
-}
 
 } // namespace gl

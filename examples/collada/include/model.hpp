@@ -4,8 +4,10 @@
 #include <object.hpp>
 
 #include "vbo.hpp"
-#include "shader.hpp"
+#include "image.hpp"
 #include "scene.hpp"
+#include "shader.hpp"
+#include "texture.hpp"
 
 namespace engine {
 
@@ -38,6 +40,26 @@ private:
 	::GLint mvpUL_;
 	::GLint modelVeiwMatUL_;
 	::GLint normalMatUL_;
+};
+
+class textured_static_mesh final: public model
+{
+public:
+	textured_static_mesh(const float *vertex, std::size_t vsize,const uint32_t* indexes,std::size_t isize,const s_image& texture);
+	virtual void draw(const scene& scn) const override;
+	virtual ~textured_static_mesh() noexcept = default;
+private:
+	static const char* VERTEX_SHADER;
+	static const char* FRAGMENT_SHADER;
+	gl::s_program program_;
+	gl::s_buffer vbo_;
+	gl::s_buffer ibo_;
+	std::size_t isize_;
+	gl::s_texture texture_;
+	::GLint mvpUL_;
+	::GLint modelVeiwMatUL_;
+	::GLint normalMatUL_;
+	::GLint textureUL_;
 };
 
 

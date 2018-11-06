@@ -4,7 +4,6 @@
 #include <atomic>
 
 #include <object.hpp>
-#include <channels.hpp>
 
 #include "openglload.hpp"
 
@@ -50,6 +49,7 @@ public:
 		return texture2d(width, height, GL_SRGB8_ALPHA8, filtering, pixels);
 	}
 
+
 	bool bind()  noexcept;
 	void unbind()  noexcept;
 	inline texture_type type() noexcept {
@@ -62,7 +62,7 @@ private:
 	std::atomic_flag bound_;
 };
 
-s_texture load_2d_texture_png(const io::s_read_channel& src, texture_filter filter);
+
 
 
 } // namespace gl

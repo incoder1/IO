@@ -29,7 +29,7 @@ namespace engine {
 		const std::size_t width() const noexcept {
 			return width_;
 		}
-		const std::size_t heigh() const noexcept {
+		const std::size_t height() const noexcept {
 			return height_;
 		}
 		const unsigned short stride() const noexcept {
