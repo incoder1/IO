@@ -79,6 +79,10 @@ program::~program() noexcept
 
 void program::attach_shader(shader&& sh)
 {
+	if( shader_type::vertex == sh.type() )
+		throw std::runtime_error("Can not attach GL_VERTEX_SHADER");
+	if(shader_type::fragment == sh.type())
+		throw std::runtime_error("Can not attach GL_FRAGMENT_SHADER");
 	shaders_.emplace_back( std::move(sh) );
 }
 

@@ -97,7 +97,7 @@ void frame_view::show(const s_model& md)
 		scn_.move_model(zoom_);
 		scn_.rotate_model(angle_x_, angle_y_);
 
-		::glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+		::glClear( GL_ACCUM_BUFFER_BIT | GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT );
 		::glClearDepth(1.0F);
 		::glfwGetFramebufferSize(frame_, &w, &h);
 		::glViewport(0, 0, w, h);

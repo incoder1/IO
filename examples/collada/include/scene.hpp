@@ -16,7 +16,7 @@ public:
 
 	void move_model(float distance);
 
-	void get_matrix(glm::mat4 &prj, glm::mat4& mv) const;
+	void get_matrix(glm::mat4 &prj, glm::mat4& mv, glm::mat4& nm) const;
 
 private:
 

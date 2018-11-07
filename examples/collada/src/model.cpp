@@ -135,12 +135,13 @@ void untextured_static_mesh::draw(const scene& scn) const
 {
 	::glm::mat4 projection_mat;
 	::glm::mat4 model_view_mat;
-	scn.get_matrix(projection_mat,model_view_mat);
+	::glm::mat4 normal_mat;
+	scn.get_matrix(projection_mat,model_view_mat,normal_mat);
 
 	program_->start();
 	::glUniformMatrix4fv(mvpUL_, 1, GL_FALSE, glm::value_ptr( projection_mat * model_view_mat ) );
 	::glUniformMatrix4fv(modelVeiwMatUL_, 1, GL_FALSE, glm::value_ptr( model_view_mat ) );
-	::glUniformMatrix4fv(normalMatUL_, 1, GL_FALSE, glm::value_ptr( model_view_mat ) );
+	::glUniformMatrix4fv(normalMatUL_, 1, GL_FALSE, glm::value_ptr( normal_mat ) );
 
 	ibo_->bind();
 	::glDrawElements(GL_TRIANGLES, isize_, GL_UNSIGNED_INT, 0);
@@ -167,7 +168,7 @@ out vec4 outNormal;\
 out vec2 outTexCoord;\
 void main(void) {\
 	outPosition = modelViewMat * vec4(vertexCoord,1);\
-	outNormal =  normalize( vec4(vertexNormal, 0.0) );\
+	outNormal =  normalize( normalMat * vec4(vertexNormal, 0.0) );\
 	outTexCoord = vertexTexCoord;\
 	gl_Position = mvpMat * vec4(vertexCoord,1);\
 }";
@@ -175,7 +176,7 @@ void main(void) {\
 const char* textured_static_mesh::FRAGMENT_SHADER = "\
 #version 140 \n\
 #pragma optimize(on) \n\
-precision highp float; \
+precision highp float;\
 in vec4 outPosition;\
 in vec4 outNormal;\
 in vec2 outTexCoord;\
@@ -208,7 +209,7 @@ MaterialInfo defaultMaterial() {\
 	result.diffuse = vec4(0.8, 0.8, 0.8, 1);\
 	result.specular = vec4(0, 0, 0, 1);\
 	result.emission = vec4(0,0,0,1);\
-	result.shininess = 0.1;\
+	result.shininess = 0;\
 	return result;\
 }\
 float dot(vec4 lsh, vec4 rhs) {\
@@ -220,19 +221,18 @@ vec4 phongModel(LightInfo light, MaterialInfo mat, vec4 position, vec4 norm ) {\
 	vec4 r = reflect( -s, norm );\
 	vec4 ambient = light.ambient * mat.ambient;\
 	float sDotN = max( dot(s,norm), 0.0 );\
-	vec4 diffuse = light.diffuse * mat.diffuse * sDotN;\
+	vec4  diffuse = light.diffuse * mat.diffuse * sDotN;\
 	vec4 specular = vec4(0.0);\
 	if( sDotN > 0.0 ) {\
 		specular = light.specular * mat.specular * pow( max( dot(r,v), 0.0 ), mat.shininess );\
 	}\
-	return ambient + diffuse + specular;\
+	return ambient + clamp(diffuse,0.0, 1.0) +  clamp(specular, 0.0, 1.0);\
 }\
-const float GAMMA = 1 / 2.2;\
+const float GAMMA = 1.0 / 2.2;\
 LightInfo light = defaultLight();\
 MaterialInfo mat = defaultMaterial();\
 void main(void) {\
-	vec4 texColor = texture( textureSampler, outTexCoord ) + phongModel(light, mat, outPosition, outNormal );\
-	outFragColor = pow( texColor, vec4(GAMMA) );\
+	outFragColor =  pow(texture( textureSampler, outTexCoord ),vec4(GAMMA)) + phongModel(light, mat, outPosition, outNormal );\
 }";
 
 textured_static_mesh::textured_static_mesh(const float *vertex, std::size_t vsize,const uint32_t* indexes,std::size_t isize,const s_image& timg):
@@ -285,12 +285,14 @@ void textured_static_mesh::draw(const scene& scn) const
 {
 	::glm::mat4 projection_mat;
 	::glm::mat4 model_view_mat;
-	scn.get_matrix(projection_mat,model_view_mat);
+    ::glm::mat4 normal_mat;
+	scn.get_matrix(projection_mat,model_view_mat,normal_mat);
+
 
 	program_->start();
 	::glUniformMatrix4fv(mvpUL_, 1, GL_FALSE, glm::value_ptr( projection_mat * model_view_mat ) );
 	::glUniformMatrix4fv(modelVeiwMatUL_, 1, GL_FALSE, glm::value_ptr( model_view_mat ) );
-	::glUniformMatrix4fv(normalMatUL_, 1, GL_FALSE, glm::value_ptr( model_view_mat ) );
+	::glUniformMatrix4fv(normalMatUL_, 1, GL_FALSE, glm::value_ptr( normal_mat ) );
 
 	texture_->bind();
 	glUniform1i(textureUL_, 0);
