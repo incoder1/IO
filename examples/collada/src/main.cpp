@@ -99,11 +99,10 @@ int main(int argc, const char** argv)
 	if ( GLFW_TRUE == ::glfwInit() ) {
 		try {
 			engine::frame_view view(640,480,"Collada model view");
-			// engine::s_model md( new engine::untextured_static_mesh(COLORED_QUBE_VERTEX,216,CUBE_INDEX,36) );
+			//engine::s_model md( new engine::untextured_static_mesh(COLORED_QUBE_VERTEX,216,CUBE_INDEX,36) );
 
 			io::file timg("cube_tex2d_512x512.png");
-			std::error_code ec;
-			engine::s_image texture_img = engine::image::load(timg.open_for_read(ec), engine::image_format::PNG);
+			engine::s_image texture_img = engine::image::load(timg, engine::image_format::PNG);
 
 			engine::s_model md( new engine::textured_static_mesh(TEXTURED_QUBE_VERTEX, 192, CUBE_INDEX,36, texture_img ) );
 			view.show(md);

@@ -44,7 +44,7 @@ MaterialInfo defaultMaterial() {\n\
  	result.diffuse = vec4(0.8, 0.8, 0.8, 1);\n\
  	result.specular = vec4(0, 0, 0, 1);\n\
  	result.emission = vec4(0,0,0,1);\n\
- 	result.shininess = 0.001;\n\
+ 	result.shininess = 4;\n\
  	return result;\n\
 }\n\
 float dot(vec4 lsh, vec4 rhs) {\n\
@@ -65,7 +65,7 @@ vec4 phongModel(LightInfo light, MaterialInfo mat, vec4 position, vec4 norm ) {\
 	if( sDotN > 0.0 ) {\n\
 		specular = light.specular * mat.specular * pow( max( dot(r,v), 0.0 ), mat.shininess );\n\
 	}\n\
-	return ambient + diffuse + specular;\n\
+	return ambient + clamp(diffuse,0.0, 1.0) +  clamp(specular, 0.0, 1.0);\n\
 }\n\
 LightInfo light = defaultLight();\n\
 MaterialInfo mat = defaultMaterial();\n\

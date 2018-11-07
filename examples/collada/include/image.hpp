@@ -4,6 +4,7 @@
 #include <object.hpp>
 #include <buffer.hpp>
 #include <channels.hpp>
+#include <files.hpp>
 
 namespace engine {
 
@@ -23,17 +24,15 @@ namespace engine {
 	DECLARE_IPTR(image);
 	class image final: public io::object {
 	private:
-		image(std::size_t w, std::size_t h, unsigned short stride,io::byte_buffer&& data) noexcept;
+		image(std::size_t w, std::size_t h, io::byte_buffer&& data) noexcept;
 	public:
 		static s_image load(io::s_read_channel&& src, image_format format);
+		static s_image load(const io::file& file, image_format format);
 		const std::size_t width() const noexcept {
 			return width_;
 		}
 		const std::size_t height() const noexcept {
 			return height_;
-		}
-		const unsigned short stride() const noexcept {
-			return stride_;
 		}
 		const uint8_t* data() const noexcept {
 			return data_.position().get();
@@ -41,7 +40,6 @@ namespace engine {
 	private:
 		std::size_t width_;
 		std::size_t height_;
-		unsigned short stride_;
 		io::byte_buffer data_;
 	};
 

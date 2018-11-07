@@ -5,12 +5,12 @@
 #include <wincodec.h>
 #include <shlwapi.h>
 
-inline void intrusive_ptr_add_ref(::IUnknown *obj) noexcept
+inline void intrusive_ptr_add_ref(::IUnknown* const obj) noexcept
 {
 	obj->AddRef();
 }
 
-inline void intrusive_ptr_release(::IUnknown *obj) noexcept
+inline void intrusive_ptr_release(::IUnknown* const obj) noexcept
 {
 	obj->Release();
 }
@@ -266,19 +266,15 @@ static s_IWICBitmapLock bitmap_lock(const s_IWICBitmap& bitmap, ::WICRect& rc_lo
 	return s_IWICBitmapLock(ret);
 }
 
-s_image image::load(io::s_read_channel&& src, image_format format)
-{
-	//if( image_format::TGA != format || image_format::DDS != format )
-	//	return s_image();
-	COM ms_com_guard;
+static io::byte_buffer decode_image(const s_IStream& stream, unsigned int& w, unsigned int& h) {
+		COM ms_com_guard;
 	s_IWICImagingFactory imgFactory = create_image_factory();
-	s_IStream srcStream( new read_stream( std::forward<io::s_read_channel>(src)), false );
-	s_IWICBitmapDecoder decoder = create_bitmap_decoder(imgFactory, srcStream);
+	s_IWICBitmapDecoder decoder = create_bitmap_decoder(imgFactory, stream);
 	s_IWICFormatConverter converter = create_format_converter(imgFactory, decoder);
 	s_IWICBitmap bit_map = create_bitmap(imgFactory,converter);
 
-	unsigned int w, h;
-	bit_map->GetSize(&w,&h);
+
+	bit_map->GetSize( std::addressof(w), std::addressof(h) );
 	::WICRect rc_lock = { 0, 0,  static_cast<::INT>(w), static_cast<::INT>(h) };
 	s_IWICBitmapLock lock = bitmap_lock(bit_map,rc_lock);
 
@@ -288,13 +284,33 @@ s_image image::load(io::s_read_channel&& src, image_format format)
 	hr = lock->GetDataPointer(&cbBufferSize, &pv);
 	if (!SUCCEEDED(hr))
 		throw std::runtime_error("Can't obtain data from bitmap");
-
 	std::error_code ec;
-	io::byte_buffer image_data = io::byte_buffer::wrap(ec, pv, cbBufferSize);
+	io::byte_buffer ret = io::byte_buffer::wrap(ec, pv, cbBufferSize);
 	if(ec)
 		throw std::system_error(ec);
+	return ret;
+}
 
-	return  s_image(new image( w, h, cbStride, std::move(image_data) ) );
+
+s_image image::load(io::s_read_channel&& src, image_format format)
+{
+	//if( image_format::TGA != format || image_format::DDS != format )
+	//	return s_image();
+	 s_IStream stream( new read_stream( std::forward<io::s_read_channel>(src)), false);
+	unsigned int w,h;
+	io::byte_buffer image_data = decode_image( stream, w, h );
+	return  s_image(new image( w, h, std::move(image_data) ) );
+}
+
+s_image image::load(const io::file& file, image_format format)
+{
+	IStream* src;
+	::HRESULT errc = ::SHCreateStreamOnFileEx(file.wpath().data(), STGM_READ, FILE_ATTRIBUTE_READONLY, FALSE, nullptr, &src);
+	if(!SUCCEEDED(errc))
+		throw std::runtime_error( std::string("Can not open image file: ").append(file.path()) );
+	unsigned int w,h;
+	io::byte_buffer image_data = decode_image( s_IStream(src,false), w, h );
+	return s_image(new image( w, h, std::move(image_data) ) );
 }
 
 
