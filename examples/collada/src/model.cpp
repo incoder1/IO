@@ -135,8 +135,8 @@ void untextured_static_mesh::draw(const scene& scn) const
 {
 	::glm::mat4 projection_mat;
 	::glm::mat4 model_view_mat;
-	::glm::mat4 normal_mat;
-	scn.get_matrix(projection_mat,model_view_mat,normal_mat);
+	scn.get_matrix(projection_mat,model_view_mat);
+	::glm::mat4 normal_mat = glm::transpose( glm::inverse(  glm::mat3(model_view_mat) ) );
 
 	program_->start();
 	::glUniformMatrix4fv(mvpUL_, 1, GL_FALSE, glm::value_ptr( projection_mat * model_view_mat ) );
@@ -163,11 +163,11 @@ uniform mat4 normalMat;\
 in vec3 vertexCoord;\
 in vec3 vertexNormal;\
 in vec2 vertexTexCoord;\
-out vec4 outPosition;\
+out vec4 eyePosition;\
 out vec4 outNormal;\
 out vec2 outTexCoord;\
 void main(void) {\
-	outPosition = modelViewMat * vec4(vertexCoord,1);\
+	eyePosition = modelViewMat * vec4(vertexCoord,0.0);\
 	outNormal =  normalize( normalMat * vec4(vertexNormal, 0.0) );\
 	outTexCoord = vertexTexCoord;\
 	gl_Position = mvpMat * vec4(vertexCoord,1);\
@@ -177,7 +177,7 @@ const char* textured_static_mesh::FRAGMENT_SHADER = "\
 #version 140 \n\
 #pragma optimize(on) \n\
 precision highp float;\
-in vec4 outPosition;\
+in vec4 eyePosition;\
 in vec4 outNormal;\
 in vec2 outTexCoord;\
 uniform sampler2D textureSampler;\
@@ -232,7 +232,7 @@ const float GAMMA = 1.0 / 2.2;\
 LightInfo light = defaultLight();\
 MaterialInfo mat = defaultMaterial();\
 void main(void) {\
-	outFragColor =  pow(texture( textureSampler, outTexCoord ),vec4(GAMMA)) + phongModel(light, mat, outPosition, outNormal );\
+	outFragColor =  pow(texture( textureSampler, outTexCoord ),vec4(GAMMA)) + phongModel(light, mat, eyePosition, outNormal );\
 }";
 
 textured_static_mesh::textured_static_mesh(const float *vertex, std::size_t vsize,const uint32_t* indexes,std::size_t isize,const s_image& timg):
@@ -285,9 +285,8 @@ void textured_static_mesh::draw(const scene& scn) const
 {
 	::glm::mat4 projection_mat;
 	::glm::mat4 model_view_mat;
-    ::glm::mat4 normal_mat;
-	scn.get_matrix(projection_mat,model_view_mat,normal_mat);
-
+	scn.get_matrix(projection_mat,model_view_mat);
+	::glm::mat4 normal_mat = glm::transpose( glm::inverse(  glm::mat3(model_view_mat) ) );
 
 	program_->start();
 	::glUniformMatrix4fv(mvpUL_, 1, GL_FALSE, glm::value_ptr( projection_mat * model_view_mat ) );
@@ -295,13 +294,192 @@ void textured_static_mesh::draw(const scene& scn) const
 	::glUniformMatrix4fv(normalMatUL_, 1, GL_FALSE, glm::value_ptr( normal_mat ) );
 
 	texture_->bind();
-	glUniform1i(textureUL_, 0);
+	::glUniform1i(textureUL_, 0);
 
 	ibo_->bind();
 	::glDrawElements(GL_TRIANGLES, isize_, GL_UNSIGNED_INT, 0);
 
 	ibo_->unbind();
 	texture_->unbind();
+
+	program_->stop();
+}
+
+//normal_mapped_static_mesh
+const char* normal_mapped_static_mesh::VERTEX_SHADER = "\
+#version 140\n\
+#pragma optimize(on)\n\
+precision highp float;\
+invariant gl_Position;\
+uniform mat4 mvpMat;\
+uniform mat4 modelViewMat;\
+uniform sampler2D normalMapTexture;\
+in vec3 vertexCoord;\
+in vec3 vertexNormal;\
+in vec2 vertexTexCoord;\
+in vec3 aTangent;\
+out vec4 eyePosition;\
+out vec2 fragTexCoords;\
+out mat3 TBN;\
+void main(void) {\
+	eyePosition = modelViewMat * vec4(vertexCoord,0);\
+	fragTexCoords = vertexTexCoord;\
+	vec3 t = normalize(vec3(modelViewMat * vec4(aTangent,0.0)));\
+	vec3 n = normalize(vec3(modelViewMat * vec4(vertexNormal,0.0)));\
+	vec3 b = cross(n,t);\
+	TBN = transpose( mat3(t,b,n) );\
+	gl_Position = mvpMat * vec4(vertexCoord,1);\
+}";
+
+const char* normal_mapped_static_mesh::FRAGMENT_SHADER = "\
+#version 140\n\
+#pragma optimize(on)\n\
+precision highp float;\
+in vec4 eyePosition;\
+in vec2 fragTexCoords;\
+in mat3 TBN;\
+uniform sampler2D diffuseTexture;\
+uniform sampler2D normalMapTexture;\
+out vec4 outFragColor;\
+struct LightInfo {\
+	vec4 position;\
+	vec4 ambient;\
+	vec4 diffuse;\
+	vec4 specular;\
+};\
+struct MaterialInfo {\
+	vec4 ambient;\
+	vec4 diffuse;\
+	vec4 specular;\
+	vec4 emission;\
+	float shininess;\
+};\
+MaterialInfo defaultMaterial() {\
+	MaterialInfo result;\
+	result.ambient = vec4(0.0f,0.0f,0.0f,1.0f);\
+	result.diffuse = vec4(0.55f,0.55f,0.55f,1.0f);\
+	result.specular = vec4(0.60f,0.60f,0.50f,1.0f);\
+	result.emission = vec4(0,0,0,1);\
+	result.shininess = 32.0f;\
+	return result;\
+}\
+LightInfo defaultLight() {\
+	LightInfo result;\
+	result.position = vec4(0.3,0.1,1.5,0);\
+	result.ambient = vec4(0,0,0,1);\
+	result.diffuse = vec4(0.7,0.7,0.7,1);\
+	result.specular = vec4(0.7,0.7,0.7,1);\
+	return result;\
+}\
+float dot(vec4 lsh, vec4 rhs) {\
+	return (lsh.x*rhs.x) + (lsh.y*rhs.y) + (lsh.z*rhs.z) + (lsh.w*rhs.w);\
+}\
+vec4 phongModel(LightInfo light, MaterialInfo mat, vec4 position, vec4 norm ) {\
+	vec4 s = normalize( light.position - position );\
+	vec4 v = normalize( -position );\
+	vec4 r = reflect( -s, norm );\
+	vec4 ambient = light.ambient * mat.ambient;\
+	float sDotN = max( dot(s,norm), 0.0 );\
+	vec4  diffuse = light.diffuse * mat.diffuse * sDotN;\
+	vec4 specular = vec4(0.0);\
+	if( sDotN > 0.0 ) {\
+		specular = light.specular * mat.specular * pow( max( dot(r,v), 0.0 ), mat.shininess );\
+	}\
+	return ambient + clamp(diffuse,0.0, 1.0) +  clamp(specular, 0.0, 1.0);\
+}\
+const vec4 GAMMA = vec4(1.0 / 2.2);\
+LightInfo light = defaultLight();\
+MaterialInfo mat = defaultMaterial();\
+void main(void) {\
+	vec3 normal = normalize( texture(normalMapTexture, fragTexCoords ).rgb );\
+	normal = normalize( normal * 2.0 - 1.0 );\
+	normal = normalize(TBN * normal);\
+	vec4 color =  pow( texture( diffuseTexture, fragTexCoords ) , GAMMA);\
+	outFragColor =  color + phongModel(light, mat, eyePosition, vec4( normal, 0) );\
+}";
+
+normal_mapped_static_mesh::normal_mapped_static_mesh(const float *vertex, std::size_t vsize,const uint32_t* indexes,std::size_t isize,const s_image& difftex,const s_image& nm_text):
+	model(),
+	program_(),
+	vbo_(),
+	ibo_(),
+	isize_(isize),
+	diffuse_tex_(),
+	normal_map_tex_(),
+	mvpUL_(-1),
+	modelVeiwMatUL_(-1),
+	diffiseTxtrUL_(-1),
+	nmTxtrUL_(-1)
+{
+
+	vbo_ = gl::buffer::create( vertex, vsize,
+							   gl::buffer_type::ARRAY_BUFFER,
+							   gl::buffer_usage::STATIC_DRAW
+							 );
+	ibo_ = gl::buffer::create( indexes, isize_*sizeof(uint32_t),
+							   gl::buffer_type::ELEMENT_ARRAY_BUFFER,
+							   gl::data_type::UNSIGNED_INT,
+							   gl::buffer_usage::STATIC_DRAW );
+
+	diffuse_tex_ = gl::texture::create_rgba_texture_2d(
+													difftex->width(), difftex->height(),
+													gl::texture_filter::NEAREST_MIPMAP_LINEAR,
+													difftex->data() );
+
+	normal_map_tex_ = gl::texture::create_rgba_texture_2d(
+													nm_text->width(), nm_text->height(),
+													gl::texture_filter::NEAREST,
+													nm_text->data() );
+
+	gl::shader vertex_sh(gl::shader_type::vertex, VERTEX_SHADER );
+	gl::shader fragment_sh(gl::shader_type::fragment, FRAGMENT_SHADER );
+	program_ = gl::program::create( std::move(vertex_sh), std::move(fragment_sh) );
+
+	program_->bind_attrib_location(0, "vertexCoord");
+	program_->bind_attrib_location(1, "vertexNormal");
+	program_->bind_attrib_location(2, "vertexTexCoord");
+	program_->bind_attrib_location(3, "aTangent");
+
+
+	program_->pass_vertex_attrib_array(0, vbo_, false, 11, 3, 0);
+	program_->pass_vertex_attrib_array(1, vbo_, false, 11, 3, 3);
+	program_->pass_vertex_attrib_array(2, vbo_, false, 11, 2, 6);
+	program_->pass_vertex_attrib_array(3, vbo_, false, 11, 3, 8);
+
+	program_->link();
+
+	mvpUL_ = program_->uniform_location("mvpMat");
+	modelVeiwMatUL_ = program_->uniform_location("modelViewMat");
+	diffiseTxtrUL_ = program_->uniform_location("diffuseTexture");
+	nmTxtrUL_ = program_->uniform_location("normalMapTexture");
+}
+
+void normal_mapped_static_mesh::draw(const scene& scn) const
+{
+
+	::glm::mat4 projection_mat;
+	::glm::mat4 model_view_mat;
+	scn.get_matrix(projection_mat,model_view_mat);
+
+	program_->start();
+
+	::glUniformMatrix4fv(mvpUL_, 1, GL_FALSE, glm::value_ptr( projection_mat * model_view_mat ) );
+	::glUniformMatrix4fv(modelVeiwMatUL_, 1, GL_FALSE, glm::value_ptr( model_view_mat ) );
+
+	::glActiveTexture(GL_TEXTURE0);
+	::glUniform1i(diffiseTxtrUL_, 0);
+	diffuse_tex_->bind();
+
+	::glActiveTexture(GL_TEXTURE1);
+	::glUniform1i(nmTxtrUL_, 1);
+	normal_map_tex_->bind();
+
+	ibo_->bind();
+	::glDrawElements(GL_TRIANGLES, isize_, GL_UNSIGNED_INT, 0);
+
+	ibo_->unbind();
+	diffuse_tex_->unbind();
+	normal_map_tex_->unbind();
 
 	program_->stop();
 }

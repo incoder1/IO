@@ -62,6 +62,26 @@ private:
 	::GLint textureUL_;
 };
 
+class normal_mapped_static_mesh final: public model
+{
+public:
+	normal_mapped_static_mesh(const float *vertex, std::size_t vsize,const uint32_t* indexes,std::size_t isize,const s_image& difftex,const s_image& nm_text);
+	virtual void draw(const scene& scn) const override;
+private:
+	static const char* VERTEX_SHADER;
+	static const char* FRAGMENT_SHADER;
+	gl::s_program program_;
+	gl::s_buffer vbo_;
+	gl::s_buffer ibo_;
+	std::size_t isize_;
+	gl::s_texture diffuse_tex_;
+	gl::s_texture normal_map_tex_;
+	::GLint mvpUL_;
+	::GLint modelVeiwMatUL_;
+	::GLint diffiseTxtrUL_;
+	::GLint nmTxtrUL_;
+};
+
 
 } // namespace engine
 

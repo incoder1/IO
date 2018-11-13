@@ -12,7 +12,6 @@
 				<Option compiler="gcc" />
 				<Compiler>
 					<Add option="-pg" />
-					<Add option="-Og" />
 					<Add option="-g" />
 					<Add option="-mavx2" />
 					<Add option="-D_WIN32_WINNT=0x0600" />

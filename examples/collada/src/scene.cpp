@@ -27,7 +27,7 @@ void scene::move_model(float distance)
 	distance_z_ = distance;
 }
 
-void  scene::get_matrix(glm::mat4 &prj, glm::mat4& mv, glm::mat4& nm) const
+void  scene::get_matrix(glm::mat4 &prj, glm::mat4& mv) const
 {
 	prj = glm::frustum( -width_,width_, -height_,height_, eye_distance_, depth_);
 
@@ -41,7 +41,6 @@ void  scene::get_matrix(glm::mat4 &prj, glm::mat4& mv, glm::mat4& nm) const
 	mv = glm::rotate(mv, angle_x_, glm::vec3(-1.0F, 0.0F, 0.0F));
 	mv = glm::rotate(mv, angle_y_, glm::vec3(0.0F, 1.0F, 0.0F));
 
-	nm =  glm::transpose( glm::inverse(  glm::mat3(mv) ) );
 }
 
 } // namespace engine
