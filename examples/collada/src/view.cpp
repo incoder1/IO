@@ -42,6 +42,7 @@ frame_view::frame_view(unsigned int widht, unsigned int height,const char* title
 
 	::glShadeModel(GL_FLAT);
 	::glEnable(GL_CULL_FACE);
+	::glCullFace(GL_BACK);
 	::glEnable(GL_DEPTH_TEST);
 	::glDepthFunc(GL_LEQUAL);
 	::glShadeModel(GL_SMOOTH);

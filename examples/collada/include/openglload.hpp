@@ -4,6 +4,7 @@
 #if defined(_WIN32) || defined(__CYGWIN__)
 #include <GL/glew.h>
 #include <GL/wglew.h>
+#define GLFW_INCLUDE_NONE
 #endif // _WIN32
 
 #if defined(unix) \

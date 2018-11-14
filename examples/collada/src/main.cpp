@@ -49,25 +49,25 @@ static const float COLORED_QUBE_VERTEX[216] = {
 static const float TEXTURED_QUBE_VERTEX[192] = {
 	/*    coordinate   |    noramal      |    texture     */
 	// Top Quad
-	 1.0F, 1.0F,-1.0F,	 0.0F, 1.0F, 0.0F,	0.34F, 0.0F,
+	1.0F, 1.0F,-1.0F,	 0.0F, 1.0F, 0.0F,	0.34F, 0.0F,
 	-1.0F, 1.0F,-1.0F,	 0.0F, 1.0F, 0.0F,	0.0F, 0.0F,
 	-1.0F, 1.0F, 1.0F,	 0.0F, 1.0F, 0.0F,	0.0F, 0.338F,
-	 1.0F, 1.0F, 1.0F,	 0.0F, 1.0F, 0.0F,	0.34F, 0.338F,
+	1.0F, 1.0F, 1.0F,	 0.0F, 1.0F, 0.0F,	0.34F, 0.338F,
 	// Bottom Quad
-	 1.0F,-1.0F, 1.0F,	 0.0F,-1.0F, 0.0F, 	0.33F, 0.338F,
+	1.0F,-1.0F, 1.0F,	 0.0F,-1.0F, 0.0F, 	0.33F, 0.338F,
 	-1.0F,-1.0F, 1.0F,	 0.0F,-1.0F, 0.0F,	0.669F, 0.338F,
 	-1.0F,-1.0F,-1.0F,	 0.0F,-1.0F, 0.0F,	0.669F, 0.0F,
-	 1.0F,-1.0F,-1.0F,	 0.0F,-1.0F, 0.0F,	0.33F, 0.0F,
+	1.0F,-1.0F,-1.0F,	 0.0F,-1.0F, 0.0F,	0.33F, 0.0F,
 	// Front Quad
-	 1.0F, 1.0F, 1.0F,	 0.0F, 0.0F, 1.0F,	1.0F, 0.0F,
+	1.0F, 1.0F, 1.0F,	 0.0F, 0.0F, 1.0F,	1.0F, 0.0F,
 	-1.0F, 1.0F, 1.0F,	 0.0F, 0.0F, 1.0F,	0.663F, 0.0F,
 	-1.0F,-1.0F, 1.0F,	 0.0F, 0.0F, 1.0F,	0.663F, 0.3384F,
-	 1.0F,-1.0F, 1.0F,	 0.0F, 0.0F, 1.0F,	1.0F, 0.3384F,
+	1.0F,-1.0F, 1.0F,	 0.0F, 0.0F, 1.0F,	1.0F, 0.3384F,
 	// Back Quad
-	 1.0F,-1.0F,-1.0F,	 0.0F, 0.0F,-1.0F,	0.0F, 0.669F,
+	1.0F,-1.0F,-1.0F,	 0.0F, 0.0F,-1.0F,	0.0F, 0.669F,
 	-1.0F,-1.0F,-1.0F,	 0.0F, 0.0F,-1.0F,	0.34F, 0.669F,
 	-1.0F, 1.0F,-1.0F,	 0.0F, 0.0F,-1.0F,	0.34F, 0.325F,
-	 1.0F, 1.0F,-1.0F,	 0.0F, 0.0F,-1.0F,	0.0F, 0.325F,
+	1.0F, 1.0F,-1.0F,	 0.0F, 0.0F,-1.0F,	0.0F, 0.325F,
 	// LeFt Quad
 	-1.0F, 1.0F, 1.0F,	-1.0F, 0.0F, 0.0F,	0.67F, 0.325F,
 	-1.0F, 1.0F,-1.0F,	-1.0F, 0.0F, 0.0F,	0.33F, 0.325F,
@@ -122,10 +122,11 @@ static void tangent_vector(const float * face, float *ret)
 }
 
 // calculate tangents to qube surfaces
-static float *normal_mapped_vertex() {
+static io::scoped_arr<float> calc_tangent_vertex()
+{
 	constexpr std::size_t size = 11 * 4 * 6;
-	float *ret = new float[size];
-	float *d = ret;
+	io::scoped_arr<float> ret(size);
+	float *d = ret.get();
 	const float* s = TEXTURED_QUBE_VERTEX;
 	float tan[3];
 	for (unsigned i = 0; i < 6; i++) {
@@ -140,6 +141,20 @@ static float *normal_mapped_vertex() {
 	return ret;
 }
 
+static engine::s_model textured_model()
+{
+	engine::s_image texture_img = engine::image::load_rgba(io::file("cube_tex2d_512x512.png"), engine::image_format::PNG);
+	return engine::s_model( new engine::textured_static_mesh(TEXTURED_QUBE_VERTEX, 192, CUBE_INDEX,36, texture_img ) );
+}
+
+
+static engine::s_model normal_mapped_model()
+{
+	engine::s_image diff_tex = engine::image::load_rgba( io::file("face512x512.png"), engine::image_format::PNG );
+	engine::s_image nm_tex = engine::image::load_rgb( io::file("nm512x512.png"), engine::image_format::PNG );
+	io::scoped_arr<float> vertex = calc_tangent_vertex();
+	return engine::s_model( new engine::normal_mapped_static_mesh(vertex.get(), 264, CUBE_INDEX,36, diff_tex, nm_tex ) );
+}
 
 #ifdef _WIN32
 int WINAPI WinMain (HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nShowCmd)
@@ -153,18 +168,11 @@ int main(int argc, const char** argv)
 			engine::frame_view view(640,480,"Collada model view");
 			//engine::s_model md( new engine::untextured_static_mesh(COLORED_QUBE_VERTEX,216,CUBE_INDEX,36) );
 
-			//io::file timg("cube_tex2d_512x512.png");
-			//engine::s_image texture_img = engine::image::load(timg, engine::image_format::PNG);
-			//engine::s_model md( new engine::textured_static_mesh(TEXTURED_QUBE_VERTEX, 192, CUBE_INDEX,36, texture_img ) );
+			//engine::s_model model = textured_model();
 
-			engine::s_image diff_tex = engine::image::load_rgba( io::file("face512x512.png"), engine::image_format::PNG );
-			engine::s_image nm_tex = engine::image::load_rgb( io::file("nm512x512.png"), engine::image_format::PNG );
+			engine::s_model model = normal_mapped_model();
 
-			float* vertex = normal_mapped_vertex();
-			engine::s_model md( new engine::normal_mapped_static_mesh(vertex, 264, CUBE_INDEX,36, diff_tex, nm_tex ) );
-			delete [] vertex;
-
-			view.show(md);
+			view.show( model );
 
 			return 0;
 		}

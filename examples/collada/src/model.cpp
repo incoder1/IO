@@ -181,7 +181,7 @@ in vec4 eyePosition;\
 in vec4 outNormal;\
 in vec2 outTexCoord;\
 uniform sampler2D textureSampler;\
-out vec4 outFragColor;\
+invariant out vec4 fragColor;\
 struct LightInfo {\
 	vec4 position;\
 	vec4 ambient;\
@@ -232,7 +232,7 @@ const float GAMMA = 1.0 / 2.2;\
 LightInfo light = defaultLight();\
 MaterialInfo mat = whitePlastic();\
 void main(void) {\
-	outFragColor =  pow(texture( textureSampler, outTexCoord ),vec4(GAMMA)) + phongModel(light, mat, eyePosition, outNormal );\
+	fragColor =  pow(texture( textureSampler, outTexCoord ),vec4(GAMMA)) + phongModel(light, mat, eyePosition, outNormal );\
 }";
 
 textured_static_mesh::textured_static_mesh(const float *vertex, std::size_t vsize,const uint32_t* indexes,std::size_t isize,const s_image& timg):
@@ -256,20 +256,9 @@ textured_static_mesh::textured_static_mesh(const float *vertex, std::size_t vsiz
 							   gl::data_type::UNSIGNED_INT,
 							   gl::buffer_usage::STATIC_DRAW );
 
-	switch(timg->pix_format()) {
-	case pixel_format::rgb:
-		texture_ = gl::texture::create_rgb_texture_2d(
-					   timg->width(), timg->height(),
-					   gl::texture_filter::NEAREST_MIPMAP_LINEAR,
-					   timg->data() );
-		break;
-	case pixel_format::rgba:
-		texture_ = gl::texture::create_rgba_texture_2d(
-					   timg->width(), timg->height(),
-					   gl::texture_filter::NEAREST_MIPMAP_LINEAR,
-					   timg->data() );
-		break;
-	}
+	texture_ = gl::texture::create_texture2d_from_image(
+					   timg,
+					   gl::texture_filter::LINEAR_MIPMAP_LINEAR);
 
 	gl::shader vertex_sh(gl::shader_type::vertex, VERTEX_SHADER );
 	gl::shader fragment_sh(gl::shader_type::fragment, FRAGMENT_SHADER );
@@ -350,7 +339,8 @@ in vec2 fragTexCoords;\
 in mat3 TBN;\
 uniform sampler2D diffuseTexture;\
 uniform sampler2D normalMapTexture;\
-out vec4 outFragColor;\
+out vec4 fragColor;\
+invariant fragColor;\
 struct LightInfo {\
 	vec4 position;\
 	vec4 ambient;\
@@ -405,7 +395,7 @@ void main(void) {\
 	normal = normalize( normal * 2.0 - 1.0 );\
 	normal = normalize(TBN * normal);\
 	vec4 color =  pow( texture( diffuseTexture, fragTexCoords ) , GAMMA);\
-	outFragColor =  color + phongModel(light, mat, eyePosition, vec4( normal, 0) );\
+	fragColor =  color + phongModel(light, mat, eyePosition, vec4( normal, 0) );\
 }";
 
 normal_mapped_static_mesh::normal_mapped_static_mesh(const float *vertex, std::size_t vsize,const uint32_t* indexes,std::size_t isize,const s_image& difftex,const s_image& nm_text):
@@ -431,28 +421,9 @@ normal_mapped_static_mesh::normal_mapped_static_mesh(const float *vertex, std::s
 							   gl::data_type::UNSIGNED_INT,
 							   gl::buffer_usage::STATIC_DRAW );
 
-	switch(difftex->pix_format()) {
-	case pixel_format::rgb:
-		diffuse_tex_ = gl::texture::create_rgb_texture_2d(
-						   difftex->width(), difftex->height(),
-						   gl::texture_filter::NEAREST_MIPMAP_LINEAR,
-						   difftex->data() );
-		break;
-	case pixel_format::rgba:
-		diffuse_tex_ = gl::texture::create_rgba_texture_2d(
-						   difftex->width(), difftex->height(),
-						   gl::texture_filter::NEAREST_MIPMAP_LINEAR,
-						   difftex->data() );
-		break;
-	}
+	diffuse_tex_ = gl::texture::create_texture2d_from_image(difftex, gl::texture_filter::NEAREST_MIPMAP_LINEAR);
 
-
-	if(pixel_format::rgb !=  nm_text->pix_format())
-		throw std::logic_error("Normal map texture must be an RGB texture without alpha channel");
-	normal_map_tex_ = gl::texture::create_rgb_texture_2d(
-						  nm_text->width(), nm_text->height(),
-						  gl::texture_filter::NEAREST,
-						  nm_text->data() );
+	normal_map_tex_ = gl::texture::create_texture2d_from_image(nm_text,gl::texture_filter::NEAREST);
 
 
 	gl::shader vertex_sh(gl::shader_type::vertex, VERTEX_SHADER );

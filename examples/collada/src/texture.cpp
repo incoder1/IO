@@ -19,7 +19,7 @@ static void tex2d_generate_mipmaps(::GLsizei width, ::GLint minFiler, ::GLint ma
 }
 
 
-s_texture texture::texture2d(::GLsizei width, ::GLsizei height, ::GLint i_format, ::GLenum format, texture_filter filtering, const void* pixels)
+s_texture texture::texture2d(::GLsizei width, ::GLsizei height, ::GLint i_format, ::GLenum px_format, texture_filter filtering, const void* pixels)
 {
 	::GLuint id;
 	::glGenTextures(1,&id);
@@ -29,7 +29,7 @@ s_texture texture::texture2d(::GLsizei width, ::GLsizei height, ::GLint i_format
 	::glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
 	::glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
 
-	::glTexImage2D(GL_TEXTURE_2D, 0, i_format, width, height, 0, format, GL_UNSIGNED_BYTE, pixels);
+	::glTexImage2D(GL_TEXTURE_2D, 0, i_format, width, height, 0, px_format, GL_UNSIGNED_BYTE, pixels);
 
 	switch (filtering) {
 	case texture_filter::NEAREST_MIPMAP_NEAREST:
@@ -52,6 +52,24 @@ s_texture texture::texture2d(::GLsizei width, ::GLsizei height, ::GLint i_format
 	::glBindTexture(GL_TEXTURE_2D, 0 );
 
 	return s_texture( new texture(id, texture_type::TEXTURE_2D) );
+}
+
+s_texture texture::create_texture2d_from_image(const engine::s_image& img, gl::texture_filter filter)
+{
+
+	::GLint internal_format;
+	::GLenum px_format;
+	switch(img->pix_format()) {
+		case engine::pixel_format::rgb:
+			internal_format = GL_SRGB8;
+			px_format = GL_RGB;
+			break;
+		case engine::pixel_format::rgba:
+			internal_format = GL_SRGB8_ALPHA8;
+			px_format = GL_RGBA;
+			break;
+	}
+	return texture2d(img->width(), img->height(), internal_format, px_format, filter, img->data() );
 }
 
 texture::texture(::GLuint id,texture_type type) noexcept:

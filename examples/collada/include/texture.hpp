@@ -6,6 +6,7 @@
 #include <object.hpp>
 
 #include "openglload.hpp"
+#include "image.hpp"
 
 namespace gl {
 
@@ -48,6 +49,8 @@ public:
 	static inline s_texture create_rgba_texture_2d(std::size_t width, std::size_t height, texture_filter filtering, const void* pixels) {
 		return texture2d(width, height, GL_SRGB8_ALPHA8, GL_RGBA, filtering, pixels);
 	}
+
+	static s_texture create_texture2d_from_image(const engine::s_image& image, gl::texture_filter filter);
 
 
 	bool bind()  noexcept;
