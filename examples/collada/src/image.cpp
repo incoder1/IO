@@ -4,10 +4,11 @@
 namespace engine {
 
 // image
-image::image(std::size_t w, std::size_t h,io::byte_buffer&& data) noexcept:
+image::image(std::size_t w, std::size_t h,pixel_format pfm,io::byte_buffer&& data) noexcept:
 	io::object(),
 	width_(w),
 	height_(h),
+	pfm_(pfm),
 	data_( std::forward<io::byte_buffer>(data) )
 {}
 

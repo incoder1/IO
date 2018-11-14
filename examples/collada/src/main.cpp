@@ -157,8 +157,8 @@ int main(int argc, const char** argv)
 			//engine::s_image texture_img = engine::image::load(timg, engine::image_format::PNG);
 			//engine::s_model md( new engine::textured_static_mesh(TEXTURED_QUBE_VERTEX, 192, CUBE_INDEX,36, texture_img ) );
 
-			engine::s_image diff_tex = engine::image::load( io::file("face512x512.png"), engine::image_format::PNG );
-			engine::s_image nm_tex = engine::image::load( io::file("nm512x512.png"), engine::image_format::PNG );
+			engine::s_image diff_tex = engine::image::load_rgba( io::file("face512x512.png"), engine::image_format::PNG );
+			engine::s_image nm_tex = engine::image::load_rgb( io::file("nm512x512.png"), engine::image_format::PNG );
 
 			float* vertex = normal_mapped_vertex();
 			engine::s_model md( new engine::normal_mapped_static_mesh(vertex, 264, CUBE_INDEX,36, diff_tex, nm_tex ) );

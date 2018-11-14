@@ -38,15 +38,15 @@ DECLARE_IPTR(texture);
 class texture final:public io::object {
 private:
 	texture(::GLuint id,texture_type type) noexcept;
-	static s_texture texture2d(::GLsizei width, ::GLsizei height, ::GLint format, texture_filter filtering, const void* pixels);
+	static s_texture texture2d(::GLsizei width, ::GLsizei height, ::GLint i_format, ::GLenum format, texture_filter filtering, const void* pixels);
 public:
 
-	static inline s_texture create_rgb_texture_2d(std::size_t width, std::size_t height, texture_filter filtering, const void* pixels) {
-		return texture2d(width, height, GL_RGB, filtering, pixels);
+	static inline s_texture create_rgb_texture_2d(std::size_t width, std::size_t height, texture_filter filtering,const void* pixels) {
+		return texture2d(width, height, GL_RGB, GL_RGB, filtering, pixels);
 	}
 
 	static inline s_texture create_rgba_texture_2d(std::size_t width, std::size_t height, texture_filter filtering, const void* pixels) {
-		return texture2d(width, height, GL_SRGB8_ALPHA8, filtering, pixels);
+		return texture2d(width, height, GL_SRGB8_ALPHA8, GL_RGBA, filtering, pixels);
 	}
 
 

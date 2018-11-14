@@ -223,7 +223,7 @@ static s_IWICBitmapDecoder create_bitmap_decoder(const s_IWICImagingFactory& img
 	return s_IWICBitmapDecoder(ret);
 }
 
-static s_IWICFormatConverter create_format_converter(const s_IWICImagingFactory& imgFactory,const s_IWICBitmapDecoder& decoder)
+static s_IWICFormatConverter create_format_converter(const s_IWICImagingFactory& imgFactory,const s_IWICBitmapDecoder& decoder, bool alpha)
 {
 	::IWICFormatConverter *pConverter;
 	::HRESULT hr = imgFactory->CreateFormatConverter(&pConverter);
@@ -234,9 +234,10 @@ static s_IWICFormatConverter create_format_converter(const s_IWICImagingFactory&
 	hr = decoder->GetFrame(0, &frame);
 	if(!SUCCEEDED(hr))
 		throw std::runtime_error("Can't obtain frame");
+	::GUID dstFormat = alpha ? ::GUID_WICPixelFormat32bppRGBA : ::GUID_WICPixelFormat24bppRGB;
 	hr = ret->Initialize(
 			 frame,
-			 ::GUID_WICPixelFormat32bppRGBA,
+			 dstFormat,
 			 WICBitmapDitherTypeNone,
 			 nullptr,// Specify a particular palette
 			 0.0F,// Alpha threshold
@@ -266,11 +267,11 @@ static s_IWICBitmapLock bitmap_lock(const s_IWICBitmap& bitmap, ::WICRect& rc_lo
 	return s_IWICBitmapLock(ret);
 }
 
-static io::byte_buffer decode_image(const s_IStream& stream, unsigned int& w, unsigned int& h) {
+static io::byte_buffer decode_image(const s_IStream& stream, unsigned int& w, unsigned int& h, bool alpha) {
 		COM ms_com_guard;
 	s_IWICImagingFactory imgFactory = create_image_factory();
 	s_IWICBitmapDecoder decoder = create_bitmap_decoder(imgFactory, stream);
-	s_IWICFormatConverter converter = create_format_converter(imgFactory, decoder);
+	s_IWICFormatConverter converter = create_format_converter(imgFactory, decoder, alpha);
 	s_IWICBitmap bit_map = create_bitmap(imgFactory,converter);
 
 
@@ -292,25 +293,44 @@ static io::byte_buffer decode_image(const s_IStream& stream, unsigned int& w, un
 }
 
 
-s_image image::load(io::s_read_channel&& src, image_format format)
+s_image image::load_rgb(io::s_read_channel&& src, image_format format)
 {
-	//if( image_format::TGA != format || image_format::DDS != format )
-	//	return s_image();
-	 s_IStream stream( new read_stream( std::forward<io::s_read_channel>(src)), false);
+	s_IStream stream( new read_stream( std::forward<io::s_read_channel>(src)), false);
 	unsigned int w,h;
-	io::byte_buffer image_data = decode_image( stream, w, h );
-	return  s_image(new image( w, h, std::move(image_data) ) );
+	io::byte_buffer image_data = decode_image( stream, w, h, false );
+	return  s_image(new image( w, h, pixel_format::rgb, std::move(image_data) ) );
 }
 
-s_image image::load(const io::file& file, image_format format)
+s_image image::load_rgb(const io::file& file, image_format format)
 {
 	IStream* src;
 	::HRESULT errc = ::SHCreateStreamOnFileEx(file.wpath().data(), STGM_READ, FILE_ATTRIBUTE_READONLY, FALSE, nullptr, &src);
 	if(!SUCCEEDED(errc))
 		throw std::runtime_error( std::string("Can not open image file: ").append(file.path()) );
 	unsigned int w,h;
-	io::byte_buffer image_data = decode_image( s_IStream(src,false), w, h );
-	return s_image(new image( w, h, std::move(image_data) ) );
+	io::byte_buffer image_data = decode_image( s_IStream(src,false), w, h, false );
+	return s_image(new image( w, h, pixel_format::rgb, std::move(image_data) ) );
+}
+
+s_image image::load_rgba(io::s_read_channel&& src, image_format format)
+{
+	//if( image_format::TGA != format || image_format::DDS != format )
+	//	return s_image();
+	 s_IStream stream( new read_stream( std::forward<io::s_read_channel>(src)), false);
+	unsigned int w,h;
+	io::byte_buffer image_data = decode_image( stream, w, h, true );
+	return  s_image(new image( w, h, pixel_format::rgba, std::move(image_data) ) );
+}
+
+s_image image::load_rgba(const io::file& file, image_format format)
+{
+	IStream* src;
+	::HRESULT errc = ::SHCreateStreamOnFileEx(file.wpath().data(), STGM_READ, FILE_ATTRIBUTE_READONLY, FALSE, nullptr, &src);
+	if(!SUCCEEDED(errc))
+		throw std::runtime_error( std::string("Can not open image file: ").append(file.path()) );
+	unsigned int w,h;
+	io::byte_buffer image_data = decode_image( s_IStream(src,false), w, h, true );
+	return s_image(new image( w, h, pixel_format::rgba, std::move(image_data) ) );
 }
 
 

@@ -19,7 +19,7 @@ static void tex2d_generate_mipmaps(::GLsizei width, ::GLint minFiler, ::GLint ma
 }
 
 
-s_texture texture::texture2d(::GLsizei width, ::GLsizei height, ::GLint format, texture_filter filtering, const void* pixels)
+s_texture texture::texture2d(::GLsizei width, ::GLsizei height, ::GLint i_format, ::GLenum format, texture_filter filtering, const void* pixels)
 {
 	::GLuint id;
 	::glGenTextures(1,&id);
@@ -29,7 +29,7 @@ s_texture texture::texture2d(::GLsizei width, ::GLsizei height, ::GLint format, 
 	::glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
 	::glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
 
-	::glTexImage2D(GL_TEXTURE_2D, 0, format, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, pixels);
+	::glTexImage2D(GL_TEXTURE_2D, 0, i_format, width, height, 0, format, GL_UNSIGNED_BYTE, pixels);
 
 	switch (filtering) {
 	case texture_filter::NEAREST_MIPMAP_NEAREST:
