@@ -10,10 +10,10 @@ static const float COLORED_QUBE_VERTEX[216] = {
 	// Coordinate  | Color | Normal
 
 	// Top Quad
-	1.0F, 1.0F,-1.0F,	0.5F, 0.5f, 0.5f,	0.0F, 1.0F, 0.0F,
+	 1.0F, 1.0F,-1.0F,	0.5F, 0.5f, 0.5f,	0.0F, 1.0F, 0.0F,
 	-1.0F, 1.0F,-1.0F,	0.5f, 0.5f, 0.5f,	0.0F, 1.0F, 0.0F,
 	-1.0F, 1.0F, 1.0F,	0.5f, 0.5f, 0.5f,	0.0F, 1.0F, 0.0F,
-	1.0F, 1.0F, 1.0F,	0.5f, 0.5f, 0.5f,	0.0F, 1.0F, 0.0F,
+	 1.0F, 1.0F, 1.0F,	0.5f, 0.5f, 0.5f,	0.0F, 1.0F, 0.0F,
 
 	// Bottom Quad
 	1.0F,-1.0F, 1.0F,	0.0F, 1.0F, 0.0F,	 0.0F,-1.0F, 0.0F,
@@ -107,24 +107,24 @@ static void tangent_vector(const float * face, float *ret)
 
 	glm::vec2 delta_uv1 = uv2 - uv1;
 	glm::vec2 delta_uv2 = uv3 - uv1;
-	double f = 1.0 / ( (delta_uv1.x * delta_uv2.y) - (delta_uv2.x * delta_uv1.y) );
+	float f = 1.0F / ( (delta_uv1.x * delta_uv2.y) - (delta_uv2.x * delta_uv1.y) );
 	// tangent
 
-	double x = f * (delta_uv2.y * edge1.x - delta_uv1.y * edge2.x);
-	double y = f * (delta_uv2.y * edge1.y - delta_uv1.y * edge2.y);
-	double z = f * (delta_uv2.y * edge1.z - delta_uv1.y * edge2.z);
+	float x = f * ( (delta_uv2.y * edge1.x) - (delta_uv1.y * edge2.x) );
+	float y = f * ( (delta_uv2.y * edge1.y) - (delta_uv1.y * edge2.y) );
+	float z = f * ( (delta_uv2.y * edge1.z) - (delta_uv1.y * edge2.z) );
 
-	double inv_length = 1.0 / std::sqrt(  (x * x) + (y * y) + (z * z)  );
+	float inv_length = 1.0F / std::sqrt(  (x * x) + (y * y) + (z * z)  );
 
-	ret[0] = float( x * inv_length );
-	ret[1] = float( y * inv_length );
-	ret[2] = float( z * inv_length );
+	ret[0] = x * inv_length;
+	ret[1] = y * inv_length;
+	ret[2] = z * inv_length;
 }
 
 // calculate tangents to qube surfaces
 static io::scoped_arr<float> calc_tangent_vertex()
 {
-	constexpr std::size_t size = 11 * 4 * 6;
+	constexpr const std::size_t size = 11 * 4 * 6;
 	io::scoped_arr<float> ret(size);
 	float *d = ret.get();
 	const float* s = TEXTURED_QUBE_VERTEX;
@@ -153,7 +153,7 @@ static engine::s_model normal_mapped_model()
 	engine::s_image diff_tex = engine::image::load_rgba( io::file("face512x512.png"), engine::image_format::PNG );
 	engine::s_image nm_tex = engine::image::load_rgb( io::file("nm512x512.png"), engine::image_format::PNG );
 	io::scoped_arr<float> vertex = calc_tangent_vertex();
-	return engine::s_model( new engine::normal_mapped_static_mesh(vertex.get(), 264, CUBE_INDEX,36, diff_tex, nm_tex ) );
+	return engine::s_model( new engine::normal_mapped_static_mesh(vertex.get(), vertex.len(), CUBE_INDEX,36, diff_tex, nm_tex ) );
 }
 
 #ifdef _WIN32

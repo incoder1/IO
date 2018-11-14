@@ -275,7 +275,6 @@ static io::byte_buffer decode_image(const s_IStream& stream, unsigned int& w, un
 	s_IWICFormatConverter converter = create_format_converter(imgFactory, decoder, alpha);
 	s_IWICBitmap bit_map = create_bitmap(imgFactory,converter);
 
-
 	bit_map->GetSize( std::addressof(w), std::addressof(h) );
 	::WICRect rc_lock = { 0, 0,  static_cast<::INT>(w), static_cast<::INT>(h) };
 	s_IWICBitmapLock lock = bitmap_lock(bit_map,rc_lock);

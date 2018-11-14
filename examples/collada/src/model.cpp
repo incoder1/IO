@@ -392,7 +392,7 @@ LightInfo light = defaultLight();\
 MaterialInfo mat = defaultMaterial();\
 void main(void) {\
 	vec3 normal = normalize( texture(normalMapTexture, fragTexCoords ).rgb );\
-	normal = normalize( normal * 2.0 - 1.0 );\
+	normal = normalize( (normal * 2.0) - 1.0 );\
 	normal = normalize(TBN * normal);\
 	vec4 color =  pow( texture( diffuseTexture, fragTexCoords ) , GAMMA);\
 	fragColor =  color + phongModel(light, mat, eyePosition, vec4( normal, 0) );\
