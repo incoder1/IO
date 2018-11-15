@@ -312,21 +312,23 @@ precision highp float;\
 invariant gl_Position;\
 uniform mat4 mvpMat;\
 uniform mat4 modelViewMat;\
-uniform sampler2D normalMapTexture;\
+const vec3 light_position =  vec3(0.3,0.1,1.5);\
 in vec3 vertexCoord;\
 in vec3 vertexNormal;\
 in vec2 vertexTexCoord;\
 in vec3 aTangent;\
-out vec4 eyePosition;\
 out vec2 fragTexCoords;\
+out vec4 tangentLightPosition;\
+out vec4 tangentEyePosition;\
 out mat3 TBN;\
 void main(void) {\
-	eyePosition = modelViewMat * vec4(vertexCoord,0);\
+	vec3 eyePosition = vec3( modelViewMat * vec4(vertexCoord,0.0) );\
 	fragTexCoords = vertexTexCoord;\
 	vec3 t = normalize(vec3(modelViewMat * vec4(aTangent,0.0)));\
 	vec3 n = normalize(vec3(modelViewMat * vec4(vertexNormal,0.0)));\
-	vec3 b = cross(n,t);\
-	TBN = transpose( mat3(t,b,n) );\
+	TBN = transpose( mat3(t,cross(n,t),n) );\
+	tangentEyePosition = vec4( (TBN * eyePosition), 0);\
+	tangentLightPosition = vec4( (TBN * light_position ), 0);\
 	gl_Position = mvpMat * vec4(vertexCoord,1);\
 }";
 
@@ -334,8 +336,9 @@ const char* normal_mapped_static_mesh::FRAGMENT_SHADER = "\
 #version 140\n\
 #pragma optimize(on)\n\
 precision highp float;\
-in vec4 eyePosition;\
 in vec2 fragTexCoords;\
+in vec4 tangentEyePosition;\
+in vec4 tangentLightPosition;\
 in mat3 TBN;\
 uniform sampler2D diffuseTexture;\
 uniform sampler2D normalMapTexture;\
@@ -347,6 +350,14 @@ struct LightInfo {\
 	vec4 diffuse;\
 	vec4 specular;\
 };\
+LightInfo defaultLight() {\
+	LightInfo result;\
+	result.position = vec4(0.3,0.1,1.5,0);\
+	result.ambient = vec4(0,0,0,1);\
+	result.diffuse = vec4(0.7,0.7,0.7,1);\
+	result.specular = vec4(0.7,0.7,0.7,1);\
+	return result;\
+}\
 struct MaterialInfo {\
 	vec4 ambient;\
 	vec4 diffuse;\
@@ -361,14 +372,6 @@ MaterialInfo defaultMaterial() {\
 	result.specular = vec4(0.60f,0.60f,0.50f,1.0f);\
 	result.emission = vec4(0,0,0,1);\
 	result.shininess = 32.0f;\
-	return result;\
-}\
-LightInfo defaultLight() {\
-	LightInfo result;\
-	result.position = vec4(0.3,0.1,1.5,0);\
-	result.ambient = vec4(0,0,0,1);\
-	result.diffuse = vec4(0.7,0.7,0.7,1);\
-	result.specular = vec4(0.7,0.7,0.7,1);\
 	return result;\
 }\
 float dot(vec4 lsh, vec4 rhs) {\
@@ -391,11 +394,12 @@ const vec4 GAMMA = vec4(1.0 / 2.2);\
 LightInfo light = defaultLight();\
 MaterialInfo mat = defaultMaterial();\
 void main(void) {\
+	light.position = tangentLightPosition;\
 	vec3 normal = normalize( texture(normalMapTexture, fragTexCoords ).rgb );\
 	normal = normalize( (normal * 2.0) - 1.0 );\
 	normal = normalize(TBN * normal);\
 	vec4 color =  pow( texture( diffuseTexture, fragTexCoords ) , GAMMA);\
-	fragColor =  color + phongModel(light, mat, eyePosition, vec4( normal, 0) );\
+	fragColor =  color + phongModel(light, mat, tangentEyePosition, vec4(normal, 0) );\
 }";
 
 normal_mapped_static_mesh::normal_mapped_static_mesh(const float *vertex, std::size_t vsize,const uint32_t* indexes,std::size_t isize,const s_image& difftex,const s_image& nm_text):

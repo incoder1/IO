@@ -107,15 +107,15 @@ static void tangent_vector(const float * face, float *ret)
 
 	glm::vec2 delta_uv1 = uv2 - uv1;
 	glm::vec2 delta_uv2 = uv3 - uv1;
-	float f = 1.0F / ( (delta_uv1.x * delta_uv2.y) - (delta_uv2.x * delta_uv1.y) );
-	// tangent
 
+	// tangent
+	const float f = 1.0F / ( (delta_uv1.x * delta_uv2.y) - (delta_uv2.x * delta_uv1.y) );
 	float x = f * ( (delta_uv2.y * edge1.x) - (delta_uv1.y * edge2.x) );
 	float y = f * ( (delta_uv2.y * edge1.y) - (delta_uv1.y * edge2.y) );
 	float z = f * ( (delta_uv2.y * edge1.z) - (delta_uv1.y * edge2.z) );
 
+	// normalize
 	float inv_length = 1.0F / std::sqrt(  (x * x) + (y * y) + (z * z)  );
-
 	ret[0] = x * inv_length;
 	ret[1] = y * inv_length;
 	ret[2] = z * inv_length;
