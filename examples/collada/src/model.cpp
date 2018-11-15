@@ -312,7 +312,7 @@ precision highp float;\
 invariant gl_Position;\
 uniform mat4 mvpMat;\
 uniform mat4 modelViewMat;\
-const vec3 light_position =  vec3(0.3,0.1,1.5);\
+const vec3 light_position =  vec3(0.3,0.1,2.0);\
 in vec3 vertexCoord;\
 in vec3 vertexNormal;\
 in vec2 vertexTexCoord;\
@@ -365,13 +365,13 @@ struct MaterialInfo {\
 	vec4 emission;\
 	float shininess;\
 };\
-MaterialInfo defaultMaterial() {\
+MaterialInfo whitePlastic() {\
 	MaterialInfo result;\
-	result.ambient = vec4(0.0f,0.0f,0.0f,1.0f);\
-	result.diffuse = vec4(0.55f,0.55f,0.55f,1.0f);\
-	result.specular = vec4(0.60f,0.60f,0.50f,1.0f);\
+	result.ambient =  vec4(0.0,  0.0, 0.0, 1.0);\
+	result.diffuse =  vec4(0.55, 0.55, 0.55, 1.0);\
+	result.specular = vec4(0.7,	0.7, 0.7, 1.0);\
 	result.emission = vec4(0,0,0,1);\
-	result.shininess = 32.0f;\
+	result.shininess = 0.25;\
 	return result;\
 }\
 float dot(vec4 lsh, vec4 rhs) {\
@@ -392,7 +392,7 @@ vec4 phongModel(LightInfo light, MaterialInfo mat, vec4 position, vec4 norm ) {\
 }\
 const vec4 GAMMA = vec4(1.0 / 2.2);\
 LightInfo light = defaultLight();\
-MaterialInfo mat = defaultMaterial();\
+MaterialInfo mat = whitePlastic();\
 void main(void) {\
 	light.position = tangentLightPosition;\
 	vec3 normal = normalize( texture(normalMapTexture, fragTexCoords ).rgb );\

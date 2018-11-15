@@ -115,16 +115,6 @@ void program::link()
 	}
 }
 
-void program::start()
-{
-	::glUseProgram(hprg_);
-}
-
-void program::stop()
-{
-	::glUseProgram(0);
-}
-
 
 void program::pass_vertex_attrib_array(::GLsizei attr_no, const s_buffer& vbo, bool normalized,uint8_t stride, uint8_t size, uint8_t offset)
 {

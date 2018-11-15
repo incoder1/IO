@@ -53,8 +53,12 @@ public:
 	static s_program create(shader&& vertex, shader&& fragment);
 	void attach_shader(shader&& sh);
 	void link();
-	void start();
-	void stop();
+	inline void start() {
+		::glUseProgram(hprg_);
+	}
+	inline void stop() {
+		::glUseProgram(0);
+	}
 	void pass_vertex_attrib_array(::GLsizei attr_no, const s_buffer& vbo, bool normalized,uint8_t stride, uint8_t size, uint8_t offset);
 	void bind_attrib_location(::GLsizei attr_no, const char* name);
 	::GLuint uniform_location(const char* uniform);
