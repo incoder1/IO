@@ -156,6 +156,7 @@ static engine::s_model normal_mapped_model()
 	return engine::s_model( new engine::normal_mapped_static_mesh(vertex.get(), vertex.len(), CUBE_INDEX,36, diff_tex, nm_tex ) );
 }
 
+
 #ifdef _WIN32
 int WINAPI WinMain (HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nShowCmd)
 #else

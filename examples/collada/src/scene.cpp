@@ -27,6 +27,7 @@ void scene::move_model(float distance)
 	distance_z_ = distance;
 }
 
+
 void  scene::get_matrix(glm::mat4 &prj, glm::mat4& mv) const
 {
 	prj = glm::frustum( -width_,width_, -height_,height_, eye_distance_, depth_);

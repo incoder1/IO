@@ -322,14 +322,15 @@ out vec4 tangentLightPosition;\
 out vec4 tangentEyePosition;\
 out mat3 TBN;\
 void main(void) {\
-	vec3 eyePosition = vec3( modelViewMat * vec4(vertexCoord,0.0) );\
+	mat3 mv = mat3(modelViewMat);\
+	vec3 eyePosition = mv * vertexCoord;\
 	fragTexCoords = vertexTexCoord;\
-	vec3 t = normalize(vec3(modelViewMat * vec4(aTangent,0.0)));\
-	vec3 n = normalize(vec3(modelViewMat * vec4(vertexNormal,0.0)));\
+	vec3 t = normalize(mv * aTangent);\
+	vec3 n = normalize(mv * vertexNormal);\
 	TBN = transpose( mat3(t,cross(n,t),n) );\
 	tangentEyePosition = vec4( (TBN * eyePosition), 0);\
 	tangentLightPosition = vec4( (TBN * light_position ), 0);\
-	gl_Position = mvpMat * vec4(vertexCoord,1);\
+	gl_Position = mvpMat * vec4(vertexCoord,1.0);\
 }";
 
 const char* normal_mapped_static_mesh::FRAGMENT_SHADER = "\
