@@ -4,7 +4,7 @@
 	<Project>
 		<Option title="collada" />
 		<Option compiler="gcc" />
-		<Option virtualFolders="src\;" />
+		<Option virtualFolders="src/;" />
 		<Build>
 			<Target title="debug-gcc-win64">
 				<Option output="bin/debug-gcc-win64/collada" prefix_auto="1" extension_auto="1" />
@@ -64,6 +64,23 @@
 					<Add directory="../../bin/release-win-gcc-dll-x64" />
 				</Linker>
 			</Target>
+			<Target title="debug-gcc-unx-x86_64">
+				<Option platforms="Unix;Mac;" />
+				<Option output="collada" prefix_auto="1" extension_auto="1" />
+				<Option object_output="bin/debug-gcc-unx-x86_64/collada" />
+				<Option type="1" />
+				<Option compiler="gcc" />
+				<Option use_console_runner="0" />
+				<Compiler>
+					<Add option="`pkg-config glew --cflags`" />
+					<Add option="`pkg-config --cflags glfw3`" />
+				</Compiler>
+				<Linker>
+					<Add option="`pkg-config glew --libs`" />
+					<Add option="`pkg-config  --libs glfw3`" />
+					<Add directory="../../bin/debug-unix-gcc-x86_64" />
+				</Linker>
+			</Target>
 		</Build>
 		<Compiler>
 			<Add option="-Wall" />
@@ -88,7 +105,10 @@
 		<Unit filename="include/vbo.hpp" />
 		<Unit filename="include/view.hpp" />
 		<Unit filename="src/collada/loader.cpp" />
-		<Unit filename="src/directx_image_loader.cpp" />
+		<Unit filename="src/directx_image_loader.cpp">
+			<Option target="debug-gcc-win64" />
+			<Option target="release-gcc-win64" />
+		</Unit>
 		<Unit filename="src/image.cpp" />
 		<Unit filename="src/main.cpp" />
 		<Unit filename="src/model.cpp" />

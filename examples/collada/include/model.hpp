@@ -3,6 +3,9 @@
 
 #include <object.hpp>
 
+#include <glm/glm.hpp>
+#include <glm/gtc/type_ptr.hpp>
+
 #include "vbo.hpp"
 #include "image.hpp"
 #include "scene.hpp"

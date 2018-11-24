@@ -22,6 +22,14 @@
 
 #include <GLFW/glfw3.h>
 
+#ifndef GLFW_TRUE
+#   define GLFW_TRUE GL_TRUE
+#endif // GLFW_TRUE
+
+#ifndef GLFW_FALSE
+#   define GLFW_FALSE GL_FALSE
+#endif // GLFW_FALSE
+
 #include <stdexcept>
 #include <string>
 

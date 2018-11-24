@@ -14,7 +14,11 @@ frame_view::frame_view(unsigned int widht, unsigned int height,const char* title
 	angle_y_(0.0F),
 	zoom_(-5.0F)
 {
+
+#ifdef _WIN32
 	::glfwWindowHint(GLFW_CONTEXT_CREATION_API, GLFW_NATIVE_CONTEXT_API);
+#endif // _WIN32
+
 #ifdef __APPLE__
 	::glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT,GL_TRUE);
 	::glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);

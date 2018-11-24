@@ -141,6 +141,8 @@ static io::scoped_arr<float> calc_tangent_vertex()
 	return ret;
 }
 
+#ifdef _WIN32
+
 static engine::s_model textured_model()
 {
 	engine::s_image texture_img = engine::image::load_rgba(io::file("cube_tex2d_512x512.png"), engine::image_format::PNG);
@@ -157,6 +159,8 @@ static engine::s_model normal_mapped_model()
 }
 
 
+#endif // _WIN32
+
 #ifdef _WIN32
 int WINAPI WinMain (HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nShowCmd)
 #else
@@ -167,11 +171,11 @@ int main(int argc, const char** argv)
 	if ( GLFW_TRUE == ::glfwInit() ) {
 		try {
 			engine::frame_view view(640,480,"Collada model view");
-			//engine::s_model md( new engine::untextured_static_mesh(COLORED_QUBE_VERTEX,216,CUBE_INDEX,36) );
+			engine::s_model model( new engine::untextured_static_mesh(COLORED_QUBE_VERTEX,216,CUBE_INDEX,36) );
 
 			//engine::s_model model = textured_model();
 
-			engine::s_model model = normal_mapped_model();
+			//engine::s_model model = normal_mapped_model();
 
 			view.show( model );
 

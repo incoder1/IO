@@ -1,9 +1,9 @@
 #ifndef __SCENE_HPP_INCLUDED__
 #define __SCENE_HPP_INCLUDED__
 
-#include <glm/ext/vector_float3.hpp>
-#include <glm/ext/matrix_float4x4.hpp>
-#include <glm/ext/matrix_transform.hpp>
+#include <glm/mat3x3.hpp>
+#include <glm/mat4x4.hpp>
+#include <glm/gtx/transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
 
 namespace engine  {
