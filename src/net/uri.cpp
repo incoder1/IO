@@ -70,7 +70,7 @@ static inline bool is_fragment_character(char c)
 	return is_query_character(c);
 }
 
-static inline s_uri return_error(std::error_code& ec, std::errc code)
+static s_uri return_error(std::error_code& ec, std::errc code)
 {
 	ec = std::make_error_code(code);
 	return s_uri();

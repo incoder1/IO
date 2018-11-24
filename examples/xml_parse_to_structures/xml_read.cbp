@@ -16,12 +16,13 @@
 					<Add option="-std=c++11" />
 					<Add option="-pg" />
 					<Add option="-g" />
+					<Add option="-Og" />
 				</Compiler>
 				<Linker>
-					<Add option="-pg -lgmon" />
 					<Add option="-pg" />
-					<Add library="iconv" />
-					<Add directory="../../bin/debug-win-gcc-static-x64" />
+					<Add library="pthread" />
+					<Add library="pthread" />
+					<Add directory="../../bin/debug-unix-gcc-x86_64" />
 				</Linker>
 			</Target>
 			<Target title="release-gcc-win64">
@@ -41,8 +42,8 @@
 			</Target>
 			<Target title="debug-gcc-unix-x64">
 				<Option platforms="Unix;Mac;" />
-				<Option output="bin/debug-gcc-unix-x64/xml_read" prefix_auto="1" extension_auto="1" />
-				<Option object_output="obj/debug-gcc-win64/" />
+				<Option output="bin/debug-gcc-unix-x86_64/xml_read" prefix_auto="1" extension_auto="1" />
+				<Option object_output="obj/debug-gcc-unix-x86_64/" />
 				<Option type="1" />
 				<Option compiler="gcc" />
 				<Compiler>
@@ -54,7 +55,7 @@
 				<Linker>
 					<Add option="-pg" />
 					<Add library="pthread" />
-					<Add directory="../../bin/debug-unix-gcc-so-x64" />
+					<Add directory="../../bin/debug-unix-gcc-x86_64" />
 				</Linker>
 			</Target>
 		</Build>
