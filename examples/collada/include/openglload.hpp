@@ -30,6 +30,10 @@
 #   define GLFW_FALSE GL_FALSE
 #endif // GLFW_FALSE
 
+#ifdef __MINGW64__
+#define GLM_ENABLE_EXPERIMENTAL
+#endif // WIN32
+
 #include <stdexcept>
 #include <string>
 
