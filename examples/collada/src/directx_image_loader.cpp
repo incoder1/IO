@@ -206,12 +206,17 @@ DECLARE_IPTR(IWICBitmap);
 DECLARE_IPTR(IWICBitmapLock);
 DECLARE_IPTR(IStream);
 
+static void validate_succeeded(::HRESULT errc, const std::string& msg)
+{
+	if( !SUCCEEDED(errc) )
+		throw std::runtime_error(msg);
+}
+
 static s_IWICImagingFactory create_image_factory()
 {
 	::IWICImagingFactory *ret;
 	::HRESULT errc = ::CoCreateInstance(CLSID_WICImagingFactory,nullptr,CLSCTX_INPROC_SERVER,IID_PPV_ARGS(&ret));
-	if( !SUCCEEDED(errc) )
-		throw std::runtime_error("No Direct2D image decoding supported");
+	validate_succeeded(errc,"No Direct2D image decoding supported");
 	return s_IWICImagingFactory(ret, false);
 }
 
@@ -219,24 +224,21 @@ static s_IWICBitmapDecoder create_bitmap_decoder(const s_IWICImagingFactory& img
 {
 	::IWICBitmapDecoder *ret;
 	::HRESULT errc = imgFactory->CreateDecoderFromStream(src.get(),nullptr,WICDecodeMetadataCacheOnDemand,&ret);
-	if(!SUCCEEDED(errc))
-		throw std::runtime_error("Can't create decoder form provided stream data");
+	validate_succeeded(errc,"Can't create decoder form provided stream data");
 	return s_IWICBitmapDecoder(ret);
 }
 
 static s_IWICFormatConverter create_format_converter(const s_IWICImagingFactory& imgFactory,const s_IWICBitmapDecoder& decoder, bool alpha)
 {
 	::IWICFormatConverter *pConverter;
-	::HRESULT hr = imgFactory->CreateFormatConverter(&pConverter);
-	if(!SUCCEEDED(hr))
-		throw std::runtime_error("Decoding of this format not supported");
+	::HRESULT errc = imgFactory->CreateFormatConverter(&pConverter);
+	validate_succeeded(errc,"Decoding of this format not supported");
 	s_IWICFormatConverter ret(pConverter);
 	::IWICBitmapFrameDecode* frame;
-	hr = decoder->GetFrame(0, &frame);
-	if(!SUCCEEDED(hr))
-		throw std::runtime_error("Can't obtain frame");
+	errc = decoder->GetFrame(0, &frame);
+	validate_succeeded(errc,"Can't obtain frame");
 	::GUID dstFormat = alpha ? ::GUID_WICPixelFormat32bppRGBA : ::GUID_WICPixelFormat24bppRGB;
-	hr = ret->Initialize(
+	errc = ret->Initialize(
 			 frame,
 			 dstFormat,
 			 WICBitmapDitherTypeNone,
@@ -244,9 +246,7 @@ static s_IWICFormatConverter create_format_converter(const s_IWICImagingFactory&
 			 0.0F,// Alpha threshold
 			 ::WICBitmapPaletteTypeCustom// Palette translation type
 		 );
-	if(!SUCCEEDED(hr))
-		throw std::runtime_error("Image decoding failed");
-
+	validate_succeeded(errc,"Image decoding failed");
 	return ret;
 }
 
@@ -263,13 +263,12 @@ static s_IWICBitmapLock bitmap_lock(const s_IWICBitmap& bitmap, ::WICRect& rc_lo
 {
 	IWICBitmapLock *ret;
 	HRESULT hr = bitmap->Lock( std::addressof(rc_lock), WICBitmapLockWrite, &ret);
-	if(!SUCCEEDED(hr))
-		throw std::runtime_error("Can't obtain data from bitmap");
+	validate_succeeded(hr,"Can't obtain data from bitmap");
 	return s_IWICBitmapLock(ret);
 }
 
 static io::byte_buffer decode_image(const s_IStream& stream, unsigned int& w, unsigned int& h, bool alpha) {
-	COM ms_com_guard;
+	static thread_local COM ms_com_guard;
 	s_IWICImagingFactory imgFactory = create_image_factory();
 	s_IWICBitmapDecoder decoder = create_bitmap_decoder(imgFactory, stream);
 	s_IWICFormatConverter converter = create_format_converter(imgFactory, decoder, alpha);
@@ -281,10 +280,9 @@ static io::byte_buffer decode_image(const s_IStream& stream, unsigned int& w, un
 
 	::UINT cbBufferSize = 0, cbStride = 0;
 	::BYTE *pv = nullptr;
-	::HRESULT hr = lock->GetStride(&cbStride);
-	hr = lock->GetDataPointer(&cbBufferSize, &pv);
-	if (!SUCCEEDED(hr))
-		throw std::runtime_error("Can't obtain data from bitmap");
+	::HRESULT errc = lock->GetStride(&cbStride);
+	errc = lock->GetDataPointer(&cbBufferSize, &pv);
+	validate_succeeded(errc,"Can't obtain data from bitmap");
 	std::error_code ec;
 	io::byte_buffer ret = io::byte_buffer::wrap(ec, pv, cbBufferSize);
 	if(ec)
@@ -305,8 +303,7 @@ s_image image::load_rgb(const io::file& file, image_format format)
 {
 	IStream* src;
 	::HRESULT errc = ::SHCreateStreamOnFileEx(file.wpath().data(), STGM_READ, FILE_ATTRIBUTE_READONLY, FALSE, nullptr, &src);
-	if(!SUCCEEDED(errc))
-		throw std::runtime_error( std::string("Can not open image file: ").append(file.path()) );
+	validate_succeeded(errc, std::string("Can not open image file: ").append(file.path()) );
 	unsigned int w,h;
 	io::byte_buffer image_data = decode_image( s_IStream(src,false), w, h, false );
 	return s_image(new image( w, h, pixel_format::rgb, std::move(image_data) ) );
@@ -326,8 +323,7 @@ s_image image::load_rgba(const io::file& file, image_format format)
 {
 	IStream* src;
 	::HRESULT errc = ::SHCreateStreamOnFileEx(file.wpath().data(), STGM_READ, FILE_ATTRIBUTE_READONLY, FALSE, nullptr, &src);
-	if(!SUCCEEDED(errc))
-		throw std::runtime_error( std::string("Can not open image file: ").append(file.path()) );
+	validate_succeeded(errc, std::string("Can not open image file: ").append(file.path()));
 	unsigned int w,h;
 	io::byte_buffer image_data = decode_image( s_IStream(src,false), w, h, true );
 	return s_image(new image( w, h, pixel_format::rgba, std::move(image_data) ) );

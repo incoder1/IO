@@ -46,7 +46,7 @@ MaterialInfo defaultMaterial() {\n\
  	result.diffuse = vec4(0.8, 0.8, 0.8, 1);\n\
  	result.specular = vec4(0, 0, 0, 1);\n\
  	result.emission = vec4(0,0,0,1);\n\
- 	result.shininess = 4;\n\
+ 	result.shininess = 0;\n\
  	return result;\n\
 }\n\
 float dot(vec4 lsh, vec4 rhs) {\n\
@@ -377,6 +377,15 @@ MaterialInfo whitePlastic() {\
 	result.shininess = 0.25;\
 	return result;\
 }\
+MaterialInfo defaultMaterial() {\n\
+	MaterialInfo result;\n\
+	result.ambient = vec4(0.3, 0.3, 0.3, 1);\n\
+ 	result.diffuse = vec4(0.3, 0.3, 0.3, 1);\n\
+ 	result.specular = vec4(0, 0, 0, 1);\n\
+ 	result.emission = vec4(0,0,0,1);\n\
+ 	result.shininess = 0.25;\n\
+ 	return result;\n\
+}\n\
 float dot(vec4 lsh, vec4 rhs) {\
 	return (lsh.x*rhs.x) + (lsh.y*rhs.y) + (lsh.z*rhs.z) + (lsh.w*rhs.w);\
 }\
@@ -428,7 +437,7 @@ normal_mapped_static_mesh::normal_mapped_static_mesh(const float *vertex, std::s
 							   gl::data_type::UNSIGNED_INT,
 							   gl::buffer_usage::STATIC_DRAW );
 
-	diffuse_tex_ = gl::texture::create_texture2d_from_image(difftex, gl::texture_filter::NEAREST_MIPMAP_LINEAR);
+	diffuse_tex_ = gl::texture::create_texture2d_from_image(difftex, gl::texture_filter::LINEAR_MIPMAP_LINEAR);
 
 	normal_map_tex_ = gl::texture::create_texture2d_from_image(nm_text,gl::texture_filter::NEAREST);
 

@@ -153,6 +153,7 @@ static engine::s_mesh textured_qube()
 
 static engine::s_mesh normal_mapped_qube()
 {
+
 	engine::s_image diff_tex = engine::image::load_rgba( io::file("face512x512.png"), engine::image_format::PNG );
 	engine::s_image nm_tex = engine::image::load_rgb( io::file("nm512x512.png"), engine::image_format::PNG );
 	io::scoped_arr<float> vertex = calc_tangent_vertex();

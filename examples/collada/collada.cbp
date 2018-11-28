@@ -12,6 +12,7 @@
 				<Option type="1" />
 				<Option compiler="gcc" />
 				<Compiler>
+					<Add option="-std=c++11" />
 					<Add option="-pg" />
 					<Add option="-g" />
 					<Add option="-mavx2" />
@@ -41,6 +42,7 @@
 				<Compiler>
 					<Add option="-flto" />
 					<Add option="-fno-rtti" />
+					<Add option="-std=c++17" />
 					<Add option="-D_WIN32_WINNT=0x0600" />
 					<Add option="-DIO_SHARED_LIB" />
 					<Add option="-DNDEBUG" />
@@ -87,7 +89,6 @@
 		</Build>
 		<Compiler>
 			<Add option="-Wall" />
-			<Add option="-std=gnu++17" />
 			<Add directory="include" />
 			<Add directory="include/collada" />
 			<Add directory="../../include" />
