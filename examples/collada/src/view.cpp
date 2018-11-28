@@ -58,14 +58,16 @@ frame_view::frame_view(unsigned int widht, unsigned int height,const char* title
 
 	// set up callbacks
 
+	static constexpr const float TWO_PI = 3.14159265358979323846 * 2;
+
 	// mouse motion
 	::glfwSetCursorPosCallback(frame_, []
 	(::GLFWwindow *wnd,double xpos, double ypos) {
 		frame_view *self = static_cast<frame_view*>( ::glfwGetWindowUserPointer(wnd) );
 		int w, h;
 		::glfwGetFramebufferSize(wnd, &w, &h);
-		float x_delta = (glm::pi<float>() * 2)  * float( (xpos - self->mouse_prev_x_) / w );
-		float y_delta = (glm::pi<float>() * 2)  * float( (ypos - self->mouse_prev_y_) / h );
+		float x_delta = TWO_PI  * float( (xpos - self->mouse_prev_x_) / w );
+		float y_delta = TWO_PI  * float( (ypos - self->mouse_prev_y_) / h );
 		self->angle_x_ -= y_delta;
 		self->angle_y_ += x_delta;
 		self->mouse_prev_x_ = xpos;
@@ -109,7 +111,7 @@ void frame_view::show(const s_model& md)
 		::glClearColor(1.0F, 1.0F, 1.0F, 1.0F);
 
 		if(md)
-		 	md->draw(scn_);
+		 	md->render( scn_ );
 
 		::glfwSwapBuffers(frame_);
 		::glfwWaitEvents();

@@ -1,10 +1,7 @@
 #ifndef __SCENE_HPP_INCLUDED__
 #define __SCENE_HPP_INCLUDED__
 
-#include <glm/mat3x3.hpp>
 #include <glm/mat4x4.hpp>
-#include <glm/gtx/transform.hpp>
-#include <glm/gtc/type_ptr.hpp>
 
 namespace engine  {
 

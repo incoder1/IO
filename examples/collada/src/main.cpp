@@ -115,6 +115,7 @@ static void tangent_vector(const float * face, float *ret)
 	float z = f * ( (delta_uv2.y * edge1.z) - (delta_uv1.y * edge2.z) );
 
 	// normalize
+
 	float inv_length = 1.0F / std::sqrt(  (x * x) + (y * y) + (z * z)  );
 	ret[0] = x * inv_length;
 	ret[1] = y * inv_length;
@@ -143,19 +144,19 @@ static io::scoped_arr<float> calc_tangent_vertex()
 
 #ifdef _WIN32
 
-static engine::s_model textured_model()
+static engine::s_mesh textured_qube()
 {
 	engine::s_image texture_img = engine::image::load_rgba(io::file("cube_tex2d_512x512.png"), engine::image_format::PNG);
-	return engine::s_model( new engine::textured_static_mesh(TEXTURED_QUBE_VERTEX, 192, CUBE_INDEX,36, texture_img ) );
+	return engine::s_mesh( new engine::textured_static_mesh(TEXTURED_QUBE_VERTEX, 192, CUBE_INDEX,36, texture_img ) );
 }
 
 
-static engine::s_model normal_mapped_model()
+static engine::s_mesh normal_mapped_qube()
 {
 	engine::s_image diff_tex = engine::image::load_rgba( io::file("face512x512.png"), engine::image_format::PNG );
 	engine::s_image nm_tex = engine::image::load_rgb( io::file("nm512x512.png"), engine::image_format::PNG );
 	io::scoped_arr<float> vertex = calc_tangent_vertex();
-	return engine::s_model( new engine::normal_mapped_static_mesh(vertex.get(), vertex.len(), CUBE_INDEX,36, diff_tex, nm_tex ) );
+	return engine::s_mesh( new engine::normal_mapped_static_mesh(vertex.get(), vertex.len(), CUBE_INDEX,36, diff_tex, nm_tex ) );
 }
 
 
@@ -171,13 +172,16 @@ int main(int argc, const char** argv)
 	if ( GLFW_TRUE == ::glfwInit() ) {
 		try {
 			engine::frame_view view(640,480,"Collada model view");
-			engine::s_model model( new engine::untextured_static_mesh(COLORED_QUBE_VERTEX,216,CUBE_INDEX,36) );
+			//engine::s_mesh qube( new engine::untextured_static_mesh(COLORED_QUBE_VERTEX,216,CUBE_INDEX,36) );
 
-			//engine::s_model model = textured_model();
+			//engine::s_mesh qube = textured_qube();
 
-			//engine::s_model model = normal_mapped_model();
+			engine::s_mesh qube = normal_mapped_qube();
 
-			view.show( model );
+			engine::s_model mdl( new engine::model() );
+			mdl->add_mesh( std::move(qube) );
+
+			view.show( mdl );
 
 			return 0;
 		}

@@ -1,6 +1,8 @@
 #include "stdafx.hpp"
 #include "model.hpp"
 
+#include <glm/gtc/type_ptr.hpp>
+
 namespace engine {
 
 // untextured_static_mesh
@@ -94,12 +96,12 @@ void main(void) {\
 }";
 
 untextured_static_mesh::untextured_static_mesh(const float *vertex, std::size_t vsize,const uint32_t* index,std::size_t isize):
-	model(),
+	mesh(),
 	program_(),
 	vbo_(),
 	ibo_(),
 	isize_(isize),
-	mvpUL_(-1),
+	mvp_UL_(-1),
 	modelVeiwMatUL_(-1),
 	normalMatUL_(-1)
 {
@@ -126,7 +128,7 @@ untextured_static_mesh::untextured_static_mesh(const float *vertex, std::size_t 
 
 	program_->link();
 
-	mvpUL_ = program_->uniform_location("mvpMat");
+	mvp_UL_ = program_->uniform_location("mvpMat");
 	modelVeiwMatUL_ = program_->uniform_location("modelViewMat");
 	normalMatUL_ = program_->uniform_location("normalMat");
 }
@@ -139,7 +141,7 @@ void untextured_static_mesh::draw(const scene& scn) const
 	::glm::mat4 normal_mat( glm::transpose( glm::inverse(  glm::mat3(model_view_mat) ) ) );
 
 	program_->start();
-	::glUniformMatrix4fv(mvpUL_, 1, GL_FALSE, glm::value_ptr( projection_mat * model_view_mat ) );
+	::glUniformMatrix4fv(mvp_UL_, 1, GL_FALSE, glm::value_ptr( projection_mat * model_view_mat ) );
 	::glUniformMatrix4fv(modelVeiwMatUL_, 1, GL_FALSE, glm::value_ptr( model_view_mat ) );
 	::glUniformMatrix4fv(normalMatUL_, 1, GL_FALSE, glm::value_ptr( normal_mat ) );
 
@@ -236,13 +238,13 @@ void main(void) {\
 }";
 
 textured_static_mesh::textured_static_mesh(const float *vertex, std::size_t vsize,const uint32_t* indexes,std::size_t isize,const s_image& timg):
-	model(),
+	mesh(),
 	program_(),
 	vbo_(),
 	ibo_(),
 	isize_(isize),
 	texture_(),
-	mvpUL_(-1),
+	mvp_UL_(-1),
 	modelVeiwMatUL_(-1),
 	normalMatUL_(-1),
 	textureUL_(-1)
@@ -274,7 +276,7 @@ textured_static_mesh::textured_static_mesh(const float *vertex, std::size_t vsiz
 
 	program_->link();
 
-	mvpUL_ = program_->uniform_location("mvpMat");
+	mvp_UL_ = program_->uniform_location("mvpMat");
 	modelVeiwMatUL_ = program_->uniform_location("modelViewMat");
 	normalMatUL_ = program_->uniform_location("normalMat");
 	textureUL_ = program_->uniform_location("textureSampler");
@@ -288,7 +290,7 @@ void textured_static_mesh::draw(const scene& scn) const
 	::glm::mat4 normal_mat( glm::transpose( glm::inverse(  glm::mat3(model_view_mat) ) ) );
 
 	program_->start();
-	::glUniformMatrix4fv(mvpUL_, 1, GL_FALSE, glm::value_ptr( projection_mat * model_view_mat ) );
+	::glUniformMatrix4fv(mvp_UL_, 1, GL_FALSE, glm::value_ptr( projection_mat * model_view_mat ) );
 	::glUniformMatrix4fv(modelVeiwMatUL_, 1, GL_FALSE, glm::value_ptr( model_view_mat ) );
 	::glUniformMatrix4fv(normalMatUL_, 1, GL_FALSE, glm::value_ptr( normal_mat ) );
 
@@ -404,14 +406,14 @@ void main(void) {\
 }";
 
 normal_mapped_static_mesh::normal_mapped_static_mesh(const float *vertex, std::size_t vsize,const uint32_t* indexes,std::size_t isize,const s_image& difftex,const s_image& nm_text):
-	model(),
+	mesh(),
 	program_(),
 	vbo_(),
 	ibo_(),
 	isize_(isize),
 	diffuse_tex_(),
 	normal_map_tex_(),
-	mvpUL_(-1),
+	mvp_UL_(-1),
 	modelVeiwMatUL_(-1),
 	diffiseTxtrUL_(-1),
 	nmTxtrUL_(-1)
@@ -448,7 +450,7 @@ normal_mapped_static_mesh::normal_mapped_static_mesh(const float *vertex, std::s
 
 	program_->link();
 
-	mvpUL_ = program_->uniform_location("mvpMat");
+	mvp_UL_ = program_->uniform_location("mvpMat");
 	modelVeiwMatUL_ = program_->uniform_location("modelViewMat");
 	diffiseTxtrUL_ = program_->uniform_location("diffuseTexture");
 	nmTxtrUL_ = program_->uniform_location("normalMapTexture");
@@ -463,7 +465,7 @@ void normal_mapped_static_mesh::draw(const scene& scn) const
 
 	program_->start();
 
-	::glUniformMatrix4fv(mvpUL_, 1, GL_FALSE, glm::value_ptr( projection_mat * model_view_mat ) );
+	::glUniformMatrix4fv(mvp_UL_, 1, GL_FALSE, glm::value_ptr( projection_mat * model_view_mat ) );
 	::glUniformMatrix4fv(modelVeiwMatUL_, 1, GL_FALSE, glm::value_ptr( model_view_mat ) );
 
 	::glActiveTexture(GL_TEXTURE0);

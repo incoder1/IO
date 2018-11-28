@@ -4,7 +4,7 @@
 	<Project>
 		<Option title="collada" />
 		<Option compiler="gcc" />
-		<Option virtualFolders="src/;" />
+		<Option virtualFolders="src\;" />
 		<Build>
 			<Target title="debug-gcc-win64">
 				<Option output="bin/debug-gcc-win64/collada" prefix_auto="1" extension_auto="1" />
@@ -15,6 +15,7 @@
 					<Add option="-pg" />
 					<Add option="-g" />
 					<Add option="-mavx2" />
+					<Add option="-ffast-math" />
 					<Add option="-D_WIN32_WINNT=0x0600" />
 					<Add directory="include" />
 					<Add directory="include/loader" />
@@ -39,6 +40,7 @@
 				<Option compiler="gcc" />
 				<Compiler>
 					<Add option="-flto" />
+					<Add option="-fno-rtti" />
 					<Add option="-D_WIN32_WINNT=0x0600" />
 					<Add option="-DIO_SHARED_LIB" />
 					<Add option="-DNDEBUG" />
@@ -54,7 +56,7 @@
 					<Add option="-fdevirtualize-at-ltrans" />
 					<Add option="-Wl,-allow-multiple-definition" />
 					<Add option="-mtune=native" />
-					<Add option="-minline-stringops-dynamically" />
+					<Add option="-ffast-math" />
 					<Add library="glfw3.dll" />
 					<Add library="glew32" />
 					<Add library="opengl32" />
@@ -74,6 +76,7 @@
 				<Compiler>
 					<Add option="`pkg-config glew --cflags`" />
 					<Add option="`pkg-config --cflags glfw3`" />
+					<Add directory="include" />
 				</Compiler>
 				<Linker>
 					<Add option="`pkg-config glew --libs`" />
@@ -92,19 +95,17 @@
 		<Linker>
 			<Add library="io" />
 		</Linker>
-		<Unit filename="include/collada/loader.hpp" />
-		<Unit filename="include/collada/types.hpp" />
 		<Unit filename="include/image.hpp">
 			<Option virtualFolder="src/" />
 		</Unit>
 		<Unit filename="include/model.hpp" />
 		<Unit filename="include/openglload.hpp" />
+		<Unit filename="include/parser.hpp" />
 		<Unit filename="include/scene.hpp" />
 		<Unit filename="include/shader.hpp" />
 		<Unit filename="include/texture.hpp" />
 		<Unit filename="include/vbo.hpp" />
 		<Unit filename="include/view.hpp" />
-		<Unit filename="src/collada/loader.cpp" />
 		<Unit filename="src/directx_image_loader.cpp">
 			<Option target="debug-gcc-win64" />
 			<Option target="release-gcc-win64" />
@@ -112,6 +113,7 @@
 		<Unit filename="src/image.cpp" />
 		<Unit filename="src/main.cpp" />
 		<Unit filename="src/model.cpp" />
+		<Unit filename="src/parser.cpp" />
 		<Unit filename="src/scene.cpp" />
 		<Unit filename="src/shader.cpp" />
 		<Unit filename="src/stdafx.hpp">
