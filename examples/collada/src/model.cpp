@@ -17,8 +17,8 @@ uniform mat4 normalMat;\n\
 in vec3 vertexCoord;\n\
 in vec3 vertexNormal;\n\
 in vec3 vertexColor;\n\
-out vec4 outFrontColor;\n\
-out vec4 outBackColor;\n\
+varying vec4 frontColor;\n\
+varying vec4 backColor;\n\
 struct LightInfo {\n\
  vec4 position;\n\
  vec4 ambient;\n\
@@ -56,7 +56,7 @@ void getEyeSpace( out vec4 norm, out vec4 position ) {\n\
 	norm = normalize( normalMat * vec4(vertexNormal,0) );\n\
 	position = modelViewMat * vec4(vertexCoord.xyz,0);\n\
 }\n\
-vec4 phongModel(LightInfo light, MaterialInfo mat, vec4 position, vec4 norm ) {\n\
+vec4 phongShading(LightInfo light, MaterialInfo mat, vec4 position, vec4 norm ) {\n\
 	vec4 s = normalize( light.position - position );\n\
 	vec4 v = normalize( -position );\n\
 	vec4 r = reflect( -s, norm );\n\
@@ -75,8 +75,8 @@ void main(void) {\
 	vec4 eyeNorm;\
 	vec4 eyePosition;\
 	getEyeSpace(eyeNorm, eyePosition);\
-	outFrontColor = vec4(vertexColor,1) + phongModel(light, mat, eyePosition, eyeNorm );\
-	outBackColor = vec4(vertexColor,1) + phongModel(light, mat, eyePosition, -eyeNorm );\
+	frontColor = vec4(vertexColor,1) + phongShading(light, mat, eyePosition, eyeNorm );\
+	backColor = vec4(vertexColor,1) + phongShading(light, mat, eyePosition, -eyeNorm );\
 	gl_Position = mvpMat * vec4(vertexCoord,1.0);\
 }";
 
@@ -84,14 +84,14 @@ const char* untextured_static_mesh::FRAGMENT_SHADER = "\
 #version 140 \n\
 #pragma optimize(on)\n\
 precision highp float;\n\
-in vec4 outFrontColor;\n\
-in vec4 outBackColor;\n\
+varying vec4 frontColor;\n\
+varying vec4 backColor;\n\
 out vec4 outFragColor;\n\
 void main(void) {\
 	if( gl_FrontFacing ) {\
-		outFragColor = outFrontColor;\
+		outFragColor = frontColor;\
 	} else {\
-		outFragColor = outBackColor;\
+		outFragColor = backColor;\
 	}\
 }";
 
@@ -199,7 +199,7 @@ struct MaterialInfo {\
 };\
 LightInfo defaultLight() {\
 	LightInfo result;\
-	result.position = vec4(0,0,1.5,0);\
+	result.position = vec4(1,1,1,0);\
 	result.ambient = vec4(0,0,0,1);\
 	result.diffuse = vec4(0.5,0.5,0.5,1);\
 	result.specular = vec4(0.7,0.7,0.7,1);\
@@ -217,7 +217,7 @@ MaterialInfo whitePlastic() {\
 float dot(vec4 lsh, vec4 rhs) {\
 	return (lsh.x*rhs.x) + (lsh.y*rhs.y) + (lsh.z*rhs.z) + (lsh.w*rhs.w);\
 }\
-vec4 phongModel(LightInfo light, MaterialInfo mat, vec4 position, vec4 norm ) {\
+vec4 phongShading(LightInfo light, MaterialInfo mat, vec4 position, vec4 norm ) {\
 	vec4 s = normalize( light.position - position );\
 	vec4 v = normalize( -position );\
 	vec4 r = reflect( -s, norm );\
@@ -234,7 +234,7 @@ const float GAMMA = 1.0 / 2.2;\
 LightInfo light = defaultLight();\
 MaterialInfo mat = whitePlastic();\
 void main(void) {\
-	fragColor =  pow(texture( textureSampler, outTexCoord ),vec4(GAMMA)) + phongModel(light, mat, eyePosition, outNormal );\
+	fragColor =  pow(texture( textureSampler, outTexCoord ),vec4(GAMMA)) + phongShading(light, mat, eyePosition, outNormal );\
 }";
 
 textured_static_mesh::textured_static_mesh(const float *vertex, std::size_t vsize,const uint32_t* indexes,std::size_t isize,const s_image& timg):
@@ -389,7 +389,7 @@ MaterialInfo defaultMaterial() {\n\
 float dot(vec4 lsh, vec4 rhs) {\
 	return (lsh.x*rhs.x) + (lsh.y*rhs.y) + (lsh.z*rhs.z) + (lsh.w*rhs.w);\
 }\
-vec4 phongModel(LightInfo light, MaterialInfo mat, vec4 position, vec4 norm ) {\
+vec4 phongShading(LightInfo light, MaterialInfo mat, vec4 position, vec4 norm ) {\
 	vec4 s = normalize( light.position - position );\
 	vec4 v = normalize( -position );\
 	vec4 r = reflect( -s, norm );\
@@ -411,7 +411,7 @@ void main(void) {\
 	normal = normalize( (normal * 2.0) - 1.0 );\
 	normal = normalize(TBN * normal);\
 	vec4 color =  pow( texture( diffuseTexture, fragTexCoords ) , GAMMA);\
-	fragColor =  color + phongModel(light, mat, tangentEyePosition, vec4(normal, 0) );\
+	fragColor =  color + phongShading(light, mat, tangentEyePosition, vec4(normal, 0) );\
 }";
 
 normal_mapped_static_mesh::normal_mapped_static_mesh(const float *vertex, std::size_t vsize,const uint32_t* indexes,std::size_t isize,const s_image& difftex,const s_image& nm_text):

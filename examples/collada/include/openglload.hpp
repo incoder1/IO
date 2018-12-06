@@ -17,7 +17,8 @@
 #endif // UNIX not MacOS X
 
 #ifdef __APPLE__
-#define GLFW_INCLUDE_GLEXT 1
+#	define GLFW_INCLUDE_GLCOREARB 1
+#	define GLFW_INCLUDE_GLEXT 1
 #endif // __APPLE__
 
 #include <GLFW/glfw3.h>

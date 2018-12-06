@@ -18,6 +18,7 @@
 #endif // HAS_PRAGMA_ONCE
 
 #include <type_traits>
+#include <cstring>
 
 namespace io {
 
@@ -67,7 +68,7 @@ public:
 	    assert(0 != len_ && len_ < SIZE_MAX );
         mem_ = new (std::nothrow) T [ len_ ];
         if(nullptr != mem_)
-			std::copy( arr, (arr + len_)  , mem_ );
+			std::memcpy( mem_, arr, len_);
 	}
 
 	constexpr scoped_arr() noexcept:
@@ -107,7 +108,7 @@ public:
 
 	inline void clear() noexcept
 	{
-        std::memset(mem_, 0, (len_  * sizeof(T)) );
+        io_zerro_mem(mem_, (len_  * sizeof(T)) );
 	}
 
 	inline void swap(scoped_arr& other) noexcept

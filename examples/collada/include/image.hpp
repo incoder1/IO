@@ -2,9 +2,9 @@
 #define __IMAGE_HPP_INCLUDED__
 
 #include <object.hpp>
-#include <buffer.hpp>
 #include <channels.hpp>
 #include <files.hpp>
+#include <scoped_array.hpp>
 
 namespace engine {
 
@@ -29,7 +29,7 @@ namespace engine {
 	DECLARE_IPTR(image);
 	class image final: public io::object {
 	private:
-		image(std::size_t w, std::size_t h,pixel_format pfm, io::byte_buffer&& data) noexcept;
+		image(std::size_t w, std::size_t h,pixel_format pfm, io::scoped_arr<uint8_t>&& data) noexcept;
 	public:
 
 		static s_image load_rgb(io::s_read_channel&& src, image_format format);
@@ -51,13 +51,13 @@ namespace engine {
 		}
 
 		const uint8_t* data() const noexcept {
-			return data_.position().get();
+			return data_.get();
 		}
 	private:
 		std::size_t width_;
 		std::size_t height_;
 		pixel_format pfm_;
-		io::byte_buffer data_;
+		io::scoped_arr<uint8_t> data_;
 	};
 
 } // namespace engine

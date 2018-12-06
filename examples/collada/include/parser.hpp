@@ -2,6 +2,7 @@
 #define __PARSER_HPP_INCLUDED__
 
 #include <object.hpp>
+#include <scoped_array.hpp>
 #include <xml_reader.hpp>
 #include <xml_lexcast.hpp>
 
@@ -17,6 +18,24 @@ struct asset_info {
 	float unit_size;
 	up_direction_type up_direction;
 };
+
+struct convex_mesh
+{
+};
+
+struct mesh {
+	io::scoped_arr<unsigned int> index;
+	io::scoped_arr<float> vertex;
+};
+
+struct spline
+{
+};
+
+struct geometry
+{
+};
+
 
 class parser final: io::object
 {

@@ -59,8 +59,8 @@ bool cached_string::blank() const noexcept
 // string_pool
 s_string_pool string_pool::create(std::error_code& ec) noexcept
 {
-    string_pool* result = new (std::nothrow) string_pool();
-    return nullptr != result ? s_string_pool(result) : s_string_pool();
+	string_pool* result = new (std::nothrow) string_pool();
+	return nullptr != result ? s_string_pool(result) : s_string_pool();
 }
 
 string_pool::string_pool() noexcept:

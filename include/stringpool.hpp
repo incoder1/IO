@@ -239,6 +239,7 @@ public:
 		return pool_.size();
 	}
 private:
+	friend class nobadalloc<string_pool>;
 	typedef std::unordered_map<
 		std::size_t,
 		cached_string,
