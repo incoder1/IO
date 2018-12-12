@@ -139,7 +139,7 @@ bool file::create() noexcept
 
 }
 
-s_read_channel file::open_for_read(std::error_code& ec) noexcept
+s_read_channel file::open_for_read(std::error_code& ec) const noexcept
 {
 	if(!name_) {
 		ec = std::make_error_code(std::errc::no_such_file_or_directory);
@@ -153,7 +153,7 @@ s_read_channel file::open_for_read(std::error_code& ec) noexcept
 	return s_read_channel( posix::new_sync_file_channel( ec, fd ) );
 }
 
-s_write_channel file::open_for_write(std::error_code& ec,write_open_mode mode) noexcept
+s_write_channel file::open_for_write(std::error_code& ec,write_open_mode mode) const noexcept
 {
 	if(!name_) {
 		ec = std::make_error_code(std::errc::no_such_file_or_directory);
@@ -179,7 +179,7 @@ s_write_channel file::open_for_write(std::error_code& ec,write_open_mode mode) n
 	return s_write_channel( posix::new_sync_file_channel( ec, fd ) );
 }
 
-s_random_access_channel file::open_for_random_access(std::error_code& ec,write_open_mode mode) noexcept
+s_random_access_channel file::open_for_random_access(std::error_code& ec,write_open_mode mode) const noexcept
 {
 	if(!name_) {
 		ec = std::make_error_code(std::errc::no_such_file_or_directory);

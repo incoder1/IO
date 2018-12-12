@@ -153,7 +153,7 @@ std::size_t file::size() const noexcept
     return 0;
 }
 
-s_read_channel file::open_for_read(std::error_code& ec) noexcept {
+s_read_channel file::open_for_read(std::error_code& ec) const noexcept {
 	if( !name_ ) {
 		ec = std::make_error_code(std::errc::no_such_file_or_directory);
 		return s_read_channel();
@@ -172,7 +172,7 @@ s_read_channel file::open_for_read(std::error_code& ec) noexcept {
 	return nullptr != ch ? s_read_channel( ch ) : s_read_channel();
 }
 
-s_write_channel file::open_for_write(std::error_code& ec,write_open_mode mode) noexcept
+s_write_channel file::open_for_write(std::error_code& ec,write_open_mode mode) const noexcept
 {
 	if( !name_ ) {
 		ec = std::make_error_code(std::errc::no_such_file_or_directory);
@@ -192,7 +192,7 @@ s_write_channel file::open_for_write(std::error_code& ec,write_open_mode mode) n
 	return nullptr != ch ? s_write_channel( ch ) : s_write_channel();
 }
 
-s_random_access_channel file::open_for_random_access(std::error_code& ec,write_open_mode mode) noexcept
+s_random_access_channel file::open_for_random_access(std::error_code& ec,write_open_mode mode) const noexcept
 {
 	if(!name_) {
 		ec = std::make_error_code(std::errc::no_such_file_or_directory);

@@ -142,26 +142,21 @@ static io::scoped_arr<float> calc_tangent_vertex()
 	return ret;
 }
 
-#ifdef _WIN32
 
 static engine::s_mesh textured_qube()
 {
-	engine::s_image texture_img = engine::image::load_rgba(io::file("cube_tex2d_512x512.png"), engine::image_format::PNG);
+	engine::s_image texture_img = engine::load_rgba(io::file("cube_tex2d_512x512.png"), engine::image_format::PNG);
 	return engine::s_mesh( new engine::textured_static_mesh(TEXTURED_QUBE_VERTEX, 192, CUBE_INDEX,36, texture_img ) );
 }
 
 
 static engine::s_mesh normal_mapped_qube()
 {
-
-	engine::s_image diff_tex = engine::image::load_rgba( io::file("face512x512.png"), engine::image_format::PNG );
-	engine::s_image nm_tex = engine::image::load_rgb( io::file("nm512x512.png"), engine::image_format::PNG );
+	engine::s_image diff_tex = engine::load_rgba( io::file("face512x512.png"), engine::image_format::PNG );
+	engine::s_image nm_tex = engine::load_rgb( io::file("nm512x512.png"), engine::image_format::PNG );
 	io::scoped_arr<float> vertex = calc_tangent_vertex();
 	return engine::s_mesh( new engine::normal_mapped_static_mesh(vertex.get(), vertex.len(), CUBE_INDEX,36, diff_tex, nm_tex ) );
 }
-
-
-#endif // _WIN32
 
 #ifdef _WIN32
 int WINAPI WinMain (HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nShowCmd)

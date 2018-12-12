@@ -291,7 +291,7 @@ static io::scoped_arr<uint8_t> decode_image(const s_IStream& stream, unsigned in
 }
 
 
-s_image image::load_rgb(io::s_read_channel&& src, image_format format)
+s_image load_rgb(io::s_read_channel&& src, image_format format)
 {
 	s_IStream stream( new read_stream( std::forward<io::s_read_channel>(src)), false);
 	unsigned int w,h;
@@ -299,7 +299,7 @@ s_image image::load_rgb(io::s_read_channel&& src, image_format format)
 	return  s_image(new image( w, h, pixel_format::rgb, std::move(image_data) ) );
 }
 
-s_image image::load_rgb(const io::file& file, image_format format)
+s_image load_rgb(const io::file& file, image_format format)
 {
 	IStream* src;
 	::HRESULT errc = ::SHCreateStreamOnFileEx(file.wpath().data(), STGM_READ, FILE_ATTRIBUTE_READONLY, FALSE, nullptr, &src);
@@ -309,17 +309,15 @@ s_image image::load_rgb(const io::file& file, image_format format)
 	return s_image(new image( w, h, pixel_format::rgb, std::move(image_data) ) );
 }
 
-s_image image::load_rgba(io::s_read_channel&& src, image_format format)
+s_image load_rgba(io::s_read_channel&& src, image_format format)
 {
-	//if( image_format::TGA != format || image_format::DDS != format )
-	//	return s_image();
 	 s_IStream stream( new read_stream( std::forward<io::s_read_channel>(src)), false);
 	unsigned int w,h;
 	io::scoped_arr<uint8_t> image_data = decode_image( stream, w, h, true );
 	return  s_image(new image( w, h, pixel_format::rgba, std::move(image_data) ) );
 }
 
-s_image image::load_rgba(const io::file& file, image_format format)
+s_image load_rgba(const io::file& file, image_format format)
 {
 	IStream* src;
 	::HRESULT errc = ::SHCreateStreamOnFileEx(file.wpath().data(), STGM_READ, FILE_ATTRIBUTE_READONLY, FALSE, nullptr, &src);

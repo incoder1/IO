@@ -810,7 +810,7 @@ private:
 	static bool holding_complex()
 	{
 		typedef typename element_type::is_complex is_cmp;
-		return typeid(is_cmp) == typeid(std::true_type);
+		return std::is_same<is_cmp, std::true_type >::value;
 	}
 
 	static const char* holding_type()

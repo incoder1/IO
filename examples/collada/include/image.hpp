@@ -11,13 +11,8 @@ namespace engine {
 	enum class image_format {
 		BMP,
 		DDS,
-		EXR,
-		GIF,
-		HDR,
 		JPEG,
-        PNG,
-        TGA,
-        TIFF
+        PNG
 	};
 
 	enum class pixel_format {
@@ -28,16 +23,8 @@ namespace engine {
 	class image;
 	DECLARE_IPTR(image);
 	class image final: public io::object {
-	private:
-		image(std::size_t w, std::size_t h,pixel_format pfm, io::scoped_arr<uint8_t>&& data) noexcept;
 	public:
-
-		static s_image load_rgb(io::s_read_channel&& src, image_format format);
-		static s_image load_rgb(const io::file& file, image_format format);
-
-		static s_image load_rgba(io::s_read_channel&& src, image_format format);
-		static s_image load_rgba(const io::file& file, image_format format);
-
+		image(std::size_t w, std::size_t h,pixel_format pfm, io::scoped_arr<uint8_t>&& data) noexcept;
 
 		const std::size_t width() const noexcept {
 			return width_;
@@ -59,6 +46,13 @@ namespace engine {
 		pixel_format pfm_;
 		io::scoped_arr<uint8_t> data_;
 	};
+
+
+	s_image load_rgb(io::s_read_channel&& src, image_format format);
+	s_image load_rgb(const io::file& file, image_format format);
+
+	s_image load_rgba(io::s_read_channel&& src, image_format format);
+	s_image load_rgba(const io::file& file, image_format format);
 
 } // namespace engine
 

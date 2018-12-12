@@ -38,7 +38,7 @@ public:
 	virtual ~object() noexcept = default;
 
 
-#ifdef IO_SHARED_LIB
+#if defined(__IO_WINDOWS_BACKEND__) && defined(IO_SHARED_LIB)
 
 #ifdef IO_NO_EXCEPTIONS
 
@@ -76,7 +76,7 @@ public:
 	}
 
 
-#endif // IO_SHARED_LIB
+#endif // defined(__IO_WINDOWS_BACKEND__) && defined(IO_SHARED_LIB)
 
 private:
 	std::atomic_size_t ref_count_;

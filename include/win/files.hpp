@@ -134,7 +134,7 @@ public:
 	///    operation error code, contains error when file is not exist or can not be opened
 	///    or out of memory state
 	/// \throw never throws
-	s_read_channel open_for_read(std::error_code& ec) noexcept;
+	s_read_channel open_for_read(std::error_code& ec) const noexcept;
 
 	/// Opens blocking write channel from this file
 	/// \param ec
@@ -143,7 +143,7 @@ public:
 	/// \param mode
 	///    writting mode \see write_open_mode
 	/// \throw never throws
-	s_write_channel open_for_write(std::error_code& ec, write_open_mode mode) noexcept;
+	s_write_channel open_for_write(std::error_code& ec, write_open_mode mode) const noexcept;
 
 	/// Opens blocking read/write and random access channel from this file
 	/// \param ec
@@ -152,7 +152,7 @@ public:
 	/// \param mode
 	///    writting mode \see write_open_mode
 	/// \throw never throws
-	s_random_access_channel open_for_random_access(std::error_code& ec, write_open_mode mode) noexcept;
+	s_random_access_channel open_for_random_access(std::error_code& ec, write_open_mode mode) const noexcept;
 private:
 	scoped_arr<wchar_t> name_;
 };
