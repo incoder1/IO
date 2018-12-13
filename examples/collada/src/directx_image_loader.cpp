@@ -283,48 +283,44 @@ static io::scoped_arr<uint8_t> decode_image(const s_IStream& stream, unsigned in
 	::HRESULT errc = lock->GetStride(&cbStride);
 	errc = lock->GetDataPointer(&cbBufferSize, &pv);
 	validate_succeeded(errc,"Can't obtain data from bitmap");
-	std::error_code ec;
-	io::scoped_arr<uint8_t> ret(pv, cbBufferSize);
-	if(ec)
-		throw std::system_error(ec);
-	return ret;
+	return io::scoped_arr<uint8_t>(pv, cbBufferSize);
 }
 
 
-s_image load_rgb(io::s_read_channel&& src, image_format format)
+s_image load_png_rgb(io::s_read_channel&& src)
 {
 	s_IStream stream( new read_stream( std::forward<io::s_read_channel>(src)), false);
 	unsigned int w,h;
 	io::scoped_arr<uint8_t> image_data = decode_image( stream, w, h, false );
-	return  s_image(new image( w, h, pixel_format::rgb, std::move(image_data) ) );
+	return  s_image(new image( w, h, image_format::bitmap, pixel_format::rgb, std::move(image_data) ) );
 }
 
-s_image load_rgb(const io::file& file, image_format format)
+s_image load_png_rgb(const io::file& file)
 {
 	IStream* src;
 	::HRESULT errc = ::SHCreateStreamOnFileEx(file.wpath().data(), STGM_READ, FILE_ATTRIBUTE_READONLY, FALSE, nullptr, &src);
 	validate_succeeded(errc, std::string("Can not open image file: ").append(file.path()) );
 	unsigned int w,h;
 	io::scoped_arr<uint8_t> image_data = decode_image( s_IStream(src,false), w, h, false );
-	return s_image(new image( w, h, pixel_format::rgb, std::move(image_data) ) );
+	return s_image(new image( w, h, image_format::bitmap, pixel_format::rgb, std::move(image_data) ) );
 }
 
-s_image load_rgba(io::s_read_channel&& src, image_format format)
+s_image load_png_rgba(io::s_read_channel&& src)
 {
 	 s_IStream stream( new read_stream( std::forward<io::s_read_channel>(src)), false);
 	unsigned int w,h;
 	io::scoped_arr<uint8_t> image_data = decode_image( stream, w, h, true );
-	return  s_image(new image( w, h, pixel_format::rgba, std::move(image_data) ) );
+	return  s_image(new image( w, h, image_format::bitmap, pixel_format::rgba, std::move(image_data) ) );
 }
 
-s_image load_rgba(const io::file& file, image_format format)
+s_image load_png_rgba(const io::file& file)
 {
 	IStream* src;
 	::HRESULT errc = ::SHCreateStreamOnFileEx(file.wpath().data(), STGM_READ, FILE_ATTRIBUTE_READONLY, FALSE, nullptr, &src);
 	validate_succeeded(errc, std::string("Can not open image file: ").append(file.path()));
 	unsigned int w,h;
 	io::scoped_arr<uint8_t> image_data = decode_image( s_IStream(src,false), w, h, true );
-	return s_image(new image( w, h, pixel_format::rgba, std::move(image_data) ) );
+	return s_image(new image( w, h, image_format::bitmap, pixel_format::rgba, std::move(image_data) ) );
 }
 
 

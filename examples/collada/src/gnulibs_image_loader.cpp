@@ -76,7 +76,7 @@ public:
 					   &interlace_type, nullptr, nullptr);
 
 		unsigned int rowbytes =  align_up(4, ::png_get_rowbytes(png_, info_) );
-		io::scoped_arr<uint8_t> data( rowbytes * height * sizeof(png_byte)+15 );
+		io::scoped_arr<uint8_t> data( rowbytes * height  );
 
 		png_bytepp row_pointers = ::png_get_rows(png_, info_);
 
@@ -87,7 +87,7 @@ public:
 			px += rowbytes;
 		}
 
-		return s_image( new image(width, height, pixfmt , std::move(data) ) );
+		return s_image( new image(width, height, image_format::bitmap, pixfmt , std::move(data) ) );
 	}
 
 
@@ -101,42 +101,34 @@ private:
 };
 
 
-s_image load_rgb(io::s_read_channel&& src, image_format format)
+s_image load_png_rgb(io::s_read_channel&& src)
 {
-	// FIXME: make correct API
-	if( image_format::PNG != format )
-		throw std::runtime_error( "Unsupported texture format" );
-
 	png_reader reader( std::forward<io::s_read_channel>(src) );
 	return reader.read( pixel_format::rgb   );
-
 }
 
-s_image load_rgb(const io::file& file, image_format format)
+s_image load_png_rgb(const io::file& file)
 {
 	std::error_code ec;
 	io::s_read_channel src = file.open_for_read(ec);
 	if(ec)
 		throw std::system_error(ec);
-	return load_rgb( std::move(src) , format);
+	return load_png_rgb( std::move(src) );
 }
 
-s_image load_rgba(io::s_read_channel&& src, image_format format)
+s_image load_png_rgba(io::s_read_channel&& src)
 {
-	// FIXME: make correct API
-	if( image_format::PNG != format )
-		throw std::runtime_error( "Unsupported texture format" );
 	png_reader reader( std::forward<io::s_read_channel>(src) );
 	return reader.read( pixel_format::rgba   );
 }
 
-s_image load_rgba(const io::file& file, image_format format)
+s_image load_png_rgba(const io::file& file)
 {
 	std::error_code ec;
 	io::s_read_channel src =  file.open_for_read(ec);
 	if(ec)
 		throw std::system_error(ec);
-	return load_rgba( std::move(src) , format);
+	return load_png_rgba( std::move(src) );
 }
 
 } // namesapace engine
