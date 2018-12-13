@@ -13,17 +13,19 @@
 
 namespace engine {
 
-class mesh: public io::object
+class surface: public io::object
 {
+	surface(const surface&) = delete;
+	surface& operator=(const surface&) = delete;
 protected:
-	constexpr mesh() noexcept:
+	constexpr surface() noexcept:
 		io::object()
 	{}
 public:
 	virtual void draw(const scene& scn) const = 0;
 };
 
-DECLARE_IPTR(mesh);
+DECLARE_IPTR(surface);
 
 class model:public io::object {
 public:
@@ -32,23 +34,23 @@ public:
 	{}
 	virtual ~model() noexcept
 	{}
-	void add_mesh(s_mesh&& m)
+	void add_surface(s_surface&& srf)
 	{
-		meshes_.emplace_back( std::move(m) );
+		surfaces_.emplace_back( std::move(srf) );
 	}
 	void render(const scene& scn) const {
-		for(auto m: meshes_) {
-			m->draw( scn );
+		for(auto s: surfaces_) {
+			s->draw( scn );
 		}
 	}
 public:
-	std::vector<s_mesh> meshes_;
+	std::vector<s_surface> surfaces_;
 };
 
 DECLARE_IPTR(model);
 
 
-class untextured_static_mesh final: public mesh
+class untextured_static_mesh final: public surface
 {
 public:
 	untextured_static_mesh(const float *vertex, std::size_t vsize,const uint32_t* indexes,std::size_t isize);
@@ -66,7 +68,7 @@ private:
 	::GLint normalMatUL_;
 };
 
-class textured_static_mesh final: public mesh
+class textured_static_mesh final: public surface
 {
 public:
 	textured_static_mesh(const float *vertex, std::size_t vsize,const uint32_t* indexes,std::size_t isize,const s_image& texture);
@@ -86,7 +88,7 @@ private:
 	::GLint textureUL_;
 };
 
-class normal_mapped_static_mesh final: public mesh
+class normal_mapped_static_mesh final: public surface
 {
 public:
 	normal_mapped_static_mesh(const float *vertex, std::size_t vsize,const uint32_t* indexes,std::size_t isize,const s_image& difftex,const s_image& nm_text);
@@ -104,6 +106,13 @@ private:
 	::GLint modelVeiwMatUL_;
 	::GLint diffiseTxtrUL_;
 	::GLint nmTxtrUL_;
+};
+
+
+class bspline final:public surface
+{
+public:
+	virtual void draw(const scene& scn) const override;
 };
 
 

@@ -5,13 +5,17 @@
 #if defined(__GNUG__)
 #	ifdef __AVX2__
 #		define GLM_FORCE_AVX2
-#	elif __AVX__
+#	endif // __AVX2__
+#	ifdef __AVX__
 #		define GLM_FORCE_AVX
-#	elif __SSE4_2__
+#	endif // __AVX__
+#	ifdef __SSE4_2__
 #		define GLM_FORCE_SSE42
-#	elif __SSE3__
+#	endif
+#	ifdef __SSE3__
 #		define GLM_FORCE_SSE3
-#	elif __SSE2__
+#	endif // __SSE3__
+#	ifdef __SSE2__
 #		define GLM_FORCE_SSE2
 #	endif
 #endif // defined

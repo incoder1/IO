@@ -4,9 +4,11 @@
 #include <algorithm>
 #include <vector>
 #include <memory>
-#include <string>
 
 #include <object.hpp>
+#include <buffer.hpp>
+#include <channels.hpp>
+#include <files.hpp>
 
 #include "openglload.hpp"
 #include "vbo.hpp"
@@ -27,6 +29,8 @@ class shader
 	shader(const shader&) = delete;
 	shader& operator=(const shader&) = delete;
 public:
+	static shader load(shader_type type,const io::s_read_channel& src);
+	static shader load(shader_type type,const io::file& file);
 	shader(shader_type type, const char* source);
 	shader(shader&& other) noexcept;
 	shader& operator=(shader&& rhs) noexcept;

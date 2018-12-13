@@ -96,7 +96,7 @@ void main(void) {\
 }";
 
 untextured_static_mesh::untextured_static_mesh(const float *vertex, std::size_t vsize,const uint32_t* index,std::size_t isize):
-	mesh(),
+	surface(),
 	program_(),
 	vbo_(),
 	ibo_(),
@@ -238,7 +238,7 @@ void main(void) {\
 }";
 
 textured_static_mesh::textured_static_mesh(const float *vertex, std::size_t vsize,const uint32_t* indexes,std::size_t isize,const s_image& timg):
-	mesh(),
+	surface(),
 	program_(),
 	vbo_(),
 	ibo_(),
@@ -415,7 +415,7 @@ void main(void) {\
 }";
 
 normal_mapped_static_mesh::normal_mapped_static_mesh(const float *vertex, std::size_t vsize,const uint32_t* indexes,std::size_t isize,const s_image& difftex,const s_image& nm_text):
-	mesh(),
+	surface(),
 	program_(),
 	vbo_(),
 	ibo_(),

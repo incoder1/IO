@@ -45,8 +45,8 @@ namespace engine {
 	private:
 		std::size_t width_;
 		std::size_t height_;
-		pixel_format pfm_;
 		image_format format_;
+		pixel_format pfm_;
 		io::scoped_arr<uint8_t> data_;
 	};
 

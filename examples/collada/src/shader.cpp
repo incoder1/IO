@@ -4,6 +4,39 @@
 namespace gl {
 
 // shader
+shader shader::load(shader_type type, const io::s_read_channel& src)
+{
+
+	std::error_code ec;
+	std::size_t chunk = 8;
+	io::byte_buffer buff = io::byte_buffer::allocate(ec, chunk );
+	if(ec)
+		throw std::system_error(ec);
+	io::scoped_arr<uint8_t> tmp( chunk );
+	for(std::size_t read = src->read(ec, tmp.get(), chunk); 0 != read && !ec ; ) {
+		if( buff.available() < read && !buff.ln_grow() ) {
+			ec = std::make_error_code( std::errc::not_enough_memory );
+			break;
+		}
+		buff.put( tmp.get(), read);
+		read = src->read(ec, tmp.get(), chunk);
+	}
+	if(ec)
+		throw std::system_error(ec);
+	buff.flip();
+	return shader(type, buff.position().cdata());
+}
+
+shader shader::load(shader_type type,const io::file& file)
+{
+	std::error_code ec;
+	io::s_read_channel src = file.open_for_read(ec);
+	if(ec)
+		throw std::system_error(ec);
+	return load(type, src);
+}
+
+
 shader::shader(shader_type type, const char* source):
 	hsdr_(0),
 	type_(type)
@@ -122,8 +155,8 @@ void program::pass_vertex_attrib_array(::GLsizei attr_no, const s_buffer& vbo, b
 		throw std::runtime_error("Array buffer expected");
 	const std::size_t dtp_size = sizeof_data_type(vbo->element_type());
 	vbo->bind();
-    ::GLsizei vertex_size = stride *  dtp_size;
-    ::GLsizei voffset = offset * dtp_size;
+	::GLsizei vertex_size = stride *  dtp_size;
+	::GLsizei voffset = offset * dtp_size;
 	::glVertexAttribPointer(
 		attr_no,
 		size,
@@ -146,7 +179,7 @@ void program::bind_attrib_location(::GLsizei attr_no, const char* name)
 {
 	::GLuint ret = ::glGetUniformLocation(hprg_, uniform);
 	if (GL_NO_ERROR != ::glGetError() )
-			throw std::runtime_error( std::string("Uniform: ").append(uniform).append(" not found") );
+		throw std::runtime_error( std::string("Uniform: ").append(uniform).append(" not found") );
 	return ret;
 }
 
@@ -154,7 +187,7 @@ void program::bind_attrib_location(::GLsizei attr_no, const char* name)
 {
 	::GLuint ret =  ::glGetAttribLocation(hprg_, attribute_name);
 	if (GL_NO_ERROR != ::glGetError() )
-			throw std::runtime_error( std::string("Attribute: ").append(attribute_name).append(" not found") );
+		throw std::runtime_error( std::string("Attribute: ").append(attribute_name).append(" not found") );
 	return ret;
 }
 
