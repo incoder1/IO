@@ -3,7 +3,6 @@
 
 #ifdef _OPENMP
 #	include <omp.h>
-#	define GLM)
 #endif
 
 // force avx2 even for debug
