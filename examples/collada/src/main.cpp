@@ -90,8 +90,14 @@ static const uint32_t CUBE_INDEX[36] = {
 	20,21,22,  20,22,23
 };
 
+static float dot(float x, float y, float z) {
+	return (x * x) + (y * y) + (z * z);
+}
 
 // calculate tangent vector to pos+norm+texpos vertex triangle
+#ifdef _OPENMP
+#pragma omp declare simd aligned(face,ret:16)
+#endif // _OPENMP
 static void tangent_vector(const float * face, float *ret)
 {
 	glm::vec3 pos1(face[0], face[1], face[2]);
@@ -116,7 +122,7 @@ static void tangent_vector(const float * face, float *ret)
 
 	// normalize
 
-	float inv_length = 1.0F / std::sqrt(  (x * x) + (y * y) + (z * z)  );
+	float inv_length = 1.0F / std::sqrt( dot(x,y,z) );
 	ret[0] = x * inv_length;
 	ret[1] = y * inv_length;
 	ret[2] = z * inv_length;
@@ -129,8 +135,15 @@ static io::scoped_arr<float> calc_tangent_vertex()
 	io::scoped_arr<float> ret(size);
 	float *d = ret.get();
 	const float* s = TEXTURED_QUBE_VERTEX;
-	float tan[3];
+#ifdef _OPENMP
+	#pragma omp simd
+#endif // _OPENMP
 	for (unsigned i = 0; i < 6; i++) {
+#ifdef _OPENMP
+		float tan[4];
+#else
+		float tan[3];
+#endif
 		tangent_vector( s, tan );
 		for(unsigned j=0; j < 4; j++) {
 			std::memcpy( d, s, sizeof(float)*8 );

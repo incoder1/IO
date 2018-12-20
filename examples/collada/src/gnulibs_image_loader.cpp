@@ -4,6 +4,10 @@
 #include <png.h>
 #include <memory>
 
+#ifdef _OPENMP
+#	include <omp.h>
+#endif
+
 namespace engine {
 
 constexpr std::size_t align_up(const std::size_t alignment,const std::size_t size) noexcept
@@ -81,10 +85,11 @@ public:
 		png_bytepp row_pointers = ::png_get_rows(png_, info_);
 
 		uint8_t* px = data.get();
-
+#ifdef _OPENMP
+		#pragma omp parallel for
+#endif // _OPENMP
     	for (::png_uint_32 i = 0; i < height; i++) {
-        	std::memcpy( px, row_pointers[i], rowbytes  );
-			px += rowbytes;
+        	std::memcpy( px + (rowbytes*i) , row_pointers[i], rowbytes  );
 		}
 
 		return s_image( new image(width, height, image_format::bitmap, pixfmt , std::move(data) ) );
