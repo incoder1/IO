@@ -42,7 +42,7 @@ byte_buffer::byte_buffer(byte_buffer&& other) noexcept:
 
 void byte_buffer::move(std::size_t offset) noexcept
 {
-	if( offset > available() ) {
+	if(  offset > available() ) {
 		position_ = arr_.get() + capacity_-1;
 		last_ = arr_.get() + capacity_;
 		return;
@@ -88,7 +88,8 @@ bool byte_buffer::exp_grow() noexcept
 bool byte_buffer::ln_grow() noexcept
 {
 	ssize_t gs =  1 << ( io_ctz(capacity_) - 1);
-	return extend( gs > 4 ?  static_cast<std::size_t>(gs) : capacity_ / 2 );
+	static constexpr ssize_t MIN_GROW = static_cast<ssize_t>( sizeof(std::size_t) );
+	return extend( gs > MIN_GROW ?  static_cast<std::size_t>(gs) : static_cast<std::size_t>( MIN_GROW ) );
 }
 
 byte_buffer byte_buffer::allocate(std::error_code& ec, std::size_t capacity) noexcept

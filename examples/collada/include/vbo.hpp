@@ -96,12 +96,16 @@ class buffer: public io::object {
 	buffer& operator=(const buffer&) = delete;
 private:
 	buffer(::GLuint id,buffer_type bt,data_type dt,std::size_t size,buffer_usage u) noexcept;
+	static s_buffer create(const void* data, std::size_t size, buffer_type bt, data_type dt, buffer_usage u);
 public:
 
-	static s_buffer create(const void* data, std::size_t size, buffer_type bt, data_type dt, buffer_usage u);
+	static inline s_buffer create(const unsigned int* data, std::size_t size, buffer_type bt, buffer_usage u)
+	{
+        return create( static_cast<const void*>(data), (size*sizeof(unsigned int)), bt, data_type::UNSIGNED_INT, u);
+	}
 
 	static inline s_buffer create(const float* data, std::size_t size, buffer_type bt, buffer_usage u) {
-		return create(data, (size*sizeof(float)), bt, data_type::FLOAT, u);
+		return create( static_cast<const void*>(data), (size*sizeof(float)), bt, data_type::FLOAT, u);
 	}
 
 	static inline s_buffer create(const std::vector<float>& data, buffer_type bt, buffer_usage u) {

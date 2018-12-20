@@ -109,9 +109,8 @@ untextured_static_mesh::untextured_static_mesh(const float *vertex, std::size_t 
 							   gl::buffer_type::ARRAY_BUFFER,
 							   gl::buffer_usage::STATIC_DRAW
 							 );
-	ibo_ = gl::buffer::create( index, isize_*sizeof(uint32_t),
+	ibo_ = gl::buffer::create( index, isize_,
 							   gl::buffer_type::ELEMENT_ARRAY_BUFFER,
-							   gl::data_type::UNSIGNED_INT,
 							   gl::buffer_usage::STATIC_DRAW );
 
 	gl::shader vertex_sh(gl::shader_type::vertex, VERTEX_SHADER );
@@ -253,9 +252,8 @@ textured_static_mesh::textured_static_mesh(const float *vertex, std::size_t vsiz
 							   gl::buffer_type::ARRAY_BUFFER,
 							   gl::buffer_usage::STATIC_DRAW
 							 );
-	ibo_ = gl::buffer::create( indexes, isize_*sizeof(uint32_t),
+	ibo_ = gl::buffer::create( indexes, isize_,
 							   gl::buffer_type::ELEMENT_ARRAY_BUFFER,
-							   gl::data_type::UNSIGNED_INT,
 							   gl::buffer_usage::STATIC_DRAW );
 
 	texture_ = gl::texture::create_texture2d_from_image(
@@ -432,9 +430,8 @@ normal_mapped_static_mesh::normal_mapped_static_mesh(const float *vertex, std::s
 							   gl::buffer_type::ARRAY_BUFFER,
 							   gl::buffer_usage::STATIC_DRAW
 							 );
-	ibo_ = gl::buffer::create( indexes, isize_*sizeof(uint32_t),
+	ibo_ = gl::buffer::create( indexes, isize_,
 							   gl::buffer_type::ELEMENT_ARRAY_BUFFER,
-							   gl::data_type::UNSIGNED_INT,
 							   gl::buffer_usage::STATIC_DRAW );
 
 	diffuse_tex_ = gl::texture::create_texture2d_from_image(difftex, gl::texture_filter::LINEAR_MIPMAP_LINEAR);

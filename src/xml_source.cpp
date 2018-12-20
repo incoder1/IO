@@ -138,7 +138,7 @@ source::~source() noexcept
 error source::read_more() noexcept
 {
 	rb_.clear();
-	if(  !rb_.empty() && (rb_.capacity() < READ_BUFF_MAXIMAL_SIZE) ) {
+	if( rb_.capacity() < READ_BUFF_MAXIMAL_SIZE ) {
 		if( io_unlikely( !rb_.exp_grow() ) )
 			return error::out_of_memory;
 	}
@@ -198,7 +198,7 @@ char source::next() noexcept
 	}
 	char ret = *pos_;
 	++pos_;
-	if( utf8::ismbtail(ret) )
+	if( io_unlikely(utf8::ismbtail(ret) ) )
 		return ret;
 	else
 		switch( utf8::char_size( ret ) ) {

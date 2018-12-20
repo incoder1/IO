@@ -99,7 +99,7 @@ public:
 	/// Returns raw C-style zero ending string
 	/// \return C-style string, "" if string is empty
 	inline const char* data() const noexcept {
-		return nullptr == data_ ? "" : reinterpret_cast<char*>( data_ + sizeof(std::size_t) );
+		return io_unlikely( empty() ) ? "" : reinterpret_cast<char*>( data_ + sizeof(std::size_t) );
 	}
 
 #ifndef NDEBUG

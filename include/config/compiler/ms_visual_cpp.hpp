@@ -141,6 +141,10 @@
 	
 #pragma intrinsic(_BitScanReverse)
 
+
+#include <BaseTsd.h>
+typedef SSIZE_T ssize_t;
+
 __forceinline int io_clz(unsigned long x )
 {
 	unsigned long ret = 0;

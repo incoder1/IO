@@ -120,7 +120,6 @@ static std::size_t extract_local_name(std::size_t& start,const char* str) noexce
 }
 
 
-// Works only for UCS-4
 #ifdef __GNUG__
 
 #pragma GCC diagnostic push
@@ -278,15 +277,17 @@ event_stream_parser::event_stream_parser(s_source&& src, s_string_pool&& pool) n
 	nesting_(0)
 {
 	validated_.reserve(64);
-	// skip any leading spaces if any
+	// skip any leading spaces
 	char c;
 	do {
 		c = next();
-	} while( is_whitespace(c) && !is_error() );
+	}
+	while( is_whitespace(c) && !is_error() );
 	// XML starting from some invalid value
-	if( io_unlikely( !cheq(c,LEFTB) ) ) {
+	if(!cheq(c,LEFTB)) {
 		assign_error(error::illegal_markup);
-	} else {
+	}
+	else {
 		sb_clear(scan_buf_);
 		scan_buf_[0] = '<';
 	}
@@ -305,7 +306,7 @@ inline void event_stream_parser::assign_error(error ec) noexcept
 __forceinline void event_stream_parser::putch(byte_buffer& buf, char ch) noexcept
 {
 	if( io_unlikely( !buf.put(ch) && ( !buf.ln_grow() || !buf.put(ch) ) ) )
-			assign_error(error::out_of_memory);
+		assign_error(error::out_of_memory);
 }
 
 // extract local name and namespace prefix if any
@@ -421,7 +422,8 @@ document_event event_stream_parser::parse_start_doc() noexcept
 	if( !is_one_of(sep,QNM,APH) ) {
 		assign_error(error::illegal_prologue);
 		return document_event();
-	} else
+	}
+	else
 		++i;
 	char *stop = tstrchr(i, sep);
 	if(nullptr == stop )  {
@@ -446,7 +448,8 @@ document_event event_stream_parser::parse_start_doc() noexcept
 		if( !is_one_of(sep,QNM,APH) ) {
 			assign_error(error::illegal_prologue);
 			return document_event();
-		} else
+		}
+		else
 			++i;
 		stop  = tstrchr( i, sep );
 		if(nullptr == stop ) {
@@ -469,7 +472,8 @@ document_event event_stream_parser::parse_start_doc() noexcept
 		if( !is_one_of(sep,QNM,APH) ) {
 			assign_error(error::illegal_prologue);
 			return document_event();
-		} else
+		}
+		else
 			++i;
 		stop  = tstrchr( i, sep );
 		if(nullptr == stop || (str_size(i,stop) > 3) ) {
@@ -639,7 +643,7 @@ byte_buffer event_stream_parser::read_until_double_separator(int separator,error
 
 const_string event_stream_parser::read_comment() noexcept
 {
-    check_state(state_type::comment, const_string)
+	check_state(state_type::comment, const_string)
 	byte_buffer tmp( read_until_double_separator(HYPHEN, error::illegal_commentary) );
 	if( tmp.empty() || 0 == io_strcmp("--", tmp.position().cdata() ) )
 		return  const_string();
@@ -656,9 +660,8 @@ const_string event_stream_parser::read_chars() noexcept
 		return const_string();
 	// just "\s<" in scan stack
 	if( 0 == io_memcmp( (scan_buf_+1),"<", 2)  ) {
-		char tmp[2] = { scan_buf_[0], '\0'};
-		sb_clear(scan_buf_);
-		scan_buf_[0] = '<';
+		static char tmp[2] = { *scan_buf_, '\0'};
+		io_memmove(scan_buf_, "<", 2);
 		return const_string(tmp);
 	}
 	char c;
@@ -675,8 +678,12 @@ const_string event_stream_parser::read_chars() noexcept
 			assign_error(error::root_element_is_unbalanced);
 			break;
 		default:
-			if( !ret.put(c) ) {
-				if( !ret.exp_grow() ) {
+			break;
+		}
+		if( io_unlikely( !ret.put(c) ) ) {
+			if( io_likely( ret.exp_grow() ) )
+				ret.put(c);
+			else {
 					reading = false;
 					assign_error(error::out_of_memory);
 				}  else {
@@ -688,13 +695,13 @@ const_string event_stream_parser::read_chars() noexcept
 	}
 	while( reading );
 
-	if( is_error() )
+	io_memmove(scan_buf_, "<", 2);
+
+	if( is_error() || ret.empty() )
 		return const_string();
 
-	sb_clear( scan_buf_ );
-	scan_buf_[0] = '<';
 	ret.flip();
-	return !ret.empty() ?  const_string( ret.position().cdata(), ret.length() ) : const_string();
+	return ret.empty() ? const_string() :  const_string( ret.position().cdata(), ret.length() );
 }
 
 void event_stream_parser::skip_chars() noexcept
@@ -748,8 +755,8 @@ attribute event_stream_parser::extract_attribute(const char* from, std::size_t& 
 	cached_string ln;
 	char *tmp = tstrchrn( start, COLON, str_size(start,i) );
 	if(nullptr != tmp) {
-        np = pool_->get( start,  str_size(start, tmp) );
-        start = tmp + 1;
+		np = pool_->get( start,  str_size(start, tmp) );
+		start = tmp + 1;
 	}
 	ln = pool_->get(start, str_size(start, i-1) );
 
@@ -763,18 +770,19 @@ attribute event_stream_parser::extract_attribute(const char* from, std::size_t& 
 		return attribute();
 	}
 	const std::size_t val_size = str_size(start,i);
-    const_string value;
+	const_string value;
 	if( val_size > 0) {
 		char* val = nullptr;
-        if( io_likely(val_size <= HUGE_BUFF_SIZE) ) {
+		if( io_likely(val_size <= HUGE_BUFF_SIZE) ) {
 			val = static_cast<char*>( io_alloca(val_size+1) );
 			val[val_size] = '\0';
-		} else {
-            val = memory_traits::calloc_temporary<char>( val_size+1 );
-            if( io_unlikely(nullptr == val) ) {
+		}
+		else {
+			val = memory_traits::calloc_temporary<char>( val_size+1 );
+			if( io_unlikely(nullptr == val) ) {
 				assign_error(error::out_of_memory);
 				return attribute();
-            }
+			}
 		}
 		// normalize attribute value
 		char *v = val;
@@ -847,8 +855,8 @@ start_element_event event_stream_parser::parse_start_element() noexcept
 		while(offset != 0) {
 			qname attr_name = attr.name();
 			if( ( attr_name.has_prefix() && !validate_xml_name(attr_name.prefix(), true) )
-				||
-				  !validate_xml_name( attr.name().local_name(), true )
+					||
+					!validate_xml_name( attr.name().local_name(), true )
 			  ) {
 				assign_error( error::illegal_attribute );
 				return start_element_event();

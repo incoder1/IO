@@ -18,9 +18,10 @@
 
 
 #include <stdint.h>
-#include <limits>
 #include <cstdlib>
 #include <ctime>
+
+#include <limits>
 
 
 namespace io {
@@ -35,9 +36,9 @@ struct int_limits<uint8_t> {
 #ifdef __GNUG__
     static constexpr const uint8_t max = __UINT8_MAX__;
 #else
-	static constexpr const uint8_t max = UCHAR_MAX;
+	static constexpr const uint8_t max = std::numeric_limits<uint8_t>::max();
 #endif
-	static constexpr const uint8_t max_str_len = 4;
+	static constexpr const uint8_t max_str_len = std::numeric_limits<uint8_t>::digits + 1;
 };
 
 template<>
@@ -46,10 +47,10 @@ struct int_limits<int8_t> {
 	static constexpr const int8_t min = static_cast<int8_t>(-__INT8_MAX__ - 1);
 	static constexpr const int8_t max = __INT8_MAX__;
 #else
-	static constexpr const int8_t min = SCHAR_MIN;
-	static constexpr const int8_t max = SCHAR_MAX;
+	static constexpr const int8_t min = std::numeric_limits<int8_t>::min();
+	static constexpr const int8_t max = std::numeric_limits<int8_t>::max();
 #endif // __GNUG__
-	static constexpr const uint8_t max_str_len = 5;
+	static constexpr const uint8_t max_str_len = std::numeric_limits<uint8_t>::digits + 2;
 };
 
 template<>
@@ -58,9 +59,9 @@ struct int_limits<uint16_t> {
 #ifdef __GNUG__
     static constexpr const uint16_t max = __UINT16_MAX__;
 #else
-	static constexpr const uint16_t max = USHRT_MAX;
+	static constexpr const uint16_t max = std::numeric_limits<uint16_t>::max();
 #endif // __GNUG__
-	static constexpr const uint8_t max_str_len = 6;
+	static constexpr const uint8_t max_str_len = std::numeric_limits<uint16_t>::digits;
 };
 
 template<>
@@ -106,10 +107,10 @@ struct int_limits<uint64_t> {
 	static constexpr const uint64_t min = 0ULL;
 	static constexpr const uint64_t max = __UINT64_MAX__;
 #else
-	static constexpr const uint64_t min = 0;
-	static constexpr const uint64_t max = ULLONG_MAX;
+	static constexpr const uint64_t min = std::numeric_limits<uint64_t>::min();
+	static constexpr const uint64_t max = std::numeric_limits<uint64_t>::max();
 #endif // __GNUG__
-	static constexpr const uint8_t max_str_len = 21;
+	static constexpr const uint8_t max_str_len = std::numeric_limits<int64_t>::digits + 1;
 };
 
 template<>
@@ -117,17 +118,11 @@ struct int_limits<int64_t> {
 #ifdef __GNUG__
 	static constexpr const uint64_t min = static_cast<uint64_t>(-__INT64_MAX__ - 1);
 	static constexpr const uint64_t max = __INT64_MAX__;
-#elif defined(LLONG_MIN) && defined(LLONG_MAX)
-	static constexpr const uint64_t min = LLONG_MIN;
-	static constexpr const uint64_t max = LLONG_MAX;
-#elif defined(_I64_MIN) && defined(_I64_MAX)
-	static constexpr const uint64_t min = LLONG_MIN;
-	static constexpr const uint64_t max = LLONG_MAX;
 #else
-	static constexpr const uint64_t min = -9223372036854775808LL;
-	static constexpr const uint64_t max = 9223372036854775807LL;
+	static constexpr const uint64_t min = std::numeric_limits<int64_t>::min();
+	static constexpr const uint64_t max = std::numeric_limits<int64_t>::max();
 #endif // defined
-	static constexpr const uint8_t  max_str_len = 22;
+	static constexpr const uint8_t  max_str_len = std::numeric_limits<int64_t>::digits + 2;
 };
 
 template<typename _char_t>
@@ -414,10 +409,10 @@ private:
 	// Replace this if CPU not supporting native div/mod
 	// and/or complier shows bad optimization results
 	// optimize with -O3 shows best results
-	static inline uint_fast8_t divmod(int_type& n,uint_fast8_t radix) noexcept
+	static inline uint_fast8_t divmod(int_type& n) noexcept
 	{
-		uint_fast8_t rem = my_abs( uint_fast8_t(n % radix) );
-		n /= static_cast<int_type>(radix);
+		uint_fast8_t rem = my_abs( uint_fast8_t(n % RADIX10) );
+		n /= RADIX10;
 		return rem;
 	}
 	static const char_type* format_a(int_type value,char_type* to) noexcept
@@ -428,7 +423,7 @@ private:
 		*s = char_traits::to_char_type(0);
 		std::size_t len = need_msgn ? 2 : 1;
 		do {
-			*(--s) =  ctraits::zerro_char +  divmod(value,RADIX10);
+			*(--s) =  ctraits::zerro_char +  divmod(value);
 			++len;
 		} while(0 != value);
 		if(need_msgn) *(--s) = ctraits::minus_char;
@@ -619,7 +614,10 @@ public:
 	}
 
 	static inline bool str_to_boolean(const char_type* from) noexcept {
-		return 0 == char_traits::compare(from, strings_traits::true_str, 5);
+		char_type tmp[5];
+		for(uint8_t i; i < 5; i++)
+			tmp[i] = char_traits::to_char_type( io_tolower( char_traits::to_int_type(from[i] ) ) );
+		return 0 == char_traits::compare(tmp, strings_traits::true_str, 5);
 	}
 
 };

@@ -15,6 +15,9 @@ namespace io {
 
 namespace xml {
 
+// attribute
+attribute::~attribute() noexcept
+{}
 
 //start_element_event
 start_element_event::start_element_event() noexcept:

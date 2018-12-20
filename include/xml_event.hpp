@@ -157,7 +157,7 @@ public:
 	attribute& operator=(const attribute&) noexcept = default;
 	attribute(attribute&&) noexcept = default;
 	attribute& operator=(attribute&&) noexcept = default;
-	~attribute() noexcept = default;
+	~attribute() noexcept;
 
 	constexpr attribute() noexcept:
 		name_(),
