@@ -68,14 +68,27 @@ enum class write_open_mode: ::DWORD
 /// \brief File system file operations interface, windows implementation
 class IO_PUBLIC_SYMBOL file
 {
-	file(const file&) = delete;
-	file& operator=(const file&) = delete;
-	file() = delete;
+private:
+
+	static void posix_to_windows(wchar_t* path) noexcept;
+
 public:
 
 	explicit file(const char* name) noexcept;
 
 	explicit file(const wchar_t* name) noexcept;
+
+	file(const file& c):
+		 name_( c.name_.len() )
+	{
+		io_memmove( name_.get(), c.name_.get(), c.name_.len() );
+	}
+
+	file& operator=(const file& rhs)
+	{
+		file( rhs ).swap( *this );
+		return *this;
+	}
 
 	file(file&& oth) noexcept:
 		name_( std::move(oth.name_) )
@@ -110,24 +123,7 @@ public:
     std::size_t size() const noexcept;
 
 	/// Returns UTF-8 encoded file path
-	IO_NO_INLINE std::string path() const {
-		int asize = ::WideCharToMultiByte(
-							CP_UTF8, 0,
-							name_.get(), name_.len()-1,
-							nullptr, 0,
-							nullptr, nullptr);
-		if(asize) {
-            char* ret = static_cast<char*>( io_alloca(asize) );
-            io_zerro_mem(ret, asize);
-            ::WideCharToMultiByte(
-							CP_UTF8, 0,
-							name_.get(), name_.len()-1,
-							ret, asize,
-							nullptr, nullptr);
-			return std::string(ret, ret + asize);
-		}
-		return std::string();
-	}
+	std::string path() const;
 
 	/// Opens blocking read channel from this file
 	/// \param ec

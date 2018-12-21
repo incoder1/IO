@@ -92,12 +92,23 @@ enum class write_open_mode
 /// \brief File system file operations interface, POSIX implementation
 class IO_PUBLIC_SYMBOL file
 {
-
 public:
 
 	explicit file(const char* name) noexcept;
 
 	explicit file(const wchar_t* name) noexcept;
+
+	file(const file& c):
+		 name_( c.name_.len() )
+	{
+		io_memmove( name_.get(), c.name_.get(), c.name_.len() );
+	}
+
+	file& operator=(const file& rhs)
+	{
+		file( rhs ).swap( *this );
+		return *this;
+	}
 
     file(file&& oth) noexcept:
 		name_( std::move(oth.name_) )

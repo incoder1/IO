@@ -1,12 +1,13 @@
 #include "stdafx.hpp"
 #include "image.hpp"
 
-#include <png.h>
-#include <memory>
-
 #ifdef _OPENMP
 #	include <omp.h>
 #endif
+
+#include <cstring>
+#include <memory>
+#include <png.h>
 
 namespace engine {
 
