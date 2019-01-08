@@ -56,8 +56,8 @@ public:
 	}
 
 	scoped_arr(const T* arr, const std::size_t len) noexcept:
-        mem_(nullptr),
         len_(len),
+        mem_(nullptr),
         rf_(
             [] (T* const px) {
                 delete [] px;

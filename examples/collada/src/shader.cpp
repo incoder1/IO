@@ -87,9 +87,9 @@ shader::~shader() noexcept
 s_program program::create(shader&& vertex, shader&& fragment)
 {
 	if(shader_type::vertex != vertex.type() )
-		throw std::runtime_error("vertex is not GL_VERTEX_SHADER");
+		throw std::invalid_argument("vertex is not GL_VERTEX_SHADER");
 	if(shader_type::fragment != fragment.type())
-		throw std::runtime_error("fragment is not GL_FRAGMENT_SHADER");
+		throw std::invalid_argument("fragment is not GL_FRAGMENT_SHADER");
 	return s_program( new program( std::forward<shader>(vertex), std::forward<shader>(fragment) ) );
 }
 
@@ -104,18 +104,15 @@ program::program(shader&& vertex, shader&& fragment):
 
 program::~program() noexcept
 {
-	std::for_each(shaders_.begin(), shaders_.end(), [this] (const shader& sh) {
-		::glDetachShader(hprg_, sh.handle() );
-	} );
 	::glDeleteProgram(hprg_);
 }
 
 void program::attach_shader(shader&& sh)
 {
 	if( shader_type::vertex == sh.type() )
-		throw std::runtime_error("Can not attach GL_VERTEX_SHADER");
+		throw std::invalid_argument("Can not attach GL_VERTEX_SHADER");
 	if(shader_type::fragment == sh.type())
-		throw std::runtime_error("Can not attach GL_FRAGMENT_SHADER");
+		throw std::invalid_argument("Can not attach GL_FRAGMENT_SHADER");
 	shaders_.emplace_back( std::move(sh) );
 }
 
@@ -126,6 +123,9 @@ void program::link()
 	} );
 	// TODO: make error handling generic
 	::glLinkProgram(hprg_);
+	std::for_each(shaders_.begin(), shaders_.end(), [this] (const shader& sh) {
+		::glDetachShader(hprg_, sh.handle() );
+	} );
 	::GLint errc = GL_FALSE;
 	::glGetProgramiv(hprg_, GL_LINK_STATUS, &errc );
 	if( GL_TRUE != errc) {
