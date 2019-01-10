@@ -33,7 +33,7 @@
 				<Option object_output="obj/release-win-gcc-x64/" />
 				<Option type="1" />
 				<Option compiler="gcc" />
-				<Option parameters="d:\temp\dae\Five_Wheeler.dae " />
+				<Option parameters="test.xml" />
 				<Compiler>
 					<Add option="-flto" />
 					<Add option="-Weffc++" />
@@ -50,8 +50,11 @@
 				<Linker>
 					<Add option="-O3" />
 					<Add option="-flto" />
-					<Add option="-fno-set-stack-executable" />
+					<Add option="-s" />
 					<Add option="-mtune=native" />
+					<Add option="-fwhole-program" />
+					<Add option="-minline-stringops-dynamically" />
+					<Add option="-fno-set-stack-executable" />
 					<Add library="iconv.dll" />
 					<Add directory="../../bin/release-win-gcc-dll-x64" />
 				</Linker>

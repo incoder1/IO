@@ -34,14 +34,14 @@ EXEC_EXT=
 
 INCLUEDS?=-I../../include
 MMX_AND_SSE?= -mmmx -msse -msse2 -mssse3 -msse3 -msse4 -mavx
-OPTIMIZE?=-mtune=generic -O3 -fno-exceptions -fno-rtti -minline-stringops-dynamically -fdeclone-ctor-dtor -fdevirtualize-at-ltrans -mmovbe $(MMX_AND_SSE)
+OPTIMIZE?=-mtune=generic -fwhole-program -O3 -s -fno-exceptions -fno-rtti -minline-stringops-dynamically -fdeclone-ctor-dtor -fdevirtualize-at-ltrans -mmovbe $(MMX_AND_SSE)
 DEFINES ?= -DNDEBUG
 # Comment next line for standalone windows app, which can be run without MSYS2 
 DEFINES := $(DEFINES) -DUNICODE 
 # Uncomment next line for Unix
 DEFINES := $(DEFINES) -DIO_SHARED_LIB
-CPPFLAGS?= -std=gnu++14 -fno-exceptions -fno-rtti -Winline -pedantic $(OPTIMIZE) $(INCLUEDS) $(DEFINES)
-LDFLAGS?= -L$(LIBDIR) $(LIBS) -s
+CPPFLAGS?= -std=gnu++14 -llto -fno-exceptions -fno-rtti -Winline -pedantic $(INCLUEDS) $(DEFINES)
+LDFLAGS?= -L$(LIBDIR) $(LIBS) -llto $(OPTIMIZE)
 
 
  
