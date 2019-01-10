@@ -20,7 +20,7 @@ MMX_AND_SSE?= -mmmx -msse -msse2 -mssse3 -msse3 -msse4 -mavx -mavx2
 OPTIMIZE?=-mtune=generic -O3 -fno-exceptions -fno-rtti -minline-stringops-dynamically -fdeclone-ctor-dtor -fdevirtualize-at-ltrans -mmovbe $(MMX_AND_SSE)
 SHARED-DEFINES?= -DIO_SHARED_LIB -DIO_BUILD
 DEFINES ?= -DNDEBUG $(SHARED-DEFINES) -DIO_TLS_PROVIDER_GNUTLS
-CPPFLAGS?= -std=gnu++14 -fno-exceptions -fno-rtti -Winline -pedantic -flto -Wl,-allow-multiple-definition $(INCLUEDS)
+CPPFLAGS?= -std=gnu++17 -fno-exceptions -fno-rtti -Winline -pedantic -flto -Wl,-allow-multiple-definition $(INCLUEDS)
 LDFLAGS?= -fno-exceptions -fno-rtti -flto -Wl,-allow-multiple-definition $(OPTIMIZE) -fvisibility=hidden $(LIBS) -s
 
 MODULES=. win net

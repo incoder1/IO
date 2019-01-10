@@ -11,6 +11,8 @@
 #include "stdafx.hpp"
 #include "files.hpp"
 
+#include <cwctype>
+
 namespace io {
 
 namespace win {
