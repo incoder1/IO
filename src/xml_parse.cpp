@@ -669,11 +669,8 @@ const_string event_stream_parser::read_chars() noexcept
 			assign_error(error::root_element_is_unbalanced);
 			break;
 		default:
-			if( io_unlikely( !ret.put(c) && (!ret.exp_grow() || !ret.put(c) ) ) ) {
-		if( io_unlikely( !ret.put(c) ) ) {
-			if( io_likely( ret.exp_grow() ) )
-				ret.put(c);
-			else {
+			if( !ret.put(c) ) {
+				if( io_unlikely( ret.exp_grow() ) ) {
 					reading = false;
 					assign_error(error::out_of_memory);
 				}  else {

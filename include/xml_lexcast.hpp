@@ -615,7 +615,7 @@ public:
 
 	static inline bool str_to_boolean(const char_type* from) noexcept {
 		char_type tmp[5];
-		for(uint8_t i; i < 5; i++)
+		for(uint8_t i=0; i < 5; i++)
 			tmp[i] = char_traits::to_char_type( io_tolower( char_traits::to_int_type(from[i] ) ) );
 		return 0 == char_traits::compare(tmp, strings_traits::true_str, 5);
 	}

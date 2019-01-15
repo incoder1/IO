@@ -161,7 +161,7 @@
 					<Add option="-fno-rtti" />
 					<Add option="-DNDEBUG" />
 					<Add option="-DIO_SHARED_LIB" />
-					<Add option="-DIO_TLS_PROVIDER_GNUTSL" />
+					<Add option="-DIO_TLS_PROVIDER_GNUTLS" />
 					<Add directory="include" />
 					<Add directory="include/net" />
 					<Add directory="include/win" />
