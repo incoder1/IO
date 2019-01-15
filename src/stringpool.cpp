@@ -59,8 +59,8 @@ bool cached_string::blank() const noexcept
 // string_pool
 s_string_pool string_pool::create(std::error_code& ec) noexcept
 {
-	string_pool* result = new (std::nothrow) string_pool();
-	return nullptr != result ? s_string_pool(result) : s_string_pool();
+    string_pool* result = new (std::nothrow) string_pool();
+    return nullptr != result ? s_string_pool(result) : s_string_pool();
 }
 
 string_pool::string_pool() noexcept:
@@ -93,7 +93,7 @@ const cached_string string_pool::get(const char* s, std::size_t count) noexcept
 #ifndef IO_NO_EXCEPTIONS
     try {
         std::pair<pool_type::iterator,bool> ret = pool_.emplace( str_hash, cached_string(s, count) );
-		return io_likely(ret.second) ? ret.first->second : cached_string(s, count);
+        return ret.second ? ret.first->second : cached_string(s, count);
     }
     catch(...) {
         return cached_string(s, count);
