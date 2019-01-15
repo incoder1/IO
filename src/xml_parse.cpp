@@ -258,7 +258,7 @@ s_event_stream_parser event_stream_parser::open(std::error_code& ec,s_source&& s
 	s_string_pool pool = string_pool::create(ec);
 	if(!pool)
 		return s_event_stream_parser();
-	return s_event_stream_parser( nobadalloc<event_stream_parser>::construct( ec, src, std::move(pool) ) );
+	return s_event_stream_parser( nobadalloc<event_stream_parser>::construct( ec, std::move(src), std::move(pool) ) );
 }
 
 s_event_stream_parser event_stream_parser::open(std::error_code& ec,s_read_channel&& src) noexcept
@@ -267,9 +267,9 @@ s_event_stream_parser event_stream_parser::open(std::error_code& ec,s_read_chann
 	return !ec ? open(ec, std::move(xmlsrc) ) : s_event_stream_parser();
 }
 
-event_stream_parser::event_stream_parser(const s_source& src, s_string_pool&& pool) noexcept:
+event_stream_parser::event_stream_parser(s_source&& src, s_string_pool&& pool) noexcept:
 	object(),
-	src_(src),
+	src_( std::forward<s_source>(src) ),
 	state_(),
 	current_(event_type::start_document),
 	pool_(std::forward<s_string_pool>(pool)),
@@ -277,15 +277,19 @@ event_stream_parser::event_stream_parser(const s_source& src, s_string_pool&& po
 	nesting_(0)
 {
 	validated_.reserve(64);
+
 	// skip any leading spaces if any
-		if( io_unlikely(!is_whitespace(c)) ) {
-	while( is_whitespace(c) && !is_error() );
+	char c;
+	do {
+		c = next();
+	} while( is_whitespace(c) && !is_error() );
+
 	if( io_unlikely( !cheq(c,LEFTB) ) ) {
-			assign_error(error::illegal_markup);
+		assign_error(error::illegal_markup);
 	} else {
+		sb_clear(scan_buf_);
+		scan_buf_[0] = '<';
 	}
-	sb_clear(scan_buf_);
-	scan_buf_[0] = '<';
 }
 
 event_stream_parser::~event_stream_parser() noexcept
@@ -670,7 +674,7 @@ const_string event_stream_parser::read_chars() noexcept
 			break;
 		default:
 			if( !ret.put(c) ) {
-				if( io_unlikely( ret.exp_grow() ) ) {
+				if( io_unlikely( !ret.exp_grow() ) ) {
 					reading = false;
 					assign_error(error::out_of_memory);
 				}  else {

@@ -33,7 +33,7 @@
 				<Option object_output="obj/release-win-gcc-x64/" />
 				<Option type="1" />
 				<Option compiler="gcc" />
-				<Option parameters="d:\temp\dae\Five_Wheeler.dae " />
+				<Option parameters="test.xml" />
 				<Compiler>
 					<Add option="-flto" />
 					<Add option="-Weffc++" />
@@ -94,6 +94,7 @@
 			<envvars />
 			<debugger />
 			<lib_finder disable_auto="1" />
+			<fortran_project />
 		</Extensions>
 	</Project>
 </CodeBlocks_project_file>
