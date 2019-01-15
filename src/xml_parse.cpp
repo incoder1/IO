@@ -667,9 +667,14 @@ const_string event_stream_parser::read_chars() noexcept
 			assign_error(error::root_element_is_unbalanced);
 			break;
 		default:
-			if( io_unlikely( !ret.put(c) && (!ret.exp_grow() || !ret.put(c) ) ) ) {
-				reading = false;
-				assign_error(error::out_of_memory);
+			if( !ret.put(c) ) {
+				if( !ret.exp_grow() ) {
+					reading = false;
+					assign_error(error::out_of_memory);
+				}  else {
+					ret.put(c);
+				}
+				break;
 			}
 		}
 	}
@@ -681,7 +686,7 @@ const_string event_stream_parser::read_chars() noexcept
 	sb_clear( scan_buf_ );
 	scan_buf_[0] = '<';
 	ret.flip();
-	return ret.empty() ? const_string() :  const_string( ret.position().cdata(), ret.length() );
+	return !ret.empty() ?  const_string( ret.position().cdata(), ret.length() ) : const_string();
 }
 
 void event_stream_parser::skip_chars() noexcept

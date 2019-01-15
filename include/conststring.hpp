@@ -137,11 +137,10 @@ public:
 	/// Checks whether this string empty or contains only whitespace characters
 	/// \return whether this string is blank
 	inline bool blank() const noexcept {
-		if( !empty() ) {
-			const char *c = data();
-			while( !io_isspace( traits_type::to_int_type( *c ) ) )
-				++c;
-			return '\0' != *c;
+		if( nullptr != data_ ) {
+			char *c;
+			for(c = const_cast<char*>( data() ); io_isspace(*c); c++);
+			return '\0' == *c;
 		}
 		return true;
 	}

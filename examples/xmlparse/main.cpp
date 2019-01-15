@@ -147,8 +147,9 @@ static void print_xml_characters(std::ostream& strm,const xml::s_event_stream_pa
 	const_string chars = s->read_chars();
 	// avoid login a between tag separators like spaces and line endings
     // parser not allowed to ignore such chars according to W3C standard
-	if( !s->is_error() && !chars.blank() )
+	if( !chars.blank() ) {
 		log_chars(strm, "Characters: ", chars);
+	}
 }
 
 #ifdef IO_NO_EXCEPTIONS
