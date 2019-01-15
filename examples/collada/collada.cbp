@@ -107,6 +107,8 @@
 		<Unit filename="include/parser.hpp" />
 		<Unit filename="include/scene.hpp" />
 		<Unit filename="include/shader.hpp" />
+		<Unit filename="include/static_mesh.hpp" />
+		<Unit filename="include/surface.hpp" />
 		<Unit filename="include/texture.hpp" />
 		<Unit filename="include/vbo.hpp" />
 		<Unit filename="include/view.hpp" />
@@ -123,10 +125,12 @@
 		<Unit filename="src/parser.cpp" />
 		<Unit filename="src/scene.cpp" />
 		<Unit filename="src/shader.cpp" />
+		<Unit filename="src/static_mesh.cpp" />
 		<Unit filename="src/stdafx.hpp">
 			<Option compile="1" />
 			<Option weight="0" />
 		</Unit>
+		<Unit filename="src/surface.cpp" />
 		<Unit filename="src/texture.cpp" />
 		<Unit filename="src/vbo.cpp" />
 		<Unit filename="src/view.cpp" />

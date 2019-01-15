@@ -44,6 +44,7 @@ frame_view::frame_view(unsigned int widht, unsigned int height,const char* title
 	::glewInit();
 	::glfwSwapInterval(1);
 
+	// Init OpenGL
 	::glShadeModel(GL_FLAT);
 	::glEnable(GL_CULL_FACE);
 	::glCullFace(GL_BACK);
@@ -58,9 +59,11 @@ frame_view::frame_view(unsigned int widht, unsigned int height,const char* title
 
 	// set up callbacks
 
+	// to convert mouse offset into radians angles
 	static constexpr const float TWO_PI = 3.14159265358979323846 * 2;
+										  3,142857142857143
 
-	// mouse motion
+	// mouse motion, rotate model on mouse movement
 	::glfwSetCursorPosCallback(frame_, []
 	(::GLFWwindow *wnd,double xpos, double ypos) {
 		frame_view *self = static_cast<frame_view*>( ::glfwGetWindowUserPointer(wnd) );
@@ -74,7 +77,7 @@ frame_view::frame_view(unsigned int widht, unsigned int height,const char* title
 		self->mouse_prev_y_ = ypos;
 	} );
 
-	// mouse scroll
+	// mouse scroll, move model to scroll
 	::glfwSetScrollCallback(frame_, [] (::GLFWwindow *wnd, double xoffset, double yoffset) {
 		frame_view *self = static_cast<frame_view*>( ::glfwGetWindowUserPointer(wnd) );
 		self->zoom_ += static_cast<float>(yoffset);

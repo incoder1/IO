@@ -1,10 +1,13 @@
 #include "stdafx.hpp"
+
 #include "view.hpp"
 #include "image.hpp"
 #include "files.hpp"
 
-#include <iostream>
+#include "model.hpp"
+#include "static_mesh.hpp"
 
+#include <iostream>
 
 static const float COLORED_QUBE_VERTEX[216] = {
 	// Coordinate  | Color | Normal
@@ -180,8 +183,7 @@ int main(int argc, const char** argv)
 			view.show( mdl );
 
 			return 0;
-		}
-		catch(std::exception& exc) {
+		} catch(std::exception& exc) {
 			std::cerr<< exc.what() << std::endl;
 		}
 		::glfwTerminate();

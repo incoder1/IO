@@ -15,6 +15,7 @@ inline void intrusive_ptr_release(::IUnknown* const obj) noexcept
 	obj->Release();
 }
 
+
 namespace engine {
 
 // COM
@@ -34,6 +35,7 @@ public:
 private:
 	bool initialized_;
 };
+
 
 // read_stream
 class read_stream final: public ::IStream {
@@ -268,7 +270,10 @@ static s_IWICBitmapLock bitmap_lock(const s_IWICBitmap& bitmap, ::WICRect& rc_lo
 }
 
 static io::scoped_arr<uint8_t> decode_image(const s_IStream& stream, unsigned int& w, unsigned int& h, bool alpha) {
-	static thread_local COM ms_com_guard;
+
+	// CoInitializeEx should be called for each thread
+	static thread_local COM __ms_com_guard;
+
 	s_IWICImagingFactory imgFactory = create_image_factory();
 	s_IWICBitmapDecoder decoder = create_bitmap_decoder(imgFactory, stream);
 	s_IWICFormatConverter converter = create_format_converter(imgFactory, decoder, alpha);

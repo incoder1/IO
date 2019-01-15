@@ -9,5 +9,7 @@
 #include <object.hpp>
 #include <buffer.hpp>
 #include "openglload.hpp"
+#include <glm/mat4x4.hpp>
+#include <glm/gtc/type_ptr.hpp>
 
 #endif // ___STDAFX_HPP__INCLUDED__
