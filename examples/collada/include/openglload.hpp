@@ -14,6 +14,7 @@
       && !defined(__APPLE__)
 #include <GL/glew.h>
 #include <GL/glxew.h>
+#define GLFW_INCLUDE_NONE
 #endif // UNIX not MacOS X
 
 #ifdef __APPLE__

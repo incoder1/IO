@@ -4,9 +4,10 @@
 	<Project>
 		<Option title="collada" />
 		<Option compiler="gcc" />
-		<Option virtualFolders="src\;" />
+		<Option virtualFolders="src/;" />
 		<Build>
 			<Target title="debug-gcc-win64">
+				<Option platforms="Windows;" />
 				<Option output="bin/debug-gcc-win64/collada" prefix_auto="1" extension_auto="1" />
 				<Option object_output="obj/debug-gcc-win64/" />
 				<Option type="1" />
@@ -35,6 +36,7 @@
 				</Linker>
 			</Target>
 			<Target title="release-gcc-win64">
+				<Option platforms="Windows;" />
 				<Option output="bin/release-gcc-win64/collada" prefix_auto="1" extension_auto="1" />
 				<Option object_output="obj/release-gcc-win64/" />
 				<Option type="0" />
@@ -70,21 +72,28 @@
 				</Linker>
 			</Target>
 			<Target title="debug-gcc-unx-x86_64">
-				<Option platforms="Unix;Mac;" />
-				<Option output="collada" prefix_auto="1" extension_auto="1" />
+				<Option platforms="Unix;" />
+				<Option output="bin/debug-gcc-unx-x86_64/collada/collada" prefix_auto="1" extension_auto="1" />
 				<Option object_output="bin/debug-gcc-unx-x86_64/collada" />
 				<Option type="1" />
 				<Option compiler="gcc" />
 				<Option use_console_runner="0" />
 				<Compiler>
+					<Add option="-pg" />
+					<Add option="-g" />
 					<Add option="`pkg-config glew --cflags`" />
 					<Add option="`pkg-config --cflags glfw3`" />
+					<Add option="-std=gnu++14" />
+					<Add option="-mavx2" />
+					<Add option="-ffast-math" />
 					<Add directory="include" />
 				</Compiler>
 				<Linker>
+					<Add option="-pg" />
 					<Add option="`pkg-config glew --libs`" />
 					<Add option="`pkg-config  --libs glfw3`" />
 					<Add library="png" />
+					<Add library="GL" />
 					<Add directory="../../bin/debug-unix-gcc-x86_64" />
 				</Linker>
 			</Target>

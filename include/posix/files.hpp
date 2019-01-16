@@ -123,6 +123,10 @@ public:
 
 	~file() noexcept = default;
 
+    inline void swap(file& oth) noexcept {
+		name_.swap( oth.name_ );
+	}
+
 	/// Returns true when file with this path exist
 	/// \return whether file exist
 	bool exist() const noexcept;
