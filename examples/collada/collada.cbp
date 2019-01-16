@@ -41,9 +41,9 @@
 				<Option compiler="gcc" />
 				<Compiler>
 					<Add option="-flto" />
-					<Add option="-fno-rtti" />
 					<Add option="-std=c++17" />
 					<Add option="-fopenmp" />
+					<Add option="-fno-rtti" />
 					<Add option="-D_WIN32_WINNT=0x0600" />
 					<Add option="-DIO_SHARED_LIB" />
 					<Add option="-DNDEBUG" />
@@ -54,7 +54,6 @@
 				<Linker>
 					<Add option="-O3" />
 					<Add option="-flto" />
-					<Add option="-s" />
 					<Add option="-fdeclone-ctor-dtor" />
 					<Add option="-fdevirtualize-at-ltrans" />
 					<Add option="-Wl,-allow-multiple-definition" />
@@ -103,6 +102,7 @@
 			<Option virtualFolder="src/" />
 		</Unit>
 		<Unit filename="include/model.hpp" />
+		<Unit filename="include/nurb.hpp" />
 		<Unit filename="include/openglload.hpp" />
 		<Unit filename="include/parser.hpp" />
 		<Unit filename="include/scene.hpp" />
@@ -122,6 +122,7 @@
 		<Unit filename="src/image.cpp" />
 		<Unit filename="src/main.cpp" />
 		<Unit filename="src/model.cpp" />
+		<Unit filename="src/nurb.cpp" />
 		<Unit filename="src/parser.cpp" />
 		<Unit filename="src/scene.cpp" />
 		<Unit filename="src/shader.cpp" />

@@ -53,7 +53,7 @@
 #define IO_IS_LITTLE_ENDIAN 1
 
 #if defined(_M_IX86) || defined(_M_AMD64)
-#	define IO_CPU_INTEL
+#	define IO_CPU_INTEL 1
 #endif
 
 #if defined(_M_X64) || defined(_M_AMD64) || defined(_M_ARM64) || defined(_WIN64)
@@ -131,51 +131,64 @@
 #define io_unlikely(__expr__) !!(__expr__)
 #define io_unreachable __assume(0);
 
-#ifdef IO_CPU_INTEL
+// Intel intrinsic
+#if defined(_M_IX86) || defined(_M_AMD64)
 
-#pragma intrinsic(__lzcnt, _bittest)
+	#pragma intrinsic(__lzcnt, _bittest)
 
-#define io_clz(__x) __lzcnt((__x))
+	__forceinline int io_clz(unsigned int x)
+	{
+			return static_cast<int>( __lzcnt(x) );
+	}
 
-#else // non intel impl
+#	ifdef IO_CPU_BITS_64
+#		pragma intrinsic(__lzcnt64)
+		__forceinline int io_size_t_clz(unsigned __int64 x)
+		{
+			return static_cast<int>( __lzcnt64(x) );
+		} 
+#	else
 	
-#pragma intrinsic(_BitScanReverse)
+	__forceinline int io_size_t_clz(unsigned int x)
+	{
+			return static_cast<int>( __lzcnt(x) );
+	}
+	
+#	endif
 
+#endif
 
-#include <BaseTsd.h>
-typedef SSIZE_T ssize_t;
+// ARM/ARM 64
+#if defined(_M_ARM) || defined(_M_ARM64)
 
-__forceinline int io_clz(unsigned long x )
-{
-	unsigned long ret = 0;
-	_BitScanReverse(&ret, x);
-	return  static_cast<int>(ret);
-}
+	#pragma intrinsic(_BitScanReverse)
 
-#endif // Non intel impl
-
-#ifdef IO_CPU_BITS_64
-
-#	pragma intrinsic(_BitScanForward64)
-
-__forceinline int io_ctz(unsigned __int64 x)
-{
-	unsigned long ret = 0;
-	_BitScanForward64(&ret, x);
-	return  static_cast<int>(ret);
-}
-#else // 32 bit
-
-#	pragma intrinsic(__BitScanForward)
-
-__forceinline int io_ctz(unsigned long x )
-{
-	unsigned long long ret = 0;
-	_BitScanForward(&ret, x);
-	return  static_cast<int>(ret);
-}
-
-#endif // io_ctz
+	__forceinline int io_clz(unsigned long x)
+	{
+		unsigned long ret = 0;
+		_BitScanReverse(&ret, x);
+		return  static_cast<int>(ret);
+	}
+	
+	// ARM64
+#	ifdef IO_CPU_BITS_64
+#		pragma intrinsic(_BitScanReverse64)
+		__forceinline int io_size_t_clz(unsigned __int64 x)
+		{
+			unsigned long ret = 0;
+			_BitScanReverse64(&ret, x);
+			return static_cast<int>(ret);
+		}
+	// ARM32
+	#else 
+		__forceinline int io_size_t_clz(unsigned __int64 x)
+		{
+			unsigned long ret = 0;
+			_BitScanReverse(&ret, x);
+			return  static_cast<int>(ret);
+		}
+#	endif // ARM32 
+#endif // ARM bits instructions
 
 namespace io {
 namespace detail {

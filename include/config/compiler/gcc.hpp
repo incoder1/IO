@@ -105,9 +105,9 @@
 #define io_clz(__x) __builtin_clz((__x))
 
 #ifdef __LP64__
-#	define io_ctz(__x) __builtin_ctzll((__x))
+#	define io_size_t_clz(__x) __builtin_clzll((__x))
 #else
-#	define io_ctz(__x) __builtin_ctzl((__x))
+#	define io_size_t_clz(__x) __builtin_clzl((__x))
 #endif // __LP64__
 
 #ifndef __MINGW32__

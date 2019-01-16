@@ -61,7 +61,6 @@ frame_view::frame_view(unsigned int widht, unsigned int height,const char* title
 
 	// to convert mouse offset into radians angles
 	static constexpr const float TWO_PI = 3.14159265358979323846 * 2;
-										  3,142857142857143
 
 	// mouse motion, rotate model on mouse movement
 	::glfwSetCursorPosCallback(frame_, []

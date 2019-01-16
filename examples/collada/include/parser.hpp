@@ -14,6 +14,14 @@ enum class up_direction_type {
 };
 
 
+struct float_array
+{
+	io::const_string id;
+	io::const_string name;
+	io::scoped_arr<float> data;
+};
+
+
 struct asset_info {
 	float unit_size;
 	up_direction_type up_direction;
@@ -28,9 +36,6 @@ struct mesh {
 	io::scoped_arr<float> vertex;
 };
 
-struct spline
-{
-};
 
 struct geometry
 {

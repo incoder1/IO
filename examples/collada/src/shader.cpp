@@ -8,18 +8,17 @@ shader shader::load(shader_type type, const io::s_read_channel& src)
 {
 
 	std::error_code ec;
-	std::size_t chunk = 8;
-	io::byte_buffer buff = io::byte_buffer::allocate(ec, chunk );
+	io::byte_buffer buff = io::byte_buffer::allocate(ec, 8 );
 	if(ec)
 		throw std::system_error(ec);
-	io::scoped_arr<uint8_t> tmp( chunk );
-	for(std::size_t read = src->read(ec, tmp.get(), chunk); 0 != read && !ec ; ) {
+	io::scoped_arr<uint8_t> tmp( 8 );
+	for(std::size_t read = src->read(ec, tmp.get(), tmp.len()); 0 != read && !ec ; ) {
 		if( buff.available() < read && !buff.ln_grow() ) {
 			ec = std::make_error_code( std::errc::not_enough_memory );
 			break;
 		}
 		buff.put( tmp.get(), read);
-		read = src->read(ec, tmp.get(), chunk);
+		read = src->read(ec, tmp.get(), tmp.len());
 	}
 	if(ec)
 		throw std::system_error(ec);

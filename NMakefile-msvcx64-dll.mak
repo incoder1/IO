@@ -16,16 +16,16 @@ DEPS_LIBS=$(DEPS_ROOT)\lib\x64
 LIB_NAME=io
 SHARED_EXT=dll
 
-PLATFORM_SHARED_LINK_OPTIONS=
+CRT_LIB=/MT
 
 LIBS=kernel32.lib user32.lib Ws2_32.lib iconv.dll.lib
 INCLUEDS=/Iinclude /Iinclude\win /Iinclude\net /Isrc /I$(DEPS_INCLUDES)
 
-OPTIMIZE= /GL /GF /O2 /Oi /Zc:wchar_t
-SHARED_DEFINES= /DIO_SHARED_LIB /DIO_BUILD
+OPTIMIZE= /GL /GF /O2 /Oi /Gw /Zc:wchar_t
+SHARED_DEFINES=/DIO_SHARED_LIB /DIO_BUILD
 DEFINES = $(SHARED_DEFINES) /DNDEBUG /DUNICODE
-CPPFLAGS = /c /nologo /utf-8 /std:c++latest /LD $(DEFINES) $(OPTIMIZE) $(INCLUEDS) 
-LDFLAGS = /DLL /LTCG /LIBPATH:$(DEPS_LIBS)
+CPPFLAGS = /c /nologo /utf-8 /std:c++latest /LD $(CRT_LIB) $(DEFINES) $(OPTIMIZE) $(INCLUEDS) 
+LDFLAGS = /LTCG /DLL /LIBPATH:$(DEPS_LIBS)
 
 PCH = /Yustdafx.hpp /Fp$(OBJ)\stdafx.pch
 

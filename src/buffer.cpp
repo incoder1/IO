@@ -79,17 +79,19 @@ bool byte_buffer::extend(std::size_t extend_size) noexcept
 	return realloc( capacity_ + extend_size );
 }
 
+
 bool byte_buffer::exp_grow() noexcept
 {
 	return realloc( capacity_ << 1 );
 }
 
-
 bool byte_buffer::ln_grow() noexcept
 {
-	ssize_t gs =  1 << ( io_ctz(capacity_) - 1);
-	static constexpr ssize_t MIN_GROW = static_cast<ssize_t>( sizeof(std::size_t) );
-	return extend( gs > MIN_GROW ?  static_cast<std::size_t>(gs) : static_cast<std::size_t>( MIN_GROW ) );
+	static constexpr std::size_t SIZE_BITS = sizeof(std::size_t) * 8;
+	const std::size_t clz = io_size_t_clz(capacity_);
+	std::size_t cpt_ln2 = SIZE_BITS - (clz + 1);
+	const std::size_t gs = 1 << (--cpt_ln2);
+	return extend( gs > sizeof(std::size_t) ?  gs : sizeof(std::size_t) );
 }
 
 byte_buffer byte_buffer::allocate(std::error_code& ec, std::size_t capacity) noexcept
