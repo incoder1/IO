@@ -7,20 +7,17 @@ namespace gl {
 
 // texture
 
-#if !( defined(unix) || defined(__unix) || defined(_XOPEN_SOURCE)|| defined(_POSIX_SOURCE) )
-
-static void tex2d_generate_mipmaps(::GLsizei width, ::GLint minFiler, ::GLint magFileter)
+static void tex2d_generate_mipmaps(const ::GLsizei width,const ::GLsizei height,::GLenum ifmt,::GLenum pxmft, const ::GLvoid* pixels,const ::GLint min_filter,const ::GLint mag_filter)
 {
-	::glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, minFiler);
-	::glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, magFileter);
 	static const double ln_2 = std::log(2.0);
-	double maxLevel = ( std::log( static_cast<double>(width) ) / ln_2 ) - 1.0;
-	::GLuint mipmapsMax = static_cast<::GLuint>(  std::lround(std::abs(maxLevel) ) );
-	::glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAX_LEVEL, mipmapsMax);
+	const double max_level = ( std::log( static_cast<double>(width) ) / ln_2 ) - 1.0;
+	::GLuint num_mipmaps = static_cast<::GLuint>( std::lround(std::abs(max_level) ) );
+	::glTexStorage2D(GL_TEXTURE_2D, num_mipmaps, ifmt, width, height);
+	::glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, width, height, pxmft, GL_UNSIGNED_BYTE, pixels);
 	::glGenerateMipmap(GL_TEXTURE_2D);
+	::glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, min_filter);
+	::glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, mag_filter);
 }
-
-#endif
 
 
 s_texture texture::texture2d(::GLsizei width, ::GLsizei height, ::GLint i_format, ::GLenum px_format, texture_filter filtering, const void* pixels)
@@ -35,30 +32,28 @@ s_texture texture::texture2d(::GLsizei width, ::GLsizei height, ::GLint i_format
 
 	::glTexImage2D(GL_TEXTURE_2D, 0, i_format, width, height, 0, px_format, GL_UNSIGNED_BYTE, pixels);
 
-	#if !( defined(unix) || defined(__unix) || defined(_XOPEN_SOURCE)|| defined(_POSIX_SOURCE) )
 	switch (filtering) {
 	case texture_filter::NEAREST_MIPMAP_NEAREST:
-		tex2d_generate_mipmaps(width, GL_NEAREST_MIPMAP_NEAREST, GL_NEAREST);
+		tex2d_generate_mipmaps(width, height, i_format, px_format, pixels, GL_NEAREST_MIPMAP_NEAREST, GL_NEAREST);
 		break;
 	case texture_filter::NEAREST_MIPMAP_LINEAR:
-		tex2d_generate_mipmaps(width, GL_NEAREST_MIPMAP_LINEAR, GL_LINEAR);
+		tex2d_generate_mipmaps(width, height, i_format, px_format, pixels, GL_NEAREST_MIPMAP_LINEAR, GL_LINEAR);
 		break;
 	case texture_filter::LINEAR_MIPMAP_NEAREST:
-		tex2d_generate_mipmaps(width, GL_NEAREST_MIPMAP_LINEAR, GL_NEAREST);
+		tex2d_generate_mipmaps(width, height, i_format,  px_format, pixels, GL_NEAREST_MIPMAP_LINEAR, GL_NEAREST);
 		break;
 	case texture_filter::LINEAR_MIPMAP_LINEAR:
-		tex2d_generate_mipmaps(width, GL_LINEAR_MIPMAP_LINEAR, GL_LINEAR);
+		tex2d_generate_mipmaps(width, height, i_format, px_format, pixels, GL_LINEAR_MIPMAP_LINEAR, GL_LINEAR);
 		break;
 	default:
 		::glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, static_cast<::GLenum>(filtering) );
 		::glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, static_cast<::GLenum>(filtering) );
+		::glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+		::glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
 	}
-	#else
-		::glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, static_cast<::GLenum>(filtering) );
-		::glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, static_cast<::GLenum>(filtering) );
-	#endif
 
 	::glBindTexture(GL_TEXTURE_2D, 0 );
+	validate_opengl("Invalid texture");
 
 	return s_texture( new texture(id, texture_type::TEXTURE_2D) );
 }
