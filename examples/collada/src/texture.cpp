@@ -72,6 +72,10 @@ s_texture texture::create_texture2d_from_image(const engine::s_image& img, gl::t
 			internal_format = GL_SRGB8_ALPHA8;
 			px_format = GL_RGBA;
 			break;
+		case engine::pixel_format::bgra:
+			internal_format = GL_RGBA8;
+			px_format = GL_BGRA;
+			break;
 	}
 	return texture2d(img->width(), img->height(), internal_format, px_format, filter, img->data() );
 }

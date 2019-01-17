@@ -230,7 +230,7 @@ static s_IWICBitmapDecoder create_bitmap_decoder(const s_IWICImagingFactory& img
 	return s_IWICBitmapDecoder(ret);
 }
 
-static s_IWICFormatConverter create_format_converter(const s_IWICImagingFactory& imgFactory,const s_IWICBitmapDecoder& decoder, bool alpha)
+static s_IWICFormatConverter create_format_converter(const s_IWICImagingFactory& imgFactory,const s_IWICBitmapDecoder& decoder,const pixel_format pfm)
 {
 	::IWICFormatConverter *pConverter;
 	::HRESULT errc = imgFactory->CreateFormatConverter(&pConverter);
@@ -239,7 +239,18 @@ static s_IWICFormatConverter create_format_converter(const s_IWICImagingFactory&
 	::IWICBitmapFrameDecode* frame;
 	errc = decoder->GetFrame(0, &frame);
 	validate_succeeded(errc,"Can't obtain frame");
-	::GUID dstFormat = alpha ? ::GUID_WICPixelFormat32bppRGBA : ::GUID_WICPixelFormat24bppRGB;
+	::GUID dstFormat;
+	switch(pfm) {
+	case pixel_format::rgb:
+		dstFormat = ::GUID_WICPixelFormat24bppRGB;
+		break;
+	case pixel_format::rgba:
+		dstFormat = ::GUID_WICPixelFormat32bppRGBA;
+		break;
+	case pixel_format::bgra:
+		dstFormat = ::GUID_WICPixelFormat32bppBGRA;
+		break;
+	}
 	errc = ret->Initialize(
 			 frame,
 			 dstFormat,
@@ -269,14 +280,14 @@ static s_IWICBitmapLock bitmap_lock(const s_IWICBitmap& bitmap, ::WICRect& rc_lo
 	return s_IWICBitmapLock(ret);
 }
 
-static io::scoped_arr<uint8_t> decode_image(const s_IStream& stream, unsigned int& w, unsigned int& h, bool alpha) {
+static io::scoped_arr<uint8_t> decode_image(const s_IStream& stream, unsigned int& w, unsigned int& h, const pixel_format pfm) {
 
 	// CoInitializeEx should be called for each thread
 	static thread_local COM __ms_com_guard;
 
 	s_IWICImagingFactory imgFactory = create_image_factory();
 	s_IWICBitmapDecoder decoder = create_bitmap_decoder(imgFactory, stream);
-	s_IWICFormatConverter converter = create_format_converter(imgFactory, decoder, alpha);
+	s_IWICFormatConverter converter = create_format_converter(imgFactory, decoder, pfm);
 	s_IWICBitmap bit_map = create_bitmap(imgFactory,converter);
 
 	bit_map->GetSize( std::addressof(w), std::addressof(h) );
@@ -296,7 +307,7 @@ s_image load_png_rgb(io::s_read_channel&& src)
 {
 	s_IStream stream( new read_stream( std::forward<io::s_read_channel>(src)), false);
 	unsigned int w,h;
-	io::scoped_arr<uint8_t> image_data = decode_image( stream, w, h, false );
+	io::scoped_arr<uint8_t> image_data = decode_image( stream, w, h, pixel_format::rgb );
 	return  s_image(new image( w, h, image_format::bitmap, pixel_format::rgb, std::move(image_data) ) );
 }
 
@@ -306,7 +317,7 @@ s_image load_png_rgb(const io::file& file)
 	::HRESULT errc = ::SHCreateStreamOnFileEx(file.wpath().data(), STGM_READ, FILE_ATTRIBUTE_READONLY, FALSE, nullptr, &src);
 	validate_succeeded(errc, std::string("Can not open image file: ").append(file.path()) );
 	unsigned int w,h;
-	io::scoped_arr<uint8_t> image_data = decode_image( s_IStream(src,false), w, h, false );
+	io::scoped_arr<uint8_t> image_data = decode_image( s_IStream(src,false), w, h, pixel_format::rgb );
 	return s_image(new image( w, h, image_format::bitmap, pixel_format::rgb, std::move(image_data) ) );
 }
 
@@ -314,7 +325,7 @@ s_image load_png_rgba(io::s_read_channel&& src)
 {
 	 s_IStream stream( new read_stream( std::forward<io::s_read_channel>(src)), false);
 	unsigned int w,h;
-	io::scoped_arr<uint8_t> image_data = decode_image( stream, w, h, true );
+	io::scoped_arr<uint8_t> image_data = decode_image( stream, w, h, pixel_format::rgb );
 	return  s_image(new image( w, h, image_format::bitmap, pixel_format::rgba, std::move(image_data) ) );
 }
 
@@ -324,7 +335,7 @@ s_image load_png_rgba(const io::file& file)
 	::HRESULT errc = ::SHCreateStreamOnFileEx(file.wpath().data(), STGM_READ, FILE_ATTRIBUTE_READONLY, FALSE, nullptr, &src);
 	validate_succeeded(errc, std::string("Can not open image file: ").append(file.path()));
 	unsigned int w,h;
-	io::scoped_arr<uint8_t> image_data = decode_image( s_IStream(src,false), w, h, true );
+	io::scoped_arr<uint8_t> image_data = decode_image( s_IStream(src,false), w, h, pixel_format::rgba );
 	return s_image(new image( w, h, image_format::bitmap, pixel_format::rgba, std::move(image_data) ) );
 }
 

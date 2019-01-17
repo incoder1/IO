@@ -15,7 +15,8 @@ namespace engine {
 
 	enum class pixel_format {
 		rgb,
-		rgba
+		rgba,
+		bgra
 	};
 
 	class image;
@@ -56,6 +57,7 @@ namespace engine {
 
 	s_image load_png_rgba(io::s_read_channel&& src);
 	s_image load_png_rgba(const io::file& file);
+
 
 } // namespace engine
 
