@@ -152,88 +152,9 @@ void untextured_static_mesh::draw(const scene& scn) const
 
 //textured_static_mesh
 
-const char* textured_static_mesh::VERTEX_SHADER = "\
-#version 140 \n\
-#pragma optimize(on)\n\
-precision highp float;\
-invariant gl_Position;\
-uniform mat4 mvpMat;\
-uniform mat4 modelViewMat;\
-uniform mat4 normalMat;\
-in vec3 vertexCoord;\
-in vec3 vertexNormal;\
-in vec2 vertexTexCoord;\
-out vec4 eyePosition;\
-out vec4 outNormal;\
-out vec2 outTexCoord;\
-void main(void) {\
-	eyePosition = modelViewMat * vec4(vertexCoord,0.0);\
-	outNormal =  normalize( normalMat * vec4(vertexNormal, 0.0) );\
-	outTexCoord = vertexTexCoord;\
-	gl_Position = mvpMat * vec4(vertexCoord,1);\
-}";
+const char* textured_static_mesh::VERTEX_SHADER = "gpu/textured_static_mesh.vertx.glsl";
 
-const char* textured_static_mesh::FRAGMENT_SHADER = "\
-#version 140 \n\
-#pragma optimize(on) \n\
-precision highp float;\
-in vec4 eyePosition;\
-in vec4 outNormal;\
-in vec2 outTexCoord;\
-uniform sampler2D textureSampler;\
-invariant out vec4 fragColor;\
-struct LightInfo {\
-	vec4 position;\
-	vec4 ambient;\
-	vec4 diffuse;\
-	vec4 specular;\
-};\
-struct MaterialInfo {\
-	vec4 ambient;\
-	vec4 diffuse;\
-	vec4 specular;\
-	vec4 emission;\
-	float shininess;\
-};\
-LightInfo defaultLight() {\
-	LightInfo result;\
-	result.position = vec4(1,1,1,0);\
-	result.ambient = vec4(0,0,0,1);\
-	result.diffuse = vec4(0.5,0.5,0.5,1);\
-	result.specular = vec4(0.7,0.7,0.7,1);\
-	return result;\
-}\
-MaterialInfo whitePlastic() {\
-	MaterialInfo result;\
-	result.ambient = vec4(0.0f,0.0f,0.0f,1.0f);\
-	result.diffuse = vec4(0.55f,0.55f,0.55f,1.0f);\
-	result.specular = vec4(0.70f,0.70f,0.70f,1.0f);\
-	result.emission = vec4(0,0,0,1);\
-	result.shininess = 32.0f;\
-	return result;\
-}\
-float dot(vec4 lsh, vec4 rhs) {\
-	return (lsh.x*rhs.x) + (lsh.y*rhs.y) + (lsh.z*rhs.z) + (lsh.w*rhs.w);\
-}\
-vec4 phongShading(LightInfo light, MaterialInfo mat, vec4 position, vec4 norm ) {\
-	vec4 s = normalize( light.position - position );\
-	vec4 v = normalize( -position );\
-	vec4 r = reflect( -s, norm );\
-	vec4 ambient = light.ambient * mat.ambient;\
-	float sDotN = max( dot(s,norm), 0.0 );\
-	vec4  diffuse = light.diffuse * mat.diffuse * sDotN;\
-	vec4 specular = vec4(0.0);\
-	if( sDotN > 0.0 ) {\
-		specular = light.specular * mat.specular * pow( max( dot(r,v), 0.0 ), mat.shininess );\
-	}\
-	return ambient + clamp(diffuse,0.0, 1.0) +  clamp(specular, 0.0, 1.0);\
-}\
-const float GAMMA = 1.0 / 2.2;\
-LightInfo light = defaultLight();\
-MaterialInfo mat = whitePlastic();\
-void main(void) {\
-	fragColor =  pow(texture( textureSampler, outTexCoord ),vec4(GAMMA)) + phongShading(light, mat, eyePosition, outNormal );\
-}";
+const char* textured_static_mesh::FRAGMENT_SHADER = "gpu/textured_static_mesh.frag.glsl";
 
 textured_static_mesh::textured_static_mesh(const float *vertex, std::size_t vsize,const uint32_t* indexes,std::size_t isize,const s_image& timg):
 	surface(),
@@ -259,8 +180,8 @@ textured_static_mesh::textured_static_mesh(const float *vertex, std::size_t vsiz
 					   timg,
 					   gl::texture_filter::LINEAR_MIPMAP_LINEAR);
 
-	gl::shader vertex_sh(gl::shader_type::vertex, VERTEX_SHADER );
-	gl::shader fragment_sh(gl::shader_type::fragment, FRAGMENT_SHADER );
+	gl::shader vertex_sh = gl::shader::load_glsl(gl::shader_type::vertex,io::file(VERTEX_SHADER));
+	gl::shader fragment_sh =  gl::shader::load_glsl(gl::shader_type::fragment, io::file(FRAGMENT_SHADER) );
 	program_ = gl::program::create( std::move(vertex_sh), std::move(fragment_sh) );
 
 	program_->bind_attrib_location(0, "vertexCoord");
@@ -304,112 +225,9 @@ void textured_static_mesh::draw(const scene& scn) const
 }
 
 //normal_mapped_static_mesh
-const char* normal_mapped_static_mesh::VERTEX_SHADER = "\
-#version 140\n\
-#pragma optimize(on)\n\
-precision highp float;\
-invariant gl_Position;\
-uniform mat4 mvpMat;\
-uniform mat4 modelViewMat;\
-const vec3 light_position =  vec3(0.3,0.1,2.0);\
-in vec3 vertexCoord;\
-in vec3 vertexNormal;\
-in vec2 vertexTexCoord;\
-in vec3 aTangent;\
-out vec2 fragTexCoords;\
-out vec4 tangentLightPosition;\
-out vec4 tangentEyePosition;\
-out mat3 TBN;\
-void main(void) {\
-	mat3 mv = mat3(modelViewMat);\
-	vec3 eyePosition = mv * vertexCoord;\
-	fragTexCoords = vertexTexCoord;\
-	vec3 t = normalize(mv * aTangent);\
-	vec3 n = normalize(mv * vertexNormal);\
-	TBN = transpose( mat3(t,cross(n,t),n) );\
-	tangentEyePosition = vec4( (TBN * eyePosition), 0);\
-	tangentLightPosition = vec4( (TBN * light_position ), 0);\
-	gl_Position = mvpMat * vec4(vertexCoord,1.0);\
-}";
+const char* normal_mapped_static_mesh::VERTEX_SHADER = "gpu/normal_mapped_static_mesh.vertx.glsl";
 
-const char* normal_mapped_static_mesh::FRAGMENT_SHADER = "\
-#version 140\n\
-#pragma optimize(on)\n\
-precision highp float;\
-in vec2 fragTexCoords;\
-in vec4 tangentEyePosition;\
-in vec4 tangentLightPosition;\
-in mat3 TBN;\
-uniform sampler2D diffuseTexture;\
-uniform sampler2D normalMapTexture;\
-out vec4 fragColor;\
-invariant fragColor;\
-struct LightInfo {\
-	vec4 position;\
-	vec4 ambient;\
-	vec4 diffuse;\
-	vec4 specular;\
-};\
-LightInfo defaultLight() {\
-	LightInfo result;\
-	result.position = vec4(0.3,0.1,1.5,0);\
-	result.ambient = vec4(0,0,0,1);\
-	result.diffuse = vec4(0.7,0.7,0.7,1);\
-	result.specular = vec4(0.7,0.7,0.7,1);\
-	return result;\
-}\
-struct MaterialInfo {\
-	vec4 ambient;\
-	vec4 diffuse;\
-	vec4 specular;\
-	vec4 emission;\
-	float shininess;\
-};\
-MaterialInfo whitePlastic() {\
-	MaterialInfo result;\
-	result.ambient =  vec4(0.0,  0.0, 0.0, 1.0);\
-	result.diffuse =  vec4(0.55, 0.55, 0.55, 1.0);\
-	result.specular = vec4(0.7,	0.7, 0.7, 1.0);\
-	result.emission = vec4(0,0,0,1);\
-	result.shininess = 0.25;\
-	return result;\
-}\
-MaterialInfo defaultMaterial() {\n\
-	MaterialInfo result;\n\
-	result.ambient = vec4(0.3, 0.3, 0.3, 1);\n\
- 	result.diffuse = vec4(0.3, 0.3, 0.3, 1);\n\
- 	result.specular = vec4(0, 0, 0, 1);\n\
- 	result.emission = vec4(0,0,0,1);\n\
- 	result.shininess = 0.25;\n\
- 	return result;\n\
-}\n\
-float dot(vec4 lsh, vec4 rhs) {\
-	return (lsh.x*rhs.x) + (lsh.y*rhs.y) + (lsh.z*rhs.z) + (lsh.w*rhs.w);\
-}\
-vec4 phongShading(LightInfo light, MaterialInfo mat, vec4 position, vec4 norm ) {\
-	vec4 s = normalize( light.position - position );\
-	vec4 v = normalize( -position );\
-	vec4 r = reflect( -s, norm );\
-	vec4 ambient = light.ambient * mat.ambient;\
-	float sDotN = max( dot(s,norm), 0.0 );\
-	vec4  diffuse = light.diffuse * mat.diffuse * sDotN;\
-	vec4 specular = vec4(0.0);\
-	if( sDotN > 0.0 ) {\
-		specular = light.specular * mat.specular * pow( max( dot(r,v), 0.0 ), mat.shininess );\
-	}\
-	return ambient + clamp(diffuse,0.0, 1.0) +  clamp(specular, 0.0, 1.0);\
-}\
-const vec4 GAMMA = vec4(1.0 / 2.2);\
-LightInfo light = defaultLight();\
-MaterialInfo mat = whitePlastic();\
-void main(void) {\
-	light.position = tangentLightPosition;\
-	vec3 normal = normalize( texture(normalMapTexture, fragTexCoords ).rgb );\
-	normal = normalize( (normal * 2.0) - 1.0 );\
-	normal = normalize(TBN * normal);\
-	vec4 color =  pow( texture( diffuseTexture, fragTexCoords ) , GAMMA);\
-	fragColor =  color + phongShading(light, mat, tangentEyePosition, vec4(normal, 0) );\
-}";
+const char* normal_mapped_static_mesh::FRAGMENT_SHADER = "gpu/normal_mapped_static_mesh.frag.glsl";
 
 normal_mapped_static_mesh::normal_mapped_static_mesh(const float *vertex, std::size_t vsize,const uint32_t* indexes,std::size_t isize,const s_image& difftex,const s_image& nm_text):
 	surface(),
@@ -438,8 +256,8 @@ normal_mapped_static_mesh::normal_mapped_static_mesh(const float *vertex, std::s
 	normal_map_tex_ = gl::texture::create_texture2d_from_image(nm_text,gl::texture_filter::NEAREST);
 
 
-	gl::shader vertex_sh(gl::shader_type::vertex, VERTEX_SHADER );
-	gl::shader fragment_sh(gl::shader_type::fragment, FRAGMENT_SHADER );
+	gl::shader vertex_sh = gl::shader::load_glsl(gl::shader_type::vertex,io::file(VERTEX_SHADER));
+	gl::shader fragment_sh =  gl::shader::load_glsl(gl::shader_type::fragment, io::file(FRAGMENT_SHADER) );
 	program_ = gl::program::create( std::move(vertex_sh), std::move(fragment_sh) );
 
 	program_->bind_attrib_location(0, "vertexCoord");

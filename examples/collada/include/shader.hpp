@@ -24,13 +24,16 @@ enum class shader_type: ::GLuint {
  fragment = GL_FRAGMENT_SHADER
 };
 
+// Shader object.
 class shader
 {
 	shader(const shader&) = delete;
 	shader& operator=(const shader&) = delete;
 public:
-	static shader load(shader_type type,const io::s_read_channel& src);
-	static shader load(shader_type type,const io::file& file);
+
+	static shader load_glsl(shader_type type,const io::s_read_channel& src);
+	static shader load_glsl(shader_type type,const io::file& file);
+
 	shader(shader_type type, const char* source);
 	shader(shader&& other) noexcept;
 	shader& operator=(shader&& rhs) noexcept;

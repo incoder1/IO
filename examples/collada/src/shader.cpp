@@ -4,21 +4,21 @@
 namespace gl {
 
 // shader
-shader shader::load(shader_type type, const io::s_read_channel& src)
+shader shader::load_glsl(shader_type type, const io::s_read_channel& src)
 {
 
 	std::error_code ec;
-	io::byte_buffer buff = io::byte_buffer::allocate(ec, 8 );
+	io::byte_buffer buff = io::byte_buffer::allocate(ec, io::memory_traits::page_size() / 4 );
 	if(ec)
 		throw std::system_error(ec);
-	io::scoped_arr<uint8_t> tmp( 8 );
-	for(std::size_t read = src->read(ec, tmp.get(), tmp.len()); 0 != read && !ec ; ) {
-		if( buff.available() < read && !buff.ln_grow() ) {
+	uint8_t tmp[1024];
+	for(std::size_t read = src->read(ec, tmp, sizeof(tmp) ); 0 != read && !ec ; ) {
+		if( buff.available() < read && !buff.exp_grow() ) {
 			ec = std::make_error_code( std::errc::not_enough_memory );
 			break;
 		}
-		buff.put( tmp.get(), read);
-		read = src->read(ec, tmp.get(), tmp.len());
+		buff.put( tmp, read);
+		read = src->read(ec, tmp, sizeof(tmp) );
 	}
 	if(ec)
 		throw std::system_error(ec);
@@ -26,13 +26,13 @@ shader shader::load(shader_type type, const io::s_read_channel& src)
 	return shader(type, buff.position().cdata());
 }
 
-shader shader::load(shader_type type,const io::file& file)
+shader shader::load_glsl(shader_type type,const io::file& file)
 {
 	std::error_code ec;
 	io::s_read_channel src = file.open_for_read(ec);
 	if(ec)
 		throw std::system_error(ec);
-	return load(type, src);
+	return load_glsl(type, src);
 }
 
 
