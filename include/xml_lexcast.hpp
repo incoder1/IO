@@ -36,7 +36,7 @@ struct int_limits<uint8_t> {
 #ifdef __GNUG__
     static constexpr const uint8_t max = __UINT8_MAX__;
 #else
-	static constexpr const uint8_t max = std::numeric_limits<uint8_t>::max();
+	static constexpr const uint8_t max = UCHAR_MAX;
 #endif
 	static constexpr const uint8_t max_str_len = std::numeric_limits<uint8_t>::digits + 1;
 };
@@ -47,8 +47,8 @@ struct int_limits<int8_t> {
 	static constexpr const int8_t min = static_cast<int8_t>(-__INT8_MAX__ - 1);
 	static constexpr const int8_t max = __INT8_MAX__;
 #else
-	static constexpr const int8_t min = std::numeric_limits<int8_t>::min();
-	static constexpr const int8_t max = std::numeric_limits<int8_t>::max();
+	static constexpr const int8_t min = CHAR_MIN;
+	static constexpr const int8_t max = CHAR_MAX;
 #endif // __GNUG__
 	static constexpr const uint8_t max_str_len = std::numeric_limits<uint8_t>::digits + 2;
 };
@@ -59,7 +59,7 @@ struct int_limits<uint16_t> {
 #ifdef __GNUG__
     static constexpr const uint16_t max = __UINT16_MAX__;
 #else
-	static constexpr const uint16_t max = std::numeric_limits<uint16_t>::max();
+	static constexpr const uint16_t max = USHRT_MAX;
 #endif // __GNUG__
 	static constexpr const uint8_t max_str_len = std::numeric_limits<uint16_t>::digits;
 };
@@ -103,12 +103,11 @@ struct int_limits<int32_t> {
 
 template<>
 struct int_limits<uint64_t> {
-#ifdef __GNUG__
 	static constexpr const uint64_t min = 0ULL;
+#ifdef __GNUG__
 	static constexpr const uint64_t max = __UINT64_MAX__;
 #else
-	static constexpr const uint64_t min = std::numeric_limits<uint64_t>::min();
-	static constexpr const uint64_t max = std::numeric_limits<uint64_t>::max();
+	static constexpr const uint64_t max = ULLONG_MAX;
 #endif // __GNUG__
 	static constexpr const uint8_t max_str_len = std::numeric_limits<int64_t>::digits + 1;
 };
@@ -119,8 +118,8 @@ struct int_limits<int64_t> {
 	static constexpr const uint64_t min = static_cast<uint64_t>(-__INT64_MAX__ - 1);
 	static constexpr const uint64_t max = __INT64_MAX__;
 #else
-	static constexpr const uint64_t min = std::numeric_limits<int64_t>::min();
-	static constexpr const uint64_t max = std::numeric_limits<int64_t>::max();
+	static constexpr const uint64_t min = LLONG_MIN;
+	static constexpr const uint64_t max = LLONG_MAX;
 #endif // defined
 	static constexpr const uint8_t  max_str_len = std::numeric_limits<int64_t>::digits + 2;
 };
