@@ -28,6 +28,8 @@
 #include <glm/mat4x4.hpp>
 #include <glm/vec3.hpp>
 
+#include "renderer.hpp"
+
 namespace engine  {
 
 class scene {
@@ -38,7 +40,13 @@ public:
 
 	void move_model(float distance);
 
-	void get_matrix(glm::mat4 &prj, glm::mat4& mv) const;
+	void move_light(float x, float y, float z) noexcept;
+
+	void get_matrix(glm::mat4 &prj, glm::mat4& mv) const noexcept;
+
+	const light_t light() const noexcept {
+		return light_;
+	}
 
 private:
 
@@ -50,6 +58,8 @@ private:
 	float angle_x_;
 	float angle_y_;
 	float distance_z_;
+
+	light_t light_;
 };
 
 } // namespace engine

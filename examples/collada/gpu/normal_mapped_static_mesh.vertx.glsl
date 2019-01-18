@@ -5,29 +5,30 @@
 precision highp float;
 
 invariant gl_Position;
-uniform mat4 mvpMat;
-uniform mat4 modelViewMat;
 
-const vec3 light_position =  vec3(0.3,0.1,2.0);
+uniform mat4 mvp;
+uniform mat4 mv;
 
-in vec3 vertexCoord;
-in vec3 vertexNormal;
-in vec2 vertexTexCoord;
-in vec3 aTangent;
+uniform mat4 light_pads;
 
-out vec2 fragTexCoords;
-out vec4 tangentLightPosition;
-out vec4 tangentEyePosition;
+in vec3 vertex_coord;
+in vec3 vertex_normal;
+in vec2 vertex_uv;
+in vec3 tangent;
+
 out mat3 TBN;
+out vec2 frag_uv;
+out vec4 tangent_light_position;
+out vec4 tangent_eye_position;
 
 void main(void) {
-	mat3 mv = mat3(modelViewMat);
-	vec3 eyePosition = mv * vertexCoord;
-	fragTexCoords = vertexTexCoord;
-	vec3 t = normalize(mv * aTangent);
-	vec3 n = normalize(mv * vertexNormal);
+	mat3 mv3 = mat3(mv);
+	vec3 eye_pos = mv3 * vertex_coord;
+	frag_uv = vertex_uv;
+	vec3 t = normalize(mv3 * tangent);
+	vec3 n = normalize(mv3 * vertex_normal);
 	TBN = transpose( mat3(t,cross(n,t),n) );
-	tangentEyePosition = vec4( (TBN * eyePosition), 0);
-	tangentLightPosition = vec4( (TBN * light_position ), 0);
-	gl_Position = mvpMat * vec4(vertexCoord,1.0);
+	tangent_light_position = vec4( (TBN * vec3(light_pads[0].xyz) ), 0.0);
+	tangent_eye_position = vec4( (TBN * eye_pos), 0.0);
+	gl_Position = mvp * vec4(vertex_coord, 1.0);
 }

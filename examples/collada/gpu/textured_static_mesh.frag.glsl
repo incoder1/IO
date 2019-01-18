@@ -1,60 +1,43 @@
-#version 140 
-#pragma optimize(on) 
+#version 140
+#pragma optimize(on)
+
 precision highp float;
-in vec4 eyePosition;
-in vec4 outNormal;
-in vec2 outTexCoord;
-uniform sampler2D textureSampler;
-invariant out vec4 fragColor;
-struct LightInfo {
-	vec4 position;
-	vec4 ambient;
-	vec4 diffuse;
-	vec4 specular;
-};
-struct MaterialInfo {
-	vec4 ambient;
-	vec4 diffuse;
-	vec4 specular;
-	vec4 emission;
-	float shininess;
-};
-LightInfo defaultLight() {
-	LightInfo result;
-	result.position = vec4(1,1,1,0);
-	result.ambient = vec4(0,0,0,1);
-	result.diffuse = vec4(0.5,0.5,0.5,1);
-	result.specular = vec4(0.7,0.7,0.7,1);
-	return result;
-}
-MaterialInfo whitePlastic() {
-	MaterialInfo result;
-	result.ambient = vec4(0.0f,0.0f,0.0f,1.0f);
-	result.diffuse = vec4(0.55f,0.55f,0.55f,1.0f);
-	result.specular = vec4(0.70f,0.70f,0.70f,1.0f);
-	result.emission = vec4(0,0,0,1);
-	result.shininess = 32.0f;
-	return result;
-}
+
+uniform mat4 light_pads;
+uniform mat4 material_adse;
+uniform	float material_shininess;
+
+uniform sampler2D diffuse_texture;
+
+in vec4 eye_position;
+in vec3 frag_normal;
+in vec2 frag_uv;
+
+invariant out vec4 frag_color;
+
 float dot(vec4 lsh, vec4 rhs) {
 	return (lsh.x*rhs.x) + (lsh.y*rhs.y) + (lsh.z*rhs.z) + (lsh.w*rhs.w);
 }
-vec4 phongShading(LightInfo light, MaterialInfo mat, vec4 position, vec4 norm ) {
-	vec4 s = normalize( light.position - position );
-	vec4 v = normalize( -position );
+
+vec4 phong_shading(vec4 eye_pos, vec4 norm) {
+	vec4 s = normalize( light_pads[0] - eye_pos );
+	vec4 v = normalize( -eye_pos );
 	vec4 r = reflect( -s, norm );
-	vec4 ambient = light.ambient * mat.ambient;
-	float sDotN = max( dot(s,norm), 0.0 );
-	vec4  diffuse = light.diffuse * mat.diffuse * sDotN;
-	vec4 specular = vec4(0.0);
-	if( sDotN > 0.0 ) {
-		specular = light.specular * mat.specular * pow( max( dot(r,v), 0.0 ), mat.shininess );
+	vec4 ambient = light_pads[1] * material_adse[0];
+	float s_dot_nrm = max( dot(s,norm), 0.0 );
+	vec4  diffuse = light_pads[2] * material_adse[1] * s_dot_nrm;
+	vec4 specular;
+	if( s_dot_nrm > 0.0 ) {
+		float shininess = pow( max( dot(r,v), 0.0 ), material_shininess);
+		vec4 specular = (light_pads[3] * material_adse[2]) * shininess;
+		return ambient + clamp(diffuse,0.0, 1.0) +  clamp(specular, 0.0, 1.0);
 	}
-	return ambient + clamp(diffuse,0.0, 1.0) +  clamp(specular, 0.0, 1.0);
+	return ambient + clamp(diffuse,0.0, 1.0);
 }
-const float GAMMA = 1.0 / 2.2;
-LightInfo light = defaultLight();
-MaterialInfo mat = whitePlastic();
+
+const vec4 GAMMA = vec4(1.0 / 2.2);
+
 void main(void) {
-	fragColor =  pow(texture( textureSampler, outTexCoord ),vec4(GAMMA)) + phongShading(light, mat, eyePosition, outNormal );
+	vec4 color = texture(diffuse_texture, frag_uv);
+	frag_color = pow(color, GAMMA) + phong_shading(eye_position, vec4(frag_normal,0.0) );
 }

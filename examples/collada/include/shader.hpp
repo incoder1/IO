@@ -24,6 +24,7 @@ enum class shader_type: ::GLuint {
  fragment = GL_FRAGMENT_SHADER
 };
 
+
 // Shader object.
 class shader
 {

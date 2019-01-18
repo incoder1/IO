@@ -5,21 +5,21 @@ precision highp float;
 
 invariant gl_Position;
 
-uniform mat4 mvpMat;
-uniform mat4 modelViewMat;
-uniform mat4 normalMat;
+uniform mat4 mvp;
+uniform mat4 mv;
+uniform mat4 nm;
 
-in vec3 vertexCoord;
-in vec3 vertexNormal;
-in vec2 vertexTexCoord;
+in vec3 vertex_coord;
+in vec3 vertex_normal;
+in vec2 vertex_uv;
 
-out vec4 eyePosition;
-out vec4 outNormal;
-out vec2 outTexCoord;
+out vec4 eye_position;
+out vec3 frag_normal;
+out vec2 frag_uv;
 
 void main(void) {
-	eyePosition = modelViewMat * vec4(vertexCoord,0.0);
-	outNormal =  normalize( normalMat * vec4(vertexNormal, 0.0) );
-	outTexCoord = vertexTexCoord;
-	gl_Position = mvpMat * vec4(vertexCoord,1.0);
+	eye_position = mv * vec4(vertex_coord,0.0);
+	frag_normal =  normalize( mat3(nm) * vertex_normal );
+	frag_uv = vertex_uv;
+	gl_Position = mvp *  vec4(vertex_coord, 1.0);
 }

@@ -156,18 +156,24 @@ const char* textured_static_mesh::VERTEX_SHADER = "gpu/textured_static_mesh.vert
 
 const char* textured_static_mesh::FRAGMENT_SHADER = "gpu/textured_static_mesh.frag.glsl";
 
-textured_static_mesh::textured_static_mesh(const float *vertex, std::size_t vsize,const uint32_t* indexes,std::size_t isize,const s_image& timg):
+textured_static_mesh::textured_static_mesh(const material_t& mat,const float *vertex, std::size_t vsize,const uint32_t* indexes,std::size_t isize,const s_image& timg):
 	surface(),
 	program_(),
 	vbo_(),
 	ibo_(),
 	isize_(isize),
 	texture_(),
-	mvp_UL_(-1),
-	modelVeiwMatUL_(-1),
-	normalMatUL_(-1),
-	textureUL_(-1)
+	mat_helper_(mat),
+	light_helper_(),
+	mvp_ul_(-1),
+	mv_ul_(-1),
+	nrm_ul_(-1),
+	diffise_tex_ul_(-1)
 {
+	gl::shader vertex_sh = gl::shader::load_glsl(gl::shader_type::vertex,io::file(VERTEX_SHADER));
+	gl::shader fragment_sh =  gl::shader::load_glsl(gl::shader_type::fragment, io::file(FRAGMENT_SHADER) );
+	program_ = gl::program::create( std::move(vertex_sh), std::move(fragment_sh) );
+
 	vbo_ = gl::buffer::create( vertex, vsize,
 							   gl::buffer_type::ARRAY_BUFFER,
 							   gl::buffer_usage::STATIC_DRAW
@@ -176,29 +182,33 @@ textured_static_mesh::textured_static_mesh(const float *vertex, std::size_t vsiz
 							   gl::buffer_type::ELEMENT_ARRAY_BUFFER,
 							   gl::buffer_usage::STATIC_DRAW );
 
+	program_->bind_attrib_location(0, VATTR_CRD);
+	program_->bind_attrib_location(1, VATTR_NRM);
+	program_->bind_attrib_location(2, VATTR_UV);
+
+	program_->pass_vertex_attrib_array(0, vbo_, false, 8, 3 , 0);
+	program_->pass_vertex_attrib_array(1, vbo_, false, 8, 3 , 3);
+	program_->pass_vertex_attrib_array(2, vbo_, false, 8, 2 , 6);
+
 	texture_ = gl::texture::create_texture2d_from_image(
-					   timg,
-					   gl::texture_filter::LINEAR_MIPMAP_LINEAR);
-
-	gl::shader vertex_sh = gl::shader::load_glsl(gl::shader_type::vertex,io::file(VERTEX_SHADER));
-	gl::shader fragment_sh =  gl::shader::load_glsl(gl::shader_type::fragment, io::file(FRAGMENT_SHADER) );
-	program_ = gl::program::create( std::move(vertex_sh), std::move(fragment_sh) );
-
-	program_->bind_attrib_location(0, "vertexCoord");
-	program_->bind_attrib_location(1, "vertexNormal");
-	program_->bind_attrib_location(2, "vertexTexCoord");
-
-	program_->pass_vertex_attrib_array(0, vbo_, false, 8, 3, 0);
-	program_->pass_vertex_attrib_array(1, vbo_, false, 8, 3, 3);
-	program_->pass_vertex_attrib_array(2, vbo_, false, 8, 2, 6);
+				   timg,
+				   gl::texture_filter::LINEAR_MIPMAP_LINEAR);
 
 	program_->link();
 
-	mvp_UL_ = program_->uniform_location("mvpMat");
-	modelVeiwMatUL_ = program_->uniform_location("modelViewMat");
-	normalMatUL_ = program_->uniform_location("normalMat");
-	textureUL_ = program_->uniform_location("textureSampler");
+	mvp_ul_ = program_->uniform_location(UNFM_MVP_MAT);
+	mv_ul_ = program_->uniform_location(UNFM_MV_MAT);
+	nrm_ul_ = program_->uniform_location(UNFM_NORMAL_MAT);
+
+	mat_helper_.bind_to_shader(program_);
+	light_helper_.bind_to_shader(program_);
+
+	diffise_tex_ul_ = program_->uniform_location(UNFM_DIFFUSE_TEXTURE);
 }
+
+textured_static_mesh::textured_static_mesh(const float *vertex, std::size_t vsize,const uint32_t* indexes,std::size_t isize,const s_image& timg):
+	textured_static_mesh(DEFAULT_MATERIAL, vertex, vsize,indexes, isize, timg)
+{}
 
 void textured_static_mesh::draw(const scene& scn) const
 {
@@ -208,12 +218,21 @@ void textured_static_mesh::draw(const scene& scn) const
 	::glm::mat4 normal_mat( glm::transpose( glm::inverse(  glm::mat3(model_view_mat) ) ) );
 
 	program_->start();
-	::glUniformMatrix4fv(mvp_UL_, 1, GL_FALSE, glm::value_ptr( projection_mat * model_view_mat ) );
-	::glUniformMatrix4fv(modelVeiwMatUL_, 1, GL_FALSE, glm::value_ptr( model_view_mat ) );
-	::glUniformMatrix4fv(normalMatUL_, 1, GL_FALSE, glm::value_ptr( normal_mat ) );
 
-	texture_->bind();
-	::glUniform1i(textureUL_, 0);
+	// transfer world
+	::glUniformMatrix4fv(mvp_ul_, 1, GL_FALSE, glm::value_ptr( projection_mat * model_view_mat ) );
+	::glUniformMatrix4fv(mv_ul_, 1, GL_FALSE, glm::value_ptr( model_view_mat ) );
+	::glUniformMatrix4fv(nrm_ul_, 1, GL_FALSE, glm::value_ptr( normal_mat ) );
+
+	// transfer light
+	light_helper_.transfer_to_shader( scn.light() );
+	// transfer material
+	mat_helper_.transfer_to_shader();
+
+	// transfer texture
+	::glActiveTexture(GL_TEXTURE0);
+	::glUniform1i(diffise_tex_ul_, 0);
+	 texture_->bind();
 
 	ibo_->bind();
 	::glDrawElements(GL_TRIANGLES, isize_, GL_UNSIGNED_INT, 0);
@@ -229,7 +248,7 @@ const char* normal_mapped_static_mesh::VERTEX_SHADER = "gpu/normal_mapped_static
 
 const char* normal_mapped_static_mesh::FRAGMENT_SHADER = "gpu/normal_mapped_static_mesh.frag.glsl";
 
-normal_mapped_static_mesh::normal_mapped_static_mesh(const float *vertex, std::size_t vsize,const uint32_t* indexes,std::size_t isize,const s_image& difftex,const s_image& nm_text):
+normal_mapped_static_mesh::normal_mapped_static_mesh(const material_t& mat,const float *vertex, std::size_t vsize,const uint32_t* indexes,std::size_t isize,const s_image& difftex,const s_image& nm_text):
 	surface(),
 	program_(),
 	vbo_(),
@@ -237,11 +256,16 @@ normal_mapped_static_mesh::normal_mapped_static_mesh(const float *vertex, std::s
 	isize_(isize),
 	diffuse_tex_(),
 	normal_map_tex_(),
-	mvp_UL_(-1),
-	modelVeiwMatUL_(-1),
-	diffiseTxtrUL_(-1),
-	nmTxtrUL_(-1)
+	mat_helper_(mat),
+	light_helper_(),
+	mvp_ul_(-1),
+	mv_ul_(-1),
+	diffise_tex_ul_(-1),
+	nm_tex_ul_(-1)
 {
+	gl::shader vertex_sh = gl::shader::load_glsl(gl::shader_type::vertex,io::file(VERTEX_SHADER));
+	gl::shader fragment_sh =  gl::shader::load_glsl(gl::shader_type::fragment, io::file(FRAGMENT_SHADER) );
+	program_ = gl::program::create( std::move(vertex_sh), std::move(fragment_sh) );
 
 	vbo_ = gl::buffer::create( vertex, vsize,
 							   gl::buffer_type::ARRAY_BUFFER,
@@ -251,33 +275,35 @@ normal_mapped_static_mesh::normal_mapped_static_mesh(const float *vertex, std::s
 							   gl::buffer_type::ELEMENT_ARRAY_BUFFER,
 							   gl::buffer_usage::STATIC_DRAW );
 
-	diffuse_tex_ = gl::texture::create_texture2d_from_image(difftex, gl::texture_filter::LINEAR_MIPMAP_LINEAR);
+	program_->bind_attrib_location(0, VATTR_CRD);
+	program_->bind_attrib_location(1, VATTR_NRM);
+	program_->bind_attrib_location(2, VATTR_UV);
+	program_->bind_attrib_location(3, VATTR_TAN);
 
-	normal_map_tex_ = gl::texture::create_texture2d_from_image(nm_text,gl::texture_filter::NEAREST);
+	program_->pass_vertex_attrib_array(0, vbo_, false, 11, 3 , 0);
+	program_->pass_vertex_attrib_array(1, vbo_, false, 11, 3 , 3);
+	program_->pass_vertex_attrib_array(2, vbo_, false, 11, 2 , 6);
+	program_->pass_vertex_attrib_array(3, vbo_, false, 11, 3 , 8);
 
-
-	gl::shader vertex_sh = gl::shader::load_glsl(gl::shader_type::vertex,io::file(VERTEX_SHADER));
-	gl::shader fragment_sh =  gl::shader::load_glsl(gl::shader_type::fragment, io::file(FRAGMENT_SHADER) );
-	program_ = gl::program::create( std::move(vertex_sh), std::move(fragment_sh) );
-
-	program_->bind_attrib_location(0, "vertexCoord");
-	program_->bind_attrib_location(1, "vertexNormal");
-	program_->bind_attrib_location(2, "vertexTexCoord");
-	program_->bind_attrib_location(3, "aTangent");
-
-
-	program_->pass_vertex_attrib_array(0, vbo_, false, 11, 3, 0);
-	program_->pass_vertex_attrib_array(1, vbo_, false, 11, 3, 3);
-	program_->pass_vertex_attrib_array(2, vbo_, false, 11, 2, 6);
-	program_->pass_vertex_attrib_array(3, vbo_, false, 11, 3, 8);
 
 	program_->link();
 
-	mvp_UL_ = program_->uniform_location("mvpMat");
-	modelVeiwMatUL_ = program_->uniform_location("modelViewMat");
-	diffiseTxtrUL_ = program_->uniform_location("diffuseTexture");
-	nmTxtrUL_ = program_->uniform_location("normalMapTexture");
+	mvp_ul_ = program_->uniform_location(UNFM_MVP_MAT);
+	mv_ul_ = program_->uniform_location(UNFM_MV_MAT);
+
+	mat_helper_.bind_to_shader(program_);
+	light_helper_.bind_to_shader(program_);
+
+	diffise_tex_ul_ = program_->uniform_location(UNFM_DIFFUSE_TEXTURE);
+	nm_tex_ul_ = program_->uniform_location(UNFM_NORMALMAP_TEXTURE);
+
+	diffuse_tex_ = gl::texture::create_texture2d_from_image(difftex, gl::texture_filter::LINEAR_MIPMAP_LINEAR);
+	normal_map_tex_ = gl::texture::create_texture2d_from_image(nm_text,gl::texture_filter::NEAREST);
 }
+
+normal_mapped_static_mesh::normal_mapped_static_mesh(const float *vertex, std::size_t vsize,const uint32_t* indexes,std::size_t isize,const s_image& difftex,const s_image& nm_text):
+	normal_mapped_static_mesh(DEFAULT_MATERIAL, vertex, vsize, indexes, isize, difftex, nm_text)
+{}
 
 void normal_mapped_static_mesh::draw(const scene& scn) const
 {
@@ -288,21 +314,28 @@ void normal_mapped_static_mesh::draw(const scene& scn) const
 
 	program_->start();
 
-	::glUniformMatrix4fv(mvp_UL_, 1, GL_FALSE, glm::value_ptr( projection_mat * model_view_mat ) );
-	::glUniformMatrix4fv(modelVeiwMatUL_, 1, GL_FALSE, glm::value_ptr( model_view_mat ) );
+	::glUniformMatrix4fv(mvp_ul_, 1, GL_FALSE, glm::value_ptr( projection_mat * model_view_mat ) );
+	::glUniformMatrix4fv(mv_ul_, 1, GL_FALSE, glm::value_ptr( model_view_mat ) );
 
+	// transfer light
+	light_helper_.transfer_to_shader( scn.light() );
+
+	// transfer material
+	mat_helper_.transfer_to_shader();
+
+	// transfer textures
 	::glActiveTexture(GL_TEXTURE0);
-	::glUniform1i(diffiseTxtrUL_, 0);
+	::glUniform1i(diffise_tex_ul_, 0);
 	diffuse_tex_->bind();
 
 	::glActiveTexture(GL_TEXTURE1);
-	::glUniform1i(nmTxtrUL_, 1);
+	::glUniform1i(nm_tex_ul_, 1);
 	normal_map_tex_->bind();
 
 	ibo_->bind();
 	::glDrawElements(GL_TRIANGLES, isize_, GL_UNSIGNED_INT, 0);
-
 	ibo_->unbind();
+
 	diffuse_tex_->unbind();
 	normal_map_tex_->unbind();
 
