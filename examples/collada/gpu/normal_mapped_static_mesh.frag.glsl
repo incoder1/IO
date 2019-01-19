@@ -1,8 +1,12 @@
-#version 140
+#version 330
 
 #pragma optimize(on)
 
+#ifdef GL_ES
+precision mediump float;
+#else
 precision highp float;
+#endif
 
 uniform mat4 light_pads;
 
@@ -19,10 +23,6 @@ in vec4 tangent_eye_position;
 
 out vec4 fragment_color;
 invariant fragment_color;
-
-float dot(vec4 lsh, vec4 rhs) {
-	return (lsh.x*rhs.x) + (lsh.y*rhs.y) + (lsh.z*rhs.z) + (lsh.w*rhs.w);
-}
 
 vec4 phong_shading(vec4 eye_pos, vec4 norm) {
 	vec4 s = normalize( light_pads[0] - eye_pos );

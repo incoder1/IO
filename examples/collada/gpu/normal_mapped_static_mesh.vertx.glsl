@@ -1,8 +1,12 @@
-#version 140
+#version 330
 
 #pragma optimize(on)
 
+#ifdef GL_ES
+precision mediump float;
+#else
 precision highp float;
+#endif
 
 invariant gl_Position;
 
@@ -11,10 +15,10 @@ uniform mat4 mv;
 
 uniform mat4 light_pads;
 
-in vec3 vertex_coord;
-in vec3 vertex_normal;
-in vec2 vertex_uv;
-in vec3 tangent;
+layout(location = 0) in vec3 vertex_coord;
+layout(location = 1) in vec3 vertex_normal;
+layout(location = 2) in vec2 vertex_uv;
+layout(location = 3) in vec3 tangent;
 
 out mat3 TBN;
 out vec2 frag_uv;
