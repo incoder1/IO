@@ -5,10 +5,6 @@ namespace engine {
 
 
 //surface
-surface::surface() noexcept:
-	io::object()
-{}
-
 surface::~surface() noexcept
 {}
 

@@ -14,20 +14,9 @@ class surface: public io::object
 	surface(const surface&) = delete;
 	surface& operator=(const surface&) = delete;
 protected:
-	static constexpr const char* VATTR_CRD = "vertex_coord";
-	static constexpr const char* VATTR_NRM = "vertex_normal";
-	static constexpr const char* VATTR_UV = "vertex_uv";
-
-	/// model-veiw-projection matrix uniform name
-	static constexpr const char* UNFM_MVP_MAT = "mvp";
-	/// model-veiw matrix uniform name
-	static constexpr const char* UNFM_MV_MAT = "mv";
-	/// normal matrix uniform name
-	static constexpr const char* UNFM_NORMAL_MAT = "nm";
-
-	static constexpr const char* UNFM_DIFFUSE_TEXTURE = "diffuse_texture";
-
-	surface() noexcept;
+	constexpr surface() noexcept:
+		io::object()
+	{}
 public:
 	virtual ~surface() noexcept = 0;
 	virtual void draw(const scene& scn) const = 0;

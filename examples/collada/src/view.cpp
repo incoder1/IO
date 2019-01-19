@@ -94,6 +94,8 @@ frame_view::frame_view(unsigned int widht, unsigned int height,const char* title
 		self->zoom_ += static_cast<float>(yoffset);
 		::glfwPostEmptyEvent();
 	});
+
+	scn_.move_light(0.0F, 0.5F, 2.0F);
 }
 
 frame_view::~frame_view() noexcept
