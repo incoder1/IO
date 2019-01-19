@@ -1,6 +1,11 @@
 #include "stdafx.hpp"
 #include "view.hpp"
 
+#ifdef GLX_UNIX
+extern "C" int gladLoadGL(void);
+#endif
+
+
 namespace engine  {
 
 
@@ -40,17 +45,24 @@ frame_view::frame_view(unsigned int widht, unsigned int height,const char* title
 	::glfwSetWindowUserPointer(frame_, this );
 
 	::glfwMakeContextCurrent(frame_);
+
+#ifdef WGL_WINDOWS
 	// load extensions
 	::glewInit();
+#elif defined(GLX_UNIX)
+    if( 0 == ::gladLoadGL() )
+        throw std::runtime_error("Can not load opengl");
+#endif // _WIN32
+
 	::glfwSwapInterval(1);
 
 	// Init OpenGL
-	::glShadeModel(GL_FLAT);
+	//::glShadeModel(GL_FLAT);
 	::glEnable(GL_CULL_FACE);
 	::glCullFace(GL_BACK);
 	::glEnable(GL_DEPTH_TEST);
 	::glDepthFunc(GL_LEQUAL);
-	::glShadeModel(GL_SMOOTH);
+	//::glShadeModel(GL_SMOOTH);
 	::glHint(GL_PERSPECTIVE_CORRECTION_HINT, GL_NICEST);
 	::glEnable(GL_LIGHTING);
 	::glEnable(GL_NORMALIZE);

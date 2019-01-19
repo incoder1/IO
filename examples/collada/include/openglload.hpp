@@ -1,25 +1,32 @@
 #ifndef __OPENGL_LOAD_HPP_INCLUDED__
 #define __OPENGL_LOAD_HPP_INCLUDED__
 
-#if defined(_WIN32) || defined(__CYGWIN__)
-#include <GL/glew.h>
-#include <GL/wglew.h>
-#define GLFW_INCLUDE_NONE
+#if defined(_WIN32) || defined(_WIN64) || defined(__CYGWIN__)
+#   include <GL/glew.h>
+#   include <GL/wglew.h>
+#   define WGL_WINDOWS 1
+#   define GLFW_INCLUDE_NONE 1
 #endif // _WIN32
 
-#if defined(unix) \
-      || defined(__unix) \
-      || defined(_XOPEN_SOURCE) \
-      || defined(_POSIX_SOURCE) \
+#if ( defined(unix)\
+      || defined(__unix)\
+      || defined(_XOPEN_SOURCE)\
+      || defined(_POSIX_SOURCE)\
+      || defined(__linux)\
+      || defined(__linux__)\
+      )\
       && !defined(__APPLE__)
-#include <GL/glew.h>
-#include <GL/glxew.h>
-#define GLFW_INCLUDE_NONE
+//#   define GL_GLEXT_PROTOTYPES 1
+//#   define GLFW_INCLUDE_GLEXT 1
+#   include "glad.h"
+#   define GLX_UNIX 1
+#	define GLFW_INCLUDE_GLEXT 1
+#   define GLFW_INCLUDE_NONE 1
 #endif // UNIX not MacOS X
 
 #ifdef __APPLE__
-#	define GLFW_INCLUDE_GLCOREARB 1
 #	define GLFW_INCLUDE_GLEXT 1
+#	define GLFW_INCLUDE_GLCOREARB 1
 #endif // __APPLE__
 
 #include <GLFW/glfw3.h>
