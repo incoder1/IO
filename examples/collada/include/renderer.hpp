@@ -42,8 +42,8 @@ union light_t {
 
 static constexpr const light_t DEFAULT_LIGHT = {
 	0.0F,0.0F,1.0F,0.0F,
-	0.0F,0.0F,0.0F,0.0F,
-	1.0F,1.0F,1.0F,0.0F,
+	0.0F,0.0F,0.0F,1.0F,
+	1.0F,1.0F,1.0F,1.0F,
 	1.0F,1.0F,1.0F,0.0F
 };
 

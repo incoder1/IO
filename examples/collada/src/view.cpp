@@ -57,12 +57,15 @@ frame_view::frame_view(unsigned int widht, unsigned int height,const char* title
 	::glfwSwapInterval(1);
 
 	// Init OpenGL
-	//::glShadeModel(GL_FLAT);
 	::glEnable(GL_CULL_FACE);
 	::glCullFace(GL_BACK);
+
 	::glEnable(GL_DEPTH_TEST);
 	::glDepthFunc(GL_LEQUAL);
-	//::glShadeModel(GL_SMOOTH);
+
+	//::glShadeModel(GL_FLAT);
+	::glShadeModel(GL_SMOOTH);
+
 	::glHint(GL_PERSPECTIVE_CORRECTION_HINT, GL_NICEST);
 	::glEnable(GL_LIGHTING);
 	::glEnable(GL_NORMALIZE);
@@ -95,7 +98,6 @@ frame_view::frame_view(unsigned int widht, unsigned int height,const char* title
 		::glfwPostEmptyEvent();
 	});
 
-	scn_.move_light(0.0F, 0.5F, 2.0F);
 }
 
 frame_view::~frame_view() noexcept

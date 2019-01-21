@@ -23,8 +23,9 @@ out vec4 frag_normal;
 out vec2 frag_uv;
 
 void main(void) {
-	eye_position = mv * vec4(vertex_coord,0.0);
+	vec4 vtx_pos = vec4(vertex_coord,1.0);
+	eye_position = mv * vtx_pos;
 	frag_normal =  normalize( nm * vec4(vertex_normal, 0.0 ) );
 	frag_uv = vertex_uv;
-	gl_Position = mvp *  vec4(vertex_coord, 1.0);
+	gl_Position = mvp * vtx_pos;
 }

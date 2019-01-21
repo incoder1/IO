@@ -43,9 +43,10 @@ vec4 phong_shading(vec4 eye_pos, vec4 norm) {
 }
 
 void main(void) {
+	vec4 vcoord = vec4( vertex_coord, 1.0 );
 	vec4 eye_norm = normalize( nm * vec4(vertex_normal,0.0) );
-	vec4 eye_pos = mv * vec4( vertex_coord.xyz, 0.0 );
+	vec4 eye_pos = mv * vcoord;
 	front_color = vec4(vertex_color,1.0) + phong_shading(eye_pos, eye_norm);
 	back_color = vec4(vertex_color,1.0) + phong_shading(eye_pos, -eye_norm);
-	gl_Position = mvp * vec4(vertex_coord,1.0);
+	gl_Position = mvp * vcoord;
 }

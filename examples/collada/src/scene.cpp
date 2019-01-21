@@ -14,7 +14,7 @@ scene::scene(float width, float height,float eye_distance,float depth):
 	distance_z_( -(eye_distance+1.0F) ),
 	light_(DEFAULT_LIGHT)
 {
-	light_.pads[2] = eye_distance - 1.0F;
+	light_.pads[2] = eye_distance;
 }
 
 

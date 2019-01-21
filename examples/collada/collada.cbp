@@ -4,7 +4,7 @@
 	<Project>
 		<Option title="collada" />
 		<Option compiler="gcc" />
-		<Option virtualFolders="src/" />
+		<Option virtualFolders="src\;" />
 		<Build>
 			<Target title="debug-gcc-win64">
 				<Option platforms="Windows;" />
@@ -107,9 +107,11 @@
 			<Add library="io" />
 		</Linker>
 		<Unit filename="gpu/normal_mapped_static_mesh.frag.glsl" />
-		<Unit filename="gpu/normal_mapped_static_mesh.vertx.glsl" />
+		<Unit filename="gpu/normal_mapped_static_mesh.vertex.glsl" />
 		<Unit filename="gpu/textured_static_mesh.frag.glsl" />
-		<Unit filename="gpu/textured_static_mesh.vertx.glsl" />
+		<Unit filename="gpu/textured_static_mesh.vertex.glsl" />
+		<Unit filename="gpu/untextured_static_mesh.frag.glsl" />
+		<Unit filename="gpu/untextured_static_mesh.vertex.glsl" />
 		<Unit filename="include/image.hpp">
 			<Option virtualFolder="src/" />
 		</Unit>
