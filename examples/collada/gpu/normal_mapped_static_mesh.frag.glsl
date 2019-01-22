@@ -26,15 +26,14 @@ invariant fragment_color;
 vec4 phong_shading(vec4 norm) {
 	vec4 s = normalize( tangent_light_position - tangent_eye_position );
 	vec4 ambient = light_pads[1] * material_adse[0];
-	float s_dot_nrm = max( dot(s,norm), 0.0 );
-	vec4  diffuse = s_dot_nrm * light_pads[2] * material_adse[1];
-	vec4 specular;
-	if( s_dot_nrm > 0.0 ) {
+	float diffuse_term = clamp(dot(norm,s), 0.0, 1.0);
+	vec4  diffuse = light_pads[2] * material_adse[1] *  diffuse_term;
+	if( diffuse_term > 0.0 ) {
+		vec4 v = normalize( - tangent_eye_position );
 		vec4 r = reflect( -s, norm );
-		vec4 v = normalize(-tangent_eye_position);
-		float shininess = pow( max( dot(r,v), 0.0 ), material_shininess);
-		vec4 specular = shininess * light_pads[3] * material_adse[2];
-		return ambient + clamp(diffuse,0.0, 1.0) + clamp(specular, 0.0, 1.0);
+		float shininess = pow( max( dot(r.xyz,v.xyz), 0.0 ), material_shininess);
+		vec4 specular = (light_pads[3] * material_adse[2]) * shininess;
+		return ambient + clamp(diffuse,0.0, 1.0) + clamp(specular,0.0, 1.0);
 	}
 	return ambient + clamp(diffuse,0.0, 1.0);
 }

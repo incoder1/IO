@@ -27,7 +27,7 @@ out vec4 tangent_eye_position;
 void main(void) {
 	frag_uv = vertex_uv;
 	mat3 mv3 = mat3(mv);
-	vec3 eye_pos = mv3 * vertex_coord;
+	vec3 eye_pos = (mv * vec4(vertex_coord, 1.0)).xyz;
 	eye_pos.z *= -1.0;
 	vec3 t = normalize(mv3 * tangent);
 	vec3 n = normalize(mv3 * vertex_normal);
