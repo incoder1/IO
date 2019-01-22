@@ -35,7 +35,7 @@ frame_view::frame_view(unsigned int widht, unsigned int height,const char* title
 	::glfwWindowHint(GLFW_RESIZABLE, GLFW_TRUE);
 
 	::glfwSetErrorCallback( [](int errc, const char *msg) {
-			throw std::runtime_error(msg);
+		throw std::runtime_error(msg);
 	} );
 
 	frame_ = ::glfwCreateWindow(widht, height, title, nullptr, nullptr);
@@ -50,8 +50,8 @@ frame_view::frame_view(unsigned int widht, unsigned int height,const char* title
 	// load extensions
 	::glewInit();
 #elif defined(GLX_UNIX)
-    if( 0 == ::gladLoadGL() )
-        throw std::runtime_error("Can not load opengl");
+	if( 0 == ::gladLoadGL() )
+		throw std::runtime_error("Can not load opengl");
 #endif // _WIN32
 
 	::glfwSwapInterval(1);
@@ -98,6 +98,36 @@ frame_view::frame_view(unsigned int widht, unsigned int height,const char* title
 		::glfwPostEmptyEvent();
 	});
 
+	// keys
+	::glfwSetKeyCallback(frame_, [] (::GLFWwindow *wnd,int key,int scancode,int action,int mods) {
+		frame_view *self = static_cast<frame_view*>( ::glfwGetWindowUserPointer(wnd) );
+		switch (key) {
+		case GLFW_KEY_LEFT:
+			self->scn_.move_light(-0.5F, 0.0F, 0.0F);
+			break;
+		case GLFW_KEY_RIGHT:
+			self->scn_.move_light(0.5F, 0.0F, 0.0F);
+			break;
+		case GLFW_KEY_UP:
+			self->scn_.move_light(0.0F, 0.5F, 0.0F);
+			break;
+		case GLFW_KEY_DOWN:
+			self->scn_.move_light(0.0F, -0.5F, 0.0F);
+			break;
+		case GLFW_KEY_W:
+			self->scn_.move_light(0.0F, 0.0F, -0.5F);
+			break;
+		case GLFW_KEY_S:
+			self->scn_.move_light(0.0F, 0.0F, 0.5F);
+			break;
+		case GLFW_KEY_ESCAPE:
+			if (action == GLFW_RELEASE) {
+				glfwSetWindowShouldClose(wnd, true);
+			}
+			break;
+		}
+	});
+
 }
 
 frame_view::~frame_view() noexcept
@@ -129,7 +159,7 @@ void frame_view::show(const s_model& md)
 		::glClearColor(1.0F, 1.0F, 1.0F, 1.0F);
 
 		if(md)
-		 	md->render( scn_ );
+			md->render( scn_ );
 
 		::glfwSwapBuffers(frame_);
 		::glfwWaitEvents();

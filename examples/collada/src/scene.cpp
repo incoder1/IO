@@ -30,11 +30,11 @@ void scene::move_model(float distance)
 	distance_z_ = distance;
 }
 
-void scene::move_light(float x, float y, float z) noexcept
+void scene::move_light(float x_delta, float y_delta, float z_delta) noexcept
 {
-	light_.pads[0] = x;
-	light_.pads[1] = y;
-	light_.pads[2] = z;
+	light_.pads[0] += x_delta;
+	light_.pads[1] += y_delta;
+	light_.pads[2] += z_delta;
 }
 
 void  scene::get_matrix(glm::mat4 &prj, glm::mat4& mv) const noexcept
