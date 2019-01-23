@@ -186,6 +186,7 @@ inline const char* mbtochar32(char32_t& dst, const char* src)
 	return nullptr;
 }
 
+
 /// Returns UTF-8 string length in logical UNICODE characters
 /// \param u8str source UTF-8 string
 /// \return length in characters

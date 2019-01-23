@@ -46,7 +46,7 @@ void main(void) {
 	if( gl_FrontFacing ) {
 		normal = vec4(n,0.0);
 	} else {
-		normal = -vec4(n,0.0);
+		normal = vec4(-n,0.0);
 	}
 	fragment_color = color + phong_shading(normal);
 }

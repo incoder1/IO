@@ -129,6 +129,10 @@ public:
 		return mem_;
 	}
 
+	inline std::size_t bytes() const noexcept {
+		return len_ * sizeof(T);
+	}
+
 	inline std::size_t len() const noexcept
 	{
 		return len_;

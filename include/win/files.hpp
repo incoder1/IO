@@ -78,10 +78,16 @@ public:
 
 	explicit file(const wchar_t* name) noexcept;
 
-	file(const file& c):
-		 name_( c.name_.len() )
+	file(const std::string& name) noexcept:
+		file( name.data() )
+	{}
+
+	file(const file& c) noexcept:
+		 name_( )
 	{
-		io_memmove( name_.get(), c.name_.get(), c.name_.len() );
+		if( c.name_ )  {
+			scoped_arr<wchar_t>( c.name_.get(), c.name_.len() ).swap( name_ );
+		}
 	}
 
 	file& operator=(const file& rhs)

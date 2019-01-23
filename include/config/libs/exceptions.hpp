@@ -12,6 +12,7 @@
 #define __IO_EXCEPTIONS_HPP_INCLUDED__
 
 #include <system_error>
+#include <type_traits>
 
 #ifndef IO_NO_EXCEPTIONS
 #	include <stdexcept>
@@ -33,8 +34,8 @@ namespace io {
 		~nobadalloc() = delete;
 	public:
 
-	  template<typename... _Args>
-	  static inline T* construct(std::error_code& ec,_Args&&... __args) noexcept( noexcept( T(std::forward<_Args>(__args)...) ) ) {
+	 template<typename... _Args>
+	 static inline T* construct(std::error_code& ec,_Args&&... __args) noexcept( noexcept( T(std::forward<_Args>(__args)...) ) ) {
 			T* result = new ( std::nothrow ) T( std::forward<_Args>(__args)... );
 			if(nullptr == result)
 				ec = std::make_error_code(std::errc::not_enough_memory);

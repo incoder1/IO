@@ -17,7 +17,7 @@ int main()
 
 	std::string file_name = io::transcode(L"test-utf16le.txt");
 
-	file sf( file_name.data() );
+	file sf( file_name );
 	if(!sf.exist()) {
 		std::cerr << " test file " << sf.path()
 		<< "is not exist or can not be found"

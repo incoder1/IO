@@ -13,10 +13,10 @@ static const float COLORED_QUBE_VERTEX[216] = {
 	// Coordinate  | Color | Normal
 
 	// Top Quad
-	 1.0F, 1.0F,-1.0F,	0.5F, 0.5f, 0.5f,	0.0F, 1.0F, 0.0F,
+	1.0F, 1.0F,-1.0F,	0.5F, 0.5f, 0.5f,	0.0F, 1.0F, 0.0F,
 	-1.0F, 1.0F,-1.0F,	0.5f, 0.5f, 0.5f,	0.0F, 1.0F, 0.0F,
 	-1.0F, 1.0F, 1.0F,	0.5f, 0.5f, 0.5f,	0.0F, 1.0F, 0.0F,
-	 1.0F, 1.0F, 1.0F,	0.5f, 0.5f, 0.5f,	0.0F, 1.0F, 0.0F,
+	1.0F, 1.0F, 1.0F,	0.5f, 0.5f, 0.5f,	0.0F, 1.0F, 0.0F,
 
 	// Bottom Quad
 	1.0F,-1.0F, 1.0F,	0.0F, 1.0F, 0.0F,	 0.0F,-1.0F, 0.0F,
@@ -150,8 +150,8 @@ static engine::s_surface textured_qube()
 {
 	engine::s_image texture_img = engine::load_png_rgba(io::file("cube_tex2d_512x512.png"));
 	return engine::s_surface( new engine::textured_static_mesh(
-									TEXTURED_QUBE_VERTEX, 192,
-									CUBE_INDEX,36, texture_img ) );
+								  TEXTURED_QUBE_VERTEX, 192,
+								  CUBE_INDEX,36, texture_img ) );
 }
 
 
@@ -161,7 +161,7 @@ static engine::s_surface normal_mapped_qube()
 	engine::s_image nm_tex = engine::load_png_rgb( io::file("nm512x512.png") );
 	io::scoped_arr<float> vertex = calc_tangent_vertex();
 	return engine::s_surface( new engine::normal_mapped_static_mesh(engine::WHITE_PLASTIC_MATERIAL,vertex.get(), vertex.len(), CUBE_INDEX,36, diff_tex, nm_tex ) );
-	}
+}
 
 #ifdef _WIN32
 int WINAPI WinMain (HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nShowCmd)
@@ -185,7 +185,8 @@ int main(int argc, const char** argv)
 			view.show( mdl );
 
 			return 0;
-		} catch(std::exception& exc) {
+		}
+		catch(std::exception& exc) {
 			std::cerr<< exc.what() << std::endl;
 		}
 		::glfwTerminate();

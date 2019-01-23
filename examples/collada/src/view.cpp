@@ -9,15 +9,26 @@ extern "C" int gladLoadGL(void);
 namespace engine  {
 
 
+static constexpr float aspect(unsigned int widht, unsigned int height)
+{
+	return static_cast<float>(widht) / static_cast<float>(height);
+}
+
+static constexpr float fov(unsigned int widht, unsigned int height)
+{
+	return static_cast<float>(height) / static_cast<float>(widht);
+}
+
+
 // frame_view
 frame_view::frame_view(unsigned int widht, unsigned int height,const char* title):
 	frame_(nullptr),
-	scn_(1.0F, 1.0F, 2.0F, 20.0F),
+	scn_( scene::perspective( fov(widht,height), aspect(widht,height), 1.0F, 20.0F) ),
 	mouse_prev_x_(0),
 	mouse_prev_y_(0),
 	angle_x_(0.0F),
 	angle_y_(0.0F),
-	zoom_(-5.0F)
+	zoom_(-3.0F)
 {
 
 #ifdef _WIN32
@@ -57,14 +68,14 @@ frame_view::frame_view(unsigned int widht, unsigned int height,const char* title
 	::glfwSwapInterval(1);
 
 	// Init OpenGL
-	::glEnable(GL_CULL_FACE);
-	::glCullFace(GL_BACK);
+	//::glEnable(GL_CULL_FACE);
+	//::glCullFace(GL_BACK);
 
 	::glEnable(GL_DEPTH_TEST);
 	::glDepthFunc(GL_LEQUAL);
 
 	//::glShadeModel(GL_FLAT);
-	::glShadeModel(GL_SMOOTH);
+	//::glShadeModel(GL_SMOOTH);
 
 	::glHint(GL_PERSPECTIVE_CORRECTION_HINT, GL_NICEST);
 	::glEnable(GL_LIGHTING);
@@ -94,8 +105,14 @@ frame_view::frame_view(unsigned int widht, unsigned int height,const char* title
 	// mouse scroll, move model to scroll
 	::glfwSetScrollCallback(frame_, [] (::GLFWwindow *wnd, double xoffset, double yoffset) {
 		frame_view *self = static_cast<frame_view*>( ::glfwGetWindowUserPointer(wnd) );
-		self->zoom_ += static_cast<float>(yoffset);
+		self->zoom_ += static_cast<float>( 1.0 / yoffset);
 		::glfwPostEmptyEvent();
+	});
+
+	// update perspective on window resize
+	glfwSetWindowSizeCallback(frame_, [](GLFWwindow* wnd, int w, int h) {
+		frame_view *self = static_cast<frame_view*>( ::glfwGetWindowUserPointer(wnd) );
+		self->scn_.update_view( static_cast<float>(w), static_cast<float>(h) );
 	});
 
 	// keys

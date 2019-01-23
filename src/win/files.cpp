@@ -75,10 +75,11 @@ void file::posix_to_windows(wchar_t* path) noexcept
         if(L'/' == *c)
         	*c = L'\\';
     }
-    // set drive latter, if exist
+    // full name from root, i.e. /c/Program Files/foo
     if('\\' == path[0] ) {
+    	// set drive latter, if exist
 		wchar_t drive = std::towupper( path[1] );
-		if(drive >= L'A' && drive <= L'Z' ) {
+		if( drive >= L'A' && drive <= L'Z' ) {
 			path[0] = drive;
 			path[1] = L':';
 		}
@@ -95,10 +96,13 @@ file::file(const char* name) noexcept:
 	if(alen != 0) {
 		int wlen = ::MultiByteToWideChar(CP_UTF8, 0, name, alen, nullptr, 0);
 		if(0 != wlen) {
-			scoped_arr<wchar_t> tmp( static_cast<std::size_t>(wlen+1) );
-			::MultiByteToWideChar(CP_UTF8, 0, name, alen, tmp.get(), wlen);
-			posix_to_windows( tmp.get() );
-			name_ = std::move(tmp);
+			scoped_arr<wchar_t> wname( static_cast<std::size_t>(wlen+1) );
+			// check for out of memory
+			if( io_unlikely( wname ) ) {
+				::MultiByteToWideChar(CP_UTF8, 0, name, alen, wname.get(), wlen);
+				posix_to_windows( wname.get() );
+				name_ = std::move(wname);
+			}
 		}
 	}
 }

@@ -15,11 +15,16 @@ namespace engine  {
 
 class scene {
 public:
+
+	static scene perspective(float fov_y, float aspect, float z_near, float z_far) noexcept;
+
 	scene(float width, float height,float eye_distance,float depth);
 
-	void rotate_model(float x_rad, float y_rad);
+	void update_view(int widht,int height) noexcept;
 
-	void move_model(float distance);
+	void rotate_model(float x_rad, float y_rad) noexcept;
+
+	void move_model(float distance) noexcept;
 
 	void move_light(float x, float y, float z) noexcept;
 
