@@ -7,7 +7,7 @@ namespace engine  {
 
 scene scene::perspective(float fov_y_rad, float aspect, float z_near, float z_far) noexcept
 {
-	const float heigh = fov_y_rad * z_near;
+	const float heigh = std::tan(fov_y_rad) * z_near;
 	float width = heigh * aspect;
 	return scene (width, heigh, z_near, z_far);
 }
@@ -34,12 +34,11 @@ void scene::rotate_model(float x_rad, float y_rad) noexcept
 }
 
 
-void scene::update_view(int widht,int height) noexcept
+void scene::update_view_perspective(int widht,int height, float fov_y_rad) noexcept
 {
-	float fov = static_cast<float>(height) / static_cast<float>(widht);
-	float aspect =  static_cast<float>(widht) / static_cast<float>(height);
-	height_ = fov * eye_distance_;
-	width_ = height_ *  aspect;
+	float aspect = static_cast<float>(widht) / static_cast<float>(height);
+	height_ = std::tan(fov_y_rad) * eye_distance_;
+	width_ = height_ * aspect;
 }
 
 void scene::move_model(float distance) noexcept

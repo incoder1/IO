@@ -14,16 +14,10 @@ static constexpr float aspect(unsigned int widht, unsigned int height)
 	return static_cast<float>(widht) / static_cast<float>(height);
 }
 
-static constexpr float fov(unsigned int widht, unsigned int height)
-{
-	return static_cast<float>(height) / static_cast<float>(widht);
-}
-
-
 // frame_view
 frame_view::frame_view(unsigned int widht, unsigned int height,const char* title):
 	frame_(nullptr),
-	scn_( scene::perspective( fov(widht,height), aspect(widht,height), 1.0F, 20.0F) ),
+	scn_( scene::perspective( glm::radians(55.0F), aspect(widht,height), 0.5F, 15.0F) ),
 	mouse_prev_x_(0),
 	mouse_prev_y_(0),
 	angle_x_(0.0F),
@@ -105,14 +99,14 @@ frame_view::frame_view(unsigned int widht, unsigned int height,const char* title
 	// mouse scroll, move model to scroll
 	::glfwSetScrollCallback(frame_, [] (::GLFWwindow *wnd, double xoffset, double yoffset) {
 		frame_view *self = static_cast<frame_view*>( ::glfwGetWindowUserPointer(wnd) );
-		self->zoom_ += static_cast<float>( 1.0 / yoffset);
+		self->zoom_ += static_cast<float>( yoffset / 2.0 );
 		::glfwPostEmptyEvent();
 	});
 
 	// update perspective on window resize
 	glfwSetWindowSizeCallback(frame_, [](GLFWwindow* wnd, int w, int h) {
 		frame_view *self = static_cast<frame_view*>( ::glfwGetWindowUserPointer(wnd) );
-		self->scn_.update_view( static_cast<float>(w), static_cast<float>(h) );
+		self->scn_.update_view_perspective( static_cast<float>(w), static_cast<float>(h), glm::radians(55.0F) );
 	});
 
 	// keys
