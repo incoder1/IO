@@ -149,7 +149,7 @@ static io::scoped_arr<float> calc_tangent_vertex()
 static engine::s_surface textured_qube()
 {
 	engine::s_image texture_img = engine::load_png_rgba(io::file("cube_tex2d_512x512.png"));
-	return engine::s_surface( new engine::textured_static_mesh(
+	return engine::s_surface( new engine::textured_static_mesh(engine::WHITE_PLASTIC_MATERIAL,
 								  TEXTURED_QUBE_VERTEX, 192,
 								  CUBE_INDEX,36, texture_img ) );
 }
@@ -175,9 +175,9 @@ int main(int argc, const char** argv)
 			engine::frame_view view(640,480,"Collada model view");
 			//engine::s_surface qube( new engine::untextured_static_mesh(COLORED_QUBE_VERTEX,216,CUBE_INDEX,36) );
 
-			//engine::s_surface qube = textured_qube();
+			engine::s_surface qube = textured_qube();
 
-			engine::s_surface qube = normal_mapped_qube();
+			//engine::s_surface qube = normal_mapped_qube();
 
 			engine::s_model mdl( new engine::model() );
 			mdl->add_surface( std::move(qube) );
