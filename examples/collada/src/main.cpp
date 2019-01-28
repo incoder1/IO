@@ -175,9 +175,9 @@ int main(int argc, const char** argv)
 			engine::frame_view view(640,480,"Collada model view");
 			//engine::s_surface qube( new engine::untextured_static_mesh(COLORED_QUBE_VERTEX,216,CUBE_INDEX,36) );
 
-			//engine::s_surface qube = textured_qube();
+			engine::s_surface qube = textured_qube();
 
-			engine::s_surface qube = normal_mapped_qube();
+			//engine::s_surface qube = normal_mapped_qube();
 
 			engine::s_model mdl( new engine::model() );
 			mdl->add_surface( std::move(qube) );

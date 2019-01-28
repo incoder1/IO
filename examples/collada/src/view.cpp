@@ -1,6 +1,8 @@
 #include "stdafx.hpp"
 #include "view.hpp"
 
+#include <iostream>
+
 #ifdef GLX_UNIX
 extern "C" int gladLoadGL(void);
 #endif
@@ -14,15 +16,25 @@ static constexpr float aspect(unsigned int widht, unsigned int height)
 	return static_cast<float>(widht) / static_cast<float>(height);
 }
 
+static float fov_y(unsigned int widht, unsigned int height) {
+	float w = static_cast<float>(widht);
+	float h = static_cast<float>(height);
+	float w_pow2 = w*w;
+	float h_pow2 = h*h;
+	float hipo_pow2 = w_pow2 + h_pow2;
+	// angle of the fov_y angle |\ left down angle of the triangle
+	return std::acos( ((hipo_pow2 + w_pow2) - h_pow2 ) / (2.0F * std::sqrt(hipo_pow2) * w ) );
+}
+
 // frame_view
 frame_view::frame_view(unsigned int widht, unsigned int height,const char* title):
 	frame_(nullptr),
-	scn_( scene::perspective( glm::radians(55.0F), aspect(widht,height), 0.5F, 15.0F) ),
+	scn_( scene::perspective( fov_y(widht,height), aspect(widht,height), 2.0F, 20.0F) ),
 	mouse_prev_x_(0),
 	mouse_prev_y_(0),
 	angle_x_(0.0F),
 	angle_y_(0.0F),
-	zoom_(-3.0F)
+	zoom_(-5.0F)
 {
 
 #ifdef _WIN32
@@ -106,7 +118,7 @@ frame_view::frame_view(unsigned int widht, unsigned int height,const char* title
 	// update perspective on window resize
 	glfwSetWindowSizeCallback(frame_, [](GLFWwindow* wnd, int w, int h) {
 		frame_view *self = static_cast<frame_view*>( ::glfwGetWindowUserPointer(wnd) );
-		self->scn_.update_view_perspective( static_cast<float>(w), static_cast<float>(h), glm::radians(55.0F) );
+		self->scn_.update_view_perspective( static_cast<float>(w), static_cast<float>(h), fov_y(w,h) );
 	});
 
 	// keys

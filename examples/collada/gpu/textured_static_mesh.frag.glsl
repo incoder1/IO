@@ -37,6 +37,8 @@ vec4 phong_shading(vec4 eye_pos, vec4 norm) {
 	return ambient + clamp(diffuse,0.0, 1.0);
 }
 
+vec4 GAMMA = vec4( 1.0/2.2 );
+
 void main(void) {
 	vec4 sc;
 	if( gl_FrontFacing ) {
@@ -44,5 +46,6 @@ void main(void) {
 	} else {
 		sc = phong_shading(eye_position, -frag_normal );
 	}
-	frag_color = texture(diffuse_texture, frag_uv) + sc;
+	vec4 texture_color = texture(diffuse_texture, frag_uv);
+	frag_color =  pow(texture_color,GAMMA) + sc;
 }
