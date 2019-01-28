@@ -20,7 +20,7 @@ public:
 
 	scene(float width, float height,float eye_distance,float depth);
 
-	void update_view_perspective(int widht,int height, float fov_y_rad) noexcept;
+	void update_view_perspective(int widht,int height) noexcept;
 
 	void rotate_model(float x_rad, float y_rad) noexcept;
 

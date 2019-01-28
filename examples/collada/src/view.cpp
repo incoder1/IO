@@ -11,19 +11,13 @@ extern "C" int gladLoadGL(void);
 namespace engine  {
 
 
-static constexpr float aspect(unsigned int widht, unsigned int height)
+static constexpr float aspect(unsigned int width, unsigned int height)
 {
-	return static_cast<float>(widht) / static_cast<float>(height);
+	return  static_cast<float>(width) / static_cast<float>(height);
 }
 
-static float fov_y(unsigned int widht, unsigned int height) {
-	float w = static_cast<float>(widht);
-	float h = static_cast<float>(height);
-	float w_pow2 = w*w;
-	float h_pow2 = h*h;
-	float hipo_pow2 = w_pow2 + h_pow2;
-	// angle of the fov_y angle |\ left down angle of the triangle
-	return std::acos( ((hipo_pow2 + w_pow2) - h_pow2 ) / (2.0F * std::sqrt(hipo_pow2) * w ) );
+static float fov_y(unsigned int width, unsigned int height) {
+	return std::atan( static_cast<float>(height) / static_cast<float>(width)  );
 }
 
 // frame_view
@@ -75,7 +69,7 @@ frame_view::frame_view(unsigned int widht, unsigned int height,const char* title
 
 	// Init OpenGL
 	//::glEnable(GL_CULL_FACE);
-	//::glCullFace(GL_BACK);
+	//::glCullFace(GL_FRONT);
 
 	::glEnable(GL_DEPTH_TEST);
 	::glDepthFunc(GL_LEQUAL);
@@ -118,7 +112,7 @@ frame_view::frame_view(unsigned int widht, unsigned int height,const char* title
 	// update perspective on window resize
 	glfwSetWindowSizeCallback(frame_, [](GLFWwindow* wnd, int w, int h) {
 		frame_view *self = static_cast<frame_view*>( ::glfwGetWindowUserPointer(wnd) );
-		self->scn_.update_view_perspective( static_cast<float>(w), static_cast<float>(h), fov_y(w,h) );
+		self->scn_.update_view_perspective( static_cast<float>(w), static_cast<float>(h) );
 	});
 
 	// keys

@@ -34,11 +34,12 @@ void scene::rotate_model(float x_rad, float y_rad) noexcept
 }
 
 
-void scene::update_view_perspective(int widht,int height, float fov_y_rad) noexcept
+void scene::update_view_perspective(int width,int height) noexcept
 {
-	float aspect = static_cast<float>(widht) / static_cast<float>(height);
-	height_ = std::tan(fov_y_rad) * eye_distance_;
-	width_ = height_ * aspect;
+	float aspect_ratio = static_cast<float>(width) / static_cast<float>(height);
+	float tan_fov_y = static_cast<float>(height) / static_cast<float>(width);
+	height_ = tan_fov_y * eye_distance_;
+	width_ = height_ * aspect_ratio;
 }
 
 void scene::move_model(float distance) noexcept
@@ -68,7 +69,6 @@ void  scene::get_matrix(glm::mat4 &prj, glm::mat4& mv) const noexcept
 
 	mv = glm::rotate(mv, angle_x_, up_x);
 	mv = glm::rotate(mv, angle_y_, up_y);
-
 }
 
 
