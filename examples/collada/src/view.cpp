@@ -11,19 +11,10 @@ extern "C" int gladLoadGL(void);
 namespace engine  {
 
 
-static constexpr float aspect(unsigned int width, unsigned int height)
-{
-	return  static_cast<float>(width) / static_cast<float>(height);
-}
-
-static float fov_y(unsigned int width, unsigned int height) {
-	return std::atan( static_cast<float>(height) / static_cast<float>(width)  );
-}
-
 // frame_view
 frame_view::frame_view(unsigned int widht, unsigned int height,const char* title):
 	frame_(nullptr),
-	scn_( scene::perspective( fov_y(widht,height), aspect(widht,height), 2.0F, 20.0F) ),
+	scn_( scene::perspective( widht, height, 2.0F, 20.0F) ),
 	mouse_prev_x_(0),
 	mouse_prev_y_(0),
 	angle_x_(0.0F),

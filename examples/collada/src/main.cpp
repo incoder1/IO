@@ -125,21 +125,36 @@ static void tangent_vector(const float * face, float *ret)
 // calculate tangents to qube surfaces
 static io::scoped_arr<float> calc_tangent_vertex()
 {
-	constexpr const std::size_t size = 11 * 4 * 6;
-	io::scoped_arr<float> ret(size);
-	float *d = ret.get();
-	const float* s = TEXTURED_QUBE_VERTEX;
-#ifdef _OPENMP
-	#pragma omp simd
-#endif // _OPENMP
-	for (unsigned i = 0; i < 6; i++) {
+
+	constexpr const std::size_t src_vtx_stride = 8;
+	constexpr const std::size_t dst_vtx_stride = 11;
+	constexpr const std::size_t face_vtx_count = 4;
+	constexpr const std::size_t face_count = 6;
+
+	constexpr const std::size_t mesh_size = dst_vtx_stride * face_vtx_count * face_count;
+
+	io::scoped_arr<float> ret(mesh_size);
+	float *dst = ret.get();
+	const float* src = TEXTURED_QUBE_VERTEX;
+
+
+	constexpr const std::size_t src_face_size = src_vtx_stride * face_vtx_count;
+	constexpr const std::size_t dst_face_size = dst_vtx_stride * face_vtx_count;
+
+	#ifdef _OPENMP
+	#pragma omp parallel for
+	#endif // _OPENMP
+	for (std::size_t i = 0; i < face_count; i++) {
+		// index of first face
+		std:size_t face_start_idx = i * src_face_size;
 		float tan[3];
-		tangent_vector( s, tan );
-		for(unsigned j=0; j < 4; j++) {
-			std::memcpy( d, s, sizeof(float)*8 );
-			std::memcpy( d+8, tan, 3 * sizeof(float) );
-			d += 11;
-			s += 8;
+		tangent_vector( (src + face_start_idx), tan );
+		// add tangent vector to each vertex
+		for(std::size_t j=0; j < face_vtx_count; j++) {
+			std::size_t didx = (i*dst_face_size) + (j*dst_vtx_stride);
+			std::size_t sidx = (i*src_face_size) + (j*src_vtx_stride);
+			std::memcpy( (dst + didx) , (src + sidx), sizeof(float) * src_vtx_stride);
+			std::memcpy( (dst + didx + src_vtx_stride), tan, sizeof(tan) );
 		}
 	}
 	return ret;
@@ -150,8 +165,8 @@ static engine::s_surface textured_qube()
 {
 	engine::s_image texture_img = engine::load_png_rgba(io::file("cube_tex2d_512x512.png"));
 	return engine::s_surface( new engine::textured_static_mesh(engine::WHITE_PLASTIC_MATERIAL,
-								  TEXTURED_QUBE_VERTEX, 192,
-								  CUBE_INDEX,36, texture_img ) );
+							  TEXTURED_QUBE_VERTEX, 192,
+							  CUBE_INDEX,36, texture_img ) );
 }
 
 
@@ -175,9 +190,9 @@ int main(int argc, const char** argv)
 			engine::frame_view view(640,480,"Collada model view");
 			//engine::s_surface qube( new engine::untextured_static_mesh(COLORED_QUBE_VERTEX,216,CUBE_INDEX,36) );
 
-			engine::s_surface qube = textured_qube();
+			//engine::s_surface qube = textured_qube();
 
-			//engine::s_surface qube = normal_mapped_qube();
+			engine::s_surface qube = normal_mapped_qube();
 
 			engine::s_model mdl( new engine::model() );
 			mdl->add_surface( std::move(qube) );

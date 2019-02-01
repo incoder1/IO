@@ -5,11 +5,20 @@ namespace engine  {
 
 // scene
 
-scene scene::perspective(float fov_y_rad, float aspect, float z_near, float z_far) noexcept
+scene scene::glu_perspective(float fov_y_rad, float aspect, float z_near, float z_far) noexcept
 {
-	const float heigh = std::tan(fov_y_rad) * z_near;
-	float width = heigh * aspect;
-	return scene (width, heigh, z_near, z_far);
+	const float height = std::tan(fov_y_rad) * z_near;
+	const float width = height * aspect;
+	return scene (width, height, z_near, z_far);
+}
+
+scene scene::perspective(int width, int height, float z_near, float z_far)
+{
+	const float fov_y_tan = static_cast<float>(height) / static_cast<float>(width);
+	const float aspect_ratio = static_cast<float>(width) / static_cast<float>(height);
+	const float h = fov_y_tan * z_near;
+	const float w = h * aspect_ratio;
+	return scene(w, h, z_near, z_far);
 }
 
 scene::scene(float width, float height,float eye_distance,float depth):
