@@ -6,20 +6,20 @@ namespace gl {
 // shader
 shader shader::load_glsl(shader_type type, const io::s_read_channel& src)
 {
-
 	std::error_code ec;
-	io::byte_buffer buff = io::byte_buffer::allocate(ec, io::memory_traits::page_size() / 4 );
+	io::byte_buffer buff = io::byte_buffer::allocate(ec, io::memory_traits::page_size() / 2 );
 	if(ec)
 		throw std::system_error(ec);
-	uint8_t tmp[1024];
-	for(std::size_t read = src->read(ec, tmp, sizeof(tmp) ); 0 != read && !ec ; ) {
-		if( (buff.available() < read) && !buff.exp_grow() ) {
-			ec = std::make_error_code( std::errc::not_enough_memory );
-			break;
+	std::size_t read = 0;
+	do {
+		uint8_t* pos = const_cast<uint8_t*>( buff.position().get() );
+		read = src->read(ec, pos, buff.available() );
+		if(0 != read) {
+			buff.move(read);
+			if( !buff.ln_grow() )
+				ec = std::make_error_code( std::errc::not_enough_memory );
 		}
-		buff.put( tmp, read);
-		read = src->read(ec, tmp, sizeof(tmp) );
-	}
+	} while(0 != read && !ec);
 	if(ec)
 		throw std::system_error(ec);
 	buff.flip();
