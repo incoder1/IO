@@ -172,7 +172,7 @@ static engine::s_surface textured_qube()
 
 static engine::s_surface normal_mapped_qube()
 {
-	engine::s_image diff_tex = engine::load_png_rgba( io::file("face512x512.png") );
+	engine::s_image diff_tex = engine::load_png_rgb( io::file("face512x512.png") );
 	engine::s_image nm_tex = engine::load_png_rgb( io::file("nm512x512.png") );
 	io::scoped_arr<float> vertex = calc_tangent_vertex();
 	return engine::s_surface( new engine::normal_mapped_static_mesh(engine::WHITE_PLASTIC_MATERIAL,vertex.get(), vertex.len(), CUBE_INDEX,36, diff_tex, nm_tex ) );

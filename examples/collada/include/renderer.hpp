@@ -35,16 +35,18 @@ static constexpr const material_t WHITE_PLASTIC_MATERIAL = {
 
 /// Light parameters  to be used by GPU shader
 /// 4 vectors matrix
-union light_t {
+struct light_t {
 	/// 0-3: position, 4-7: ambient color, 8-11: diffuse color , 12-15: specular
 	float pads[16];
 };
 
 static constexpr const light_t DEFAULT_LIGHT = {
-	0.0F,0.0F,1.0F,0.0F,
-	0.0F,0.0F,0.0F,1.0F,
-	1.0F,1.0F,1.0F,1.0F,
-	1.0F,1.0F,1.0F,0.0F
+	{
+	 0.0F,0.0F,1.0F,0.0F,
+	 0.0F,0.0F,0.0F,1.0F,
+	 1.0F,1.0F,1.0F,1.0F,
+	 1.0F,1.0F,1.0F,0.0F
+	}
 };
 
 } // namespace engine

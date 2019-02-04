@@ -63,7 +63,7 @@ void scene::move_light(float x_delta, float y_delta, float z_delta) noexcept
 	light_.pads[2] += z_delta;
 }
 
-void  scene::get_matrix(glm::mat4 &prj, glm::mat4& mv) const noexcept
+void  scene::get_frustum(glm::mat4 &prj, glm::mat4& mv) const noexcept
 {
 	prj = glm::frustum( -width_,width_, -height_,height_, eye_distance_, depth_);
 

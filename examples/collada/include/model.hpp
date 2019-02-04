@@ -20,12 +20,6 @@ public:
 
 DECLARE_IPTR(model);
 
-/// Nonuniform Rational B-Spline Surface
-class NURB final:public surface
-{
-public:
-	virtual void draw(const scene& scn) const override;
-};
 
 
 } // namespace engine

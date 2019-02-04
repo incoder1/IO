@@ -13,7 +13,7 @@ shader shader::load_glsl(shader_type type, const io::s_read_channel& src)
 		throw std::system_error(ec);
 	uint8_t tmp[1024];
 	for(std::size_t read = src->read(ec, tmp, sizeof(tmp) ); 0 != read && !ec ; ) {
-		if( buff.available() < read && !buff.exp_grow() ) {
+		if( (buff.available() < read) && !buff.exp_grow() ) {
 			ec = std::make_error_code( std::errc::not_enough_memory );
 			break;
 		}
@@ -109,42 +109,41 @@ program::~program() noexcept
 void program::attach_shader(shader&& sh)
 {
 	if( shader_type::vertex == sh.type() )
-		throw std::invalid_argument("Can not attach GL_VERTEX_SHADER");
+		throw std::invalid_argument("Can not attach additional GL_VERTEX_SHADER");
 	if(shader_type::fragment == sh.type())
-		throw std::invalid_argument("Can not attach GL_FRAGMENT_SHADER");
+		throw std::invalid_argument("Can not attach additional GL_FRAGMENT_SHADER");
 	shaders_.emplace_back( std::move(sh) );
+}
+
+void program::validate(::GLenum pname,const char* emsg)
+{
+	::GLint val = GL_FALSE;
+	::glGetProgramiv(hprg_, pname, &val);
+	if(GL_TRUE != val) {
+		::glGetProgramiv(hprg_, GL_INFO_LOG_LENGTH, &val);
+		::GLchar *log = static_cast<GLchar*>( io_alloca(val) );
+		::glGetProgramInfoLog( hprg_, val, &val, log );
+		std::string msg(emsg);
+		msg.push_back('\t');
+		msg.append(log);
+		throw std::runtime_error( msg );
+	}
 }
 
 void program::link()
 {
+	// attach all shader objects before linking program
 	std::for_each(shaders_.begin(), shaders_.end(), [this] (const shader& sh) {
 		::glAttachShader(hprg_, sh.handle() );
 	} );
-	// TODO: make error handling generic
 	::glLinkProgram(hprg_);
+	// detach all shader objects after linking program
 	std::for_each(shaders_.begin(), shaders_.end(), [this] (const shader& sh) {
 		::glDetachShader(hprg_, sh.handle() );
 	} );
-	::GLint errc = GL_FALSE;
-	::glGetProgramiv(hprg_, GL_LINK_STATUS, &errc );
-	if( GL_TRUE != errc) {
-		std::string msg("Link error: ");
-		char log[512];
-		::GLsizei len;
-		::glGetProgramInfoLog(hprg_, 512, &len, log );
-		msg.append(log, len);
-		throw std::runtime_error( msg );
-	}
+	validate(GL_LINK_STATUS, "Shader program link error:\n");
 	::glValidateProgram(hprg_);
-	::glGetProgramiv(hprg_, GL_VALIDATE_STATUS, &errc );
-	if( GL_TRUE != errc) {
-		std::string msg("Validate error: ");
-		char log[512];
-		::GLsizei len;
-		::glGetProgramInfoLog(hprg_, 512, &len, log );
-		msg.append(log, len);
-		throw std::runtime_error( msg );
-	}
+	validate(GL_VALIDATE_STATUS, "Shader program validate error:\n");
 }
 
 
@@ -153,6 +152,7 @@ void program::pass_vertex_attrib_array(::GLsizei attr_no, const s_buffer& vbo, b
 	if (buffer_type::ARRAY_BUFFER != vbo->type() )
 		throw std::runtime_error("Array buffer expected");
 	const std::size_t dtp_size = sizeof_data_type(vbo->element_type());
+
 	vbo->bind();
 	::GLsizei vertex_size = stride *  dtp_size;
 	::GLsizei voffset = offset * dtp_size;
@@ -166,6 +166,7 @@ void program::pass_vertex_attrib_array(::GLsizei attr_no, const s_buffer& vbo, b
 	);
 	::glEnableVertexAttribArray(attr_no);
 	vbo->unbind();
+
 	validate_opengl("Can not pass vertex attributes array");
 }
 

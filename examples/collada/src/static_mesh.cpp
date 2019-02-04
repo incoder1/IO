@@ -62,7 +62,7 @@ void untextured_static_mesh::draw(const scene& scn) const
 {
 	::glm::mat4 projection_mat;
 	::glm::mat4 model_view_mat;
-	scn.get_matrix(projection_mat,model_view_mat);
+	scn.get_frustum(projection_mat,model_view_mat);
 	::glm::mat4 normal_mat( glm::transpose( glm::inverse(  glm::mat3(model_view_mat) ) ) );
 
 	program_->start();
@@ -148,7 +148,7 @@ void textured_static_mesh::draw(const scene& scn) const
 {
 	::glm::mat4 projection_mat;
 	::glm::mat4 model_view_mat;
-	scn.get_matrix(projection_mat,model_view_mat);
+	scn.get_frustum(projection_mat,model_view_mat);
 	::glm::mat4 normal_mat( glm::transpose( glm::inverse(  glm::mat3(model_view_mat) ) ) );
 
 	program_->start();
@@ -242,13 +242,15 @@ normal_mapped_static_mesh::normal_mapped_static_mesh(const float *vertex, std::s
 void normal_mapped_static_mesh::draw(const scene& scn) const
 {
 
-	::glm::mat4 projection_mat;
-	::glm::mat4 model_view_mat;
-	scn.get_matrix(projection_mat,model_view_mat);
+	glm::mat4 projection_mat;
+	glm::mat4 model_view_mat;
+	scn.get_frustum(projection_mat,model_view_mat);
+
+	glm::mat4 mvp = projection_mat * model_view_mat;
 
 	program_->start();
 
-	::glUniformMatrix4fv(mvp_ul_, 1, GL_FALSE, glm::value_ptr( projection_mat * model_view_mat ) );
+	::glUniformMatrix4fv(mvp_ul_, 1, GL_FALSE, glm::value_ptr( mvp ) );
 	::glUniformMatrix4fv(mv_ul_, 1, GL_FALSE, glm::value_ptr( model_view_mat ) );
 
 	// transfer light

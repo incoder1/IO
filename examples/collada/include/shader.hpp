@@ -57,6 +57,7 @@ DECLARE_IPTR(program);
 class program final:public io::object {
 private:
 	program(shader&& vertex, shader&& fragment);
+	void validate(::GLenum pname,const char* emsg);
 public:
 	static s_program create(shader&& vertex, shader&& fragment);
 	void attach_shader(shader&& sh);

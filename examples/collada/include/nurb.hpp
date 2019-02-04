@@ -9,6 +9,7 @@
 
 namespace engine {
 
+/// Nonuniform Rational B-Spline Surface
 class NURB: public surface
 {
 	public:
@@ -17,12 +18,12 @@ class NURB: public surface
 	private:
 
 	gl::s_program program_;
-	gl::s_buffer vbo_;
-	gl::s_buffer ibo_;
-	std::size_t isize_;
-	::GLint mvp_UL_;
-	::GLint modelVeiwMatUL_;
-	::GLint normalMatUL_;
+//	gl::s_buffer vbo_;
+//	gl::s_buffer ibo_;
+//	std::size_t isize_;
+
+	::GLint mvp_ul_;
+	::GLint mv_ul_;
 };
 
 } // namespace engine
