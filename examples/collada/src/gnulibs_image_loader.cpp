@@ -27,9 +27,10 @@ private:
 	static void read_callback(::png_structp png,::png_bytep out,::png_size_t count) {
 		const png_reader* self = static_cast<const png_reader*>( ::png_get_io_ptr(png) );
 		std::size_t left = count;
+		std::size_t read;
 		do {
-			left -= self->src_.read(out, left);
-		} while( left > 0 );
+			read = self->src_.read(out, left);
+		} while( (read > 0) && ( (left -= read) > 0 ) );
 	}
 
 public:
