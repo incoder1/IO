@@ -5,7 +5,7 @@
 #include "files.hpp"
 
 #include "model.hpp"
-#include "static_mesh.hpp"
+#include "mesh.hpp"
 
 #include <iostream>
 

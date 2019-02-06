@@ -8,6 +8,8 @@
 
 #include <renderer.hpp>
 
+#include <list>
+
 namespace collada {
 
 
@@ -38,15 +40,31 @@ struct input
 	uint8_t set;
 };
 
-struct polylist
+struct poly_list
 {
 	std::vector<input> inputs;
 	std::vector<unsigned int> indecises;
 };
 
+class cs_hash: public std::unary_function<std::size_t,io::const_string>
+{
+public:
+	inline std::size_t operator()(const io::const_string& str) const noexcept
+	{
+		return str.hash();
+	}
+};
+
+typedef std::unordered_map<
+					io::const_string, source,
+					cs_hash, std::equal_to<io::const_string>,
+					std::allocator<std::pair<const io::const_string,source> >
+				>  sources_container;
+
 struct mesh
 {
-	std::unordered_map<std::size_t, source> sources;
+	sources_container sources;
+	poly_list pl;
 };
 
 struct geometry
@@ -54,12 +72,25 @@ struct geometry
 	std::vector<mesh> meshes;
 };
 
+struct model
+{
+	std::vector<image> images;
+	geometry geo;
+};
+
 class parser final: io::object
 {
 	public:
 		parser(io::s_read_channel&& src) noexcept;
+
+		model load()
+		{
+			return model();
+		}
+
 		virtual ~parser() noexcept;
 	private:
+
 		io::unsafe<io::xml::reader> rd_;
 };
 

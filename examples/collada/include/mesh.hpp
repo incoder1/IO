@@ -50,7 +50,6 @@ private:
 	gl::s_program program_;
 	gl::s_buffer vbo_;
 	gl::s_buffer ibo_;
-	std::size_t isize_;
 
 	material_helper mat_helper_;
 	light_helper light_helper_;
@@ -74,7 +73,6 @@ private:
 	gl::s_program program_;
 	gl::s_buffer vbo_;
 	gl::s_buffer ibo_;
-	std::size_t isize_;
 
 	gl::s_texture texture_;
 	material_helper mat_helper_;
@@ -104,7 +102,6 @@ private:
 	gl::s_program program_;
 	gl::s_buffer vbo_;
 	gl::s_buffer ibo_;
-	std::size_t isize_;
 
 	gl::s_texture diffuse_tex_;
 	gl::s_texture normal_map_tex_;

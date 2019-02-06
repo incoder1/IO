@@ -14,7 +14,6 @@ geometry_mesh::geometry_mesh(const material_t& mat,const float *vertex, std::siz
 	program_(),
 	vbo_(),
 	ibo_(),
-	isize_(isize),
 	mat_helper_(mat),
 	light_helper_(),
 	mvp_ul_(-1),
@@ -31,7 +30,7 @@ geometry_mesh::geometry_mesh(const material_t& mat,const float *vertex, std::siz
 							   gl::buffer_type::ARRAY_BUFFER,
 							   gl::buffer_usage::STATIC_DRAW
 							 );
-	ibo_ = gl::buffer::create( index, isize_,
+	ibo_ = gl::buffer::create( index, isize,
 							   gl::buffer_type::ELEMENT_ARRAY_BUFFER,
 							   gl::buffer_usage::STATIC_DRAW );
 
@@ -78,7 +77,7 @@ void geometry_mesh::draw(const scene& scn) const
 	mat_helper_.transfer_to_shader();
 
 	ibo_->bind();
-	::glDrawElements(GL_TRIANGLES, isize_, GL_UNSIGNED_INT, 0);
+	::glDrawElements(GL_TRIANGLES, ibo_->size() , GL_UNSIGNED_INT, 0);
 	ibo_->unbind();
 
 	program_->stop();
@@ -95,7 +94,6 @@ textured_mesh::textured_mesh(const material_t& mat,const float *vertex, std::siz
 	program_(),
 	vbo_(),
 	ibo_(),
-	isize_(isize),
 	texture_(),
 	mat_helper_(mat),
 	light_helper_(),
@@ -112,7 +110,7 @@ textured_mesh::textured_mesh(const material_t& mat,const float *vertex, std::siz
 							   gl::buffer_type::ARRAY_BUFFER,
 							   gl::buffer_usage::STATIC_DRAW
 							 );
-	ibo_ = gl::buffer::create( indexes, isize_,
+	ibo_ = gl::buffer::create( indexes, isize,
 							   gl::buffer_type::ELEMENT_ARRAY_BUFFER,
 							   gl::buffer_usage::STATIC_DRAW );
 
@@ -169,7 +167,7 @@ void textured_mesh::draw(const scene& scn) const
 	 texture_->bind();
 
 	ibo_->bind();
-	::glDrawElements(GL_TRIANGLES, isize_, GL_UNSIGNED_INT, 0);
+	::glDrawElements(GL_TRIANGLES, ibo_->size(), GL_UNSIGNED_INT, 0);
 
 	ibo_->unbind();
 	texture_->unbind();
@@ -187,7 +185,6 @@ normal_mapped_mesh::normal_mapped_mesh(const material_t& mat,const float *vertex
 	program_(),
 	vbo_(),
 	ibo_(),
-	isize_(isize),
 	diffuse_tex_(),
 	normal_map_tex_(),
 	mat_helper_(mat),
@@ -205,7 +202,7 @@ normal_mapped_mesh::normal_mapped_mesh(const material_t& mat,const float *vertex
 							   gl::buffer_type::ARRAY_BUFFER,
 							   gl::buffer_usage::STATIC_DRAW
 							 );
-	ibo_ = gl::buffer::create( indexes, isize_,
+	ibo_ = gl::buffer::create( indexes, isize,
 							   gl::buffer_type::ELEMENT_ARRAY_BUFFER,
 							   gl::buffer_usage::STATIC_DRAW );
 
@@ -269,7 +266,7 @@ void normal_mapped_mesh::draw(const scene& scn) const
 	normal_map_tex_->bind();
 
 	ibo_->bind();
-	::glDrawElements(GL_TRIANGLES, isize_, GL_UNSIGNED_INT, 0);
+	::glDrawElements(GL_TRIANGLES, ibo_->size(), GL_UNSIGNED_INT, 0);
 	ibo_->unbind();
 
 	diffuse_tex_->unbind();
