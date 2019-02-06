@@ -124,8 +124,7 @@ namespace detail {
 
 void IO_PUBLIC_SYMBOL ios_check_error_code(const char* msg, std::error_code const &ec )
 {
-	if( io_likely( !ec ) )
-		return;
+	if( io_unlikely( ec ) ) {
 #ifdef IO_NO_EXCEPTIONS
 	std::string m = ec.message();
 	std::size_t size = io_strlen(msg) + m.length() + 1;
@@ -137,6 +136,7 @@ void IO_PUBLIC_SYMBOL ios_check_error_code(const char* msg, std::error_code cons
 #else
 	throw std::ios_base::failure( msg, ec );
 #endif
+	}
 }
 
 } // namespace detail

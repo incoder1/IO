@@ -8,8 +8,7 @@ shader shader::load_glsl(shader_type type, const io::s_read_channel& src)
 {
 	std::error_code ec;
 	io::byte_buffer buff = io::byte_buffer::allocate(ec, io::memory_traits::page_size() / 2 );
-	if(ec)
-		throw std::system_error(ec);
+	io::check_error_code(ec);
 	std::size_t read = 0;
 	do {
 		uint8_t* pos = const_cast<uint8_t*>( buff.position().get() );
@@ -20,8 +19,7 @@ shader shader::load_glsl(shader_type type, const io::s_read_channel& src)
 				ec = std::make_error_code( std::errc::not_enough_memory );
 		}
 	} while(0 != read && !ec);
-	if(ec)
-		throw std::system_error(ec);
+	io::check_error_code(ec);
 	buff.flip();
 	return shader(type, buff.position().cdata());
 }
