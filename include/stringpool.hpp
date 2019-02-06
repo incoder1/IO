@@ -31,6 +31,8 @@ namespace io {
 class string_pool;
 DECLARE_IPTR(string_pool);
 
+// TODO: Use const_strnig instead of cached_string
+// since cached_string is not needed any longer
 class IO_PUBLIC_SYMBOL cached_string final {
 private:
 	static inline void intrusive_add_ref(uint8_t* const ptr) noexcept
@@ -101,14 +103,6 @@ public:
 	inline const char* data() const noexcept {
 		return io_unlikely( empty() ) ? "" : reinterpret_cast<char*>( data_ + sizeof(std::size_t) );
 	}
-
-#ifndef NDEBUG
-	/// Returns raw C-style zero ending string same as data(), provided for IDE's and debuggers
-	/// \return C-style string "" if string is empty
-	inline const char* c_str() const noexcept {
-		return data();
-	}
-#endif // NDEBUG
 
 	/// Converts this string to system UCS-2 ( UTF-16 LE or BE)
 	inline std::u16string convert_to_u16() const {

@@ -164,7 +164,7 @@ static io::scoped_arr<float> calc_tangent_vertex()
 static engine::s_surface textured_qube()
 {
 	engine::s_image texture_img = engine::load_png_rgba(io::file("cube_tex2d_512x512.png"));
-	return engine::s_surface( new engine::textured_static_mesh(engine::WHITE_PLASTIC_MATERIAL,
+	return engine::s_surface( new engine::textured_mesh(
 							  TEXTURED_QUBE_VERTEX, 192,
 							  CUBE_INDEX,36, texture_img ) );
 }
@@ -175,7 +175,7 @@ static engine::s_surface normal_mapped_qube()
 	engine::s_image diff_tex = engine::load_png_rgb( io::file("face512x512.png") );
 	engine::s_image nm_tex = engine::load_png_rgb( io::file("nm512x512.png") );
 	io::scoped_arr<float> vertex = calc_tangent_vertex();
-	return engine::s_surface( new engine::normal_mapped_static_mesh(engine::WHITE_PLASTIC_MATERIAL,vertex.get(), vertex.len(), CUBE_INDEX,36, diff_tex, nm_tex ) );
+	return engine::s_surface( new engine::normal_mapped_mesh(engine::WHITE_PLASTIC_MATERIAL,vertex.get(), vertex.len(), CUBE_INDEX,36, diff_tex, nm_tex ) );
 }
 
 #ifdef _WIN32
@@ -188,7 +188,7 @@ int main(int argc, const char** argv)
 	if ( GLFW_TRUE == ::glfwInit() ) {
 		try {
 			engine::frame_view view(640,480,"Collada model view");
-			//engine::s_surface qube( new engine::untextured_static_mesh(COLORED_QUBE_VERTEX,216,CUBE_INDEX,36) );
+			//engine::s_surface qube( new engine::geometry_mesh(COLORED_QUBE_VERTEX,216,CUBE_INDEX,36) );
 
 			//engine::s_surface qube = textured_qube();
 

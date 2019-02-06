@@ -26,14 +26,10 @@ private:
 
 	static void read_callback(::png_structp png,::png_bytep out,::png_size_t count) {
 		const png_reader* self = static_cast<const png_reader*>( ::png_get_io_ptr(png) );
-		std::error_code ec;
-		std::size_t read = 0, requared = count;
+		std::size_t left = count;
 		do {
-		 	read = self->src_->read(ec, out, requared);
-		 	requared -= read;
-		} while( requared > 0 || ec );
-		if(ec)
-			throw std::system_error( ec );
+			left -= self->src_.read(out, left);
+		} while( left > 0 );
 	}
 
 public:
@@ -103,7 +99,7 @@ public:
 private:
 	::png_structp png_;
 	::png_infop info_;
-	io::s_read_channel src_;
+	io::unsafe<io::read_channel> src_;
 };
 
 

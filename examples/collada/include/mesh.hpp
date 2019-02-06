@@ -1,5 +1,5 @@
-#ifndef __STATIC_MESH_HPP_INCLUDED__
-#define __STATIC_MESH_HPP_INCLUDED__
+#ifndef __mesh_HPP_INCLUDED__
+#define __mesh_HPP_INCLUDED__
 
 #include "image.hpp"
 #include "vbo.hpp"
@@ -9,7 +9,7 @@
 
 namespace engine {
 
-class static_mesh : public surface
+class mesh : public surface
 {
 protected:
 	/// Vertex coordinate shader attribute name
@@ -28,19 +28,19 @@ protected:
 	/// diffuse texture uniform name
 	static constexpr const char* UNFM_DIFFUSE_TEXTURE = "diffuse_texture";
 
-	constexpr static_mesh() noexcept:
+	constexpr mesh() noexcept:
 		surface()
 	{}
 
 };
 
-class untextured_static_mesh final: public static_mesh
+class geometry_mesh final: public mesh
 {
 public:
-	untextured_static_mesh(const material_t& mat, const float *vertex, std::size_t vsize,const uint32_t* indexes,std::size_t isize);
-	untextured_static_mesh(const float *vertex, std::size_t vsize,const uint32_t* indexes,std::size_t isize);
+	geometry_mesh(const material_t& mat, const float *vertex, std::size_t vsize,const uint32_t* indexes,std::size_t isize);
+	geometry_mesh(const float *vertex, std::size_t vsize,const uint32_t* indexes,std::size_t isize);
 	virtual void draw(const scene& scn) const override;
-	virtual ~untextured_static_mesh() noexcept = default;
+	virtual ~geometry_mesh() noexcept = default;
 private:
 	static constexpr const char* VATTR_CRL = "vertex_color";
 
@@ -60,13 +60,13 @@ private:
 	::GLint nrm_ul_;
 };
 
-class textured_static_mesh final: public static_mesh
+class textured_mesh final: public mesh
 {
 public:
-	textured_static_mesh(const material_t& mat,const float *vertex, std::size_t vsize,const uint32_t* indexes,std::size_t isize,const s_image& texture);
-	textured_static_mesh(const float *vertex, std::size_t vsize,const uint32_t* indexes,std::size_t isize,const s_image& texture);
+	textured_mesh(const material_t& mat,const float *vertex, std::size_t vsize,const uint32_t* indexes,std::size_t isize,const s_image& texture);
+	textured_mesh(const float *vertex, std::size_t vsize,const uint32_t* indexes,std::size_t isize,const s_image& texture);
 	virtual void draw(const scene& scn) const override;
-	virtual ~textured_static_mesh() noexcept = default;
+	virtual ~textured_mesh() noexcept = default;
 private:
 	static const char* VERTEX_SHADER;
 	static const char* FRAGMENT_SHADER;
@@ -88,11 +88,11 @@ private:
 };
 
 
-class normal_mapped_static_mesh final: public static_mesh
+class normal_mapped_mesh final: public mesh
 {
 public:
-	normal_mapped_static_mesh(const material_t& mat,const float *vertex, std::size_t vsize,const uint32_t* indexes,std::size_t isize,const s_image& difftex,const s_image& nm_text);
-	normal_mapped_static_mesh(const float *vertex, std::size_t vsize,const uint32_t* indexes,std::size_t isize,const s_image& difftex,const s_image& nm_text);
+	normal_mapped_mesh(const material_t& mat,const float *vertex, std::size_t vsize,const uint32_t* indexes,std::size_t isize,const s_image& difftex,const s_image& nm_text);
+	normal_mapped_mesh(const float *vertex, std::size_t vsize,const uint32_t* indexes,std::size_t isize,const s_image& difftex,const s_image& nm_text);
 	virtual void draw(const scene& scn) const override;
 private:
 	static constexpr const char* VATTR_TAN = "tangent";
@@ -122,4 +122,4 @@ private:
 } // namespace engine
 
 
-#endif // __STATIC_MESH_HPP_INCLUDED__
+#endif // __mesh_HPP_INCLUDED__

@@ -16,7 +16,7 @@ shader shader::load_glsl(shader_type type, const io::s_read_channel& src)
 		read = src->read(ec, pos, buff.available() );
 		if(0 != read) {
 			buff.move(read);
-			if( !buff.ln_grow() )
+			if( io_unlikely( !buff.ln_grow() ) )
 				ec = std::make_error_code( std::errc::not_enough_memory );
 		}
 	} while(0 != read && !ec);
@@ -45,15 +45,15 @@ shader::shader(shader_type type, const char* source):
 		throw std::runtime_error("Can not create shader");
 	::glShaderSource(hsdr_, 1, std::addressof( source ), nullptr);
 	::glCompileShader( hsdr_ );
-	::GLint errc;
-	::glGetShaderiv(hsdr_, GL_COMPILE_STATUS, &errc);
-	if(GL_FALSE == errc ) {
-		std::string msg("Error compiling shader: ");
-		char err[512];
-		::GLsizei len;
-		::glGetShaderInfoLog(hsdr_, 512, &len, err);
-		msg.append(err);
-		throw std::runtime_error( msg.data() );
+	::GLint val;
+	::glGetShaderiv(hsdr_, GL_COMPILE_STATUS, &val);
+	if(GL_FALSE == val ) {
+		::glGetShaderiv(hsdr_, GL_INFO_LOG_LENGTH, &val);
+		::GLchar *log = static_cast<GLchar*>( io_alloca(val) );
+		::glGetShaderInfoLog(hsdr_, val, &val, log);
+		std::string msg("Error compiling shader:\n\t");
+		msg.append(log);
+		throw std::runtime_error( msg );
 	}
 }
 

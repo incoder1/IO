@@ -57,8 +57,10 @@ struct geometry
 class parser final: io::object
 {
 	public:
-		parser(const io::s_read_channel& src);
+		parser(io::s_read_channel&& src) noexcept;
 		virtual ~parser() noexcept;
+	private:
+		io::unsafe<io::xml::reader> rd_;
 };
 
 } // namespace collada

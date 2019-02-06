@@ -1,16 +1,16 @@
 #include "stdafx.hpp"
-#include "static_mesh.hpp"
+#include "mesh.hpp"
 #include <glm/gtc/type_ptr.hpp>
 
 namespace engine {
 
-// untextured_static_mesh
-const char* untextured_static_mesh::VERTEX_SHADER = "gpu/untextured_static_mesh.vertex.glsl";
+// geometry_mesh
+const char* geometry_mesh::VERTEX_SHADER = "gpu/geometry_mesh.vertex.glsl";
 
-const char* untextured_static_mesh::FRAGMENT_SHADER = "gpu/untextured_static_mesh.frag.glsl";
+const char* geometry_mesh::FRAGMENT_SHADER = "gpu/geometry_mesh.frag.glsl";
 
-untextured_static_mesh::untextured_static_mesh(const material_t& mat,const float *vertex, std::size_t vsize,const uint32_t* index,std::size_t isize):
-	static_mesh(),
+geometry_mesh::geometry_mesh(const material_t& mat,const float *vertex, std::size_t vsize,const uint32_t* index,std::size_t isize):
+	mesh(),
 	program_(),
 	vbo_(),
 	ibo_(),
@@ -54,11 +54,11 @@ untextured_static_mesh::untextured_static_mesh(const material_t& mat,const float
 
 }
 
-untextured_static_mesh::untextured_static_mesh(const float *vertex, std::size_t vsize,const uint32_t* indexes,std::size_t isize):
-	untextured_static_mesh(DEFAULT_MATERIAL, vertex, vsize,indexes, isize)
+geometry_mesh::geometry_mesh(const float *vertex, std::size_t vsize,const uint32_t* indexes,std::size_t isize):
+	geometry_mesh(DEFAULT_MATERIAL, vertex, vsize,indexes, isize)
 {}
 
-void untextured_static_mesh::draw(const scene& scn) const
+void geometry_mesh::draw(const scene& scn) const
 {
 	::glm::mat4 projection_mat;
 	::glm::mat4 model_view_mat;
@@ -84,14 +84,14 @@ void untextured_static_mesh::draw(const scene& scn) const
 	program_->stop();
 }
 
-//textured_static_mesh
+//textured_mesh
 
-const char* textured_static_mesh::VERTEX_SHADER = "gpu/textured_static_mesh.vertex.glsl";
+const char* textured_mesh::VERTEX_SHADER = "gpu/textured_mesh.vertex.glsl";
 
-const char* textured_static_mesh::FRAGMENT_SHADER = "gpu/textured_static_mesh.frag.glsl";
+const char* textured_mesh::FRAGMENT_SHADER = "gpu/textured_mesh.frag.glsl";
 
-textured_static_mesh::textured_static_mesh(const material_t& mat,const float *vertex, std::size_t vsize,const uint32_t* indexes,std::size_t isize,const s_image& timg):
-	static_mesh(),
+textured_mesh::textured_mesh(const material_t& mat,const float *vertex, std::size_t vsize,const uint32_t* indexes,std::size_t isize,const s_image& timg):
+	mesh(),
 	program_(),
 	vbo_(),
 	ibo_(),
@@ -140,11 +140,11 @@ textured_static_mesh::textured_static_mesh(const material_t& mat,const float *ve
 	diffise_tex_ul_ = program_->uniform_location(UNFM_DIFFUSE_TEXTURE);
 }
 
-textured_static_mesh::textured_static_mesh(const float *vertex, std::size_t vsize,const uint32_t* indexes,std::size_t isize,const s_image& timg):
-	textured_static_mesh(DEFAULT_MATERIAL, vertex, vsize,indexes, isize, timg)
+textured_mesh::textured_mesh(const float *vertex, std::size_t vsize,const uint32_t* indexes,std::size_t isize,const s_image& timg):
+	textured_mesh(DEFAULT_MATERIAL, vertex, vsize,indexes, isize, timg)
 {}
 
-void textured_static_mesh::draw(const scene& scn) const
+void textured_mesh::draw(const scene& scn) const
 {
 	::glm::mat4 projection_mat;
 	::glm::mat4 model_view_mat;
@@ -177,13 +177,13 @@ void textured_static_mesh::draw(const scene& scn) const
 	program_->stop();
 }
 
-//normal_mapped_static_mesh
-const char* normal_mapped_static_mesh::VERTEX_SHADER = "gpu/normal_mapped_static_mesh.vertex.glsl";
+//normal_mapped_mesh
+const char* normal_mapped_mesh::VERTEX_SHADER = "gpu/normal_mapped_mesh.vertex.glsl";
 
-const char* normal_mapped_static_mesh::FRAGMENT_SHADER = "gpu/normal_mapped_static_mesh.frag.glsl";
+const char* normal_mapped_mesh::FRAGMENT_SHADER = "gpu/normal_mapped_mesh.frag.glsl";
 
-normal_mapped_static_mesh::normal_mapped_static_mesh(const material_t& mat,const float *vertex, std::size_t vsize,const uint32_t* indexes,std::size_t isize,const s_image& difftex,const s_image& nm_text):
-	static_mesh(),
+normal_mapped_mesh::normal_mapped_mesh(const material_t& mat,const float *vertex, std::size_t vsize,const uint32_t* indexes,std::size_t isize,const s_image& difftex,const s_image& nm_text):
+	mesh(),
 	program_(),
 	vbo_(),
 	ibo_(),
@@ -235,11 +235,11 @@ normal_mapped_static_mesh::normal_mapped_static_mesh(const material_t& mat,const
 	normal_map_tex_ = gl::texture::create_texture2d_from_image(nm_text,gl::texture_filter::NEAREST);
 }
 
-normal_mapped_static_mesh::normal_mapped_static_mesh(const float *vertex, std::size_t vsize,const uint32_t* indexes,std::size_t isize,const s_image& difftex,const s_image& nm_text):
-	normal_mapped_static_mesh(DEFAULT_MATERIAL, vertex, vsize, indexes, isize, difftex, nm_text)
+normal_mapped_mesh::normal_mapped_mesh(const float *vertex, std::size_t vsize,const uint32_t* indexes,std::size_t isize,const s_image& difftex,const s_image& nm_text):
+	normal_mapped_mesh(DEFAULT_MATERIAL, vertex, vsize, indexes, isize, difftex, nm_text)
 {}
 
-void normal_mapped_static_mesh::draw(const scene& scn) const
+void normal_mapped_mesh::draw(const scene& scn) const
 {
 
 	glm::mat4 projection_mat;

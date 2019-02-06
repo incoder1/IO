@@ -410,7 +410,7 @@ private:
 	// optimize with -O3 shows best results
 	static inline uint_fast8_t divmod(int_type& n) noexcept
 	{
-		uint_fast8_t rem = my_abs( uint_fast8_t(n % RADIX10) );
+		uint8_t rem = n % RADIX10;
 		n /= RADIX10;
 		return rem;
 	}
@@ -419,13 +419,16 @@ private:
 		char_type result[ctraits::max_str_len];
 		char_type *s = &result[ctraits::max_str_len];
 		bool need_msgn = value < 0;
+		if(need_msgn)
+			value = -value;
 		*s = char_traits::to_char_type(0);
 		std::size_t len = need_msgn ? 2 : 1;
 		do {
 			*(--s) =  ctraits::zerro_char +  divmod(value);
 			++len;
 		} while(0 != value);
-		if(need_msgn) *(--s) = ctraits::minus_char;
+		if(need_msgn)
+			*(--s) = ctraits::minus_char;
 		return char_traits::move( to, s, len );
 	}
 public:
