@@ -115,6 +115,7 @@
 		<Unit filename="include/image.hpp">
 			<Option virtualFolder="src/" />
 		</Unit>
+		<Unit filename="include/mesh.hpp" />
 		<Unit filename="include/model.hpp" />
 		<Unit filename="include/nurb.hpp" />
 		<Unit filename="include/openglload.hpp" />
@@ -122,26 +123,25 @@
 		<Unit filename="include/renderer.hpp" />
 		<Unit filename="include/scene.hpp" />
 		<Unit filename="include/shader.hpp" />
-		<Unit filename="include/static_mesh.hpp" />
 		<Unit filename="include/surface.hpp" />
 		<Unit filename="include/texture.hpp" />
 		<Unit filename="include/vbo.hpp" />
 		<Unit filename="include/view.hpp" />
 		<Unit filename="src/directx_image_loader.cpp">
-			<Option target="debug-gcc-win64" />
 			<Option target="release-gcc-win64" />
+			<Option target="debug-gcc-win64" />
 		</Unit>
 		<Unit filename="src/gnulibs_image_loader.cpp">
 			<Option target="debug-gcc-unx-x86_64" />
 		</Unit>
 		<Unit filename="src/image.cpp" />
 		<Unit filename="src/main.cpp" />
+		<Unit filename="src/mesh.cpp" />
 		<Unit filename="src/model.cpp" />
 		<Unit filename="src/nurb.cpp" />
 		<Unit filename="src/parser.cpp" />
 		<Unit filename="src/scene.cpp" />
 		<Unit filename="src/shader.cpp" />
-		<Unit filename="src/static_mesh.cpp" />
 		<Unit filename="src/stdafx.hpp">
 			<Option compile="1" />
 			<Option weight="0" />

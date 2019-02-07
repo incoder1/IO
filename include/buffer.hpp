@@ -586,7 +586,7 @@ public:
 		static_assert( std::is_fundamental<T>::value || std::is_trivial<T>::value, "Must be an array of trivial or fundamental type" );
 		if(0 != size) {
 			const std::size_t capacity = size * sizeof(T);
-			detail::mem_block mb = detail::mem_block::wrap( arr, capacity );
+			detail::mem_block mb = detail::mem_block::wrap( reinterpret_cast<const uint8_t*>(arr), capacity );
 			if( mb ) {
                 byte_buffer ret( std::move(mb), capacity );
 				ret.move(capacity);

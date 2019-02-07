@@ -109,14 +109,20 @@ std::size_t IO_PUBLIC_SYMBOL transmit_buffer(std::error_code& ec,
 	return ret;
 }
 
-std::size_t IO_PUBLIC_SYMBOL transmit(std::error_code& ec,const s_read_channel& src, const s_write_channel& dst, uint16_t buff_size) noexcept
+std::size_t IO_PUBLIC_SYMBOL transmit(std::error_code& ec,const s_read_channel& src, const s_write_channel& dst, unsigned long buff_size) noexcept
 {
 	if( io_unlikely(!src || !dst || buff_size < 2 ) )  {
 		ec = std::make_error_code( std::errc::invalid_argument );
 		return 0;
 	}
-	// align size up to 4
-	const std::size_t al_bs = (static_cast<std::size_t>(buff_size) + 3ul) & ~3ul;
+
+	static constexpr std::size_t al = (sizeof(std::size_t) * 2) - 1;
+	static constexpr std::size_t rm = ~al;
+
+	if(0 == buff_size)
+		buff_size = memory_traits::page_size();
+
+	const std::size_t al_bs = (static_cast<std::size_t>(buff_size) + al) & rm;
 	scoped_arr<uint8_t> rbuf( al_bs );
 	if( !rbuf ) {
 		ec = std::make_error_code(std::errc::not_enough_memory);

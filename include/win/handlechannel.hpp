@@ -56,19 +56,6 @@ public:
 		return result;
 	}
 
-	inline void asynch_read(::LPOVERLAPPED const ovrlp, uint8_t* const to, std::size_t bytes) const noexcept
-	{
-		 std::error_code ec;
-		::BOOL errorCode = ::ReadFile(
-								hnd_,
-								void_cast( to ),
-								bytes,
-								NULL, ovrlp);
-		::DWORD lastError = ::GetLastError();
-		if( !errorCode && ERROR_IO_PENDING != lastError )
-			ec.assign( lastError, std::system_category() );
-	}
-
 	inline std::size_t write(std::error_code& err, const uint8_t* buff,std::size_t size) const noexcept
 	{
 		::DWORD result;
@@ -77,21 +64,8 @@ public:
 		return result;
 	}
 
-	inline void asynch_write(::LPOVERLAPPED const ovrlp,const uint8_t* what, std::size_t len) const noexcept
-	{
-		 std::error_code ec;
-		::BOOL errorCode = ::WriteFile(
-								hnd_,
-								void_cast( what ),
-								len,
-								NULL, ovrlp);
-		::DWORD lastError = ::GetLastError();
-		if( !errorCode && ERROR_IO_PENDING != lastError )
-			ec.assign( lastError, std::system_category() );
-	}
 
-
-	inline uint64_t seek(std::error_code err,whence_type whence,int64_t offset)
+	inline ssize_t seek(std::error_code err,whence_type whence,ssize_t offset)
 	{
 		::LARGE_INTEGER li;
 		li.QuadPart = offset;

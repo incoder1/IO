@@ -27,8 +27,9 @@ struct float_array
 };
 
 struct source {
-	uint8_t stride;
+	io::const_string name;
 	float_array data;
+	uint8_t stride;
 };
 
 
@@ -67,15 +68,10 @@ struct mesh
 	poly_list pl;
 };
 
-struct geometry
-{
-	std::vector<mesh> meshes;
-};
-
 struct model
 {
 	std::vector<image> images;
-	geometry geo;
+	std::vector<mesh> meshes;
 };
 
 class parser final: io::object
