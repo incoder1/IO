@@ -20,7 +20,6 @@ class NURB: public surface
 	gl::s_program program_;
 //	gl::s_buffer vbo_;
 //	gl::s_buffer ibo_;
-//	std::size_t isize_;
 
 	::GLint mvp_ul_;
 	::GLint mv_ul_;

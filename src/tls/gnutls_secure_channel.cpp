@@ -172,7 +172,7 @@ const service* service::instance(std::error_code& ec) noexcept
 			if( GNUTLS_E_SUCCESS == ::gnutls_global_init() ) {
 
 				::gnutls_global_set_log_function([] (int e, const char *msg) {
-						std::printf("%i %s", e, msg);
+					std::fprintf(stderr, "%i %s", e, msg);
 				});
 
 				credentials xcred = credentials::system_trust_creds(ec);

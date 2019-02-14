@@ -146,7 +146,7 @@ static io::scoped_arr<float> calc_tangent_vertex()
 	#endif // _OPENMP
 	for (std::size_t i = 0; i < face_count; i++) {
 		// index of first face
-		std:size_t face_start_idx = i * src_face_size;
+		std::size_t face_start_idx = i * src_face_size;
 		float tan[3];
 		tangent_vector( (src + face_start_idx), tan );
 		// add tangent vector to each vertex

@@ -156,10 +156,15 @@ s_uri uri::parse(std::error_code& ec, const char* str) noexcept
 {
 	char *normalized;
 	const std::size_t len = io_strlen(str) + 1;
-	if(len <= UCHAR_MAX)
+	if(len <= UCHAR_MAX) {
 		normalized = static_cast<char*>( io_alloca( len ) );
-	else
+	} else {
 		normalized = memory_traits::calloc_temporary<char>(len);
+		if(nullptr == normalized) {
+			ec = std::make_error_code( std::errc::not_enough_memory );
+			return s_uri();
+		}
+	}
 	str_to_lower_a(normalized, str);
 
 	const_string scheme;
@@ -213,7 +218,9 @@ s_uri uri::parse(std::error_code& ec, const char* str) noexcept
 		}
 		// look for a user_info component
 		const char *j = host_strt;
-		for( ; is_user_info_character(*j) && j != host_end; j++);
+		while( j != host_end && is_user_info_character(*j))
+			++j;
+
 		if( cheq(*j,'@') ) {
 			host_strt = j + 1;
 			user_info = const_string(b, j );

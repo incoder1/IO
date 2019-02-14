@@ -22,6 +22,7 @@
 
 namespace io {
 
+/// Fixed size dynamic memory array
 template<typename T>
 class scoped_arr {
 public:
@@ -118,7 +119,7 @@ public:
 		std::swap(rf_, other.rf_);
 	}
 
-    const T& operator[](std::size_t index) const noexcept
+    T& operator[](std::size_t index) const noexcept
 	{
 	    assert( index < len_ );
 		return mem_[index];

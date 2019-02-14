@@ -477,6 +477,17 @@ public:
 	typedef std::char_traits<char_type> char_traits;
 private:
 	typedef strings<char_type> strings_traits;
+
+	template<typename T>
+	static constexpr float_max_digits() {
+		typedef std::numeric_limits<T> limits_type;
+		return 3 + limits_type::digits - limits_type::min_exponent;
+	}
+
+	static constexpr std::size_t FLOAT_MAX_DIGITS = float_max_digits<float>();
+	static constexpr std::size_t DOUBLE_MAX_DIGITS = float_max_digits<double>();
+	static constexpr std::size_t LONG_DOUBLE_MAX_DIGITS = float_max_digits<long double>();
+
 public:
 
 	static inline const char_type* byte_to_str(uint8_t v,char_type* to) noexcept
@@ -560,9 +571,9 @@ public:
 	}
 
 	static inline const char_type* float_to_str(float v, char_type* to) noexcept {
-		char buff[32];
+		char buff[ FLOAT_MAX_DIGITS + 1 ];
 #ifdef __GNUG__
-		__builtin_snprintf(buff, 32, "%G", v);
+		__builtin_snprintf(buff, FLOAT_MAX_DIGITS, "%G", v);
 #else
 		std::sprintf(buff, "%G", v);
 #endif // __GNUG__
@@ -570,15 +581,16 @@ public:
 	}
 
 	static inline float str_to_float(const char_type* str) noexcept {
-		char buff[32];
+		char buff[FLOAT_MAX_DIGITS + 1];
 		move_digits<char_type>::move( buff, str);
 		return std::strtof(buff, nullptr);
 	}
 
 	static inline const char_type* double_to_str(double v, char_type* to) noexcept {
-		char buff[64];
+		char buff[DOUBLE_MAX_DIGITS+1];
+		io_memset(buff, '\0', DOUBLE_MAX_DIGITS+1);
 #ifdef __GNUG__
-		__builtin_snprintf(buff, 64, "%G", v);
+		__builtin_snprintf(buff, DOUBLE_MAX_DIGITS, "%G", v);
 #else
 		std::sprintf(buff, "%G", buff);
 #endif // __GNUG__
@@ -586,15 +598,17 @@ public:
 	}
 
 	static inline double str_to_double(const char_type* str) noexcept {
-		char buff[64];
+		char buff[DOUBLE_MAX_DIGITS+1];
+		io_memset(buff, '\0', DOUBLE_MAX_DIGITS+1);
 		move_digits<char_type>::move( buff, str);
 		return std::strtod(buff, nullptr);
 	}
 
 	static inline const char_type* longdouble_to_str(long double v,char_type* to) noexcept {
-		char buff[128];
+		char buff[LONG_DOUBLE_MAX_DIGITS+1];
+		io_memset(buff, '\0', LONG_DOUBLE_MAX_DIGITS+1);
 #ifdef __GNUG__
-		__builtin_snprintf(buff, 128, "%G", v);
+		__builtin_snprintf(buff, LONG_DOUBLE_MAX_DIGITS, "%G", v);
 #else
 		std::sprintf(buff, "%G", buff);
 #endif // __GNUG__
@@ -602,7 +616,7 @@ public:
 	}
 
 	static inline long double str_to_longdouble(const char_type* str) noexcept {
-		char buff[128];
+		char buff[LONG_DOUBLE_MAX_DIGITS+1];
 		move_digits<char_type>::move( buff, str);
 		return std::strtold(buff, nullptr);
 	}
@@ -642,10 +656,10 @@ private:
 public:
 	typedef typename lext_cast::char_type char_type;
 	static constexpr uint8_t max_str_len = int_limits<uint8_t>::max_str_len;
-	static inline void  to_stiring(uint8_t byte, char_type* to) noexcept {
+	static inline void  to_string(uint8_t byte, char_type* to) noexcept {
 		return lext_cast::byte_to_str(byte, to);
 	}
-	static inline uint8_t from_stiring(const char_type* from) noexcept {
+	static inline uint8_t from_string(const char_type* from) noexcept {
 		return lext_cast::str_to_byte(from);
 	}
 };
@@ -793,7 +807,7 @@ public:
 		return lext_cast::float_to_str(real, to);
 	}
 	static inline float from_string(const char_type* from) noexcept {
-		return lext_cast::str_to_long(from);
+		return lext_cast::str_to_float(from);
 	}
 };
 

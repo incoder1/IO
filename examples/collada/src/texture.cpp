@@ -11,7 +11,7 @@ static void tex2d_generate_mipmaps(const ::GLsizei width,const ::GLsizei height,
 {
 	static const double ln_2 = std::log(2.0);
 	const double max_level = ( std::log( static_cast<double>(width) ) / ln_2 ) - 1.0;
-	::GLuint num_mipmaps = static_cast<::GLuint>( std::lround(std::abs(max_level) ) );
+	const ::GLuint num_mipmaps = static_cast<::GLuint>( std::lround(std::abs(max_level) ) );
 	::glTexStorage2D(GL_TEXTURE_2D, num_mipmaps, ifmt, width, height);
 	::glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, width, height, pxmft, GL_UNSIGNED_BYTE, pixels);
 	::glGenerateMipmap(GL_TEXTURE_2D);
@@ -73,7 +73,7 @@ s_texture texture::create_texture2d_from_image(const engine::s_image& img, gl::t
 			px_format = GL_RGBA;
 			break;
 		case engine::pixel_format::bgra:
-			internal_format = GL_RGBA8;
+			internal_format = GL_BGRA8_EXT;
 			px_format = GL_BGRA;
 			break;
 	}

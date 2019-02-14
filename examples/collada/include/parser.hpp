@@ -19,6 +19,21 @@ struct image
 	io::const_string init_from;
 };
 
+struct phong_effect
+{
+	float ambient[4];
+	float emission[4];
+	float diffuse[4];
+	float specular[4];
+	float shininess;
+};
+
+struct material
+{
+	io::const_string name;
+	phong_effect effect;
+};
+
 struct float_array
 {
 	io::const_string id;
@@ -33,21 +48,21 @@ struct source {
 };
 
 
+enum class semantic_type {
+	vertex,
+	normal,
+	texcoord
+};
+
 struct input
 {
-	io::const_string semantic;
-	io::const_string source;
+	semantic_type semantic;
+	io::const_string source_id;
 	uint8_t offset;
 	uint8_t set;
 };
 
-struct poly_list
-{
-	std::vector<input> inputs;
-	std::vector<unsigned int> indecises;
-};
-
-class cs_hash: public std::unary_function<std::size_t,io::const_string>
+class const_string_hasher: public std::unary_function<std::size_t,io::const_string>
 {
 public:
 	inline std::size_t operator()(const io::const_string& str) const noexcept
@@ -58,33 +73,51 @@ public:
 
 typedef std::unordered_map<
 					io::const_string, source,
-					cs_hash, std::equal_to<io::const_string>,
+					const_string_hasher, std::equal_to<io::const_string>,
 					std::allocator<std::pair<const io::const_string,source> >
-				>  sources_container;
+				>  source_container;
+
+
+enum class primitive_type
+{
+	lines,
+	linestrips,
+	polygons,
+	polylist,
+	tiangles
+};
 
 struct mesh
 {
-	sources_container sources;
-	poly_list pl;
+	source_container sources;
+	primitive_type type;
+	std::vector<input> inputs;
+	std::vector<unsigned int> indecises;
 };
 
 struct model
 {
 	std::vector<image> images;
+	std::vector<material> materials;
 	std::vector<mesh> meshes;
 };
+
+
 
 class parser final: io::object
 {
 	public:
 		parser(io::s_read_channel&& src) noexcept;
 
-		model load()
-		{
-			return model();
-		}
+		model load();
 
 		virtual ~parser() noexcept;
+
+	private:
+
+
+		std::vector<material> read_materials();
+
 	private:
 
 		io::unsafe<io::xml::reader> rd_;

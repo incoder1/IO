@@ -15,7 +15,7 @@
 				<Compiler>
 					<Add option="-pg" />
 					<Add option="-g" />
-					<Add option="-DIO_TLS_PROVIDER_GNUTSL" />
+					<Add option="-DIO_TLS_PROVIDER_GNUTLS" />
 				</Compiler>
 				<Linker>
 					<Add option="-pg -lgmon" />
