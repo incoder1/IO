@@ -31,7 +31,7 @@ namespace {
 typedef std::char_traits<char> char8_traits;
 }
 
-/// Compares two characters
+/// Compares two character code points
 template<typename c_1, typename c_2>
 constexpr inline bool cheq(c_1 lsh, c_2 rhs)
 {

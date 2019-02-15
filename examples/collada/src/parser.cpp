@@ -24,14 +24,19 @@ typedef io::xml::lexical_cast_traits<float> float_cast;
 
 static float next_float(const char* str,char** endp)
 {
-	static constexpr const char* SPACES = "\t\n\v\f\r ";
-	static constexpr const char* DGTS = "0123456789";
-	str = std::strpbrk(str, DGTS);
+	while( std::isspace(*str) )
+		++str;
 	float ret = NAN;
-	if(nullptr != str) {
-		*endp = const_cast<char*>(str) + std::strspn(str, SPACES);
-		if('\0' != *endp[0])
-			ret = float_cast::from_string( str );
+	if('\0' == *str) {
+		ret = float_cast::from_string( str );
+		while( std::isdigit(*str) )
+			++str;
+		if('\0' != *str)
+			*endp = const_cast<char*>(str);
+		else
+			*endp = nullptr;
+	} else {
+		*endp = nullptr;
 	}
 	return ret;
 }

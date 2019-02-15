@@ -250,6 +250,11 @@ public:
 		return *this;
 	}
 
+	explicit operator bool() const noexcept
+	{
+		return 0 != capacity_;
+	}
+
 	/// Destroys this buffer and releases memory allocated by this buffer
 	/// If this buffer was moved to another object rval, do nothing
 	/// Otherwise release allocated the underlying memory buffer
@@ -321,7 +326,7 @@ public:
 		return false;
 	}
 
-	/// Puts single character into this buffer current position, and increses buffer position and last
+	/// Puts single character into this buffer current position, and increment buffer position and last
 	/// \param ch a byte to put
 	/// \return true whether byte was put and false if buffer was full before put attempt
 	inline bool put(char ch) noexcept {

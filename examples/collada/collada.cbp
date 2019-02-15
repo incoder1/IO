@@ -106,12 +106,12 @@
 		<Linker>
 			<Add library="io" />
 		</Linker>
-		<Unit filename="gpu/normal_mapped_static_mesh.frag.glsl" />
-		<Unit filename="gpu/normal_mapped_static_mesh.vertex.glsl" />
-		<Unit filename="gpu/textured_static_mesh.frag.glsl" />
-		<Unit filename="gpu/textured_static_mesh.vertex.glsl" />
-		<Unit filename="gpu/untextured_static_mesh.frag.glsl" />
-		<Unit filename="gpu/untextured_static_mesh.vertex.glsl" />
+		<Unit filename="gpu/geometry_mesh.frag.glsl" />
+		<Unit filename="gpu/geometry_mesh.vertex.glsl" />
+		<Unit filename="gpu/normal_mapped_mesh.frag.glsl" />
+		<Unit filename="gpu/normal_mapped_mesh.vertex.glsl" />
+		<Unit filename="gpu/textured_mesh.frag.glsl" />
+		<Unit filename="gpu/textured_mesh.vertex.glsl" />
 		<Unit filename="include/image.hpp">
 			<Option virtualFolder="src/" />
 		</Unit>

@@ -123,47 +123,67 @@ const_string reader::next_characters(std::error_code& ec) noexcept
 		ec = make_error_code(error::invalid_state);
 		return const_string();
 	}
-	byte_buffer buff = byte_buffer::allocate(ec, 128);
-	if(ec)
-		return const_string();
-	std::size_t s;
+
+	byte_buffer buff;
 	const_string chars;
-	for(;;) {
+	std::size_t lenght;
+
+	while( !parser_->is_error() ) {
 		switch( state_ ) {
-		case state_type::characters:
-			chars = parser_->read_chars();
-			break;
+		case state_type::comment:
+			parser_->skip_comment();
+			state_ = parser_->scan_next();
+			continue;
 		case state_type::cdata:
 			chars = parser_->read_cdata();
 			break;
-		case state_type::comment:
-			parser_->skip_comment();
+		case state_type::characters:
+			chars = parser_->read_chars();
 			break;
 		case state_type::event:
-			if( io_likely( event_type::processing_instruction != parser_->current_event() ) ) {
+			// skip processing instruction event
+			// should not happens
+			if( io_unlikely( event_type::processing_instruction == parser_->current_event() ) ) {
+				parser_->parse_processing_instruction();
+				state_ = parser_->scan_next();
+				continue;
+			} else {
+				// done
 				buff.flip();
 				return const_string(buff.position().cdata(), buff.length());
 			}
-			else
-				parser_->parse_processing_instruction();
-			break;
 		case state_type::eod:
-			parser_->get_last_error(ec);
-			return const_string();
+			// parse error
+			continue;
+		// never happens
 		case state_type::initial:
 		case state_type::dtd:
 			io_unreachable
 			break;
 		}
-		state_ = parser_->scan_next();
-		s = chars.size();
-		if( io_unlikely(buff.available() < s && !buff.extend( s + 1 ) ) ) {
-			ec = std::make_error_code( std::errc::not_enough_memory );
-			return const_string();
+		lenght = chars.size() + 1;
+		if( io_likely( lenght > 1 ) ) {
+			// copy chars to buffer
+			if( !buff ) {
+				// buffer not yet constructed
+				buff = byte_buffer::allocate(ec, lenght);
+			// extend buffer if needed, stop in case out of memory
+			} else if(  buff.available() < lenght ) {
+				if( io_unlikely( !buff.extend( lenght ) ) )
+					break;
+			}
+			// don't add blank chars, i.e. \n or \r\n set of spaces
+			if( !chars.blank() )
+				buff.put( chars.data() );
 		}
-		buff.put( chars.data() );
-	}
-	io_unreachable
+		// check for next state
+		state_ = parser_->scan_next();
+	};
+	// check for parser error, otherwise this is out of memory
+	if( parser_->is_error() )
+		parser_->get_last_error( ec );
+	else
+		ec = std::make_error_code( std::errc::not_enough_memory );
 	return const_string();
 }
 
