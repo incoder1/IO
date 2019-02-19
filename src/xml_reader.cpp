@@ -172,9 +172,7 @@ const_string reader::next_characters(std::error_code& ec) noexcept
 				if( io_unlikely( !buff.extend( lenght ) ) )
 					break;
 			}
-			// don't add blank chars, i.e. \n or \r\n set of spaces
-			if( !chars.blank() )
-				buff.put( chars.data() );
+			buff.put( chars.data() );
 		}
 		// check for next state
 		state_ = parser_->scan_next();
