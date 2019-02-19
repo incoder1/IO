@@ -7,6 +7,8 @@
 #include "model.hpp"
 #include "mesh.hpp"
 
+#include "parser.hpp"
+
 #include <iostream>
 
 static const float COLORED_QUBE_VERTEX[216] = {
@@ -178,6 +180,19 @@ static engine::s_surface normal_mapped_qube()
 	return engine::s_surface( new engine::normal_mapped_mesh(vertex.get(), vertex.len(), CUBE_INDEX,36, diff_tex, nm_tex ) );
 }
 
+static collada::model load_model() {
+
+	io::file dae("tex_cube.dae");
+
+	std::error_code ec;
+	io::s_read_channel src = dae.open_for_read(ec);
+	io::check_error_code(ec);
+	collada::parser parser( std::move(src) );
+
+	return parser.load();
+
+}
+
 #ifdef _WIN32
 int WINAPI WinMain (HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nShowCmd)
 #else
@@ -191,6 +206,8 @@ int main(int argc, const char** argv)
 			//engine::s_surface qube( new engine::geometry_mesh(COLORED_QUBE_VERTEX,216,CUBE_INDEX,36) );
 
 			//engine::s_surface qube = textured_qube();
+
+			collada::model md = load_model();
 
 			engine::s_surface qube = normal_mapped_qube();
 

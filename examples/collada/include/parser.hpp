@@ -104,7 +104,7 @@ struct model
 
 
 
-class parser final: io::object
+class parser
 {
 	public:
 		parser(io::s_read_channel&& src) noexcept;
@@ -115,12 +115,14 @@ class parser final: io::object
 
 	private:
 
+		io::xml::start_element_event skip_to_tag(const char* prefix, const char *local_name);
+		io::xml::start_element_event to_next_tag();
 
 		std::vector<material> read_materials();
 
 	private:
-
-		io::unsafe<io::xml::reader> rd_;
+		io::xml::s_event_stream_parser xp_;
+		std::error_code ec_;
 };
 
 } // namespace collada
