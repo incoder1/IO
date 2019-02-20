@@ -26,11 +26,12 @@ struct phong_effect
 	float diffuse[4];
 	float specular[4];
 	float shininess;
+	float refraction_index;
 };
 
 struct material
 {
-	io::const_string name;
+	io::const_string id;
 	phong_effect effect;
 };
 
@@ -115,8 +116,12 @@ class parser
 
 	private:
 
+		io::xml::state_type to_next_state();
+		io::xml::event_type to_next_tag_event();
+
 		io::xml::start_element_event skip_to_tag(const char* prefix, const char *local_name);
-		io::xml::start_element_event to_next_tag();
+
+		void parse_pong(phong_effect& effect);
 
 		std::vector<material> read_materials();
 

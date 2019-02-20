@@ -27,18 +27,10 @@ static float next_float(const char* str,char** endp)
 	while( std::isspace(*str) )
 		++str;
 	float ret = NAN;
-	if('\0' != *str) {
-		ret = float_cast::from_string( str );
-		while( std::isdigit(*str) )
-			++str;
-		if('\0' != *str)
-			*endp = const_cast<char*>(str);
-		else
-			*endp = nullptr;
-	}
-	else {
+	if('\0' != *str)
+		ret = std::strtof(str, endp);
+	else
 		*endp = nullptr;
-	}
 	return ret;
 }
 
@@ -57,81 +49,139 @@ static io::scoped_arr<float> parse_string_list(const io::const_string& val, std:
 	return io::scoped_arr<float>();
 }
 
-io::xml::start_element_event parser::skip_to_tag(const char* prefix, const char *local_name)
+io::xml::state_type parser::to_next_state()
 {
-	io::xml::start_element_event ret = to_next_tag();
-	do {
-		ret = to_next_tag();
+	io::xml::state_type ret;
+	// Scan for next XML state
+	for(;;) {
+		ret = xp_->scan_next();
+		if( io::xml::state_type::comment == ret) {
+			xp_->skip_comment();
+		} else if(io::xml::state_type::dtd == ret) {
+			xp_->skip_dtd();
+		} else {
+			break;
+		}
 	}
-	while( !ret.name().equal(prefix,local_name) );
-	// no such element found
 	return ret;
 }
 
-
-io::xml::start_element_event parser::to_next_tag()
+io::xml::event_type parser::to_next_tag_event()
 {
-	using namespace io::xml;
-	state_type state;
+	io::xml::state_type state;
 	do {
-		// Scan for next XML state
-		state = xp_->scan_next();
-		switch(state) {
-		case state_type::initial:
-			continue;
-		case state_type::eod:
-		case state_type::event:
-			break;
-		case state_type::comment:
-			xp_->skip_comment();
-			continue;
-		case state_type::cdata:
+		state = to_next_state();
+		if( io::xml::state_type::event == state ) {
+			// got event
+			io::xml::event_type ret = xp_->current_event();
+			// skip start doc and dtd
+			if(io::xml::event_type::start_document == ret) {
+				xp_->parse_start_doc();
+				continue;
+			}
+			else if(io::xml::event_type::processing_instruction == ret) {
+				xp_->parse_processing_instruction();
+				continue;
+			}
+			return ret;
+		} else if( io::xml::state_type::cdata == state )
 			xp_->read_cdata();
-			continue;
-		case state_type::characters:
+		else if( io::xml::state_type::characters == state)
 			xp_->skip_chars();
-			continue;
-		case state_type::dtd:
-			xp_->skip_dtd();
-			continue;
+		else if( io::xml::state_type::eod == state )
 			break;
-		}
-		if(  state == state_type::eod )
-			break;
-		// got event
-		switch( xp_->current_event() ) {
-		// this is start document event, i.e. XML prologue section
-		case event_type::start_document:
-			xp_->parse_start_doc();
-			continue;
-		// this is an XML processing instruction event
-		case event_type::processing_instruction:
-			xp_->parse_processing_instruction();
-			continue;
-		// this is end element event
-		case event_type::end_element:
-			xp_->parse_end_element();
-			continue;
-		// this is start element event
-		case event_type::start_element:
-			return xp_->parse_start_element();
-		}
 	}
-	while( state_type::eod != state );
+	while( io::xml::state_type::eod != state );
+
 	if( xp_->is_error() ) {
-		xp_->get_last_error(ec_);
-		io::check_error_code( ec_ );
+		if( xp_->is_error() ) {
+			xp_->get_last_error(ec_);
+			io::check_error_code( ec_ );
+		}
 	}
-	// no such element found
-	return io::xml::start_element_event();
+
+	throw std::logic_error("Wrong XML sequence");
+}
+
+
+io::xml::start_element_event parser::skip_to_tag(const char* prefix, const char *local_name)
+{
+	io::xml::event_type et;
+	io::xml::start_element_event ret;
+	for(;;) {
+		et = to_next_tag_event();
+		if( io::xml::event_type::end_element == et) {
+            xp_->parse_end_element();
+		} else {
+			ret = xp_->parse_start_element();
+			if( ret.name().equal(prefix,local_name) )
+				break;
+		}
+	}
+	return ret;
 }
 
 static void parse_color(const io::const_string& val, float * ret)
 {
-	char* s[1] = { const_cast<char*>( val.data() ) };
-	std::size_t i = 0;
-	while( nullptr != s[0] )
-		ret[i++] = next_float(s[0], s);
+	char* s = const_cast<char*>( val.data() );
+	for( std::size_t i = 0; i < 4; i++) {
+		ret[i] = next_float(s, &s);
+	}
+}
+
+void parser::parse_pong(phong_effect& effect)
+{
+	io::xml::qname name;
+	io::xml::event_type et;
+	io::xml::start_element_event e;
+	for(std::size_t i=0; i < 6; i++) {
+
+		do {
+			et = to_next_tag_event();
+			if( io::xml::event_type::end_element == et)
+				xp_->parse_end_element();
+		} while(io::xml::event_type::start_element != et );
+
+		e = xp_->parse_start_element();
+
+		name = e.name();
+
+		if( name.equal("","ambient") ) {
+			e = skip_to_tag("","color");
+			xp_->scan_next();
+			parse_color( xp_->read_chars(), effect.ambient );
+		}
+		else if( name.equal("","diffuse") ) {
+			e = skip_to_tag("","color");
+			xp_->scan_next();
+			parse_color( xp_->read_chars(), effect.diffuse );
+		}
+		else if( name.equal("","emission") ) {
+			e = skip_to_tag("","color");
+			xp_->scan_next();
+			parse_color( xp_->read_chars(), effect.emission );
+		}
+		else if( name.equal("","specular") ) {
+			e = skip_to_tag("","color");
+			xp_->scan_next();
+			parse_color( xp_->read_chars(), effect.specular );
+		}
+		else if( name.equal("","shininess") ) {
+			e = skip_to_tag("","float");
+			xp_->scan_next();
+			io::const_string val = xp_->read_chars();
+			char *s = const_cast<char*>( val.data() );
+			effect.shininess = next_float( s, &s);
+		}
+		else if( name.equal("","index_of_refraction") ) {
+			e = skip_to_tag("","float");
+			xp_->scan_next();
+			io::const_string val = xp_->read_chars();
+			char *s = const_cast<char*>( val.data() );
+			effect.refraction_index = next_float( s, &s);
+		}
+	}
+
 }
 
 // FIXME: dirty code for now, to be refactored
@@ -143,43 +193,22 @@ std::vector<material> parser::read_materials()
 	if( !e )
 		return std::vector<material>();
 
-	e = skip_to_tag("","phong");
-
-	if(!e)
-		throw std::runtime_error("This COLLADA feature is not yet implemented");
-
 	std::vector<material> ret;
 
-	material mat;
-	io::xml::qname name;
-	for(std::size_t i=0; i < 5; i++) {
-		name = to_next_tag().name();
-		if( name.equal("","ambient") ) {
-			e = skip_to_tag("","color");
-			xp_->scan_next();
-			parse_color( xp_->read_chars() , mat.effect.ambient );
-		}
-		else if( name.equal("","diffuse") ) {
-			e = skip_to_tag("","color");
-			xp_->scan_next();
-			parse_color( xp_->read_chars(), mat.effect.diffuse );
-		}
-		else if( name.equal("","emission") ) {
-			e = skip_to_tag("","color");
-			xp_->scan_next();
-			parse_color( xp_->read_chars(), mat.effect.emission );
-		} else if( name.equal("","specular") ) {
-			e = skip_to_tag("","color");
-			xp_->scan_next();
-			parse_color( xp_->read_chars(), mat.effect.specular );
-		} else if( name.equal("","shininess") ) {
-			e = skip_to_tag("","float");
-			xp_->scan_next();
-			mat.effect.shininess = float_cast::from_string( xp_->read_chars().data() );
-		}
-	}
+	e = skip_to_tag("","effect");
+	//while( e ) {
 
-	ret.emplace_back(mat);
+	material mat;
+
+	mat.id = e.get_attribute("","id").first;
+
+	// skip <profile_XXX> / <technique sid="XXX">
+	// TODO: change
+	e = skip_to_tag("","phong");
+
+	parse_pong( mat.effect );
+
+	ret.push_back( mat );
 
 	return ret;
 }
