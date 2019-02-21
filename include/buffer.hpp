@@ -41,16 +41,9 @@ public:
 		mem_block(nullptr)
 	{}
 
-	~mem_block() noexcept {
-		if(nullptr != px_)
-			memory_traits::free( px_ );
-	}
+	mem_block(mem_block&& other) noexcept;
 
-	mem_block(mem_block&& other) noexcept:
-		px_( other.px_ )
-	{
-		other.px_ = nullptr;
-	}
+	~mem_block() noexcept;
 
 	mem_block& operator=(mem_block&& rhs) noexcept {
 		mem_block( static_cast<mem_block&&>(rhs) ).swap( *this );
@@ -65,27 +58,15 @@ public:
 		return px_;
 	}
 
-	static inline mem_block allocate(const std::size_t size) noexcept {
-		uint8_t *ptr = memory_traits::malloc_array<uint8_t>(size);
-		return (nullptr != ptr) ? mem_block( ptr ) : mem_block();
-	}
+	static mem_block allocate(const std::size_t size) noexcept;
 
-	static inline mem_block wrap(const uint8_t* arr,const std::size_t size) noexcept {
-		uint8_t *ptr = memory_traits::malloc_array<uint8_t>(size);
-		if(nullptr != ptr)
-			std::memcpy( ptr, arr, size);
-		return mem_block( ptr );
-	}
+	static mem_block wrap(const uint8_t* arr,const std::size_t size) noexcept;
 
 	inline void swap(mem_block& with) noexcept {
 		std::swap( px_, with.px_);
 	}
 
-	uint8_t* reset_ownership() noexcept {
-		uint8_t* ret = px_;
-		px_ = nullptr;
-		return ret;
-	}
+	uint8_t* reset_ownership() noexcept;
 
 private:
 	uint8_t *px_;

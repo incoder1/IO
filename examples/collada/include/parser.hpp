@@ -116,14 +116,27 @@ class parser
 
 	private:
 
+		// StAX parsing helpers
 		io::xml::state_type to_next_state();
-		io::xml::event_type to_next_tag_event();
+		io::xml::event_type to_next_tag_event(io::xml::state_type& state);
+		io::xml::start_element_event to_next_tag_start(io::xml::state_type& state);
+		void check_eod(io::xml::state_type state,const std::string& msg);
 
-		io::xml::start_element_event skip_to_tag(const char* prefix, const char *local_name);
+		// FIXME remove this
+		io::xml::start_element_event skip_to_tag(const char *local_name);
+
+		/// Skip the element including all child elements
+		void skip_element(const io::xml::start_element_event& e);
+
+		/// drop parser to next tag start event
+		/// returns current tag value
+        io::const_string get_tag_value();
+
+		// parse specific tags
 
 		void parse_pong(phong_effect& effect);
 
-		std::vector<material> read_materials();
+		std::vector<material> read_effect_library();
 
 	private:
 		io::xml::s_event_stream_parser xp_;

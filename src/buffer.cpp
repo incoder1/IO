@@ -20,7 +20,44 @@ typedef SSIZE_T ssize_t;
 
 namespace io {
 
+namespace detail {
 
+// mem_block
+
+mem_block::mem_block(mem_block&& other) noexcept:
+	px_( other.px_ )
+{
+	other.px_ = nullptr;
+}
+
+mem_block::~mem_block() noexcept {
+	if(nullptr != px_)
+		memory_traits::free( px_ );
+}
+
+mem_block mem_block::allocate(const std::size_t size) noexcept {
+	uint8_t *ptr = memory_traits::malloc_array<uint8_t>(size);
+	return (nullptr != ptr) ? mem_block( ptr ) : mem_block();
+}
+
+mem_block mem_block::wrap(const uint8_t* arr,const std::size_t size) noexcept
+{
+	uint8_t *ptr = memory_traits::malloc_array<uint8_t>(size);
+	if(nullptr != ptr) {
+		std::memcpy( ptr, arr, size);
+	}
+	return mem_block( ptr );
+}
+
+uint8_t* mem_block::reset_ownership() noexcept {
+	uint8_t* ret = px_;
+	px_ = nullptr;
+	return ret;
+}
+
+} // namespace detail
+
+// byte_buffer
 byte_buffer::byte_buffer(detail::mem_block&& arr, std::size_t capacity) noexcept:
 	arr_( std::forward<detail::mem_block>(arr) ),
 	capacity_( capacity ),
