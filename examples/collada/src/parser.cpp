@@ -1,6 +1,6 @@
 #include "parser.hpp"
-#include <cmath>
 
+#include <cmath>
 #include <type_traits>
 
 namespace collada {
@@ -64,7 +64,14 @@ static io::xml::s_event_stream_parser open_parser(io::s_read_channel&& src)
 template<class T>
 static bool is_element(const T& e, const char* local_name) noexcept
 {
-	return e.name().equal("",local_name);
+	return e.name().local_name().equal( local_name );
+}
+
+template<class T>
+static bool is_element(const T& e,const io::cached_string& local_name) noexcept
+{
+	// check with cache miss
+	return local_name == e.name().local_name();
 }
 
 
@@ -73,6 +80,34 @@ parser::parser(io::s_read_channel&& src) noexcept:
 	xp_( open_parser( std::forward<io::s_read_channel>(src) ) ),
 	ec_()
 {
+	// pre-cache basic strings
+	// for faster parsing root elements
+#define CACHE_STR(__x) __x##_ = xp_->precache(#__x)
+	CACHE_STR(asset);
+	CACHE_STR(library_animations);
+	CACHE_STR(library_animation_clips);
+	CACHE_STR(library_controllers);
+	CACHE_STR(library_images);
+	CACHE_STR(library_materials);
+	CACHE_STR(library_effects);
+	CACHE_STR(library_geometries);
+	CACHE_STR(library_visual_scenes);
+	CACHE_STR(library_lights);
+	CACHE_STR(library_cameras);
+	CACHE_STR(library_nodes);
+// Phong materials
+	CACHE_STR(effect);
+	CACHE_STR(pong),
+			  CACHE_STR(constant);
+	CACHE_STR(lambert);
+	CACHE_STR(blinn);
+	CACHE_STR(ambient);
+	CACHE_STR(diffuse);
+	CACHE_STR(emission);
+	CACHE_STR(specular);
+	CACHE_STR(shininess);
+	CACHE_STR(index_of_refraction);
+#undef CACHE_STR
 }
 
 io::xml::state_type parser::to_next_state()
@@ -97,7 +132,7 @@ io::xml::state_type parser::to_next_state()
 	return ret;
 }
 
-void parser::check_eod(io::xml::state_type state,const std::string& msg)
+inline void parser::check_eod( io::xml::state_type state,const char* msg)
 {
 	if(io::xml::state_type::eod == state) {
 		if( xp_->is_error() ) {
@@ -109,7 +144,10 @@ void parser::check_eod(io::xml::state_type state,const std::string& msg)
 	}
 }
 
-
+inline void parser::check_eod(io::xml::state_type state,const std::string& msg)
+{
+	check_eod(state, msg.data() );
+}
 
 io::xml::event_type parser::to_next_tag_event(io::xml::state_type& state)
 {
@@ -162,10 +200,10 @@ io::xml::start_element_event parser::skip_to_tag(const char *local_name)
 	io::xml::event_type et;
 	io::xml::state_type state;
 	io::xml::start_element_event ret;
+	const std::string errmsg = std::string("no tag ").append(local_name).append(" found");
 	for(;;) {
 		et = to_next_tag_event(state);
-		check_eod(state, std::string("no tag ").append(local_name).append(" found") );
-
+		check_eod(state, errmsg );
 
 		if( io::xml::event_type::end_element == et) {
 			xp_->parse_end_element();
@@ -184,6 +222,7 @@ void parser::skip_element(const io::xml::start_element_event& e)
 	using namespace io::xml;
 	if( ! e.empty_element() ) {
 		qname name = e.name();
+		const std::string errmsg = std::string(name.local_name().data()).append(" is unbalanced found");
 		event_type et;
 		start_element_event see;
 		end_element_event ele;
@@ -191,13 +230,14 @@ void parser::skip_element(const io::xml::start_element_event& e)
 		std::size_t nestin_level = 1;
 		while( 0 != nestin_level) {
 			et = to_next_tag_event(state);
-			check_eod(state, "root element is unblanced");
+			check_eod(state, errmsg);
 
 			if( event_type::start_element == et ) {
 				see = xp_->parse_start_element();
 				if(name == see.name())
 					++nestin_level;
-			} else {
+			}
+			else {
 				ele = xp_->parse_end_element();
 				if(name == ele.name() )
 					--nestin_level;
@@ -226,77 +266,104 @@ io::const_string parser::get_tag_value()
 	return xp_->read_chars();
 }
 
-void parser::parse_pong(phong_effect& effect)
+void parser::parse_effect(effect& ef)
 {
-	static constexpr std::size_t TAGS_COUNT = 6;
-	static constexpr const char* ERR_MSG = "pong is unbalanced";
-	io::xml::qname name;
-	io::xml::start_element_event e;
+	static constexpr const char* ERR_MSG = "effect is unbalanced";
+
 	io::xml::state_type state;
-	for(std::size_t i=0; i < TAGS_COUNT; i++) {
-		e = to_next_tag_start(state);
-		check_eod(state,ERR_MSG);
-		if( is_element(e,"ambient") ) {
-			e = to_next_tag_start(state);
-			check_eod(state,ERR_MSG);
-			parse_vec4( get_tag_value(), effect.ambient );
+	io::xml::event_type et;
+	io::xml::start_element_event sev;
+	io::xml::end_element_event eev;
+
+	for(;;) {
+		et = to_next_tag_event(state);
+		check_eod(state, ERR_MSG);
+		if( io::xml::event_type::end_element == et) {
+			eev = xp_->parse_end_element();
+			if( is_element(eev, effect_) ) {
+				break;
+			}
+			continue;
 		}
-		else if( is_element(e,"diffuse") ) {
-			e = to_next_tag_start(state);
-			check_eod(state,ERR_MSG);
-			parse_vec4( get_tag_value(), effect.diffuse );
+
+		sev = xp_->parse_start_element();
+		check_eod(state, ERR_MSG);
+
+		if( is_element(sev,pong_) ) {
+			ef.shade = shade_type::phong;
 		}
-		else if( is_element(e,"emission") ) {
-			e = to_next_tag_start(state);
-			check_eod(state,ERR_MSG);
-			parse_vec4( get_tag_value(), effect.emission );
+		else if( is_element(sev,constant_) ) {
+			ef.shade = shade_type::constant;
 		}
-		else if( is_element(e,"specular") ) {
-			e = to_next_tag_start(state);
-			check_eod(state,ERR_MSG);
-			parse_vec4( get_tag_value(), effect.specular );
+		else if( is_element(sev,lambert_) ) {
+			ef.shade = shade_type::lambert;
 		}
-		else if( is_element(e,"shininess") ) {
-			e = to_next_tag_start(state);
-			check_eod(state,ERR_MSG);
-			effect.shininess = parse_float( get_tag_value() );
+		else if( is_element(sev,blinn_) ) {
+			ef.shade = shade_type::blinn_phong;
 		}
-		else if( is_element(e,"index_of_refraction") ) {
-			e = to_next_tag_start(state);
+		else if( is_element(sev,ambient_) ) {
+			sev = to_next_tag_start(state);
 			check_eod(state,ERR_MSG);
-			effect.refraction_index = parse_float( get_tag_value() );
+			parse_vec4( get_tag_value(), ef.ambient );
+		}
+		else if( is_element(sev,diffuse_) ) {
+			sev = to_next_tag_start(state);
+			check_eod(state,ERR_MSG);
+			parse_vec4( get_tag_value(), ef.diffuse );
+		}
+		else if( is_element(sev,emission_) ) {
+			sev = to_next_tag_start(state);
+			check_eod(state,ERR_MSG);
+			parse_vec4( get_tag_value(), ef.emission );
+		}
+		else if( is_element(sev,specular_) ) {
+			sev = to_next_tag_start(state);
+			check_eod(state,ERR_MSG);
+			parse_vec4( get_tag_value(), ef.specular );
+		}
+		else if( is_element(sev,shininess_) ) {
+			sev = to_next_tag_start(state);
+			check_eod(state,ERR_MSG);
+			ef.shininess = parse_float( get_tag_value() );
+		}
+		else if( is_element(sev,index_of_refraction_) ) {
+			sev = to_next_tag_start(state);
+			check_eod(state,ERR_MSG);
+			ef.refraction_index = parse_float( get_tag_value() );
 		}
 	}
 }
 
-// FIXME: dirty code for now, to be refactored
-std::vector<material> parser::read_effect_library()
+void parser::parse_effect_library(model& md)
 {
 
-	std::vector<material> ret;
+	io::xml::state_type state;
+	io::xml::event_type et;
+	io::xml::start_element_event sev;
+	io::xml::end_element_event eev;
 
-	io::xml::start_element_event e = skip_to_tag("effect");
+	for(;;) {
+		et = to_next_tag_event(state);
+		check_eod(state, "library_effects is unbalanced");
+		if( io::xml::event_type::end_element == et) {
+			eev = xp_->parse_end_element();
+			if( is_element(eev, library_effects_) ) {
+				break;
+			}
+			continue;
+		}
+		sev = xp_->parse_start_element();
+		if( is_element(sev,effect_) ) {
+			effect ef;
+			io::const_string id = sev.get_attribute("","id").first;
+			parse_effect( ef );
+			md.add_effect( std::move(id), std::move(ef) );
+		}
+	}
 
-	//while()
-
-	material mat;
-
-	mat.id = e.get_attribute("","id").first;
-
-	// skip <profile_XXX> / <technique sid="XXX">
-	// TODO: change
-	skip_to_tag("phong");
-
-	parse_pong( mat.effect );
-
-	ret.push_back( mat );
-
-
-	// skip all tags to end
-	skip_element(e);
-
-	return ret;
 }
+
+
 
 model parser::load()
 {
@@ -310,52 +377,56 @@ model parser::load()
 	}
 
 	do {
-		e = to_next_tag_start(state);
 
-		if( is_element(e,"asset") ) {
+		e = to_next_tag_start(state);
+		// nothing to do
+		if( e.empty_element() )
+			continue;
+
+		if( is_element(e,asset_) ) {
 			// not implemented
 			skip_element(e);
 		}
-		else if( is_element(e,"library_animations") ) {
+		else if( is_element(e,library_animations_) ) {
 			// not implemented
 			skip_element(e);
 		}
-		else if( is_element(e,"library_animation_clips") ) {
+		else if( is_element(e,library_animation_clips_) ) {
 			// not implemented
 			skip_element(e);
 		}
-		else if( is_element(e,"library_controllers") ) {
+		else if( is_element(e,library_controllers_) ) {
 			// not implemented
 			skip_element(e);
 		}
-		else if( is_element(e,"library_images") ) {
+		else if( is_element(e,library_images_) ) {
 			// TODO: implement
 			skip_element(e);
 		}
-		else if( is_element(e,"library_materials") ) {
+		else if( is_element(e,library_materials_) ) {
 			// TODO: check
 			skip_element(e);
 		}
-		else if( is_element(e,"library_effects") ) {
+		else if( is_element(e,library_effects_) ) {
 			// TODO: implement fully
-			ret.materials = read_effect_library();
+			parse_effect_library(ret);
 		}
-		else if( is_element(e,"library_geometries") ) {
+		else if( is_element(e,library_geometries_) ) {
 			// TODO: implement
 			skip_element(e);
 		}
-		else if( is_element(e,"library_visual_scenes") ) {
+		else if( is_element(e,library_visual_scenes_) ) {
 			// not implemented
 			skip_element(e);
 		}
-		else if( is_element(e,"library_lights") ) {
+		else if( is_element(e,library_lights_) ) {
 			// not implemented
 			skip_element(e);
 		}
-		else if( is_element(e,"library_cameras") ) {
+		else if( is_element(e,library_cameras_) ) {
 			skip_element(e);
 		}
-		else if( is_element(e, "library_nodes") ) {
+		else if( is_element(e,library_nodes_) ) {
 			// TODO: implement
 			skip_element(e);
 		}

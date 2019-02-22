@@ -150,6 +150,13 @@ public:
 		return src_->col();
 	}
 
+	/// Pre-cache a string like tag or attribute local name in the parser string pool
+	/// \param str a string to pre-cache in the parsing pool
+	/// \return new cached string object
+	inline cached_string precache(const char* str) noexcept {
+		return pool_->get(str);
+	}
+
 	/// Parse XML prologue declaration into document_event structure
 	/// \return extracted document_event
 	document_event parse_start_doc() noexcept;
@@ -189,6 +196,7 @@ public:
 	/// Extract raw XML characters declared in <!CDATA[]]> section
 	/// \return CDATA section content
 	const_string read_cdata() noexcept;
+
 
 private:
 

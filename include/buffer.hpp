@@ -28,7 +28,7 @@ class byte_buffer;
 
 namespace detail {
 
-class mem_block {
+class IO_PUBLIC_SYMBOL mem_block {
 	mem_block(const mem_block&) = delete;
 	mem_block& operator=(const mem_block&) = delete;
 public:

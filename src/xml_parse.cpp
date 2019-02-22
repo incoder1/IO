@@ -82,14 +82,9 @@ static std::size_t extract_prefix(std::size_t &start, const char* str) noexcept
 {
 	const char *s = str;
 	if( cheq(LEFTB,*s) ) {
-		if( cheq(SOLIDUS,*(s+1) ) ) {
-			start += 2;
-			s += 2;
-		}
-		else {
-			++start;
-			++s;
-		}
+		const std::size_t shift = cheq( SOLIDUS, *(s+1) ) ? 2 : 1;
+		s += shift;
+		start += shift;
 	}
 	s += prefix_delimit(s);
 	if( !cheq(COLON, *s) ) {
@@ -101,22 +96,23 @@ static std::size_t extract_prefix(std::size_t &start, const char* str) noexcept
 
 static std::size_t extract_local_name(std::size_t& start,const char* str) noexcept
 {
-	start = 0;
+	std::size_t ret = 0;
 	char *s = const_cast<char*>(str);
-	if( !is_one_of(*s, LEFTB,COLON,QM) )
-		return 0;
-	++start;
-	++s;
-	if(cheq(SOLIDUS,*s)) {
-		++s;
+	start = 0;
+	if( is_one_of(*s, LEFTB,COLON,QM) ) {
 		++start;
+		++s;
 	}
-	s +=  xmlname_strspn(s);
-	if( cheq(ENDL, *s) ) {
+	if( cheq(SOLIDUS,*s) ) {
+		++start;
+		++s;
+	}
+	s += xmlname_strspn(s);
+	if( io_unlikely( cheq(ENDL, *s) ) )
 		start = 0;
-		return 0;
-	}
-	return memory_traits::distance(str,s-1) - (start-1);
+	else
+		ret = memory_traits::distance(str,s-1) - (start-1);
+	return ret;
 }
 
 

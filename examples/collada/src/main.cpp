@@ -189,8 +189,9 @@ static collada::model load_model() {
 	io::check_error_code(ec);
 	collada::parser parser( std::move(src) );
 
-	return parser.load();
+	collada::model ret = parser.load();
 
+	return ret;
 }
 
 #ifdef _WIN32
