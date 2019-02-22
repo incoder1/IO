@@ -79,15 +79,18 @@ io::xml::state_type parser::to_next_state()
 {
 	io::xml::state_type ret;
 	// Scan for next XML state
-	for(;;) {
+	bool scan = true;
+	while(scan) {
 		ret = xp_->scan_next();
-		if( io::xml::state_type::comment == ret) {
-			xp_->skip_comment();
-		}
-		else if(io::xml::state_type::dtd == ret) {
+		switch(ret) {
+		case io::xml::state_type::dtd:
 			xp_->skip_dtd();
-		}
-		else {
+			break;
+		case io::xml::state_type::comment:
+			xp_->skip_comment();
+			break;
+		default:
+			scan = false;
 			break;
 		}
 	}
@@ -301,13 +304,13 @@ model parser::load()
 	model ret;
 
 	io::xml::state_type state;
-	io::xml::start_element_event e;
+	io::xml::start_element_event e = to_next_tag_start(state);
+	if( ! is_element(e,"COLLADA") ) {
+		throw std::runtime_error("Expecting collada model file");
+	}
 
 	do {
 		e = to_next_tag_start(state);
-		if( is_element(e,"COLLADA") ) {
-			continue;
-		}
 
 		if( is_element(e,"asset") ) {
 			// not implemented
@@ -354,9 +357,6 @@ model parser::load()
 		}
 		else if( is_element(e, "library_nodes") ) {
 			// TODO: implement
-			skip_element(e);
-		}
-		else {
 			skip_element(e);
 		}
 	}
