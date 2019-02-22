@@ -5,6 +5,19 @@
 
 namespace collada {
 
+// FIXME: move collada model into separate module
+// model
+void model::add_effect(io::const_string&& id,effect&& e)
+{
+	effects_.emplace( std::forward<io::const_string>(id), std::make_shared<effect>( std::forward<effect>(e) ) );
+}
+
+std::shared_ptr<effect> model::find_effect(const char* id) noexcept
+{
+	effect_library_t::const_iterator it = effects_.find( io::const_string(id) );
+	return effects_.cend() != it ? std::shared_ptr<effect>() : it->second;
+}
+
 
 // helper free functions
 
@@ -22,6 +35,22 @@ static float next_float(const char* str,char** endp)
 	return ret;
 }
 
+static bool parse_bool(const io::const_string& val)
+{
+	typedef io::xml::lexical_cast_traits<bool> bool_cast;
+	const char* str = val.data();
+	while( std::isspace(*str) )
+		++str;
+	switch(*str) {
+	case '\0':
+	case '0':
+		return false;
+	case '1':
+		return true;
+	default:
+		return bool_cast::from_string(str);
+	}
+}
 
 static io::scoped_arr<float> parse_string_list(const io::const_string& val, std::size_t size)
 {
@@ -84,6 +113,7 @@ parser::parser(io::s_read_channel&& src) noexcept:
 	// for faster parsing root elements
 #define CACHE_STR(__x) __x##_ = xp_->precache(#__x)
 	CACHE_STR(asset);
+	CACHE_STR(effect);
 	CACHE_STR(library_animations);
 	CACHE_STR(library_animation_clips);
 	CACHE_STR(library_controllers);
@@ -95,18 +125,6 @@ parser::parser(io::s_read_channel&& src) noexcept:
 	CACHE_STR(library_lights);
 	CACHE_STR(library_cameras);
 	CACHE_STR(library_nodes);
-// Phong materials
-	CACHE_STR(effect);
-	CACHE_STR(pong),
-			  CACHE_STR(constant);
-	CACHE_STR(lambert);
-	CACHE_STR(blinn);
-	CACHE_STR(ambient);
-	CACHE_STR(diffuse);
-	CACHE_STR(emission);
-	CACHE_STR(specular);
-	CACHE_STR(shininess);
-	CACHE_STR(index_of_refraction);
 #undef CACHE_STR
 }
 
@@ -280,7 +298,7 @@ void parser::parse_effect(effect& ef)
 		check_eod(state, ERR_MSG);
 		if( io::xml::event_type::end_element == et) {
 			eev = xp_->parse_end_element();
-			if( is_element(eev, effect_) ) {
+			if( is_element(eev, "effect") ) {
 				break;
 			}
 			continue;
@@ -289,47 +307,82 @@ void parser::parse_effect(effect& ef)
 		sev = xp_->parse_start_element();
 		check_eod(state, ERR_MSG);
 
-		if( is_element(sev,pong_) ) {
-			ef.shade = shade_type::phong;
-		}
-		else if( is_element(sev,constant_) ) {
+		if( is_element(sev,"profile_COMMON") ) {
+			continue;
+		} else if( is_element(sev,"technique") ) {
+			continue;
+		} else if( is_element(sev,"constant") ) {
 			ef.shade = shade_type::constant;
 		}
-		else if( is_element(sev,lambert_) ) {
-			ef.shade = shade_type::lambert;
-		}
-		else if( is_element(sev,blinn_) ) {
+		else if( is_element(sev,"blinn") ) {
 			ef.shade = shade_type::blinn_phong;
 		}
-		else if( is_element(sev,ambient_) ) {
+		else if( is_element(sev,"phong") ) {
+			ef.shade = shade_type::phong;
+		}
+		else if( is_element(sev,"lambert") ) {
+			ef.shade = shade_type::lambert;
+		}
+		else if( is_element(sev,"ambient") ) {
 			sev = to_next_tag_start(state);
 			check_eod(state,ERR_MSG);
-			parse_vec4( get_tag_value(), ef.ambient );
+			parse_vec4( get_tag_value(), ef.tex_mat.ambient );
 		}
-		else if( is_element(sev,diffuse_) ) {
+		else if( is_element(sev,"diffuse") ) {
 			sev = to_next_tag_start(state);
 			check_eod(state,ERR_MSG);
-			parse_vec4( get_tag_value(), ef.diffuse );
+			parse_vec4( get_tag_value(), ef.tex_mat.diffuse );
 		}
-		else if( is_element(sev,emission_) ) {
+		else if( is_element(sev,"emission") ) {
 			sev = to_next_tag_start(state);
 			check_eod(state,ERR_MSG);
-			parse_vec4( get_tag_value(), ef.emission );
+			parse_vec4( get_tag_value(), ef.tex_mat.emission );
 		}
-		else if( is_element(sev,specular_) ) {
+		else if( is_element(sev,"specular") ) {
 			sev = to_next_tag_start(state);
 			check_eod(state,ERR_MSG);
-			parse_vec4( get_tag_value(), ef.specular );
+			parse_vec4( get_tag_value(), ef.tex_mat.specular );
 		}
-		else if( is_element(sev,shininess_) ) {
+		else if( is_element(sev,"shininess") ) {
 			sev = to_next_tag_start(state);
 			check_eod(state,ERR_MSG);
-			ef.shininess = parse_float( get_tag_value() );
+			ef.tex_mat.shininess = parse_float( get_tag_value() );
 		}
-		else if( is_element(sev,index_of_refraction_) ) {
+		else if( is_element(sev,"index_of_refraction") ) {
 			sev = to_next_tag_start(state);
 			check_eod(state,ERR_MSG);
 			ef.refraction_index = parse_float( get_tag_value() );
+		} else if( is_element(sev,"reflective") ) {
+			sev = to_next_tag_start(state);
+			check_eod(state,ERR_MSG);
+			parse_vec4( get_tag_value(), ef.reflect.color );
+		} else if( is_element(sev,"reflectivity") ) {
+			sev = to_next_tag_start(state);
+			check_eod(state,ERR_MSG);
+			ef.reflect.value = parse_float( get_tag_value() );
+		} else if( is_element(sev,"transparent") ) {
+			ef.transparent.used = true;
+			io::const_string opaque = sev.get_attribute("","opaque").first;
+			ef.transparent.rbg = opaque.equal("RGB_ZERO") || opaque.equal("RGB_ONE");
+			ef.transparent.invert = opaque.equal("RGB_ZERO") || opaque.equal("A_ZERO");
+			sev = to_next_tag_start(state);
+			check_eod(state,ERR_MSG);
+			parse_vec4( get_tag_value(), ef.transparent.color);
+		} else if( is_element(sev,"double_sided") ) {
+			check_eod(state,ERR_MSG);
+			ef.double_sided = parse_bool( get_tag_value() );
+		} else if( is_element(sev,"bump") ) {
+			sev = to_next_tag_start(state);
+			check_eod(state,ERR_MSG);
+			parse_vec4( get_tag_value(), ef.text_bump );
+		} else if( is_element(sev,"wireframe") ) {
+			sev = to_next_tag_start(state);
+			check_eod(state,ERR_MSG);
+			ef.wireframe = parse_bool( get_tag_value() );
+		} else if( is_element(sev,"faceted") ) {
+			sev = to_next_tag_start(state);
+			check_eod(state,ERR_MSG);
+			ef.faceted = parse_bool( get_tag_value() );
 		}
 	}
 }
@@ -353,7 +406,7 @@ void parser::parse_effect_library(model& md)
 			continue;
 		}
 		sev = xp_->parse_start_element();
-		if( is_element(sev,effect_) ) {
+		if( is_element(sev,"effect") ) {
 			effect ef;
 			io::const_string id = sev.get_attribute("","id").first;
 			parse_effect( ef );

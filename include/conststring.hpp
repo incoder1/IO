@@ -208,6 +208,10 @@ public:
 		return 0 < compare( rhs );
 	}
 
+	bool equal(const char* rhs) const noexcept {
+		return std::strcmp( data(), rhs );
+	}
+
 private:
 	inline int compare(const const_string& rhs) const noexcept {
 		if(data_ == rhs.data_)

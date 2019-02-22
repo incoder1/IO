@@ -1,14 +1,13 @@
 #ifndef __PARSER_HPP_INCLUDED__
 #define __PARSER_HPP_INCLUDED__
 
+#include <memory>
+
 #include <object.hpp>
 #include <scoped_array.hpp>
 #include <xml_reader.hpp>
 #include <xml_lexcast.hpp>
-
 #include <renderer.hpp>
-
-#include <list>
 
 namespace collada {
 
@@ -48,15 +47,38 @@ enum class shade_type {
     blinn_phong
 };
 
-struct effect
-{
-	shade_type shade;
+struct material {
 	float ambient[4];
 	float emission[4];
 	float diffuse[4];
 	float specular[4];
 	float shininess;
+};
+
+struct reflectivity {
+	float color[4];
+	float value;
+};
+
+struct transparency {
+	float color[4];
+	bool used;
+	bool rbg;
+	bool invert;
+};
+
+struct effect
+{
+	material tex_mat;
+	transparency transparent;
+	reflectivity reflect;
+	float text_bump[4];
+
+	shade_type shade;
 	float refraction_index;
+	bool double_sided;
+	bool wireframe;
+	bool faceted;
 };
 
 struct float_array
@@ -86,16 +108,6 @@ struct input
 	uint8_t set;
 };
 
-typedef libraries<effect>::library_type effect_library;
-
-//typedef libraries<>
-
-//typedef std::unordered_map<
-//					io::const_string, source,
-//					const_string_hasher, std::equal_to<io::const_string>,
-//					std::allocator<std::pair<const io::const_string,source> >
-//				>  source_container;
-
 
 enum class primitive_type
 {
@@ -118,6 +130,8 @@ class model
 {
 	model(const model&) = delete;
 	model& operator=(const model&) = delete;
+private:
+	typedef libraries< std::shared_ptr<effect> >::library_type effect_library_t;
 public:
 	model(model&&) noexcept = default;
 	model& operator=(model&&) = default;
@@ -129,13 +143,12 @@ public:
 		meshes_()
 	{}
 
-	void add_effect(io::const_string&& id,effect&& e)
-	{
-		effects_.emplace( std::forward<io::const_string>(id), std::forward<effect>(e) );
-	}
+	void add_effect(io::const_string&& id,effect&& e);
+
+	std::shared_ptr<effect> find_effect(const char* id) noexcept;
 
 private:
-	effect_library effects_;
+	effect_library_t effects_;
 	std::vector<image> images_;
 	std::vector<mesh> meshes_;
 };
@@ -157,7 +170,7 @@ class parser
 		io::xml::state_type to_next_state();
 		io::xml::event_type to_next_tag_event(io::xml::state_type& state);
 		io::xml::start_element_event to_next_tag_start(io::xml::state_type& state);
-		inline void check_eod( io::xml::state_type state,const char* msg);
+		inline void check_eod(io::xml::state_type state,const char* msg);
 		inline void check_eod(io::xml::state_type state,const std::string& msg);
 
 		// FIXME remove this
@@ -170,10 +183,8 @@ class parser
 		/// returns current tag value
         io::const_string get_tag_value();
 
-		// parse specific tags
-
+		// parse effect library functions
 		void parse_effect(effect& effect);
-
 		void parse_effect_library(model& md);
 
 	private:
@@ -181,8 +192,10 @@ class parser
 		std::error_code ec_;
 		// pre-cached rare element names
 #define CACHE_STR(__x) io::cached_string __x##_
-// root elements
+// pre-cache needed elements, to speed up the main parsing loop
+// using pointers compare instead of a string compare
 		CACHE_STR(asset);
+		CACHE_STR(effect);
 		CACHE_STR(library_animations);
 		CACHE_STR(library_animation_clips);
 		CACHE_STR(library_controllers);
@@ -194,18 +207,6 @@ class parser
 		CACHE_STR(library_lights);
 		CACHE_STR(library_cameras);
 		CACHE_STR(library_nodes);
-// Effects
-		CACHE_STR(effect);
-		CACHE_STR(pong);
-		CACHE_STR(constant);
-		CACHE_STR(lambert);
-		CACHE_STR(blinn);
-		CACHE_STR(ambient);
-		CACHE_STR(diffuse);
-		CACHE_STR(emission);
-		CACHE_STR(specular);
-		CACHE_STR(shininess);
-		CACHE_STR(index_of_refraction);
 #undef CACHE_STR
 };
 
