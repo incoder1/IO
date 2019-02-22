@@ -1,12 +1,22 @@
 #include "parser.hpp"
 
 #include <cmath>
+
+#include <array>
+#include <algorithm>
 #include <type_traits>
 
 namespace collada {
 
 // FIXME: move collada model into separate module
 // model
+
+model::model():
+	effects_(),
+	images_(),
+	meshes_()
+{}
+
 void model::add_effect(io::const_string&& id,effect&& e)
 {
 	effects_.emplace( std::forward<io::const_string>(id), std::make_shared<effect>( std::forward<effect>(e) ) );
@@ -15,9 +25,19 @@ void model::add_effect(io::const_string&& id,effect&& e)
 std::shared_ptr<effect> model::find_effect(const char* id) noexcept
 {
 	effect_library_t::const_iterator it = effects_.find( io::const_string(id) );
-	return effects_.cend() != it ? std::shared_ptr<effect>() : it->second;
+	return effects_.cend() == it ? std::shared_ptr<effect>() : it->second;
 }
 
+void model::add_mesh(io::const_string&& id,mesh&& e)
+{
+	meshes_.emplace( std::forward<io::const_string>(id),  std::make_shared<mesh>( std::forward<mesh>(e) ) );
+}
+
+std::shared_ptr<mesh> model::find_mesh(const char* id) noexcept
+{
+	geometry_library_t::const_iterator it = meshes_.find( io::const_string(id) );
+	return meshes_.cend() == it ? std::shared_ptr<mesh>() : it->second;
+}
 
 // helper free functions
 
@@ -80,7 +100,6 @@ static void parse_vec4(const io::const_string& val, float * ret)
 	}
 }
 
-
 static io::xml::s_event_stream_parser open_parser(io::s_read_channel&& src)
 {
 	std::error_code ec;
@@ -103,6 +122,14 @@ static bool is_element(const T& e,const io::cached_string& local_name) noexcept
 	return local_name == e.name().local_name();
 }
 
+template<class I>
+static bool is_element(const io::xml::qname& name,const I& it) noexcept
+{
+	typedef typename I::value_type key_type;
+	return it.cend() != std::find_if( it.cbegin(), it.cend(), [name] (key_type key) {
+		return name.local_name().equal(key);
+	} );
+}
 
 // parser
 parser::parser(io::s_read_channel&& src) noexcept:
@@ -114,6 +141,10 @@ parser::parser(io::s_read_channel&& src) noexcept:
 #define CACHE_STR(__x) __x##_ = xp_->precache(#__x)
 	CACHE_STR(asset);
 	CACHE_STR(effect);
+	CACHE_STR(geometry);
+	CACHE_STR(mesh);
+	CACHE_STR(source);
+	CACHE_STR(vertices);
 	CACHE_STR(library_animations);
 	CACHE_STR(library_animation_clips);
 	CACHE_STR(library_controllers);
@@ -298,10 +329,10 @@ void parser::parse_effect(effect& ef)
 		check_eod(state, ERR_MSG);
 		if( io::xml::event_type::end_element == et) {
 			eev = xp_->parse_end_element();
-			if( is_element(eev, "effect") ) {
+			if( is_element(eev, effect_) )
 				break;
-			}
-			continue;
+			else
+				continue;
 		}
 
 		sev = xp_->parse_start_element();
@@ -309,9 +340,11 @@ void parser::parse_effect(effect& ef)
 
 		if( is_element(sev,"profile_COMMON") ) {
 			continue;
-		} else if( is_element(sev,"technique") ) {
+		}
+		else if( is_element(sev,"technique") ) {
 			continue;
-		} else if( is_element(sev,"constant") ) {
+		}
+		else if( is_element(sev,"constant") ) {
 			ef.value.shade = shade_type::constant;
 		}
 		else if( is_element(sev,"blinn") ) {
@@ -352,15 +385,18 @@ void parser::parse_effect(effect& ef)
 			sev = to_next_tag_start(state);
 			check_eod(state,ERR_MSG);
 			ef.value.mat.refraction_index = parse_float( get_tag_value() );
-		} else if( is_element(sev,"reflective") ) {
+		}
+		else if( is_element(sev,"reflective") ) {
 			sev = to_next_tag_start(state);
 			check_eod(state,ERR_MSG);
 			parse_vec4( get_tag_value(), ef.value.reflect.color );
-		} else if( is_element(sev,"reflectivity") ) {
+		}
+		else if( is_element(sev,"reflectivity") ) {
 			sev = to_next_tag_start(state);
 			check_eod(state,ERR_MSG);
 			ef.value.reflect.value = parse_float( get_tag_value() );
-		} else if( is_element(sev,"transparent") ) {
+		}
+		else if( is_element(sev,"transparent") ) {
 			ef.value.transparent.used = true;
 			io::const_string opaque = sev.get_attribute("","opaque").first;
 			ef.value.transparent.rbg = opaque.equal("RGB_ZERO") || opaque.equal("RGB_ONE");
@@ -368,18 +404,22 @@ void parser::parse_effect(effect& ef)
 			sev = to_next_tag_start(state);
 			check_eod(state,ERR_MSG);
 			parse_vec4( get_tag_value(), ef.value.transparent.color);
-		} else if( is_element(sev,"double_sided") ) {
+		}
+		else if( is_element(sev,"double_sided") ) {
 			check_eod(state,ERR_MSG);
 			ef.value.ext_3max.double_sided = parse_bool( get_tag_value() );
-		} else if( is_element(sev,"bump") ) {
+		}
+		else if( is_element(sev,"bump") ) {
 			sev = to_next_tag_start(state);
 			check_eod(state,ERR_MSG);
 			parse_vec4( get_tag_value(), ef.text.bump );
-		} else if( is_element(sev,"wireframe") ) {
+		}
+		else if( is_element(sev,"wireframe") ) {
 			sev = to_next_tag_start(state);
 			check_eod(state,ERR_MSG);
 			ef.value.ext_3max.wireframe = parse_bool( get_tag_value() );
-		} else if( is_element(sev,"faceted") ) {
+		}
+		else if( is_element(sev,"faceted") ) {
 			sev = to_next_tag_start(state);
 			check_eod(state,ERR_MSG);
 			ef.value.ext_3max.faceted = parse_bool( get_tag_value() );
@@ -389,24 +429,22 @@ void parser::parse_effect(effect& ef)
 
 void parser::parse_effect_library(model& md)
 {
-
 	io::xml::state_type state;
 	io::xml::event_type et;
 	io::xml::start_element_event sev;
 	io::xml::end_element_event eev;
-
 	for(;;) {
 		et = to_next_tag_event(state);
 		check_eod(state, "library_effects is unbalanced");
 		if( io::xml::event_type::end_element == et) {
 			eev = xp_->parse_end_element();
-			if( is_element(eev, library_effects_) ) {
+			if( is_element(eev, library_effects_) )
 				break;
-			}
-			continue;
+			else
+				continue;
 		}
 		sev = xp_->parse_start_element();
-		if( is_element(sev,"effect") ) {
+		if( is_element(sev,effect_) ) {
 			effect ef;
 			std::memset(&ef, 0, sizeof(ef) );
 			io::const_string id = sev.get_attribute("","id").first;
@@ -414,9 +452,153 @@ void parser::parse_effect_library(model& md)
 			md.add_effect( std::move(id), std::move(ef) );
 		}
 	}
+}
+
+static input_channel parse_input(const io::xml::start_element_event& e)
+{
+	input_channel ret;
+
+	io::const_string sematic = e.get_attribute("","semantic").first;
+	if( sematic.equal("VERTEX") ) {
+		ret.type = semantic_type::vertex;
+	}
+	else if( sematic.equal("POSITION") ) {
+		ret.type = semantic_type::position;
+	}
+	else if( sematic.equal("NORMAL") ) {
+		ret.type = semantic_type::normal;
+	}
+	else if( sematic.equal("TEXCOORD") ) {
+		ret.type = semantic_type::texcoord;
+	}
+	else if( sematic.equal("COLOR") ) {
+		ret.type = semantic_type::color;
+	}
+	else if( sematic.equal("TANGENT") ) {
+		ret.type = semantic_type::tangent;
+	}
+	else if( sematic.equal("BITANGENT") ) {
+		ret.type = semantic_type::bitangent;
+	}
+	ret.accessor_id = e.get_attribute("","source").first;
+
+	return ret;
+}
+
+void parser::parse_vertex_data(mesh& m)
+{
+	io::xml::state_type state;
+	io::xml::event_type et;
+	io::xml::start_element_event sev;
+	io::xml::end_element_event eev;
+	for(;;) {
+		et = to_next_tag_event(state);
+		check_eod(state, "vertices is unbalanced");
+		if( io::xml::event_type::end_element == et) {
+			eev = xp_->parse_end_element();
+			if( is_element(eev, vertices_) )
+				break;
+			else
+				continue;
+		}
+		sev = xp_->parse_start_element();
+		if( is_element(sev,"input") )
+			m.input_channels.emplace_back( parse_input(sev) );
+	}
+}
+
+void parser::parse_index_data(mesh& m)
+{
 
 }
 
+void parser::parse_mesh(mesh& m)
+{
+	static constexpr const char* ERR_MSG = "mesh is unbalanced";
+
+	static std::array<const char*,7> primitives = {
+		"triangles",
+		"lines",
+		"linestrips",
+		"polygons",
+		"polylist",
+		"trifans",
+		"tristrips"
+	};
+	io::xml::state_type state;
+	io::xml::event_type et;
+	io::xml::start_element_event sev;
+	io::xml::end_element_event eev;
+	for(;;) {
+		et = to_next_tag_event(state);
+		check_eod(state, ERR_MSG);
+		if( io::xml::event_type::end_element == et) {
+			eev = xp_->parse_end_element();
+			if( is_element(eev, mesh_) )
+				break;
+			else
+				continue;
+		}
+		sev = xp_->parse_start_element();
+		check_eod(state, ERR_MSG);
+		if( sev.empty_element() )
+			continue;
+
+		if( is_element(sev, source_) ) {
+			// TODO: implement
+			skip_element(sev);
+		}
+		else if( is_element(sev, vertices_) ) {
+			m.vertex_id = sev.get_attribute("","id").first;
+			parse_vertex_data(m);
+		}
+		else if( is_element(sev.name(),primitives) ) {
+			skip_element(sev);
+		}
+		else {
+			skip_element(sev);
+		}
+	}
+}
+
+void parser::pase_geometry_library(model& md)
+{
+	io::xml::state_type state;
+	io::xml::event_type et;
+	io::xml::start_element_event sev;
+	io::xml::end_element_event eev;
+	for(;;) {
+		et = to_next_tag_event(state);
+		check_eod(state, "library_geometries is unbalanced");
+		if( io::xml::event_type::end_element == et) {
+			eev = xp_->parse_end_element();
+			if( is_element(eev, library_geometries_) )
+				break;
+			else
+				continue;
+		}
+		sev = xp_->parse_start_element();
+
+		if( is_element(sev,geometry_) ) {
+			io::const_string id = sev.get_attribute("","id").first;
+			std::pair<io::const_string,bool> name = sev.get_attribute("","name");
+			// drop to mesh
+			sev = to_next_tag_start(state);
+			check_eod(state,"geometry element is unbalanced");
+			if( is_element(sev,mesh_) && !sev.empty_element() ) {
+
+				mesh m;
+				if( name.second && !name.first.blank() )
+					m.name = name.first;
+				else
+					m.name = id;
+
+				parse_mesh(m);
+				md.add_mesh( std::move(id), std::move(m) );
+			}
+		}
+	}
+}
 
 
 model parser::load()
@@ -466,8 +648,7 @@ model parser::load()
 			parse_effect_library(ret);
 		}
 		else if( is_element(e,library_geometries_) ) {
-			// TODO: implement
-			skip_element(e);
+			pase_geometry_library(ret);
 		}
 		else if( is_element(e,library_visual_scenes_) ) {
 			// not implemented
