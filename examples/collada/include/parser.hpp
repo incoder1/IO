@@ -13,7 +13,7 @@ namespace collada {
 
 
 template< typename V >
-class libraries {
+class param {
 private:
 
 	class hash: public std::unary_function<std::size_t,io::const_string> {
@@ -29,7 +29,7 @@ private:
 
 public:
 
-	typedef std::unordered_map <io::const_string,V,hash,pred,allocator> library_type;
+	typedef std::unordered_map <io::const_string,V,hash,pred,allocator> param_library;
 };
 
 struct image {
@@ -65,21 +65,31 @@ struct transparency {
 	bool invert;
 };
 
-struct text_bump {
-	float color[4];
+struct ad_3dsmax_ext
+{
 	bool double_sided;
 	bool wireframe;
 	bool faceted;
 };
 
-struct effect {
+struct sampler_effect {
+	material mat;
+	transparency transparent;
+	reflectivity reflect;
 	shade_type shade;
-	union {
-		material mat;
-		transparency transparent;
-		reflectivity reflect;
-		text_bump bump;
+	ad_3dsmax_ext ext_3max;
+	float bump[4];
+};
+
+union effect {
+	struct __value_t {
+			material mat;
+			transparency transparent;
+			reflectivity reflect;
+			shade_type shade;
+			ad_3dsmax_ext ext_3max;
 	} value;
+	sampler_effect text;
 };
 
 struct float_array {
@@ -117,7 +127,7 @@ enum class primitive_type {
 };
 
 struct mesh {
-	libraries<source>::library_type sources;
+	param< std::shared_ptr<effect> >::param_library sources;
 	primitive_type type;
 	std::vector<input> inputs;
 	std::vector<unsigned int> indecises;
@@ -127,7 +137,7 @@ class model {
 	model(const model&) = delete;
 	model& operator=(const model&) = delete;
 private:
-	typedef libraries< std::shared_ptr<effect> >::library_type effect_library_t;
+	typedef param< std::shared_ptr<effect> >::param_library effect_library_t;
 public:
 	model(model&&) noexcept = default;
 	model& operator=(model&&) = default;

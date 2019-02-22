@@ -312,16 +312,16 @@ void parser::parse_effect(effect& ef)
 		} else if( is_element(sev,"technique") ) {
 			continue;
 		} else if( is_element(sev,"constant") ) {
-			ef.shade = shade_type::constant;
+			ef.value.shade = shade_type::constant;
 		}
 		else if( is_element(sev,"blinn") ) {
-			ef.shade = shade_type::blinn_phong;
+			ef.value.shade = shade_type::blinn_phong;
 		}
 		else if( is_element(sev,"phong") ) {
-			ef.shade = shade_type::phong;
+			ef.value.shade = shade_type::phong;
 		}
 		else if( is_element(sev,"lambert") ) {
-			ef.shade = shade_type::lambert;
+			ef.value.shade = shade_type::lambert;
 		}
 		else if( is_element(sev,"ambient") ) {
 			sev = to_next_tag_start(state);
@@ -370,19 +370,19 @@ void parser::parse_effect(effect& ef)
 			parse_vec4( get_tag_value(), ef.value.transparent.color);
 		} else if( is_element(sev,"double_sided") ) {
 			check_eod(state,ERR_MSG);
-			ef.value.bump.double_sided = parse_bool( get_tag_value() );
+			ef.value.ext_3max.double_sided = parse_bool( get_tag_value() );
 		} else if( is_element(sev,"bump") ) {
 			sev = to_next_tag_start(state);
 			check_eod(state,ERR_MSG);
-			parse_vec4( get_tag_value(), ef.value.bump.color );
+			parse_vec4( get_tag_value(), ef.text.bump );
 		} else if( is_element(sev,"wireframe") ) {
 			sev = to_next_tag_start(state);
 			check_eod(state,ERR_MSG);
-			ef.value.bump.wireframe = parse_bool( get_tag_value() );
+			ef.value.ext_3max.wireframe = parse_bool( get_tag_value() );
 		} else if( is_element(sev,"faceted") ) {
 			sev = to_next_tag_start(state);
 			check_eod(state,ERR_MSG);
-			ef.value.bump.faceted = parse_bool( get_tag_value() );
+			ef.value.ext_3max.faceted = parse_bool( get_tag_value() );
 		}
 	}
 }
@@ -408,6 +408,7 @@ void parser::parse_effect_library(model& md)
 		sev = xp_->parse_start_element();
 		if( is_element(sev,"effect") ) {
 			effect ef;
+			std::memset(&ef, 0, sizeof(ef) );
 			io::const_string id = sev.get_attribute("","id").first;
 			parse_effect( ef );
 			md.add_effect( std::move(id), std::move(ef) );
