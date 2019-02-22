@@ -326,63 +326,63 @@ void parser::parse_effect(effect& ef)
 		else if( is_element(sev,"ambient") ) {
 			sev = to_next_tag_start(state);
 			check_eod(state,ERR_MSG);
-			parse_vec4( get_tag_value(), ef.tex_mat.ambient );
+			parse_vec4( get_tag_value(), ef.value.mat.ambient );
 		}
 		else if( is_element(sev,"diffuse") ) {
 			sev = to_next_tag_start(state);
 			check_eod(state,ERR_MSG);
-			parse_vec4( get_tag_value(), ef.tex_mat.diffuse );
+			parse_vec4( get_tag_value(), ef.value.mat.diffuse );
 		}
 		else if( is_element(sev,"emission") ) {
 			sev = to_next_tag_start(state);
 			check_eod(state,ERR_MSG);
-			parse_vec4( get_tag_value(), ef.tex_mat.emission );
+			parse_vec4( get_tag_value(), ef.value.mat.emission );
 		}
 		else if( is_element(sev,"specular") ) {
 			sev = to_next_tag_start(state);
 			check_eod(state,ERR_MSG);
-			parse_vec4( get_tag_value(), ef.tex_mat.specular );
+			parse_vec4( get_tag_value(), ef.value.mat.specular );
 		}
 		else if( is_element(sev,"shininess") ) {
 			sev = to_next_tag_start(state);
 			check_eod(state,ERR_MSG);
-			ef.tex_mat.shininess = parse_float( get_tag_value() );
+			ef.value.mat.shininess = parse_float( get_tag_value() );
 		}
 		else if( is_element(sev,"index_of_refraction") ) {
 			sev = to_next_tag_start(state);
 			check_eod(state,ERR_MSG);
-			ef.refraction_index = parse_float( get_tag_value() );
+			ef.value.mat.refraction_index = parse_float( get_tag_value() );
 		} else if( is_element(sev,"reflective") ) {
 			sev = to_next_tag_start(state);
 			check_eod(state,ERR_MSG);
-			parse_vec4( get_tag_value(), ef.reflect.color );
+			parse_vec4( get_tag_value(), ef.value.reflect.color );
 		} else if( is_element(sev,"reflectivity") ) {
 			sev = to_next_tag_start(state);
 			check_eod(state,ERR_MSG);
-			ef.reflect.value = parse_float( get_tag_value() );
+			ef.value.reflect.value = parse_float( get_tag_value() );
 		} else if( is_element(sev,"transparent") ) {
-			ef.transparent.used = true;
+			ef.value.transparent.used = true;
 			io::const_string opaque = sev.get_attribute("","opaque").first;
-			ef.transparent.rbg = opaque.equal("RGB_ZERO") || opaque.equal("RGB_ONE");
-			ef.transparent.invert = opaque.equal("RGB_ZERO") || opaque.equal("A_ZERO");
+			ef.value.transparent.rbg = opaque.equal("RGB_ZERO") || opaque.equal("RGB_ONE");
+			ef.value.transparent.invert = opaque.equal("RGB_ZERO") || opaque.equal("A_ZERO");
 			sev = to_next_tag_start(state);
 			check_eod(state,ERR_MSG);
-			parse_vec4( get_tag_value(), ef.transparent.color);
+			parse_vec4( get_tag_value(), ef.value.transparent.color);
 		} else if( is_element(sev,"double_sided") ) {
 			check_eod(state,ERR_MSG);
-			ef.double_sided = parse_bool( get_tag_value() );
+			ef.value.bump.double_sided = parse_bool( get_tag_value() );
 		} else if( is_element(sev,"bump") ) {
 			sev = to_next_tag_start(state);
 			check_eod(state,ERR_MSG);
-			parse_vec4( get_tag_value(), ef.text_bump );
+			parse_vec4( get_tag_value(), ef.value.bump.color );
 		} else if( is_element(sev,"wireframe") ) {
 			sev = to_next_tag_start(state);
 			check_eod(state,ERR_MSG);
-			ef.wireframe = parse_bool( get_tag_value() );
+			ef.value.bump.wireframe = parse_bool( get_tag_value() );
 		} else if( is_element(sev,"faceted") ) {
 			sev = to_next_tag_start(state);
 			check_eod(state,ERR_MSG);
-			ef.faceted = parse_bool( get_tag_value() );
+			ef.value.bump.faceted = parse_bool( get_tag_value() );
 		}
 	}
 }
