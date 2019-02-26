@@ -220,7 +220,8 @@ int main(int argc, const char** argv)
 			return 0;
 		}
 		catch(std::exception& exc) {
-			std::cerr<< exc.what() << std::endl;
+			io::detail::panic(-1, exc.what() );
+			io_unreachable;
 		}
 		::glfwTerminate();
 	}

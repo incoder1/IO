@@ -209,7 +209,7 @@ public:
 	}
 
 	bool equal(const char* rhs) const noexcept {
-		return std::strcmp( data(), rhs );
+		return 0 == std::strcmp( data(), rhs );
 	}
 
 private:

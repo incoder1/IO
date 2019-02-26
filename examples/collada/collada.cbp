@@ -14,7 +14,6 @@
 				<Option compiler="gcc" />
 				<Compiler>
 					<Add option="-std=c++11" />
-					<Add option="-pg" />
 					<Add option="-Og" />
 					<Add option="-g" />
 					<Add option="-mavx2" />
@@ -25,7 +24,6 @@
 					<Add directory="src" />
 				</Compiler>
 				<Linker>
-					<Add option="-pg -lgmon" />
 					<Add library="glfw3.dll" />
 					<Add library="glew32" />
 					<Add library="opengl32" />
@@ -114,6 +112,7 @@
 		<Unit filename="gpu/normal_mapped_mesh.vertex.glsl" />
 		<Unit filename="gpu/textured_mesh.frag.glsl" />
 		<Unit filename="gpu/textured_mesh.vertex.glsl" />
+		<Unit filename="include/collada.hpp" />
 		<Unit filename="include/image.hpp">
 			<Option virtualFolder="src/" />
 		</Unit>
@@ -129,6 +128,7 @@
 		<Unit filename="include/texture.hpp" />
 		<Unit filename="include/vbo.hpp" />
 		<Unit filename="include/view.hpp" />
+		<Unit filename="src/collada.cpp" />
 		<Unit filename="src/directx_image_loader.cpp">
 			<Option target="release-gcc-win64" />
 			<Option target="debug-gcc-win64" />
