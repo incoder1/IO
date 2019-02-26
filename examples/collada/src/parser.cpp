@@ -57,7 +57,7 @@ static io::scoped_arr<float> parse_string_array(const io::const_string& val, std
 		io::scoped_arr<float> ret( size );
 		char *s = const_cast<char*>( val.data() );
 		for(std::size_t i = 0; i < size; i++) {
-			if( io_unlikely(nullptr == s) )
+			if( io_unlikely(nullptr != s) )
 				ret[i] = next_float(s, &s);
 			else
 				ret[i] = NAN;
