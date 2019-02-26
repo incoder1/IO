@@ -16,10 +16,10 @@
 					<Add option="-Wnon-virtual-dtor" />
 					<Add option="-Winline" />
 					<Add option="-pedantic" />
-					<Add option="-std=c++11" />
 					<Add option="-Og" />
 					<Add option="-g" />
 					<Add option="-fexceptions" />
+					<Add option="-std=gnu++17" />
 					<Add option="-DIO_TLS_PROVIDER_GNUTLS" />
 					<Add directory="include" />
 					<Add directory="include/net" />

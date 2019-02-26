@@ -28,7 +28,7 @@ cached_string::cached_string(const char* str, std::size_t length) noexcept:
     data_(nullptr)
 {
     assert(nullptr != str && length > 0);
-    data_ = memory_traits::malloc_array<uint8_t>( sizeof(std::size_t) + length + 1 );
+    data_ = memory_traits::calloc_temporary<uint8_t>( sizeof(std::size_t) + length + 1 );
     if(nullptr != data_) {
         // set initial intrusive atomic reference count
         std::size_t *rc = reinterpret_cast<std::size_t*>(data_);
@@ -42,7 +42,7 @@ cached_string::cached_string(const char* str, std::size_t length) noexcept:
 cached_string::~cached_string() noexcept
 {
     if(nullptr != data_ && intrusive_release(data_) )
-        memory_traits::free(data_);
+        memory_traits::free_temporary(data_);
 }
 
 bool cached_string::blank() const noexcept
@@ -66,10 +66,12 @@ s_string_pool string_pool::create(std::error_code& ec) noexcept
 string_pool::string_pool() noexcept:
     object(),
     pool_()
-{}
+{
+}
 
 string_pool::~string_pool() noexcept
-{}
+{
+}
 
 const cached_string string_pool::get(const char* s, std::size_t count) noexcept
 {

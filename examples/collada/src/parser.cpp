@@ -51,13 +51,16 @@ static bool parse_bool(const io::const_string& val)
 	}
 }
 
-static io::scoped_arr<float> parse_string_list(const io::const_string& val, std::size_t size)
+static io::scoped_arr<float> parse_string_array(const io::const_string& val, std::size_t size)
 {
 	if( ! val.blank() ) {
 		io::scoped_arr<float> ret( size );
 		char *s = const_cast<char*>( val.data() );
-		for(std::size_t i = 0; (i < size || nullptr == s); i++) {
-			ret[i] = next_float(s, &s);
+		for(std::size_t i = 0; i < size; i++) {
+			if( io_unlikely(nullptr == s) )
+				ret[i] = next_float(s, &s);
+			else
+				ret[i] = NAN;
 		}
 		return ret;
 	}
@@ -522,13 +525,32 @@ void parser::parse_source(source& src)
 				acsr.count = parse_sizet( sev.get_attribute("","count").first );
 				acsr.stride = parse_sizet( sev.get_attribute("","stride").first );
 				parse_accessor(acsr);
+				src.add_accessor( std::move(acsr) );
 			}
 			else if( is_element(sev, float_array_) ) {
-				io::const_string id = sev.get_attribute("","id").first;
-				std::size_t data_size = parse_sizet( sev.get_attribute("","count").first );
+				io::const_string id;
+				std::size_t data_size;
+				auto attr = sev.get_attribute("","id");
+				if(attr.second)
+					const io::const_string id = attr.first;
+				else
+					throw std::runtime_error("float_array id attribute is mandatory");
+				attr = sev.get_attribute("","count");
+				if(attr.second)
+					data_size = parse_sizet( attr.first );
+				else
+					throw std::runtime_error("float_array count attribute is mandatory");
 				io::const_string data_str = get_tag_value();
-				if( ! data_str.blank() )
-					src.float_arrays.emplace( std::move(id), parse_string_list(data_str,data_size) );
+				if( ! data_str.blank() ) {
+					float_array arr = std::make_shared<io::scoped_arr<float> >( parse_string_array(data_str,data_size) );
+					src.add_float_array( std::move(id), std::move(arr) );
+				} else {
+					if( 0 != data_size ) {
+						std::string msg( sev.get_attribute("","count").first.data() );
+						msg.append(" expected by got 0 elements");
+						throw std::runtime_error( msg );
+					}
+				}
 			}
 		}
 	}

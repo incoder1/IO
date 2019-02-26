@@ -14,6 +14,7 @@
 #include "criticalsection.hpp"
 
 #include <atomic>
+#include <thread>
 
 namespace io {
 
@@ -46,7 +47,7 @@ private:
 		}
 	}
 	static heap_allocator* create_new() noexcept {
-		::HANDLE heap = ::HeapCreate(0,0,0);
+		::HANDLE heap = ::HeapCreate( 0, 0, 0 );
 		if(INVALID_HANDLE_VALUE != heap) {
 			void *raw = ::HeapAlloc(heap, HEAP_NO_SERIALIZE, sizeof(heap_allocator) );
 			if( io_likely( nullptr != raw) )
@@ -79,6 +80,10 @@ public:
 	__forceinline void* allocate(const std::size_t bytes) const noexcept {
 		return ::HeapAlloc(heap_, HEAP_ZERO_MEMORY, bytes);
 	}
+	__forceinline void* reallocate(void* const ptr, const std::size_t new_size) const noexcept {
+		static constexpr ::DWORD flags = HEAP_REALLOC_IN_PLACE_ONLY | HEAP_ZERO_MEMORY;
+        return ::HeapReAlloc(heap_, flags, ptr, new_size);
+	}
 	__forceinline void release(void* const ptr) const noexcept {
 		::HeapFree(heap_, 0, const_cast<LPVOID>(ptr) );
 	}
@@ -99,6 +104,11 @@ void* IO_MALLOC_ATTR private_heap_alloc(std::size_t bytes) noexcept
 	return heap_allocator::instance()->allocate(bytes);
 }
 
+void* IO_MALLOC_ATTR private_heap_realoc(void* const ptr, const std::size_t new_size) noexcept
+{
+	return heap_allocator::instance()->reallocate(ptr, new_size);
+}
+
 void IO_PUBLIC_SYMBOL private_heap_free(void * const ptr) noexcept
 {
 	heap_allocator::instance()->release(ptr);
@@ -109,6 +119,11 @@ void IO_PUBLIC_SYMBOL private_heap_free(void * const ptr) noexcept
 IO_PUBLIC_SYMBOL void* private_heap_alloc(std::size_t bytes) noexcept
 {
 	return heap_allocator::instance()->allocate(bytes);
+}
+
+IO_PUBLIC_SYMBOL void* private_heap_realoc(void* const ptr, const std::size_t new_size) noexcept
+{
+	return heap_allocator::instance()->reallocate(ptr, new_size);
 }
 
 IO_PUBLIC_SYMBOL void private_heap_free(void * const ptr) noexcept

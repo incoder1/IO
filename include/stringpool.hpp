@@ -23,6 +23,7 @@
 #include <string>
 #include <unordered_map>
 
+
 #include "hashing.hpp"
 #include "object.hpp"
 
@@ -234,13 +235,20 @@ public:
 	}
 private:
 	friend class nobadalloc<string_pool>;
+#ifdef __IO_WINDOWS_BACKEND__
+	typedef enclave_allocator< std::pair<const std::size_t, cached_string> > allocator_type;
+#else
+	typedef h_allocator< std::pair<const std::size_t, cached_string> > allocator_type;
+#endif // __IO_WINDOWS_BACKEND__
+
 	typedef std::unordered_map<
 		std::size_t,
 		cached_string,
 		std::hash<std::size_t>,
 		std::equal_to<std::size_t>,
-		io::h_allocator< std::pair<const std::size_t, cached_string> >
+		allocator_type
 		> pool_type;
+
 	pool_type pool_;
 };
 

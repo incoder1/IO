@@ -20,6 +20,14 @@
 #include <cstddef>
 #include <cstdint>
 
+#if __cplusplus >= 201703L
+#	define IO_CPP_17
+#elif __cplusplus >= 201402L
+#	define IO_CPP_14
+#else
+#	define IO_CPP_11
+#endif // __cplusplus
+
 
 #define HAS_PRAGMA_ONCE
 

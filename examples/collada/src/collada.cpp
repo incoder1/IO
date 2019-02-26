@@ -3,6 +3,26 @@
 
 namespace collada {
 
+// source
+void source::add_float_array(io::const_string&& id, float_array&& arr)
+{
+	float_arrays_.emplace(
+					std::forward<io::const_string>(id),
+					std::forward<float_array>(arr)
+				);
+}
+
+const float_array source::find_float_array(const io::const_string& id) const
+{
+	auto it = float_arrays_.find( id );
+	return float_arrays_.cend() == it ? float_array() : it->second;
+}
+
+void source::add_accessor(accessor&& acsr)
+{
+	accessors_.emplace_back( std::make_shared<accessor>( std::forward<accessor>(acsr) ) );
+}
+
 // model
 model::model():
 	effects_(),

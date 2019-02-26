@@ -7,6 +7,7 @@
 #include <type_traits>
 #include <unordered_map>
 
+#include <object.hpp>
 #include <scoped_array.hpp>
 #include <conststring.hpp>
 #include <stringpool.hpp>
@@ -32,7 +33,7 @@ private:
 
 public:
 
-	typedef std::unordered_map <io::const_string,V,hash,pred,allocator> param_library;
+	typedef std::unordered_map<io::const_string,V,hash,pred,allocator> param_library;
 };
 
 } // namespace detail
@@ -152,13 +153,36 @@ struct input_channel {
 	io::const_string accessor_id;
 };
 
-struct source {
-	typedef detail::param< io::scoped_arr<float> >::param_library float_array_library_t;
+typedef std::shared_ptr< io::scoped_arr<float> > float_array;
+
+class source {
+private:
+	typedef detail::param< float_array >::param_library float_array_library_t;
 	typedef detail::param< io::const_string >::param_library string_array_library_t;
-	typedef detail::param< accessor >::param_library accessors_library_t;
-	float_array_library_t float_arrays;
-	string_array_library_t string_arrays;
-	accessors_library_t accessors;
+	typedef std::vector< std::shared_ptr<accessor> > accessors_library_t;
+public:
+
+	typedef accessors_library_t::const_iterator const_iterator;
+
+	void add_float_array(io::const_string&& id, float_array&& arr);
+	const float_array find_float_array(const io::const_string& id) const;
+
+	void add_accessor(accessor&& acsr);
+
+	const_iterator cbegin() const
+	{
+		return accessors_.cbegin();
+	}
+
+	const_iterator cend() const
+	{
+		return accessors_.cend();
+	}
+
+private:
+	float_array_library_t float_arrays_;
+	string_array_library_t string_arrays_;
+	accessors_library_t accessors_;
 };
 
 struct mesh {
