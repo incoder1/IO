@@ -3,24 +3,85 @@
 
 namespace collada {
 
+// accessor
+accessor::accessor(io::const_string&& src_id,std::size_t count, std::size_t stride):
+	io::object(),
+	source_id_( std::forward<io::const_string>(src_id)),
+	count_(count),
+	stride_(stride),
+	layout_()
+{
+	layout_.reserve(3);
+}
+
+accessor::~accessor() noexcept
+{}
+
+void accessor::add_parameter(parameter&& prm)
+{
+	layout_.emplace_back( std::forward<parameter>(prm) );
+}
+
 // source
-void source::add_float_array(io::const_string&& id, float_array&& arr)
+source::source():
+	io::object(),
+	float_arrays_(),
+	accessors_()
+{}
+
+source::~source() noexcept
+{}
+
+void source::add_float_array(io::const_string&& id, s_float_array&& arr)
 {
 	float_arrays_.emplace(
-					std::forward<io::const_string>(id),
-					std::forward<float_array>(arr)
-				);
+		std::forward<io::const_string>(id),
+		std::forward<s_float_array>(arr)
+	);
 }
 
-const float_array source::find_float_array(const io::const_string& id) const
+const s_float_array source::find_float_array(const io::const_string& id) const
 {
 	auto it = float_arrays_.find( id );
-	return float_arrays_.cend() == it ? float_array() : it->second;
+	return float_arrays_.cend() == it ? s_float_array() : it->second;
 }
 
-void source::add_accessor(accessor&& acsr)
+
+void source::add_accessor(s_accessor&& acsr)
 {
-	accessors_.emplace_back( std::make_shared<accessor>( std::forward<accessor>(acsr) ) );
+	accessors_.emplace_back( std::forward<s_accessor>(acsr) );
+}
+
+// mesh
+mesh::mesh(io::const_string&& name) noexcept:
+	io::object(),
+	type_( primitive_type::tiangles ),
+	name_( std::forward<io::const_string>(name) ),
+	vertex_id_(),
+	source_library_(),
+	input_channels_()
+{
+}
+
+mesh::~mesh() noexcept
+{
+}
+
+void mesh::add_source(io::const_string&& id,s_source&& src)
+{
+	source_library_.emplace( std::forward<io::const_string>(id),
+							 std::forward<s_source>(src) );
+}
+
+s_source mesh::find_souce(const io::const_string& id) const
+{
+	auto it = source_library_.find( id );
+	return source_library_.cend() == it ? s_source() : it->second;
+}
+
+void mesh::add_input_channel(input_channel&& ich)
+{
+ 	input_channels_.emplace_back( std::forward<input_channel>(ich) );
 }
 
 // model
@@ -41,15 +102,15 @@ std::shared_ptr<effect> model::find_effect(const char* id) noexcept
 	return effects_.cend() == it ? std::shared_ptr<effect>() : it->second;
 }
 
-void model::add_mesh(io::const_string&& id,mesh&& e)
+void model::add_mesh(io::const_string&& id,s_mesh&& e)
 {
-	meshes_.emplace( std::forward<io::const_string>(id),  std::make_shared<mesh>( std::forward<mesh>(e) ) );
+	meshes_.emplace( std::forward<io::const_string>(id), std::forward<s_mesh>(e) );
 }
 
-std::shared_ptr<mesh> model::find_mesh(const char* id) noexcept
+s_mesh model::find_mesh(const char* id) noexcept
 {
 	geometry_library_t::const_iterator it = meshes_.find( io::const_string(id) );
-	return meshes_.cend() == it ? std::shared_ptr<mesh>() : it->second;
+	return meshes_.cend() == it ? s_mesh() : it->second;
 }
 
 } // namespace collada

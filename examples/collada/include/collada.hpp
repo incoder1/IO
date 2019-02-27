@@ -136,15 +136,52 @@ struct parameter {
 //  position {3, 3, { {"x",float32_t},{"y",float32_t},{"y",float32_t} } }
 //  normal {4, 3, { {"x",float32_t},{"y",float32_t},{"y",float32_t} } }
 //  tangent {6, 4, { {"r",float32_t},{"g",float32_t},{"b",float32_t},{"a",float32_t} }}
-struct accessor {
-	io::const_string source_id;
+class accessor final:public io::object {
+public:
+
+	typedef std::vector< parameter > layout_t;
+	typedef layout_t::const_iterator const_iterator;
+
+	accessor(io::const_string&& src_id,std::size_t count, std::size_t stride);
+	virtual ~accessor() noexcept override;
+
+	void add_parameter(parameter&& prm);
+
+	io::const_string source_id() const noexcept {
+		return source_id_;
+	}
+
+	std::size_t count() const noexcept {
+		return count_;
+	}
+
+	std::size_t stride() const noexcept {
+		return stride_;
+	}
+
+	std::size_t layout() const noexcept {
+		return layout_.size();
+	}
+
+	const_iterator cbegin() const noexcept {
+		return layout_.cbegin();
+	}
+
+	const_iterator cend() const noexcept {
+		return layout_.cend();
+	}
+
+private:
+	io::const_string source_id_;
 	// last position in the index array
-	std::size_t count;
+	std::size_t count_;
 	// count of parameter in this vertex data semantic
-	std::size_t stride;
+	std::size_t stride_;
 	// parameters layout
-	std::vector< parameter > layout;
+	layout_t layout_;
 };
+
+DECLARE_IPTR(accessor);
 
 struct input_channel {
 	// Type of the data
@@ -153,68 +190,138 @@ struct input_channel {
 	io::const_string accessor_id;
 };
 
-typedef std::shared_ptr< io::scoped_arr<float> > float_array;
-
-class source {
+class float_array final:public io::object {
+	float_array(const float_array&) = delete;
+	float_array& operator=(const float_array&) = delete;
+public:
+	constexpr float_array(const float *data,std::size_t length) noexcept:
+		io::object(),
+		data_(data),
+		length_(length)
+	{}
+	virtual ~float_array() noexcept override {
+		delete [] data_;
+	}
+	const float* data() const noexcept {
+		return data_;
+	}
+	const std::size_t length() const noexcept {
+		return length_;
+	}
 private:
-	typedef detail::param< float_array >::param_library float_array_library_t;
+	const float *data_;
+	std::size_t length_;
+};
+
+DECLARE_IPTR(float_array);
+
+class source final:public io::object {
+	source(const source&) = delete;
+	source& operator=(const source&) = delete;
+private:
+	typedef detail::param< s_float_array >::param_library float_array_library_t;
 	typedef detail::param< io::const_string >::param_library string_array_library_t;
-	typedef std::vector< std::shared_ptr<accessor> > accessors_library_t;
+	typedef std::vector< s_accessor > accessors_library_t;
 public:
 
 	typedef accessors_library_t::const_iterator const_iterator;
 
-	void add_float_array(io::const_string&& id, float_array&& arr);
-	const float_array find_float_array(const io::const_string& id) const;
+	source();
+	virtual ~source() noexcept override;
 
-	void add_accessor(accessor&& acsr);
+	void add_float_array(io::const_string&& id, s_float_array&& arr);
+	const s_float_array find_float_array(const io::const_string& id) const;
 
-	const_iterator cbegin() const
-	{
+	void add_accessor(s_accessor&& acsr);
+
+	const_iterator cbegin() const {
 		return accessors_.cbegin();
 	}
 
-	const_iterator cend() const
-	{
+	const_iterator cend() const {
 		return accessors_.cend();
 	}
 
 private:
 	float_array_library_t float_arrays_;
-	string_array_library_t string_arrays_;
+	//string_array_library_t string_arrays_;
 	accessors_library_t accessors_;
 };
 
-struct mesh {
-	typedef detail::param< source >::param_library source_library_t;
-	primitive_type type;
-	io::const_string name;
-	io::const_string vertex_id;
-	source_library_t source_library;
+DECLARE_IPTR(source);
+
+class mesh final:public io::object {
+	mesh(const mesh&) = delete;
+	mesh& operator=(const mesh&) = delete;
+private:
+	typedef detail::param< s_source >::param_library source_library_t;
+	typedef std::vector<input_channel> input_channels_library_t;
+public:
+	typedef input_channels_library_t::const_iterator const_iterator;
+
+	mesh(io::const_string&& name) noexcept;
+    virtual ~mesh() noexcept override;
+
+    void set_vertex_id(io::const_string&& id) noexcept {
+        vertex_id_ = std::move(id);
+    }
+
+    void set_primitive_type(primitive_type type) noexcept {
+		type_ = type;
+    }
+
+    primitive_type type() const noexcept {
+    	return type_;
+    }
+
+    io::const_string vertex_id() const noexcept {
+		return vertex_id_;
+    }
+
+
+	void add_source(io::const_string&& id, s_source&& src);
+    s_source find_souce(const io::const_string& id) const;
+
+    void add_input_channel(input_channel&& ich);
+
+    const_iterator cbegin() const {
+    	return input_channels_.cbegin();
+    }
+
+    const_iterator cend() const {
+    	return input_channels_.cend();
+    }
+
+private:
+	primitive_type type_;
+	io::const_string name_;
+	io::const_string vertex_id_;
+	source_library_t source_library_;
 	// Vertex data addressed by vertex indices
-	std::vector<input_channel> input_channels;
+	input_channels_library_t input_channels_;
 };
+
+DECLARE_IPTR(mesh);
 
 class model {
 	model(const model&) = delete;
 	model& operator=(const model&) = delete;
 private:
 	typedef detail::param< std::shared_ptr<effect> >::param_library effect_library_t;
-	typedef detail::param< std::shared_ptr<mesh> >::param_library geometry_library_t;
+	typedef detail::param< s_mesh >::param_library geometry_library_t;
 public:
 	model(model&&) noexcept = default;
 	model& operator=(model&&) = default;
-	~model() noexcept = default;
-
 	model();
+	~model() noexcept = default;
 
 	void add_effect(io::const_string&& id,effect&& e);
 
 	std::shared_ptr<effect> find_effect(const char* id) noexcept;
 
-	void add_mesh(io::const_string&& id,mesh&& e);
+	void add_mesh(io::const_string&& id,s_mesh&& e);
 
-	std::shared_ptr<mesh> find_mesh(const char* id) noexcept;
+	s_mesh find_mesh(const char* id) noexcept;
 
 private:
 	effect_library_t effects_;

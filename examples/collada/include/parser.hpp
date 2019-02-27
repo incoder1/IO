@@ -1,6 +1,9 @@
 #ifndef __PARSER_HPP_INCLUDED__
 #define __PARSER_HPP_INCLUDED__
 
+#include <stdexcept>
+#include <string>
+
 #include "collada.hpp"
 
 #include <xml_reader.hpp>
@@ -29,7 +32,6 @@ private:
 
 	template<class T>
 	static bool is_element(const T& e,const io::cached_string& local_name) noexcept {
-		// check with cache miss
 		return  e.name().local_name() == local_name;
 	}
 
@@ -50,13 +52,13 @@ private:
 	void parse_effect_library(model& md);
 
 	// geometry
-	void parse_vertex_data(mesh& m);
-	void parse_index_data(mesh& m);
+	void parse_vertex_data(const s_mesh& m);
+	void parse_index_data(const s_mesh& m);
 
-	void parse_accessor(accessor& src);
-	void parse_source(source& src);
+	void parse_accessor(s_accessor& src);
+	void parse_source(const s_source& src);
 
-	void parse_mesh(mesh& m);
+	void parse_mesh(const s_mesh& m);
 	void pase_geometry_library(model& md);
 
 private:

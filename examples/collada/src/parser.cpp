@@ -14,10 +14,9 @@ static bool is_start_element(io::xml::event_type et) noexcept
 
 static float next_float(const char* str,char** endp)
 {
-	while( std::isspace(*str) )
-		++str;
+	for(;std::isspace(*str); str++);
 	float ret = NAN;
-	if('\0' != *str)
+	if( io_likely( '\0' != *str) )
 		ret = std::strtof(str, endp);
 	else
 		*endp = nullptr;
@@ -51,20 +50,22 @@ static bool parse_bool(const io::const_string& val)
 	}
 }
 
-static io::scoped_arr<float> parse_string_array(const io::const_string& val, std::size_t size)
+static std::size_t parse_string_array(const io::const_string& val,const std::size_t size, float* const data)
 {
+	std::size_t ret = 0;
 	if( ! val.blank() ) {
-		io::scoped_arr<float> ret( size );
+		// parse space separated list of floats
 		char *s = const_cast<char*>( val.data() );
-		for(std::size_t i = 0; i < size; i++) {
-			if( io_likely(nullptr != s) )
-				ret[i] = next_float(s, &s);
-			else
-				ret[i] = NAN;
+		for(std::size_t i = 0; (i < size); i++) {
+			if( io_unlikely(nullptr == s) )
+				break;
+			data[i] = next_float(s, &s);
+			if(  io_unlikely( std::isnan(data[i]) ) )
+				break;
+			++ret;
 		}
-		return ret;
 	}
-	return io::scoped_arr<float>();
+	return ret;
 }
 
 static float parse_float(const io::const_string& val)
@@ -438,7 +439,7 @@ static input_channel parse_input(const io::xml::start_element_event& e)
 	return ret;
 }
 
-void parser::parse_vertex_data(mesh& m)
+void parser::parse_vertex_data(const s_mesh& m)
 {
 	io::xml::state_type state;
 	io::xml::event_type et;
@@ -449,13 +450,13 @@ void parser::parse_vertex_data(mesh& m)
 		if( is_start_element(et) ) {
 			sev = xp_->parse_start_element();
 			if( is_element(sev,"input") )
-				m.input_channels.emplace_back( parse_input(sev) );
+				m->add_input_channel( parse_input(sev) );
 		}
 	}
 	while( !is_end_element(et,vertices_) );
 }
 
-void parser::parse_accessor(accessor& acsr)
+void parser::parse_accessor(s_accessor& acsr)
 {
 	static constexpr const char* ERR_MSG = "accessor is unbalanced";
 	io::xml::state_type state;
@@ -480,7 +481,7 @@ void parser::parse_accessor(accessor& acsr)
 			io::const_string type = attr.first;
 			p.presision = type.equal("float") ? presision::float32_t : presision::double64_t;
 
-			acsr.layout.emplace_back( std::move(p) );
+			acsr->add_parameter( std::move(p) );
 		}
 	}
 	while( !is_end_element(et,accessor_) );
@@ -488,7 +489,7 @@ void parser::parse_accessor(accessor& acsr)
 
 
 
-void parser::parse_source(source& src)
+void parser::parse_source(const s_source& src)
 {
 
 	static constexpr const char* ERR_MSG = "source is unbalanced";
@@ -514,22 +515,23 @@ void parser::parse_source(source& src)
 				continue;
 			}
 			else if( is_element(sev,accessor_) ) {
-				accessor acsr;
 				auto attr = sev.get_attribute("","source");
+				io::const_string source_id;
 				if(attr.second) {
 					io::const_string ref = attr.first;
 					// remove change #reference to reference
-					acsr.source_id = io::const_string( ref.data()+1, ref.size() - 1 );
+					source_id = io::const_string( ref.data()+1, ref.size() - 1 );
 				} else
 					throw std::runtime_error("accessor source attribute is mandatory");
-				acsr.count = parse_sizet( sev.get_attribute("","count").first );
-				acsr.stride = parse_sizet( sev.get_attribute("","stride").first );
+				std::size_t count = parse_sizet( sev.get_attribute("","count").first );
+				std::size_t stride = parse_sizet( sev.get_attribute("","stride").first );
+				s_accessor acsr( new accessor( std::move(source_id), count, stride ) );
 				parse_accessor(acsr);
-				src.add_accessor( std::move(acsr) );
+				src->add_accessor( std::move(acsr) );
 			}
 			else if( is_element(sev, float_array_) ) {
 				io::const_string id;
-				std::size_t data_size;
+				std::size_t data_size = 0;
 				auto attr = sev.get_attribute("","id");
 				if(attr.second)
 					const io::const_string id = attr.first;
@@ -541,15 +543,18 @@ void parser::parse_source(source& src)
 				else
 					throw std::runtime_error("float_array count attribute is mandatory");
 				io::const_string data_str = get_tag_value();
-				if( ! data_str.blank() ) {
-					float_array arr = std::make_shared<io::scoped_arr<float> >( parse_string_array(data_str,data_size) );
-					src.add_float_array( std::move(id), std::move(arr) );
+				float *data = new float[ data_size ];
+				std::size_t actual_size = parse_string_array( data_str, data_size, data);
+				if( io_likely(actual_size == data_size ) ) {
+					src->add_float_array( std::move(id), s_float_array( new float_array(data, data_size) ) );
 				} else {
-					if( 0 != data_size ) {
-						std::string msg( sev.get_attribute("","count").first.data() );
-						msg.append(" expected by got 0 elements");
-						throw std::runtime_error( msg );
-					}
+					delete [] data;
+					std::string msg("float_array ");
+					msg.append( std::to_string(data_size) );
+					msg.append(" elements expected by got ");
+					msg.append( std::to_string(actual_size) );
+					msg.append(" mind be not a number value in the string");
+					throw std::runtime_error( msg );
 				}
 			}
 		}
@@ -557,12 +562,12 @@ void parser::parse_source(source& src)
 	while( !is_end_element(et, source_) );
 }
 
-void parser::parse_index_data(mesh& m)
+void parser::parse_index_data(const s_mesh& m)
 {
 
 }
 
-void parser::parse_mesh(mesh& m)
+void parser::parse_mesh(const s_mesh& m)
 {
 	static constexpr const char* ERR_MSG = "mesh is unbalanced";
 	/*
@@ -588,13 +593,13 @@ void parser::parse_mesh(mesh& m)
 			if( sev.empty_element() )
 				continue;
 			else if( is_element(sev, source_) ) {
-				source src;
 				io::const_string id = sev.get_attribute("","id").first;
+				s_source src( new source() );
 				parse_source(src);
-				m.source_library.emplace( std::move(id), std::move(src) );
+				m->add_source( std::move(id), std::move(src) );
 			}
 			else if( is_element(sev, vertices_) ) {
-				m.vertex_id = sev.get_attribute("","id").first;
+				m->set_vertex_id( std::move(sev.get_attribute("","id").first) );
 				parse_vertex_data(m);
 			}
 		}
@@ -621,14 +626,13 @@ void parser::pase_geometry_library(model& md)
 			else if( is_element(sev,geometry_) ) {
 				auto attr = sev.get_attribute("","id");
 				if( !attr.second )
-					throw std::runtime_error("geometry must have id argument");
+					throw std::runtime_error("geometry id argument is mandatory");
 				geometry_id = attr.first;
 				attr = sev.get_attribute("","name");
-				geometry_name = attr.second ? attr.first : geometry_id;
+				geometry_name = attr.second ? attr.first : io::const_string(geometry_id);
 			}
 			else if( is_element(sev,mesh_) ) {
-				mesh m;
-				m.name = geometry_name;
+				s_mesh m( new mesh(std::move(geometry_name) ) );
 				parse_mesh(m);
 				md.add_mesh( std::move(geometry_id), std::move(m) );
 			}

@@ -4,6 +4,8 @@
 /* C standard library */
 #include <cstring>
 #include <cmath>
+#include <stdexcept>
+#include <string>
 
 /* C++ Standard library */
 #include <atomic>
