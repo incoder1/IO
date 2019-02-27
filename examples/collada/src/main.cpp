@@ -191,6 +191,9 @@ static collada::model load_model() {
 
 	collada::model ret = parser.load();
 
+	collada::s_mesh m = ret.find_mesh("Cube-mesh");
+	std::cout << m->index()->indices()->length() << std::endl;
+
 	return ret;
 }
 

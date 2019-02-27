@@ -14,11 +14,20 @@ static bool is_start_element(io::xml::event_type et) noexcept
 
 static float next_float(const char* str,char** endp)
 {
-	for(;std::isspace(*str); str++);
 	float ret = NAN;
 	if( io_likely( '\0' != *str) )
 		ret = std::strtof(str, endp);
 	else
+		*endp = nullptr;
+	return ret;
+}
+
+static unsigned int next_uint(const char* str,char** endp)
+{
+	unsigned int ret = static_cast<unsigned int>(-1);
+	if( io_likely( '\0' != *str) ) {
+		ret = std::strtoul( str, endp, 10);
+	} else
 		*endp = nullptr;
 	return ret;
 }
@@ -66,6 +75,18 @@ static std::size_t parse_string_array(const io::const_string& val,const std::siz
 		}
 	}
 	return ret;
+}
+
+static s_unsigned_int_array parse_string_array(const io::const_string& val)
+{
+	std::vector<unsigned int> tmp;
+	char* s = const_cast<char*>( val.data() );
+	while(nullptr != s) {
+		tmp.push_back( next_uint(s,&s) );
+	}
+	unsigned int *data = new unsigned int[tmp.size()];
+	std::copy(tmp.begin(), tmp.end(), data);
+	return s_unsigned_int_array( new unsigned_int_array(data,tmp.size()) );
 }
 
 static float parse_float(const io::const_string& val)
@@ -165,6 +186,11 @@ bool parser::is_end_element(io::xml::event_type et,const io::cached_string& loca
 	return (event_type::end_element == et)
 		   ? is_element( xp_->parse_end_element(), local_name)
 		   : false;
+}
+
+inline bool parser::is_end_element(io::xml::event_type et,const io::xml::qname& tagname)
+{
+	return is_end_element(et, tagname.local_name() );
 }
 
 io::xml::event_type parser::to_next_tag_event(io::xml::state_type& state)
@@ -436,24 +462,14 @@ static input_channel parse_input(const io::xml::start_element_event& e)
 	} else
 		throw std::runtime_error("input source attribute is mandatory");
 
-	return ret;
-}
+	attr = e.get_attribute("","offset");
+	if(attr.second)
+		ret.offset = parse_sizet( attr.first );
+	attr = e.get_attribute("","set");
+	if(attr.second)
+		ret.set = parse_sizet( attr.first );
 
-void parser::parse_vertex_data(const s_mesh& m)
-{
-	io::xml::state_type state;
-	io::xml::event_type et;
-	io::xml::start_element_event sev;
-	do {
-		et = to_next_tag_event(state);
-		check_eod(state, "vertices is unbalanced");
-		if( is_start_element(et) ) {
-			sev = xp_->parse_start_element();
-			if( is_element(sev,"input") )
-				m->add_input_channel( parse_input(sev) );
-		}
-	}
-	while( !is_end_element(et,vertices_) );
+	return ret;
 }
 
 void parser::parse_accessor(s_accessor& acsr)
@@ -486,7 +502,6 @@ void parser::parse_accessor(s_accessor& acsr)
 	}
 	while( !is_end_element(et,accessor_) );
 }
-
 
 
 void parser::parse_source(const s_source& src)
@@ -562,10 +577,23 @@ void parser::parse_source(const s_source& src)
 	while( !is_end_element(et, source_) );
 }
 
-void parser::parse_index_data(const s_mesh& m)
+void parser::parse_vertex_data(const s_mesh& m)
 {
-
+	io::xml::state_type state;
+	io::xml::event_type et;
+	io::xml::start_element_event sev;
+	do {
+		et = to_next_tag_event(state);
+		check_eod(state, "vertices is unbalanced");
+		if( is_start_element(et) ) {
+			sev = xp_->parse_start_element();
+			if( is_element(sev,"input") )
+				m->add_input_channel( parse_input(sev) );
+		}
+	}
+	while( !is_end_element(et,vertices_) );
 }
+
 
 void parser::parse_mesh(const s_mesh& m)
 {
@@ -590,9 +618,7 @@ void parser::parse_mesh(const s_mesh& m)
 		if( is_start_element(et) ) {
 			sev = xp_->parse_start_element();
 			check_eod(state, ERR_MSG);
-			if( sev.empty_element() )
-				continue;
-			else if( is_element(sev, source_) ) {
+			if( is_element(sev, source_) ) {
 				io::const_string id = sev.get_attribute("","id").first;
 				s_source src( new source() );
 				parse_source(src);
@@ -601,6 +627,17 @@ void parser::parse_mesh(const s_mesh& m)
 			else if( is_element(sev, vertices_) ) {
 				m->set_vertex_id( std::move(sev.get_attribute("","id").first) );
 				parse_vertex_data(m);
+			} else if( is_element(sev,"triangles") ) {
+				s_index_data idx = m->get_index();
+				idx->set_primitives(primitive_type::tiangles);
+				auto attr = sev.get_attribute("","count");
+				if(!attr.second)
+					throw std::runtime_error("triangles count attribute is mandatory");
+				idx->set_count(  parse_sizet( attr.first ) );
+			} else if( is_element(sev,"input") ) {
+				m->add_input_channel( parse_input(sev) );
+			} else if( is_element(sev,"p") ) {
+				m->get_index()->set_indices( parse_string_array( get_tag_value() ) );
 			}
 		}
 	}
@@ -675,7 +712,7 @@ model parser::load()
 			skip_element(e);
 		}
 		else if( is_element(e,library_materials_) ) {
-			// TODO: check
+			// TODO: implement
 			skip_element(e);
 		}
 		else if( is_element(e,library_effects_) ) {

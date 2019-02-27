@@ -188,32 +188,51 @@ struct input_channel {
 	semantic_type type;
 	// ID of the accessor where to read the actual values from.
 	io::const_string accessor_id;
+	std::size_t offset;
+	std::size_t set;
+	constexpr input_channel() noexcept:
+		type(semantic_type::vertex),
+		accessor_id(),
+		offset(0),
+		set(0)
+	{}
 };
 
-class float_array final:public io::object {
-	float_array(const float_array&) = delete;
-	float_array& operator=(const float_array&) = delete;
+template<typename T>
+class intrusive_array final: public io::object {
+	intrusive_array(const intrusive_array&) = delete;
+	intrusive_array& operator=(const intrusive_array&) = delete;
+	intrusive_array(intrusive_array&&) = delete;
+	intrusive_array& operator=(intrusive_array&&) = delete;
 public:
-	constexpr float_array(const float *data,std::size_t length) noexcept:
+	typedef T data_type;
+	constexpr intrusive_array(const data_type *data,std::size_t length) noexcept:
 		io::object(),
 		data_(data),
 		length_(length)
 	{}
-	virtual ~float_array() noexcept override {
+	virtual ~intrusive_array() noexcept override {
 		delete [] data_;
 	}
-	const float* data() const noexcept {
+	const data_type* data() const noexcept {
 		return data_;
 	}
 	const std::size_t length() const noexcept {
 		return length_;
 	}
+	const std::size_t size() const noexcept {
+		return length_ * sizeof(data_type);
+	}
 private:
-	const float *data_;
+	const T *data_;
 	std::size_t length_;
 };
 
-DECLARE_IPTR(float_array);
+typedef intrusive_array<float> float_array;
+typedef intrusive_array<unsigned int> unsigned_int_array;
+
+typedef boost::intrusive_ptr<float_array> s_float_array;
+typedef boost::intrusive_ptr<unsigned_int_array> s_unsigned_int_array;
 
 class source final:public io::object {
 	source(const source&) = delete;
@@ -250,6 +269,42 @@ private:
 
 DECLARE_IPTR(source);
 
+class index_data final:public io::object {
+	index_data(const index_data&) = delete;
+	index_data& operator=(const index_data&) = delete;
+public:
+	index_data() noexcept;
+	virtual ~index_data() noexcept override;
+	primitive_type primitives() const noexcept {
+		return primitives_;
+	}
+	void set_primitives(primitive_type type) noexcept {
+		primitives_ = type;
+	}
+	std::size_t count() const noexcept {
+		return count_;
+	}
+	void set_count(std::size_t count) noexcept {
+		count_ = count;
+	}
+	s_unsigned_int_array indices() const noexcept
+	{
+		return indices_;
+	}
+	void set_indices(s_unsigned_int_array&& idx) noexcept
+	{
+		indices_ = std::move(idx);
+	}
+private:
+	primitive_type primitives_;
+	std::size_t count_;
+	s_unsigned_int_array indices_;
+};
+
+DECLARE_IPTR(index_data);
+
+class parser;
+
 class mesh final:public io::object {
 	mesh(const mesh&) = delete;
 	mesh& operator=(const mesh&) = delete;
@@ -260,45 +315,43 @@ public:
 	typedef input_channels_library_t::const_iterator const_iterator;
 
 	mesh(io::const_string&& name) noexcept;
-    virtual ~mesh() noexcept override;
+	virtual ~mesh() noexcept override;
 
-    void set_vertex_id(io::const_string&& id) noexcept {
-        vertex_id_ = std::move(id);
-    }
+	void set_vertex_id(io::const_string&& id) noexcept {
+		vertex_id_ = std::move(id);
+	}
 
-    void set_primitive_type(primitive_type type) noexcept {
-		type_ = type;
-    }
-
-    primitive_type type() const noexcept {
-    	return type_;
-    }
-
-    io::const_string vertex_id() const noexcept {
+	io::const_string vertex_id() const noexcept {
 		return vertex_id_;
-    }
+	}
 
+	const index_data* index() const noexcept {
+		return index_.get();
+	}
 
 	void add_source(io::const_string&& id, s_source&& src);
-    s_source find_souce(const io::const_string& id) const;
+	s_source find_souce(const io::const_string& id) const;
 
-    void add_input_channel(input_channel&& ich);
+	void add_input_channel(input_channel&& ich);
 
-    const_iterator cbegin() const {
-    	return input_channels_.cbegin();
-    }
+	const_iterator cbegin() const {
+		return input_channels_.cbegin();
+	}
 
-    const_iterator cend() const {
-    	return input_channels_.cend();
-    }
-
+	const_iterator cend() const {
+		return input_channels_.cend();
+	}
 private:
-	primitive_type type_;
+	friend class parser;
+	s_index_data get_index() noexcept {
+		return index_;
+	}
+private:
 	io::const_string name_;
 	io::const_string vertex_id_;
 	source_library_t source_library_;
-	// Vertex data addressed by vertex indices
 	input_channels_library_t input_channels_;
+	s_index_data index_;
 };
 
 DECLARE_IPTR(mesh);

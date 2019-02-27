@@ -29,6 +29,7 @@ private:
 	inline void check_eod(io::xml::state_type state,const char* msg);
 	inline void check_eod(io::xml::state_type state,const std::string& msg);
 	bool is_end_element(io::xml::event_type et,const io::cached_string& local_name);
+	inline bool is_end_element(io::xml::event_type et,const io::xml::qname& tagname);
 
 	template<class T>
 	static bool is_element(const T& e,const io::cached_string& local_name) noexcept {
@@ -53,7 +54,7 @@ private:
 
 	// geometry
 	void parse_vertex_data(const s_mesh& m);
-	void parse_index_data(const s_mesh& m);
+	void parse_index_data(index_data& index);
 
 	void parse_accessor(s_accessor& src);
 	void parse_source(const s_source& src);

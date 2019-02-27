@@ -52,14 +52,25 @@ void source::add_accessor(s_accessor&& acsr)
 	accessors_.emplace_back( std::forward<s_accessor>(acsr) );
 }
 
+// index_data
+index_data::index_data() noexcept:
+        io::object(),
+        primitives_(primitive_type::tiangles),
+        count_(0),
+        indices_()
+{}
+
+index_data::~index_data() noexcept
+{}
+
 // mesh
 mesh::mesh(io::const_string&& name) noexcept:
 	io::object(),
-	type_( primitive_type::tiangles ),
 	name_( std::forward<io::const_string>(name) ),
 	vertex_id_(),
 	source_library_(),
-	input_channels_()
+	input_channels_(),
+	index_( new index_data() )
 {
 }
 
