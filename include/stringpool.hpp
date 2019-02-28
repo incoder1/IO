@@ -18,7 +18,7 @@
 
 #include "text.hpp"
 
-#include <atomic>
+#include <algorithm>
 #include <ostream>
 #include <string>
 #include <unordered_map>

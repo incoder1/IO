@@ -180,7 +180,7 @@ static engine::s_surface normal_mapped_qube()
 	return engine::s_surface( new engine::normal_mapped_mesh(vertex.get(), vertex.len(), CUBE_INDEX,36, diff_tex, nm_tex ) );
 }
 
-static collada::model load_model() {
+static engine::s_model load_model() {
 
 	io::file dae("tex_cube.dae");
 
@@ -189,10 +189,24 @@ static collada::model load_model() {
 	io::check_error_code(ec);
 	collada::parser parser( std::move(src) );
 
-	collada::model ret = parser.load();
+	collada::model clld_model = parser.load();
 
-	collada::s_mesh m = ret.find_mesh("Cube-mesh");
-	std::cout << m->index()->indices()->length() << std::endl;
+	//engine::s_image texture_img = engine::load_png_rgba(io::file("cube_tex2d_512x512.png"));
+
+	collada::s_mesh cube_mesh = clld_model.find_mesh("Cube-mesh");
+
+	/*
+	engine::s_surface ( new engine::textured_mesh(
+							  TEXTURED_QUBE_VERTEX, 192,
+							  CUBE_INDEX,36, texture_img ) );
+	*/
+
+	std::cout << cube_mesh->index()->indices().length() << std::endl;
+
+	// convert collda model, to engine model
+
+
+	engine::s_model ret( new engine::model() );
 
 	return ret;
 }
@@ -211,7 +225,7 @@ int main(int argc, const char** argv)
 
 			//engine::s_surface qube = textured_qube();
 
-			collada::model md = load_model();
+			engine::s_model md = load_model();
 
 			engine::s_surface qube = normal_mapped_qube();
 
@@ -223,8 +237,8 @@ int main(int argc, const char** argv)
 			return 0;
 		}
 		catch(std::exception& exc) {
-			::glfwTerminate();
-			io::exit_with_error_message( -1, exc.what() );
+			std::cerr<< exc.what();
+			std::cerr.flush();
 		}
 		::glfwTerminate();
 	}

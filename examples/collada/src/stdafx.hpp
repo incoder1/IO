@@ -8,7 +8,6 @@
 #include <string>
 
 /* C++ Standard library */
-#include <atomic>
 #include <vector>
 #include <type_traits>
 #include <unordered_map>

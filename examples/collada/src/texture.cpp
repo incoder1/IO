@@ -61,12 +61,11 @@ s_texture texture::texture2d(::GLsizei width, ::GLsizei height, ::GLint i_format
 s_texture texture::create_texture2d_from_image(const engine::s_image& img, gl::texture_filter filter)
 {
 
-	::GLint internal_format;
-	::GLenum px_format;
+	::GLenum px_format = GL_RGB ;
+	::GLint internal_format = GL_SRGB8;
+
 	switch(img->pix_format()) {
 		case engine::pixel_format::rgb:
-			internal_format = GL_SRGB8;
-			px_format = GL_RGB;
 			break;
 		case engine::pixel_format::rgba:
 			internal_format = GL_SRGB8_ALPHA8;

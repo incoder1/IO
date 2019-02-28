@@ -120,6 +120,7 @@
 		<Unit filename="include/image.hpp">
 			<Option virtualFolder="src/" />
 		</Unit>
+		<Unit filename="include/intrusive_array.hpp" />
 		<Unit filename="include/mesh.hpp" />
 		<Unit filename="include/model.hpp" />
 		<Unit filename="include/nurb.hpp" />

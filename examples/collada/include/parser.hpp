@@ -23,7 +23,7 @@ public:
 private:
 
 	// StAX parsing helpers
-	io::xml::state_type to_next_state();
+	io::xml::state_type to_next_state() noexcept;
 	io::xml::event_type to_next_tag_event(io::xml::state_type& state);
 	io::xml::start_element_event to_next_tag_start(io::xml::state_type& state);
 	inline void check_eod(io::xml::state_type state,const char* msg);
@@ -41,10 +41,12 @@ private:
 		return is_element( e, xp_->precache(local_name) );
 	}
 
+	bool is_index_data(const io::xml::start_element_event& sev,primitive_type& pt) noexcept;
+
+
 	/// Skip the element including all child elements
 	void skip_element(const io::xml::start_element_event& e);
 
-	/// drop parser to next tag start event
 	/// returns current tag value
 	io::const_string get_tag_value();
 
@@ -73,9 +75,11 @@ private:
 	CACHE_STR(accessor);
 	CACHE_STR(effect);
 	CACHE_STR(float_array);
+	CACHE_STR(input);
 	CACHE_STR(geometry);
 	CACHE_STR(mesh);
 	CACHE_STR(vertices);
+	CACHE_STR(param);
 	CACHE_STR(source);
 	CACHE_STR(library_animations);
 	CACHE_STR(library_animation_clips);

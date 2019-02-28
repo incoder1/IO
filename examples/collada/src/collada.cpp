@@ -32,18 +32,18 @@ source::source():
 source::~source() noexcept
 {}
 
-void source::add_float_array(io::const_string&& id, s_float_array&& arr)
+void source::add_float_array(io::const_string&& id, float_array&& arr)
 {
 	float_arrays_.emplace(
 		std::forward<io::const_string>(id),
-		std::forward<s_float_array>(arr)
+		std::forward<float_array>(arr)
 	);
 }
 
-const s_float_array source::find_float_array(const io::const_string& id) const
+const float_array source::find_float_array(const io::const_string& id) const
 {
 	auto it = float_arrays_.find( id );
-	return float_arrays_.cend() == it ? s_float_array() : it->second;
+	return float_arrays_.cend() == it ? float_array() : it->second;
 }
 
 
@@ -55,7 +55,7 @@ void source::add_accessor(s_accessor&& acsr)
 // index_data
 index_data::index_data() noexcept:
         io::object(),
-        primitives_(primitive_type::tiangles),
+        primitives_(primitive_type::triangles),
         count_(0),
         indices_()
 {}

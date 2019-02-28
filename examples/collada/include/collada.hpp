@@ -12,6 +12,8 @@
 #include <conststring.hpp>
 #include <stringpool.hpp>
 
+#include "intrusive_array.hpp"
+
 namespace collada {
 
 namespace detail {
@@ -97,12 +99,14 @@ union effect {
 	sampler_effect text;
 };
 
-enum class primitive_type {
-	lines,
-	linestrips,
-	polygons,
-	polylist,
-	tiangles
+enum class primitive_type: uint8_t {
+	lines = 0,
+	linestrips = 1,
+	polygons = 2,
+	polylist = 3,
+	triangles = 4,
+	trifans = 5,
+	tristrips = 6
 };
 
 
@@ -198,47 +202,14 @@ struct input_channel {
 	{}
 };
 
-template<typename T>
-class intrusive_array final: public io::object {
-	intrusive_array(const intrusive_array&) = delete;
-	intrusive_array& operator=(const intrusive_array&) = delete;
-	intrusive_array(intrusive_array&&) = delete;
-	intrusive_array& operator=(intrusive_array&&) = delete;
-public:
-	typedef T data_type;
-	constexpr intrusive_array(const data_type *data,std::size_t length) noexcept:
-		io::object(),
-		data_(data),
-		length_(length)
-	{}
-	virtual ~intrusive_array() noexcept override {
-		delete [] data_;
-	}
-	const data_type* data() const noexcept {
-		return data_;
-	}
-	const std::size_t length() const noexcept {
-		return length_;
-	}
-	const std::size_t size() const noexcept {
-		return length_ * sizeof(data_type);
-	}
-private:
-	const T *data_;
-	std::size_t length_;
-};
-
 typedef intrusive_array<float> float_array;
 typedef intrusive_array<unsigned int> unsigned_int_array;
-
-typedef boost::intrusive_ptr<float_array> s_float_array;
-typedef boost::intrusive_ptr<unsigned_int_array> s_unsigned_int_array;
 
 class source final:public io::object {
 	source(const source&) = delete;
 	source& operator=(const source&) = delete;
 private:
-	typedef detail::param< s_float_array >::param_library float_array_library_t;
+	typedef detail::param< float_array >::param_library float_array_library_t;
 	typedef detail::param< io::const_string >::param_library string_array_library_t;
 	typedef std::vector< s_accessor > accessors_library_t;
 public:
@@ -248,8 +219,8 @@ public:
 	source();
 	virtual ~source() noexcept override;
 
-	void add_float_array(io::const_string&& id, s_float_array&& arr);
-	const s_float_array find_float_array(const io::const_string& id) const;
+	void add_float_array(io::const_string&& id, float_array&& arr);
+	const float_array find_float_array(const io::const_string& id) const;
 
 	void add_accessor(s_accessor&& acsr);
 
@@ -287,18 +258,18 @@ public:
 	void set_count(std::size_t count) noexcept {
 		count_ = count;
 	}
-	s_unsigned_int_array indices() const noexcept
+	unsigned_int_array indices() const noexcept
 	{
 		return indices_;
 	}
-	void set_indices(s_unsigned_int_array&& idx) noexcept
+	void set_indices(unsigned_int_array&& idx) noexcept
 	{
 		indices_ = std::move(idx);
 	}
 private:
 	primitive_type primitives_;
 	std::size_t count_;
-	s_unsigned_int_array indices_;
+	unsigned_int_array indices_;
 };
 
 DECLARE_IPTR(index_data);
@@ -355,6 +326,17 @@ private:
 };
 
 DECLARE_IPTR(mesh);
+
+enum class node_type
+{
+	node
+};
+
+struct node {
+	io::const_string id;
+	io::const_string name;
+	node_type type;
+};
 
 class model {
 	model(const model&) = delete;

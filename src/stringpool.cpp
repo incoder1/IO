@@ -75,34 +75,31 @@ string_pool::~string_pool() noexcept
 
 const cached_string string_pool::get(const char* s, std::size_t count) noexcept
 {
+    typedef pool_type::value_type pair_type;
+
     if( io_unlikely( (nullptr == s || '\0' == *s || count == 0 ) ) )
         return cached_string();
 
     const std::size_t str_hash = io::hash_bytes(s,count);
-    pool_type::const_iterator it = pool_.find( str_hash );
+    pool_type::iterator it = pool_.find( str_hash );
     if( it != pool_.end() ) {
-        std::size_t i = pool_.count( str_hash );
-        if( io_unlikely(i > 1) ) {
-            do {
-                if( it->second.equal(s, count) )
-                    break;
-                ++it;
-            }
-            while( --i > 0 );
+        if( io_unlikely( pool_.count( str_hash ) > 0 ) ) {
+			auto its = pool_.equal_range( str_hash );
+			it = std::find_if(its.first, its.second, [s,count] (const pair_type& entry) {
+				return entry.second.equal(s, count);
+			} );
         }
-        return it->second;
+       return it->second;
     }
 #ifndef IO_NO_EXCEPTIONS
     try {
+#endif // IO_NO_EXCEPTIONS
         std::pair<pool_type::iterator,bool> ret = pool_.emplace( str_hash, cached_string(s, count) );
         return ret.second ? ret.first->second : cached_string(s, count);
-    }
-    catch(...) {
+#ifndef IO_NO_EXCEPTIONS
+    } catch(std::exception& exc) {
         return cached_string(s, count);
     }
-#else
-    std::pair<pool_type::iterator,bool> ret = pool_.emplace( str_hash, cached_string(s, count) );
-    return ret.second ? ret.first->second : cached_string(s, count);
 #endif // IO_NO_EXCEPTIONS
 }
 
