@@ -95,11 +95,28 @@ void mesh::add_input_channel(input_channel&& ich)
  	input_channels_.emplace_back( std::forward<input_channel>(ich) );
 }
 
+// scene
+scene::scene(io::const_string&& id,io::const_string&& name):
+	io::object(),
+	id_( std::forward<io::const_string>(id) ),
+	name_( std::forward<io::const_string>(name) ),
+	nodes_()
+{}
+
+scene::~scene() noexcept
+{}
+
+void scene::add_node(node&& nd)
+{
+	nodes_.emplace_back( std::forward<node>(nd) );
+}
+
 // model
 model::model():
 	effects_(),
 	images_(),
-	meshes_()
+	meshes_(),
+	scene_()
 {}
 
 void model::add_effect(io::const_string&& id,effect&& e)

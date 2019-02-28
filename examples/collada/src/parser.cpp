@@ -128,33 +128,31 @@ static io::xml::s_event_stream_parser open_parser(io::s_read_channel&& src)
 
 // parser
 parser::parser(io::s_read_channel&& src) noexcept:
-	xp_( open_parser( std::forward<io::s_read_channel>(src) ) ),
-	ec_()
+	xp_( open_parser( std::forward<io::s_read_channel>(src) ) )
 {
 	// pre-cache basic strings
 	// for faster parsing root elements
 #define CACHE_STR(__x) __x##_ = xp_->precache(#__x)
-	CACHE_STR(asset);
 	CACHE_STR(accessor);
 	CACHE_STR(effect);
 	CACHE_STR(float_array);
 	CACHE_STR(input);
 	CACHE_STR(geometry);
+	CACHE_STR(node);
 	CACHE_STR(mesh);
+	CACHE_STR(visual_scene);
 	CACHE_STR(vertices);
 	CACHE_STR(param);
 	CACHE_STR(source);
-	CACHE_STR(library_animations);
-	CACHE_STR(library_animation_clips);
-	CACHE_STR(library_controllers);
-	CACHE_STR(library_images);
-	CACHE_STR(library_materials);
+	//CACHE_STR(library_animations);
+	//CACHE_STR(library_animation_clips);
+	//CACHE_STR(library_images);
+	//CACHE_STR(library_materials);
 	CACHE_STR(library_effects);
 	CACHE_STR(library_geometries);
 	CACHE_STR(library_visual_scenes);
-	CACHE_STR(library_lights);
-	CACHE_STR(library_cameras);
-	CACHE_STR(library_nodes);
+	//CACHE_STR(library_lights);
+	//CACHE_STR(library_nodes);
 #undef CACHE_STR
 }
 
@@ -183,9 +181,9 @@ inline void parser::check_eod( io::xml::state_type state,const char* msg)
 {
 	if(io::xml::state_type::eod == state) {
 		if( xp_->is_error() ) {
-			xp_->get_last_error(ec_);
-			io::exit_with_error_message(ec_.value(), ec_.message().data() );
-			io_unreachable
+			std::error_code ec;
+			xp_->get_last_error(ec);
+			throw std::system_error(ec);
 		}
 		else
 			throw std::logic_error( msg );
@@ -245,8 +243,9 @@ io::xml::event_type parser::to_next_tag_event(io::xml::state_type& state)
 
 	if( state == io::xml::state_type::eod) {
 		if( xp_->is_error() ) {
-			xp_->get_last_error(ec_);
-			io::check_error_code(ec_);
+			std::error_code ec;
+			xp_->get_last_error(ec);
+			throw std::system_error(ec);
 		}
 		// invalid state
 		ret = io::xml::event_type::start_document;
@@ -526,14 +525,6 @@ void parser::parse_source(const s_source& src)
 
 	static constexpr const char* ERR_MSG = "source is unbalanced";
 
-	/*
-	static std::array<const char*,3> data_arrays = {
-		"float_array",
-		"IDREF_array",
-		"Name_array"
-	};
-	*/
-
 	io::xml::state_type state;
 	io::xml::event_type et;
 	io::xml::start_element_event sev;
@@ -717,71 +708,153 @@ void parser::pase_geometry_library(model& md)
 	while( !is_end_element(et, library_geometries_) );
 }
 
+void parser::parse_node(node& nd)
+{
+	static const char* ERR_MSG = "node is unbalanced";
+	io::xml::state_type state;
+	io::xml::event_type et;
+	io::xml::start_element_event sev;
+	do {
+		et = to_next_tag_event(state);
+		check_eod(state, ERR_MSG);
+		if( is_start_element(et) ) {
+			sev = xp_->parse_start_element();
+			check_eod(state, ERR_MSG);
+			if( is_element(sev,"instance_geometry") ) {
+                auto attr = sev.get_attribute("","url");
+                if(!attr.second)
+                	throw std::runtime_error("instance_geometry url attribute is mandatory");
+                io::const_string url = attr.first;
+                nd.geo_ref.url = io::const_string( url.data()+1, url.size() - 1);
+                attr = sev.get_attribute("","name");
+                if( attr.second )
+                	nd.geo_ref.name.swap( attr.first );
+			} else if(is_element(sev,"instance_material") ) {
+				auto attr = sev.get_attribute("","target");
+				if( !attr.second )
+					throw std::runtime_error("instance_material target attribute is mandatory");
+				io::const_string target( attr.first.data()+1, attr.first.size() -1);
+				nd.geo_ref.mat_ref.target.swap( target );
+				attr = sev.get_attribute("","symbol");
+				nd.geo_ref.mat_ref.symbol.swap( attr.first );
+			}
+		}
+	} while( !is_end_element(et, node_) );
+}
+
+void parser::parse_visual_scene(s_scene& scn)
+{
+	static const char* ERR_MSG = "visual_scene is unbalanced";
+	io::xml::state_type state;
+	io::xml::event_type et;
+	io::xml::start_element_event sev;
+	do {
+		et = to_next_tag_event(state);
+		check_eod(state, ERR_MSG);
+		if( is_start_element(et) ) {
+			sev = xp_->parse_start_element();
+			check_eod(state, ERR_MSG);
+            if( is_element(sev, node_) ) {
+				node nd;
+				auto attr = sev.get_attribute("","id");
+				if(!attr.second)
+					throw std::runtime_error("node id attribute is mandatory");
+				nd.id = std::move(attr.first);
+				attr = sev.get_attribute("","name");
+				if(attr.second)
+					nd.name = std::move(attr.first);
+				attr = sev.get_attribute("","type");
+                if(attr.second && !attr.first.equal("type") )
+                    nd.type = node_type::joint;
+				else
+					nd.type = node_type::node;
+				parse_node(nd);
+				scn->add_node( std::move(nd) );
+            }
+		}
+	}
+	while( !is_end_element(et, visual_scene_) );
+}
+
+void parser::library_visual_scenes(model& md)
+{
+	static const char* ERR_MSG = "library_visual_scenes is unbalanced";
+	io::xml::state_type state;
+	io::xml::event_type et;
+	io::xml::start_element_event sev;
+	do {
+		et = to_next_tag_event(state);
+		check_eod(state, ERR_MSG);
+		if( is_start_element(et) ) {
+			sev = xp_->parse_start_element();
+			check_eod(state, ERR_MSG);
+			if( is_element(sev,visual_scene_) ) {
+				io::const_string id;
+				io::const_string name;
+				auto attr = sev.get_attribute("","id");
+				if(attr.second)
+					id = std::move(attr.first);
+				attr = sev.get_attribute("","name");
+				if(attr.second)
+                    name = std::move(attr.first);
+				s_scene scn( new scene( std::move(id), std::move(name) ) );
+				parse_visual_scene(scn);
+                md.set_scene( std::move(scn) );
+			}
+		}
+	} while( !is_end_element(et,library_visual_scenes_) );
+}
+
 
 model parser::load()
 {
 	model ret;
 	io::xml::state_type state;
 	io::xml::start_element_event e = to_next_tag_start(state);
+	check_eod(state, "Expecting COLLADA model file");
 	if( ! is_element(e,"COLLADA") )
-		throw std::runtime_error("Expecting collada model file");
+		throw std::runtime_error("Expecting COLLADA model file");
 	do {
 		e = to_next_tag_start(state);
 		// nothing to do
 		if( e.empty_element() )
 			continue;
-		else if( is_element(e,asset_) ) {
-			// not implemented
-			skip_element(e);
-		}
-		else if( is_element(e,library_animations_) ) {
-			// not implemented
-			skip_element(e);
-		}
-		else if( is_element(e,library_animation_clips_) ) {
-			// not implemented
-			skip_element(e);
-		}
-		else if( is_element(e,library_controllers_) ) {
-			// not implemented
-			skip_element(e);
-		}
-		else if( is_element(e,library_images_) ) {
-			// TODO: implement
-			skip_element(e);
-		}
-		else if( is_element(e,library_materials_) ) {
-			// TODO: implement
-			skip_element(e);
-		}
+//		if( is_element(e,library_animations_) ) {
+//			// not implemented
+//			skip_element(e);
+//		}
+//		else if( is_element(e,library_animation_clips_) ) {
+//			// not implemented
+//			skip_element(e);
+//		}
+//		else if( is_element(e,library_images_) ) {
+//			// TODO: implement
+//			skip_element(e);
+//		}
+//		else if( is_element(e,library_materials_) ) {
+//			// TODO: implement
+//			skip_element(e);
+//		}
 		else if( is_element(e,library_effects_) ) {
-			// TODO: implement fully
 			parse_effect_library(ret);
 		}
 		else if( is_element(e,library_geometries_) ) {
 			pase_geometry_library(ret);
 		}
 		else if( is_element(e,library_visual_scenes_) ) {
-			// not implemented
-			skip_element(e);
-		}
-		else if( is_element(e,library_lights_) ) {
-			// not implemented
-			skip_element(e);
-		}
-		else if( is_element(e,library_cameras_) ) {
-			skip_element(e);
-		}
-		else if( is_element(e,library_nodes_) ) {
-			// TODO: implement
-			skip_element(e);
+			library_visual_scenes(ret);
+//		}
+//		else if( is_element(e,library_nodes_) ) {
+//			// TODO: implement
+//			skip_element(e);
 		}
 	}
 	while( state != io::xml::state_type::eod );
 
 	if( xp_->is_error() ) {
-		xp_->get_last_error( ec_ );
-		io::check_error_code( ec_ );
+		std::error_code ec;
+		xp_->get_last_error( ec );
+		throw std::system_error(ec);
 	}
 
 	return ret;

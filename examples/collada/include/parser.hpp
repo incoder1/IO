@@ -64,34 +64,36 @@ private:
 	void parse_mesh(const s_mesh& m);
 	void pase_geometry_library(model& md);
 
+	void parse_node(node& nd);
+	void parse_visual_scene(s_scene& scn);
+	void library_visual_scenes(model& md);
+
 private:
 	io::xml::s_event_stream_parser xp_;
-	std::error_code ec_;
 	// pre-cached rare element names
 #define CACHE_STR(__x) io::cached_string __x##_
 // pre-cache needed elements, to speed up the main parsing loop
 // using pointers compare instead of a string compare
-	CACHE_STR(asset);
 	CACHE_STR(accessor);
 	CACHE_STR(effect);
 	CACHE_STR(float_array);
 	CACHE_STR(input);
 	CACHE_STR(geometry);
 	CACHE_STR(mesh);
+	CACHE_STR(node);
+	CACHE_STR(visual_scene);
 	CACHE_STR(vertices);
 	CACHE_STR(param);
 	CACHE_STR(source);
-	CACHE_STR(library_animations);
-	CACHE_STR(library_animation_clips);
-	CACHE_STR(library_controllers);
-	CACHE_STR(library_images);
-	CACHE_STR(library_materials);
+	//CACHE_STR(library_animations);
+	//CACHE_STR(library_animation_clips);
+	//CACHE_STR(library_images);
+	//CACHE_STR(library_materials);
 	CACHE_STR(library_effects);
 	CACHE_STR(library_geometries);
 	CACHE_STR(library_visual_scenes);
-	CACHE_STR(library_lights);
-	CACHE_STR(library_cameras);
-	CACHE_STR(library_nodes);
+	//CACHE_STR(library_lights);
+	//CACHE_STR(library_nodes);
 #undef CACHE_STR
 };
 

@@ -31,11 +31,18 @@ private:
 
 	typedef std::equal_to<io::const_string> pred;
 
-	typedef io::h_allocator< std::pair<const io::const_string, V> > allocator;
+#ifdef __IO_WINDOWS_BACKEND__
+	typedef io::enclave_allocator< std::pair<const io::const_string, V> > hashmap_allocator;
+	typedef io::enclave_allocator<V> vector_allocator;
+#else
+	typedef io::h_allocator< std::pair<const io::const_string, V> > hashmap_allocator;
+	typedef io::h_allocator<V> vector_allocator;
+#endif // __IO_WINDOWS_BACKEND__
 
 public:
 
-	typedef std::unordered_map<io::const_string,V,hash,pred,allocator> param_library;
+	typedef std::unordered_map<io::const_string,V,hash,pred,hashmap_allocator> param_library;
+	typedef std::vector<V,vector_allocator> param_vector;
 };
 
 } // namespace detail
@@ -143,7 +150,7 @@ struct parameter {
 class accessor final:public io::object {
 public:
 
-	typedef std::vector< parameter > layout_t;
+	typedef detail::param<parameter>::param_vector layout_t;
 	typedef layout_t::const_iterator const_iterator;
 
 	accessor(io::const_string&& src_id,std::size_t count, std::size_t stride);
@@ -211,7 +218,7 @@ class source final:public io::object {
 private:
 	typedef detail::param< float_array >::param_library float_array_library_t;
 	typedef detail::param< io::const_string >::param_library string_array_library_t;
-	typedef std::vector< s_accessor > accessors_library_t;
+	typedef detail::param< s_accessor>::param_vector accessors_library_t;
 public:
 
 	typedef accessors_library_t::const_iterator const_iterator;
@@ -281,7 +288,7 @@ class mesh final:public io::object {
 	mesh& operator=(const mesh&) = delete;
 private:
 	typedef detail::param< s_source >::param_library source_library_t;
-	typedef std::vector<input_channel> input_channels_library_t;
+	typedef detail::param<input_channel>::param_vector input_channels_library_t;
 public:
 	typedef input_channels_library_t::const_iterator const_iterator;
 
@@ -329,14 +336,51 @@ DECLARE_IPTR(mesh);
 
 enum class node_type
 {
-	node
+	node,
+	joint
+};
+
+struct instance_material
+{
+	io::const_string symbol;
+	io::const_string target;
+};
+
+struct instance_geometry
+{
+    io::const_string url;
+    io::const_string name;
+    instance_material mat_ref;
 };
 
 struct node {
+	node_type type;
 	io::const_string id;
 	io::const_string name;
-	node_type type;
+	instance_geometry geo_ref;
 };
+
+class scene final:public io::object
+{
+public:
+	typedef detail::param<node>::param_vector nodes_container;
+	typedef nodes_container::const_iterator const_iterator;
+	scene(io::const_string&& id,io::const_string&& name);
+	virtual ~scene() noexcept override;
+	void add_node(node&& nd);
+	const_iterator cbegin() const {
+		return nodes_.cbegin();
+	}
+	const_iterator cend() const {
+		return nodes_.cend();
+	}
+private:
+	io::const_string id_;
+	io::const_string name_;
+	nodes_container nodes_;
+};
+
+DECLARE_IPTR(scene);
 
 class model {
 	model(const model&) = delete;
@@ -344,9 +388,11 @@ class model {
 private:
 	typedef detail::param< std::shared_ptr<effect> >::param_library effect_library_t;
 	typedef detail::param< s_mesh >::param_library geometry_library_t;
+	typedef detail::param< image >::param_library image_container_t;
 public:
 	model(model&&) noexcept = default;
 	model& operator=(model&&) = default;
+
 	model();
 	~model() noexcept = default;
 
@@ -358,10 +404,19 @@ public:
 
 	s_mesh find_mesh(const char* id) noexcept;
 
+	s_scene scene() const noexcept {
+		return scene_;
+	}
+
+	void set_scene(s_scene&& scn) noexcept {
+        scene_ = std::move(scn);
+	}
+
 private:
 	effect_library_t effects_;
-	std::vector<image> images_;
+	image_container_t images_;
 	geometry_library_t meshes_;
+	s_scene scene_;
 };
 
 } // namespace collada
