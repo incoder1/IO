@@ -152,20 +152,35 @@ void program::pass_vertex_attrib_array(::GLsizei attr_no, const s_buffer& vbo, b
 	const std::size_t dtp_size = sizeof_data_type(vbo->element_type());
 
 	vbo->bind();
-	::GLsizei vertex_size = stride *  dtp_size;
-	::GLsizei voffset = offset * dtp_size;
+	const ::GLsizei vertex_size = stride *  dtp_size;
+	::GLvoid* voffset = reinterpret_cast<::GLvoid*>(offset * dtp_size);
 	::glVertexAttribPointer(
 		attr_no,
 		size,
 		static_cast<::GLenum>(vbo->element_type()),
 		normalized,
 		vertex_size,
-		reinterpret_cast<::GLvoid*>(voffset)
+		voffset
 	);
 	::glEnableVertexAttribArray(attr_no);
 	vbo->unbind();
 
 	validate_opengl("Can not pass vertex attributes array");
+}
+
+void program::pass_vertex_attrib_array(const s_buffer& vbo, bool normalized,const shader_program_attribute* layout,std::size_t lsize)
+{
+
+	uint8_t stride = 0;
+	for(uint8_t i = 0; i < lsize; i++) {
+        bind_attrib_location( i, layout[i].name );
+		stride += layout[i].stride;
+	}
+	uint8_t offset = 0;
+	for(uint8_t i = 0; i < lsize; i++) {
+		pass_vertex_attrib_array(i, vbo, normalized, stride, layout[i].stride, offset);
+		offset += layout[i].stride;
+	}
 }
 
 void program::bind_attrib_location(::GLsizei attr_no, const char* name)

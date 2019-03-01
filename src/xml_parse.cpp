@@ -351,20 +351,13 @@ byte_buffer event_stream_parser::read_entity() noexcept
 	}
 	ret.put( scan_buf_ );
 	sb_clear( scan_buf_ );
-	for(char c = next(); !is_error(); c = next() ) {
-		putch(ret, c );
-		switch( char8_traits::to_int_type(c) ) {
-		case LEFTB:
-		case EOF:
-			assign_error(error::illegal_markup);
-			break;
-		case RIGHTB:
-			ret.flip();
-			return std::move(ret);
-		}
+	src_->read_until_char( ret, static_cast<char>(RIGHTB), static_cast<char>(LEFTB) );
+	if( src_->eof() ) {
+		assign_error( src_->last_error() );
+		return byte_buffer();
 	}
-	// error state
-	return byte_buffer();
+	ret.flip();
+	return std::move( ret );
 }
 
 #define check_state( _STATE_TYPE, _EMPTY_RET_TYPE)\

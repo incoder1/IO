@@ -24,9 +24,9 @@ static float next_float(const char* str,char** endp)
 
 static unsigned int next_uint(const char* str,char** endp)
 {
-	unsigned int ret = static_cast<unsigned int>(-1);
+	unsigned int ret = 0;
 	if( io_likely( '\0' != *str) ) {
-		ret = std::strtoul( str, endp, 10);
+		ret = std::strtoul(str, endp, 10);
 	} else
 		*endp = nullptr;
 	return ret;
@@ -36,16 +36,14 @@ static std::size_t parse_sizet(const io::const_string& str)
 {
 	typedef io::xml::lexical_cast_traits<std::size_t> size_t_cast;
 	const char *s = str.data();
-	while( std::isspace(*s) )
-		++s;
-	return '\0' == *s ? 0 : size_t_cast::from_string( s );
+	return size_t_cast::from_string( s, &s);
 }
 
 
 static bool parse_bool(const io::const_string& val)
 {
 	typedef io::xml::lexical_cast_traits<bool> bool_cast;
-	const char* str = val.data();
+	const char* str =  val.data();
 	while( std::isspace(*str) )
 		++str;
 	switch(*str) {
@@ -55,7 +53,7 @@ static bool parse_bool(const io::const_string& val)
 	case '1':
 		return true;
 	default:
-		return bool_cast::from_string(str);
+		return bool_cast::from_string(str, &str);
 	}
 }
 
@@ -147,7 +145,7 @@ parser::parser(io::s_read_channel&& src) noexcept:
 	//CACHE_STR(library_animations);
 	//CACHE_STR(library_animation_clips);
 	//CACHE_STR(library_images);
-	//CACHE_STR(library_materials);
+	CACHE_STR(library_materials);
 	CACHE_STR(library_effects);
 	CACHE_STR(library_geometries);
 	CACHE_STR(library_visual_scenes);

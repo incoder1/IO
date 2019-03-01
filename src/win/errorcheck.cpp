@@ -100,6 +100,7 @@ void IO_PANIC_ATTR exit_with_current_error()
 						  256, NULL );
 
 		::DWORD written;
+		::AllocConsole();
 		if( !::WriteFile( ::GetStdHandle(STD_ERROR_HANDLE), msg, len, &written, nullptr ) ) {
 			MessageBoxExW(NULL, msg, NULL, MB_OK | MB_ICONERROR, MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT) );
 		}

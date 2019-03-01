@@ -34,13 +34,12 @@ geometry_mesh::geometry_mesh(const material_t& mat,const float *vertex, std::siz
 							   gl::buffer_type::ELEMENT_ARRAY_BUFFER,
 							   gl::buffer_usage::STATIC_DRAW );
 
-	program_->bind_attrib_location(0, VATTR_CRD);
-	program_->bind_attrib_location(1, VATTR_CRL);
-	program_->bind_attrib_location(2, VATTR_NRM);
+	gl::shader_program_attribute layout[3] = {
+		{VATTR_CRD,3},
+		{VATTR_CRL,3},
+		{VATTR_NRM,3} };
 
-	program_->pass_vertex_attrib_array(0, vbo_, false, 9, 3, 0);
-	program_->pass_vertex_attrib_array(1, vbo_, false, 9, 3, 3);
-	program_->pass_vertex_attrib_array(2, vbo_, false, 9, 3, 6);
+	program_->pass_vertex_attrib_array(vbo_, false, layout, 3);
 
 	program_->link();
 
@@ -114,13 +113,13 @@ textured_mesh::textured_mesh(const material_t& mat,const float *vertex, std::siz
 							   gl::buffer_type::ELEMENT_ARRAY_BUFFER,
 							   gl::buffer_usage::STATIC_DRAW );
 
-	program_->bind_attrib_location(0, VATTR_CRD);
-	program_->bind_attrib_location(1, VATTR_NRM);
-	program_->bind_attrib_location(2, VATTR_UV);
 
-	program_->pass_vertex_attrib_array(0, vbo_, false, 8, 3 , 0);
-	program_->pass_vertex_attrib_array(1, vbo_, false, 8, 3 , 3);
-	program_->pass_vertex_attrib_array(2, vbo_, false, 8, 2 , 6);
+	gl::shader_program_attribute layout[3] = {
+		{VATTR_CRD,3},
+		{VATTR_NRM,3},
+		{VATTR_UV,2} };
+
+	program_->pass_vertex_attrib_array(vbo_, false, layout, 3);
 
 	texture_ = gl::texture::create_texture2d_from_image(
 				   timg,
@@ -206,16 +205,13 @@ normal_mapped_mesh::normal_mapped_mesh(const material_t& mat,const float *vertex
 							   gl::buffer_type::ELEMENT_ARRAY_BUFFER,
 							   gl::buffer_usage::STATIC_DRAW );
 
-	program_->bind_attrib_location(0, VATTR_CRD);
-	program_->bind_attrib_location(1, VATTR_NRM);
-	program_->bind_attrib_location(2, VATTR_UV);
-	program_->bind_attrib_location(3, VATTR_TAN);
+	gl::shader_program_attribute layout[4] = {
+		{VATTR_CRD,3},
+		{VATTR_NRM,3},
+		{VATTR_UV,2},
+		{VATTR_TAN,3} };
 
-	program_->pass_vertex_attrib_array(0, vbo_, false, 11, 3 , 0);
-	program_->pass_vertex_attrib_array(1, vbo_, false, 11, 3 , 3);
-	program_->pass_vertex_attrib_array(2, vbo_, false, 11, 2 , 6);
-	program_->pass_vertex_attrib_array(3, vbo_, false, 11, 3 , 8);
-
+	program_->pass_vertex_attrib_array(vbo_, false, layout, 4);
 
 	program_->link();
 

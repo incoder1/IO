@@ -88,7 +88,7 @@ private:
 	//CACHE_STR(library_animations);
 	//CACHE_STR(library_animation_clips);
 	//CACHE_STR(library_images);
-	//CACHE_STR(library_materials);
+	CACHE_STR(library_materials);
 	CACHE_STR(library_effects);
 	CACHE_STR(library_geometries);
 	CACHE_STR(library_visual_scenes);

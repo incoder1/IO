@@ -39,10 +39,11 @@ private:
 	typedef io::h_allocator<V> vector_allocator;
 #endif // __IO_WINDOWS_BACKEND__
 
+
 public:
 
 	typedef std::unordered_map<io::const_string,V,hash,pred,hashmap_allocator> param_library;
-	typedef std::vector<V,vector_allocator> param_vector;
+	typedef std::vector<V> param_vector;
 };
 
 } // namespace detail

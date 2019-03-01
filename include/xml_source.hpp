@@ -56,6 +56,12 @@ public:
     /// Returns next character or character component byte
     char next() noexcept;
 
+    /// Reads characters into buffer until a legal or illegal characters in the stream, or EOF
+    /// \param to byte buffer to read into
+    /// \param ch stop character
+    /// \param illegal an illegal character in the may occur in the stream
+    void read_until_char(byte_buffer& to, char ch,char illegal) noexcept;
+
     /// Checks current state is end of stream
     /// \return whether end of stream
     inline bool eof() const noexcept {
@@ -69,7 +75,6 @@ public:
 
     /// Current XML source character column
     inline std::size_t col() const noexcept {
-
         return col_;
     }
 

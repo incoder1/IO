@@ -51,6 +51,11 @@ private:
 	shader_type type_;
 };
 
+struct shader_program_attribute
+{
+	const char* name;
+	uint8_t stride;
+};
 
 class program;
 DECLARE_IPTR(program);
@@ -69,6 +74,9 @@ public:
 		::glUseProgram(0);
 	}
 	void pass_vertex_attrib_array(::GLsizei attr_no, const s_buffer& vbo, bool normalized,uint8_t stride, uint8_t size, uint8_t offset);
+
+	void pass_vertex_attrib_array(const s_buffer& vbo, bool normalized,const shader_program_attribute* layout,std::size_t lsize);
+
 	void bind_attrib_location(::GLsizei attr_no, const char* name);
 	::GLuint uniform_location(const char* uniform);
 	::GLuint attribute_number(const char* attribute_name);

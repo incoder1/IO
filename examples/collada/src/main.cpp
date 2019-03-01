@@ -144,7 +144,7 @@ static io::scoped_arr<float> calc_tangent_vertex()
 	constexpr const std::size_t dst_face_size = dst_vtx_stride * face_vtx_count;
 
 	#ifdef _OPENMP
-	#pragma omp parallel for
+	#pragma omp parallel for simd
 	#endif // _OPENMP
 	for (std::size_t i = 0; i < face_count; i++) {
 		// index of first face
@@ -193,15 +193,13 @@ static engine::s_model load_model() {
 
 	//engine::s_image texture_img = engine::load_png_rgba(io::file("cube_tex2d_512x512.png"));
 
-	collada::s_mesh cube_mesh = clld_model.find_mesh("Cube-mesh");
-
 	/*
 	engine::s_surface ( new engine::textured_mesh(
 							  TEXTURED_QUBE_VERTEX, 192,
 							  CUBE_INDEX,36, texture_img ) );
 	*/
 
-	std::cout << cube_mesh->index()->indices().length() << std::endl;
+	 // std::cout << cube_mesh->index()->indices().length() << std::endl;
 
 	// convert collda model, to engine model
 
@@ -218,16 +216,20 @@ int main(int argc, const char** argv)
 #endif // _WIN32
 {
 
+	try {
+		engine::s_model md = load_model();
+	} catch(std::exception& exc) {
+		io::exit_with_error_message(-1, exc.what() );
+	}
+
 	if ( GLFW_TRUE == ::glfwInit() ) {
 		try {
 			engine::frame_view view(640,480,"Collada model view");
 			//engine::s_surface qube( new engine::geometry_mesh(COLORED_QUBE_VERTEX,216,CUBE_INDEX,36) );
 
-			//engine::s_surface qube = textured_qube();
+			engine::s_surface qube = textured_qube();
 
-			engine::s_model md = load_model();
-
-			engine::s_surface qube = normal_mapped_qube();
+			//engine::s_surface qube = normal_mapped_qube();
 
 			engine::s_model mdl( new engine::model() );
 			mdl->add_surface( std::move(qube) );

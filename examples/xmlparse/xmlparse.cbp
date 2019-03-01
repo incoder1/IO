@@ -15,12 +15,14 @@
 				<Option parameters="test.xml" />
 				<Compiler>
 					<Add option="-std=c++11" />
+					<Add option="-pg" />
 					<Add option="-Og" />
 					<Add option="-g" />
 					<Add option="-fexceptions" />
 					<Add option="-DUNICODE" />
 				</Compiler>
 				<Linker>
+					<Add option="-pg -lgmon" />
 					<Add option="-shared-libgcc" />
 					<Add library="iconv.dll" />
 					<Add directory="../../bin/debug-win-gcc-static-x64" />
