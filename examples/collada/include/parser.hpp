@@ -16,7 +16,7 @@ class parser {
 public:
 	parser(io::s_read_channel&& src) noexcept;
 
-	model load();
+	s_model load();
 
 	virtual ~parser() noexcept;
 
@@ -52,10 +52,10 @@ private:
 
 	// parse effect library functions
 	void parse_effect(effect& effect);
-	void parse_effect_library(model& md);
+	void parse_effect_library(s_model& md);
 
 	// parse materials library functions
-	void parse_library_materials(model& md);
+	void parse_library_materials(s_model& md);
 
 	// geometry
 	void parse_vertex_data(const s_mesh& m);
@@ -65,11 +65,11 @@ private:
 	void parse_source(const s_source& src);
 
 	void parse_mesh(const s_mesh& m);
-	void pase_geometry_library(model& md);
+	void pase_geometry_library(s_model& md);
 
 	void parse_node(node& nd);
 	void parse_visual_scene(s_scene& scn);
-	void library_visual_scenes(model& md);
+	void library_visual_scenes(s_model& md);
 
 private:
 	io::xml::s_event_stream_parser xp_;

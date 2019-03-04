@@ -182,29 +182,60 @@ static engine::s_surface normal_mapped_qube()
 
 static engine::s_model load_model() {
 
+	using namespace collada;
+
 	io::file dae("tex_cube.dae");
 
 	std::error_code ec;
 	io::s_read_channel src = dae.open_for_read(ec);
 	io::check_error_code(ec);
-	collada::parser parser( std::move(src) );
 
-	collada::model clld_model = parser.load();
+
+	parser parser( std::move(src) );
+
+	s_model cldmdl = parser.load();
+	s_scene scn = cldmdl->scene();
+
+	engine::s_model ret( new engine::model() );
+
+	std::for_each(scn->cbegin(), scn->cend(), [cldmdl,ret] (const node& nd) {
+		if( ! nd.geo_ref.url.blank() ) {
+			s_mesh cldmehs = cldmdl->find_mesh( nd.geo_ref.url );
+			std::cout<< cldmehs->name() << std::endl;
+
+			std::for_each(cldmehs->cbegin(), cldmehs->cend(), [cldmehs] (const input_channel& is) {
+				s_source src;
+				switch(is.type) {
+					case semantic_type::position:
+						src = cldmehs->find_souce(is.accessor_id);
+						break;
+					case semantic_type::normal:
+						src = cldmehs->find_souce(is.accessor_id);
+						break;
+					case semantic_type::texcoord:
+						src = cldmehs->find_souce(is.accessor_id);
+						break;
+				}
+ 			} );
+
+    		std::shared_ptr< collada::effect > mat = cldmdl->find_effect( nd.geo_ref.mat_ref.target);
+		}
+	} );
+
 
 	//engine::s_image texture_img = engine::load_png_rgba(io::file("cube_tex2d_512x512.png"));
 
-	/*
-	engine::s_surface ( new engine::textured_mesh(
-							  TEXTURED_QUBE_VERTEX, 192,
-							  CUBE_INDEX,36, texture_img ) );
-	*/
+
+
+	//engine::s_surface ( new engine::textured_mesh(
+	//						  TEXTURED_QUBE_VERTEX, 192,
+	//						  CUBE_INDEX,36, texture_img ) );
 
 	 // std::cout << cube_mesh->index()->indices().length() << std::endl;
 
 	// convert collda model, to engine model
 
 
-	engine::s_model ret( new engine::model() );
 
 	return ret;
 }

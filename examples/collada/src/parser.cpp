@@ -421,7 +421,7 @@ void parser::parse_effect(effect& ef)
 	while( !is_end_element(et,effect_) );
 }
 
-void parser::parse_effect_library(model& md)
+void parser::parse_effect_library(s_model& md)
 {
 	static constexpr const char* ERR_MSG = "library_effects is unbalanced";
 	io::xml::state_type state;
@@ -438,7 +438,7 @@ void parser::parse_effect_library(model& md)
 				std::memset(&ef, 0, sizeof(ef) );
 				io::const_string id = sev.get_attribute("","id").first;
 				parse_effect( ef );
-				md.add_effect( std::move(id), std::move(ef) );
+				md->add_effect( std::move(id), std::move(ef) );
 			}
 		}
 
@@ -448,7 +448,7 @@ void parser::parse_effect_library(model& md)
 
 // Materials library
 
-void parser::parse_library_materials(model& md)
+void parser::parse_library_materials(s_model& md)
 {
 	static constexpr const char* ERR_MSG = "library_materials is unbalanced";
 	io::xml::state_type state;
@@ -471,7 +471,7 @@ void parser::parse_library_materials(model& md)
                 if(!attr.second)
                 	throw std::runtime_error("instance_effect url attribute is mandatory");
                 io::const_string url = io::const_string(attr.first.data()+1, attr.first.length()-1);
-                md.add_material_effect_link( std::move(material_id), std::move(url) );
+                md->add_material_effect_link( std::move(material_id), std::move(url) );
 			}
 		}
 	}
@@ -710,7 +710,7 @@ void parser::parse_mesh(const s_mesh& m)
 	while( !is_end_element(et, mesh_) );
 }
 
-void parser::pase_geometry_library(model& md)
+void parser::pase_geometry_library(s_model& md)
 {
 	static const char* ERR_MSG = "library_geometries is unbalanced";
 	io::xml::state_type state;
@@ -737,7 +737,7 @@ void parser::pase_geometry_library(model& md)
 			else if( is_element(sev,mesh_) ) {
 				s_mesh m( new mesh(std::move(geometry_name) ) );
 				parse_mesh(m);
-				md.add_mesh( std::move(geometry_id), std::move(m) );
+				md->add_mesh( std::move(geometry_id), std::move(m) );
 			}
 		}
 	}
@@ -812,7 +812,7 @@ void parser::parse_visual_scene(s_scene& scn)
 	while( !is_end_element(et, visual_scene_) );
 }
 
-void parser::library_visual_scenes(model& md)
+void parser::library_visual_scenes(s_model& md)
 {
 	static const char* ERR_MSG = "library_visual_scenes is unbalanced";
 	io::xml::state_type state;
@@ -835,16 +835,16 @@ void parser::library_visual_scenes(model& md)
                     name = std::move(attr.first);
 				s_scene scn( new scene( std::move(id), std::move(name) ) );
 				parse_visual_scene(scn);
-                md.set_scene( std::move(scn) );
+                md->set_scene( std::move(scn) );
 			}
 		}
 	} while( !is_end_element(et,library_visual_scenes_) );
 }
 
 
-model parser::load()
+s_model parser::load()
 {
-	model ret;
+	s_model ret( new model() );
 	io::xml::state_type state;
 	io::xml::start_element_event e = to_next_tag_start(state);
 	check_eod(state, "Expecting COLLADA model file");

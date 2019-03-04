@@ -296,6 +296,11 @@ public:
 	mesh(io::const_string&& name) noexcept;
 	virtual ~mesh() noexcept override;
 
+	io::const_string name() const noexcept
+	{
+        return name_;
+	}
+
 	void set_vertex_id(io::const_string&& id) noexcept {
 		vertex_id_ = std::move(id);
 	}
@@ -383,7 +388,7 @@ private:
 
 DECLARE_IPTR(scene);
 
-class model {
+class model final:public io::object {
 	model(const model&) = delete;
 	model& operator=(const model&) = delete;
 private:
@@ -397,7 +402,7 @@ public:
 	model& operator=(model&&) = default;
 
 	model();
-	~model() noexcept = default;
+	virtual ~model() noexcept;
 
 	void add_effect(io::const_string&& id,effect&& e);
 	std::shared_ptr<effect> find_effect(const io::const_string& id) const noexcept;
@@ -416,8 +421,6 @@ public:
         scene_ = std::move(scn);
 	}
 
-
-
 private:
 	effect_library_t effects_;
 	image_library_t images_;
@@ -425,6 +428,8 @@ private:
 	material_library_t materials_;
 	s_scene scene_;
 };
+
+DECLARE_IPTR(model);
 
 } // namespace collada
 

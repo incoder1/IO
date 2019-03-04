@@ -113,11 +113,15 @@ void scene::add_node(node&& nd)
 
 // model
 model::model():
+	io::object(),
 	effects_(),
 	images_(),
 	meshes_(),
 	materials_(),
 	scene_()
+{}
+
+model::~model() noexcept
 {}
 
 void model::add_effect(io::const_string&& id,effect&& e)
