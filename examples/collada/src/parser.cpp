@@ -154,6 +154,8 @@ parser::parser(io::s_read_channel&& src) noexcept:
 #undef CACHE_STR
 }
 
+// XML parsing functions
+
 io::xml::state_type parser::to_next_state() noexcept
 {
 	io::xml::state_type ret = io::xml::state_type::initial;
@@ -310,6 +312,8 @@ io::const_string parser::get_tag_value()
 	}
 }
 
+// effect library
+
 void parser::parse_effect(effect& ef)
 {
 	static constexpr const char* ERR_MSG = "effect is unbalanced";
@@ -441,6 +445,40 @@ void parser::parse_effect_library(model& md)
 	}
 	while( !is_end_element(et,library_effects_) );
 }
+
+// Materials library
+
+void parser::parse_library_materials(model& md)
+{
+	static constexpr const char* ERR_MSG = "library_materials is unbalanced";
+	io::xml::state_type state;
+	io::xml::event_type et;
+	io::xml::start_element_event sev;
+	io::const_string material_id;
+	do {
+		et = to_next_tag_event(state);
+		check_eod(state, ERR_MSG);
+		if( is_start_element(et) ) {
+			sev = xp_->parse_start_element();
+			check_eod(state, ERR_MSG);
+			if( is_element(sev,"material") ) {
+				auto attr = sev.get_attribute("","id");
+                if(!attr.second)
+                	throw std::runtime_error("material id attribute is mandatory");
+				material_id = attr.first;
+			} else if( is_element(sev,"instance_effect") ) {
+				auto attr = sev.get_attribute("","url");
+                if(!attr.second)
+                	throw std::runtime_error("instance_effect url attribute is mandatory");
+                io::const_string url = io::const_string(attr.first.data()+1, attr.first.length()-1);
+                md.add_material_effect_link( std::move(material_id), std::move(url) );
+			}
+		}
+	}
+	while( !is_end_element(et,library_materials_) );
+}
+
+// Geometry
 
 static input_channel parse_input(const io::xml::start_element_event& e)
 {
@@ -829,10 +867,9 @@ model parser::load()
 //			// TODO: implement
 //			skip_element(e);
 //		}
-//		else if( is_element(e,library_materials_) ) {
-//			// TODO: implement
-//			skip_element(e);
-//		}
+		else if( is_element(e,library_materials_) ) {
+			parse_library_materials(ret);
+		}
 		else if( is_element(e,library_effects_) ) {
 			parse_effect_library(ret);
 		}

@@ -116,6 +116,7 @@ model::model():
 	effects_(),
 	images_(),
 	meshes_(),
+	materials_(),
 	scene_()
 {}
 
@@ -124,9 +125,9 @@ void model::add_effect(io::const_string&& id,effect&& e)
 	effects_.emplace( std::forward<io::const_string>(id), std::make_shared<effect>( std::forward<effect>(e) ) );
 }
 
-std::shared_ptr<effect> model::find_effect(const char* id) noexcept
+std::shared_ptr<effect> model::find_effect(const io::const_string& id) const noexcept
 {
-	effect_library_t::const_iterator it = effects_.find( io::const_string(id) );
+	effect_library_t::const_iterator it = effects_.find( id );
 	return effects_.cend() == it ? std::shared_ptr<effect>() : it->second;
 }
 
@@ -135,10 +136,24 @@ void model::add_mesh(io::const_string&& id,s_mesh&& e)
 	meshes_.emplace( std::forward<io::const_string>(id), std::forward<s_mesh>(e) );
 }
 
-s_mesh model::find_mesh(const char* id) noexcept
+s_mesh model::find_mesh(const io::const_string& id) noexcept
 {
-	geometry_library_t::const_iterator it = meshes_.find( io::const_string(id) );
+	geometry_library_t::const_iterator it = meshes_.find( id );
 	return meshes_.cend() == it ? s_mesh() : it->second;
+}
+
+void  model::add_material_effect_link(io::const_string&& id,io::const_string&& eff)
+{
+	materials_.emplace( std::forward<io::const_string>(id), std::forward<io::const_string>(eff) );
+}
+
+std::shared_ptr<effect> model::find_material(const io::const_string& id) const noexcept
+{
+	material_library_t::const_iterator it = materials_.find( id );
+	if( materials_.cend() != it ) {
+		return find_effect( it->second );
+	}
+	return std::shared_ptr<effect>();
 }
 
 } // namespace collada

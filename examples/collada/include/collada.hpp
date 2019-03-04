@@ -6,6 +6,7 @@
 #include <memory>
 #include <type_traits>
 #include <unordered_map>
+#include <unordered_set>
 
 #include <object.hpp>
 #include <scoped_array.hpp>
@@ -33,17 +34,16 @@ private:
 
 #ifdef __IO_WINDOWS_BACKEND__
 	typedef io::enclave_allocator< std::pair<const io::const_string, V> > hashmap_allocator;
-	typedef io::enclave_allocator<V> vector_allocator;
+	typedef io::enclave_allocator<V> container_allocator;
 #else
 	typedef io::h_allocator< std::pair<const io::const_string, V> > hashmap_allocator;
-	typedef io::h_allocator<V> vector_allocator;
+	typedef io::h_allocator<V> container_allocator;
 #endif // __IO_WINDOWS_BACKEND__
 
 
 public:
-
 	typedef std::unordered_map<io::const_string,V,hash,pred,hashmap_allocator> param_library;
-	typedef std::vector<V> param_vector;
+	typedef std::vector<V,container_allocator> param_vector;
 };
 
 } // namespace detail
@@ -60,7 +60,7 @@ enum class shade_type {
 	blinn_phong
 };
 
-struct material {
+struct phong_effect {
 	float ambient[4];
 	float emission[4];
 	float diffuse[4];
@@ -69,40 +69,40 @@ struct material {
 	float refraction_index;
 };
 
-struct reflectivity {
+struct reflectivity_effect {
 	float color[4];
 	float value;
 };
 
-struct transparency {
+struct transparency_effect {
 	float color[4];
 	bool used;
 	bool rbg;
 	bool invert;
 };
 
-struct ad_3dsmax_ext {
+struct ad_3dsmax_ext_effect {
 	bool double_sided;
 	bool wireframe;
 	bool faceted;
 };
 
 struct sampler_effect {
-	material mat;
-	transparency transparent;
-	reflectivity reflect;
+	phong_effect mat;
+	transparency_effect transparent;
+	reflectivity_effect reflect;
 	shade_type shade;
-	ad_3dsmax_ext ext_3max;
+	ad_3dsmax_ext_effect ext_3max;
 	float bump[4];
 };
 
 union effect {
 	struct __value_t {
-		material mat;
-		transparency transparent;
-		reflectivity reflect;
+		phong_effect mat;
+		transparency_effect transparent;
+		reflectivity_effect reflect;
 		shade_type shade;
-		ad_3dsmax_ext ext_3max;
+		ad_3dsmax_ext_effect ext_3max;
 	} value;
 	sampler_effect text;
 };
@@ -219,7 +219,7 @@ class source final:public io::object {
 private:
 	typedef detail::param< float_array >::param_library float_array_library_t;
 	typedef detail::param< io::const_string >::param_library string_array_library_t;
-	typedef detail::param< s_accessor>::param_vector accessors_library_t;
+	typedef detail::param<s_accessor>::param_vector accessors_library_t;
 public:
 
 	typedef accessors_library_t::const_iterator const_iterator;
@@ -389,7 +389,9 @@ class model {
 private:
 	typedef detail::param< std::shared_ptr<effect> >::param_library effect_library_t;
 	typedef detail::param< s_mesh >::param_library geometry_library_t;
-	typedef detail::param< image >::param_library image_container_t;
+	typedef detail::param< image >::param_library image_library_t;
+    // links from material library to the effect library
+	typedef detail::param< io::const_string >::param_library material_library_t;
 public:
 	model(model&&) noexcept = default;
 	model& operator=(model&&) = default;
@@ -398,12 +400,13 @@ public:
 	~model() noexcept = default;
 
 	void add_effect(io::const_string&& id,effect&& e);
+	std::shared_ptr<effect> find_effect(const io::const_string& id) const noexcept;
 
-	std::shared_ptr<effect> find_effect(const char* id) noexcept;
+	void add_material_effect_link(io::const_string&& id,io::const_string&& effect_id);
+	std::shared_ptr<effect> find_material(const io::const_string& material_id) const noexcept;
 
 	void add_mesh(io::const_string&& id,s_mesh&& e);
-
-	s_mesh find_mesh(const char* id) noexcept;
+	s_mesh find_mesh(const io::const_string& id) noexcept;
 
 	s_scene scene() const noexcept {
 		return scene_;
@@ -413,10 +416,13 @@ public:
         scene_ = std::move(scn);
 	}
 
+
+
 private:
 	effect_library_t effects_;
-	image_container_t images_;
+	image_library_t images_;
 	geometry_library_t meshes_;
+	material_library_t materials_;
 	s_scene scene_;
 };
 

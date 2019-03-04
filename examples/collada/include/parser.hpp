@@ -54,6 +54,9 @@ private:
 	void parse_effect(effect& effect);
 	void parse_effect_library(model& md);
 
+	// parse materials library functions
+	void parse_library_materials(model& md);
+
 	// geometry
 	void parse_vertex_data(const s_mesh& m);
 	void parse_index_data(index_data& index);
