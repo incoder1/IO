@@ -180,6 +180,50 @@ static engine::s_surface normal_mapped_qube()
 	return engine::s_surface( new engine::normal_mapped_mesh(vertex.get(), vertex.len(), CUBE_INDEX,36, diff_tex, nm_tex ) );
 }
 
+collada::intrusive_array<float> merge_vbo_buffers(
+							const collada::s_source& pos,
+							const collada::s_source&  nrm,
+							const collada::s_source& uv)
+{
+	using namespace collada;
+	std::size_t size = 0;
+
+	s_accessor pos_asr = *pos->cbegin();
+	float_array pos_arr = pos->find_float_array( pos_asr->source_id() );
+	std::size_t pos_stride = pos_asr->stride();
+
+	s_accessor nrm_asr = *nrm->cbegin();
+	float_array nrm_arr = nrm->find_float_array( nrm_asr->source_id() );
+	std::size_t nrm_stride = nrm_asr->stride();
+
+	s_accessor uv_asr = *uv->cbegin();
+	float_array uv_arr = uv->find_float_array( uv_asr->source_id() );
+	std::size_t uv_stride = uv_asr->stride();
+
+	std::size_t vbo_len = pos_arr.length() + nrm_arr.length() + uv_arr.length();
+
+	intrusive_array<float> ret(vbo_len);
+	/*
+	std::size_t i = 0;
+	while( i < vbo_len) {
+        for(std::size_t j=0; j < pos_stride; j++) {
+            ret[i] = pos_arr[i];
+            ++i;
+        }
+		for(std::size_t j=0; j < nrm_stride; j++) {
+			ret[i] = nrm_arr[i];
+			++i;
+		}
+		for(std::size_t j=0; j < uv_stride; j++) {
+			ret[i] = uv_arr[i];
+			++i;
+		}
+	}
+	*/
+
+	return ret;
+}
+
 static engine::s_model load_model() {
 
 	using namespace collada;
@@ -190,37 +234,45 @@ static engine::s_model load_model() {
 	io::s_read_channel src = dae.open_for_read(ec);
 	io::check_error_code(ec);
 
+	parser prsr( std::move(src) );
 
-	parser parser( std::move(src) );
-
-	s_model cldmdl = parser.load();
+	s_model cldmdl = prsr.load();
 	s_scene scn = cldmdl->scene();
+
+	s_source pos, nrm, uv;
+	std::shared_ptr< collada::effect > mat;
+
+	for( auto it = scn->cbegin(); it != scn->cend(); ++it) {
+		if( ! it->geo_ref.url.blank() ) {
+			s_mesh cldmehs = cldmdl->find_mesh( it->geo_ref.url );
+			std::cout<< cldmehs->name() << std::endl;
+
+			for(auto it = cldmehs->cbegin(); it != cldmehs->cend(); ++it)
+			{
+				switch(it->type) {
+					case semantic_type::position:
+						pos = cldmehs->find_souce(it->accessor_id);
+						break;
+					case semantic_type::normal:
+						nrm = cldmehs->find_souce(it->accessor_id);
+						break;
+					case semantic_type::texcoord:
+						uv = cldmehs->find_souce(it->accessor_id);
+						break;
+					default:
+						break;
+				}
+			}
+
+			mat = cldmdl->find_effect( it->geo_ref.mat_ref.target);
+		}
+	}
+
+	collada::intrusive_array<float> vbo_data = merge_vbo_buffers(pos, nrm, uv);
+
 
 	engine::s_model ret( new engine::model() );
 
-	std::for_each(scn->cbegin(), scn->cend(), [cldmdl,ret] (const node& nd) {
-		if( ! nd.geo_ref.url.blank() ) {
-			s_mesh cldmehs = cldmdl->find_mesh( nd.geo_ref.url );
-			std::cout<< cldmehs->name() << std::endl;
-
-			std::for_each(cldmehs->cbegin(), cldmehs->cend(), [cldmehs] (const input_channel& is) {
-				s_source src;
-				switch(is.type) {
-					case semantic_type::position:
-						src = cldmehs->find_souce(is.accessor_id);
-						break;
-					case semantic_type::normal:
-						src = cldmehs->find_souce(is.accessor_id);
-						break;
-					case semantic_type::texcoord:
-						src = cldmehs->find_souce(is.accessor_id);
-						break;
-				}
- 			} );
-
-    		std::shared_ptr< collada::effect > mat = cldmdl->find_effect( nd.geo_ref.mat_ref.target);
-		}
-	} );
 
 
 	//engine::s_image texture_img = engine::load_png_rgba(io::file("cube_tex2d_512x512.png"));

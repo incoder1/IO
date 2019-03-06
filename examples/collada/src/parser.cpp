@@ -63,7 +63,7 @@ static std::size_t parse_string_array(const io::const_string& val,const std::siz
 	if( ! val.blank() ) {
 		// parse space separated list of floats
 		char *s = const_cast<char*>( val.data() );
-		for(std::size_t i = 0; (i < size); i++) {
+		for(std::size_t i = 0; i < size; i++) {
 			if( io_unlikely(nullptr == s) )
 				break;
 			data[i] = next_float(s, &s);
@@ -80,6 +80,7 @@ static unsigned_int_array parse_string_array(const io::const_string& val)
 	//std::vector<unsigned int> tmp;
 	std::size_t size = 0;
 	char* s = const_cast<char*>( val.data() );
+	// count numbers
 	do {
        	while(std::isspace(*s)) {
 			++s;
