@@ -1,8 +1,6 @@
 #include "stdafx.hpp"
 #include "parser.hpp"
 
-#include <cmath>
-
 namespace collada {
 
 
@@ -14,29 +12,28 @@ static bool is_start_element(io::xml::event_type et) noexcept
 
 static float next_float(const char* str,char** endp)
 {
-	float ret = NAN;
 	if( io_likely( '\0' != *str) )
-		ret = std::strtof(str, endp);
-	else
-		*endp = nullptr;
-	return ret;
+		return std::strtof(str, endp);
+	*endp = nullptr;
+	return 0.0F;
 }
 
 static unsigned int next_uint(const char* str,char** endp)
 {
-	unsigned int ret = 0;
-	if( io_likely( '\0' != *str) ) {
-		ret = std::strtoul(str, endp, 10);
-	} else
-		*endp = nullptr;
-	return ret;
+	if( io_likely( '\0' != *str) )
+		return std::strtoul(str, endp, 10);
+	*endp = nullptr;
+	return 0;
 }
 
 static std::size_t parse_sizet(const io::const_string& str)
 {
-	typedef io::xml::lexical_cast_traits<std::size_t> size_t_cast;
-	const char *s = str.data();
-	return size_t_cast::from_string( s, &s);
+	char *s = const_cast<char*>( str.data() );
+#ifdef IO_CPU_BITS_64
+	return std::strtoull(s, &s, 10);
+#else
+	return std::strtoul(s, &s, 10);
+#endif
 }
 
 
@@ -63,14 +60,10 @@ static std::size_t parse_string_array(const io::const_string& val,const std::siz
 	if( ! val.blank() ) {
 		// parse space separated list of floats
 		char *s = const_cast<char*>( val.data() );
-		for(std::size_t i = 0; i < size; i++) {
-			if( io_unlikely(nullptr == s) )
-				break;
-			data[i] = next_float(s, &s);
-			if(  io_unlikely( std::isnan(data[i]) ) )
-				break;
+		do {
+			data[ret] = next_float(s, &s);
 			++ret;
-		}
+		} while( nullptr != s && '\0' != *s && ret < size );
 	}
 	return ret;
 }
@@ -82,21 +75,21 @@ static unsigned_int_array parse_string_array(const io::const_string& val)
 	char* s = const_cast<char*>( val.data() );
 	// count numbers
 	do {
-       	while(std::isspace(*s)) {
+       	for(char c = *s; std::isspace(c); c = *s) {
 			++s;
-		}
-		if( std::isdigit(*s) ) {
+       	}
+     	if( std::isdigit(*s) ) {
 			++size;
-			while( std::isdigit(*s) ) {
+       		for(char c= *s; std::isdigit(c); c = *s ) {
 				++s;
-			}
-		}
+       		}
+     	}
 	} while( '\0' != *s);
-	if(0 != size) {
+	if( io_likely(0 != size) ) {
 		unsigned_int_array ret( size );
 		s = const_cast<char*>( val.data() );
 		for(std::size_t i=0; i < size; i++) {
-			ret[i] = next_uint(s,&s);
+			ret[i] = next_uint(s, &s);
 		}
 		return ret;
 	}
@@ -571,37 +564,33 @@ void parser::parse_source(const s_source& src)
 		if( is_start_element(et) ) {
 			sev = xp_->parse_start_element();
 			check_eod(state, ERR_MSG);
-			if( sev.empty_element() || is_element(sev, "technique_common") ) {
+			if( is_element(sev, "technique_common") ) {
 				continue;
 			}
 			else if( is_element(sev,accessor_) ) {
 				auto attr = sev.get_attribute("","source");
-				io::const_string source_id;
-				if(attr.second) {
-					io::const_string ref = attr.first;
-					// remove change #reference to reference
-					source_id = io::const_string( ref.data()+1, ref.size() - 1 );
-				} else
+				if(!attr.second)
 					throw std::runtime_error("accessor source attribute is mandatory");
-				std::size_t count = parse_sizet( sev.get_attribute("","count").first );
-				std::size_t stride = parse_sizet( sev.get_attribute("","stride").first );
-				s_accessor acsr( new accessor( std::move(source_id), count, stride ) );
+				io::const_string id = io::const_string( attr.first.data()+1, attr.first.size() - 1 );
+				attr =  sev.get_attribute("","count");
+				std::size_t count = attr.second ? parse_sizet( attr.first ) : 0;
+				attr = sev.get_attribute("","stride");
+				std::size_t stride = attr.second ? parse_sizet( attr.first ) : 0;
+				s_accessor acsr( new accessor( std::move(id), count, stride ) );
 				parse_accessor(acsr);
 				src->add_accessor( std::move(acsr) );
 			}
 			else if( is_element(sev, float_array_) ) {
-				io::const_string id;
 				std::size_t data_size = 0;
 				auto attr = sev.get_attribute("","id");
-				if(attr.second)
-					const io::const_string id = attr.first;
-				else
+				if(!attr.second)
 					throw std::runtime_error("float_array id attribute is mandatory");
+				io::const_string id = attr.first;
 				attr = sev.get_attribute("","count");
-				if(attr.second)
-					data_size = parse_sizet( attr.first );
-				else
+				if(!attr.second)
 					throw std::runtime_error("float_array count attribute is mandatory");
+				data_size = parse_sizet( attr.first );
+
 				io::const_string data_str = get_tag_value();
 				float_array data(data_size);
 				std::size_t actual_size = parse_string_array( data_str, data_size, const_cast<float*>( data.get() ) );
@@ -692,7 +681,7 @@ void parser::parse_mesh(const s_mesh& m)
 				m->set_vertex_id( std::move(sev.get_attribute("","id").first) );
 				parse_vertex_data(m);
 			} else if( is_index_data(sev,pt) ) {
-				s_index_data idx = m->get_index();
+				s_index_data idx = m->index();
 				idx->set_primitives(pt);
 				auto attr = sev.get_attribute("","count");
 				if(!attr.second) {
@@ -704,7 +693,7 @@ void parser::parse_mesh(const s_mesh& m)
 			} else if( is_element(sev,"input") ) {
 				m->add_input_channel( parse_input(sev) );
 			} else if( is_element(sev,"p") ) {
-				m->get_index()->set_indices( parse_string_array( get_tag_value() ) );
+				m->index()->set_indices( parse_string_array( get_tag_value() ) );
 			}
 		}
 	}
@@ -738,7 +727,7 @@ void parser::pase_geometry_library(s_model& md)
 			else if( is_element(sev,mesh_) ) {
 				s_mesh m( new mesh(std::move(geometry_name) ) );
 				parse_mesh(m);
-				md->add_mesh( std::move(geometry_id), std::move(m) );
+				md->add_geometry( std::move(geometry_id), std::move(m) );
 			}
 		}
 	}

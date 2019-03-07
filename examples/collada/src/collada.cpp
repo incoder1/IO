@@ -34,10 +34,14 @@ source::~source() noexcept
 
 void source::add_float_array(io::const_string&& id, float_array&& arr)
 {
-	float_arrays_.emplace(
+	auto ret = float_arrays_.emplace(
 		std::forward<io::const_string>(id),
-		std::forward<float_array>(arr)
-	);
+		std::forward<float_array>(arr) );
+	if(!ret.second) {
+		std::string msg("more then one float array with the same identifier: ");
+		msg.append(id.data());
+		throw std::runtime_error( msg );
+	}
 }
 
 const float_array source::find_float_array(const io::const_string& id) const
@@ -63,10 +67,19 @@ index_data::index_data() noexcept:
 index_data::~index_data() noexcept
 {}
 
+// geometry
+geometry::geometry(surface_type type,io::const_string&& name) noexcept:
+	io::object( ),
+	type_( type ),
+	name_( std::forward<io::const_string>(name) )
+{}
+
+geometry::~geometry() noexcept
+{}
+
 // mesh
 mesh::mesh(io::const_string&& name) noexcept:
-	io::object(),
-	name_( std::forward<io::const_string>(name) ),
+	geometry(geometry::surface_type::mesh, std::forward<io::const_string>(name) ),
 	vertex_id_(),
 	source_library_(),
 	input_channels_(),
@@ -135,12 +148,12 @@ std::shared_ptr<effect> model::find_effect(const io::const_string& id) const noe
 	return effects_.cend() == it ? std::shared_ptr<effect>() : it->second;
 }
 
-void model::add_mesh(io::const_string&& id,s_mesh&& e)
+void model::add_geometry(io::const_string&& id,s_geometry&& e)
 {
-	meshes_.emplace( std::forward<io::const_string>(id), std::forward<s_mesh>(e) );
+	meshes_.emplace( std::forward<io::const_string>(id), std::forward<s_geometry>(e) );
 }
 
-s_mesh model::find_mesh(const io::const_string& id) noexcept
+s_geometry model::find_geometry(const io::const_string& id) noexcept
 {
 	geometry_library_t::const_iterator it = meshes_.find( id );
 	return meshes_.cend() == it ? s_mesh() : it->second;

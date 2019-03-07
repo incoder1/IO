@@ -284,7 +284,32 @@ DECLARE_IPTR(index_data);
 
 class parser;
 
-class mesh final:public io::object {
+
+class geometry:public io::object {
+public:
+	enum class surface_type {
+		mesh,
+		spline,
+		convex_mesh
+	};
+protected:
+	geometry(surface_type type,io::const_string&& name) noexcept;
+public:
+	virtual ~geometry() noexcept override;
+	surface_type type() const noexcept {
+		return type_;
+	}
+	io::const_string name() const noexcept {
+		return name_;
+	}
+private:
+	surface_type type_;
+	io::const_string name_;
+};
+
+DECLARE_IPTR(geometry);
+
+class mesh final:public geometry {
 	mesh(const mesh&) = delete;
 	mesh& operator=(const mesh&) = delete;
 private:
@@ -296,11 +321,6 @@ public:
 	mesh(io::const_string&& name) noexcept;
 	virtual ~mesh() noexcept override;
 
-	io::const_string name() const noexcept
-	{
-        return name_;
-	}
-
 	void set_vertex_id(io::const_string&& id) noexcept {
 		vertex_id_ = std::move(id);
 	}
@@ -309,8 +329,8 @@ public:
 		return vertex_id_;
 	}
 
-	const index_data* index() const noexcept {
-		return index_.get();
+	s_index_data index() const noexcept {
+		return index_;
 	}
 
 	void add_source(io::const_string&& id, s_source&& src);
@@ -326,12 +346,6 @@ public:
 		return input_channels_.cend();
 	}
 private:
-	friend class parser;
-	s_index_data get_index() noexcept {
-		return index_;
-	}
-private:
-	io::const_string name_;
 	io::const_string vertex_id_;
 	source_library_t source_library_;
 	input_channels_library_t input_channels_;
@@ -393,7 +407,7 @@ class model final:public io::object {
 	model& operator=(const model&) = delete;
 private:
 	typedef detail::param< std::shared_ptr<effect> >::param_library effect_library_t;
-	typedef detail::param< s_mesh >::param_library geometry_library_t;
+	typedef detail::param< s_geometry >::param_library geometry_library_t;
 	typedef detail::param< image >::param_library image_library_t;
     // links from material library to the effect library
 	typedef detail::param< io::const_string >::param_library material_library_t;
@@ -410,8 +424,8 @@ public:
 	void add_material_effect_link(io::const_string&& id,io::const_string&& effect_id);
 	std::shared_ptr<effect> find_material(const io::const_string& material_id) const noexcept;
 
-	void add_mesh(io::const_string&& id,s_mesh&& e);
-	s_mesh find_mesh(const io::const_string& id) noexcept;
+	void add_geometry(io::const_string&& id,s_geometry&& e);
+	s_geometry find_geometry(const io::const_string& id) noexcept;
 
 	s_scene scene() const noexcept {
 		return scene_;

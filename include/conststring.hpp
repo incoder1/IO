@@ -190,7 +190,7 @@ public:
 	/// Hash this string bytes (murmur3 for 32bit, Cityhash for 64 bit)
 	/// \return string content hash
 	inline std::size_t hash() const noexcept {
-		return empty() ? io::hash_bytes( data(), size() ) : 0;
+		return empty() ? 0 : io::hash_bytes( data(), size() );
 	}
 
 	/// Lexicographically compare the string with another
@@ -208,8 +208,14 @@ public:
 		return 0 < compare( rhs );
 	}
 
-	bool equal(const char* rhs) const noexcept {
-		return 0 == std::strcmp( data(), rhs );
+	inline bool equal(const char* rhs) const noexcept {
+		const char *tmp = data();
+		if( tmp == rhs || ( empty() && (nullptr == rhs  || '\0' == *rhs ) ) )
+			return true;
+		else if(!empty() && nullptr == rhs)
+			return false;
+		else
+			return 0 == io_strcmp(tmp, rhs);
 	}
 
 private:
@@ -221,7 +227,7 @@ private:
 		else if( !empty() && rhs.empty() )
 			return 1;
 		else
-			return std::strcmp( data(), rhs.data() );
+			return io_strcmp( data(), rhs.data() );
 	}
 private:
 	uint8_t* data_;

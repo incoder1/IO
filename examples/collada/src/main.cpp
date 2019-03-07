@@ -181,12 +181,12 @@ static engine::s_surface normal_mapped_qube()
 }
 
 collada::intrusive_array<float> merge_vbo_buffers(
+							const collada::s_index_data& idx,
 							const collada::s_source& pos,
 							const collada::s_source&  nrm,
 							const collada::s_source& uv)
 {
 	using namespace collada;
-	std::size_t size = 0;
 
 	s_accessor pos_asr = *pos->cbegin();
 	float_array pos_arr = pos->find_float_array( pos_asr->source_id() );
@@ -200,55 +200,44 @@ collada::intrusive_array<float> merge_vbo_buffers(
 	float_array uv_arr = uv->find_float_array( uv_asr->source_id() );
 	std::size_t uv_stride = uv_asr->stride();
 
-	std::size_t vbo_len = pos_arr.length() + nrm_arr.length() + uv_arr.length();
 
-	intrusive_array<float> ret(vbo_len);
-	/*
-	std::size_t i = 0;
-	while( i < vbo_len) {
-        for(std::size_t j=0; j < pos_stride; j++) {
-            ret[i] = pos_arr[i];
-            ++i;
-        }
-		for(std::size_t j=0; j < nrm_stride; j++) {
-			ret[i] = nrm_arr[i];
-			++i;
-		}
-		for(std::size_t j=0; j < uv_stride; j++) {
-			ret[i] = uv_arr[i];
-			++i;
-		}
-	}
-	*/
+	//std::size_t vbo_len = pos_stride + nrm_stride + uv_stride ;
 
-	return ret;
+	//intrusive_array<float> ret(vbo_len);
+
+	return intrusive_array<float>();
 }
 
-static engine::s_model load_model() {
+static engine::s_model load_collada_model(const char* file_path) {
 
-	using namespace collada;
-
-	io::file dae("tex_cube.dae");
-
+	io::file dae(file_path);
 	std::error_code ec;
 	io::s_read_channel src = dae.open_for_read(ec);
 	io::check_error_code(ec);
 
+	using namespace collada;
 	parser prsr( std::move(src) );
 
 	s_model cldmdl = prsr.load();
 	s_scene scn = cldmdl->scene();
 
-	s_source pos, nrm, uv;
-	std::shared_ptr< collada::effect > mat;
+
+
+
+	engine::s_model ret( new engine::model() );
 
 	for( auto it = scn->cbegin(); it != scn->cend(); ++it) {
 		if( ! it->geo_ref.url.blank() ) {
-			s_mesh cldmehs = cldmdl->find_mesh( it->geo_ref.url );
-			std::cout<< cldmehs->name() << std::endl;
 
-			for(auto it = cldmehs->cbegin(); it != cldmehs->cend(); ++it)
-			{
+			s_geometry geo = cldmdl->find_geometry( it->geo_ref.url );
+			std::cout<< "Geometry node name: " << geo->name() << std::endl;
+
+			// TODO: dedicated function for each geometry type
+			s_mesh cldmehs( reinterpret_cast<mesh*>( geo.detach() ) );
+
+			s_source pos, nrm, uv;
+
+			for(auto it = cldmehs->cbegin(); it != cldmehs->cend(); ++it) {
 				switch(it->type) {
 					case semantic_type::position:
 						pos = cldmehs->find_souce(it->accessor_id);
@@ -264,20 +253,16 @@ static engine::s_model load_model() {
 				}
 			}
 
-			mat = cldmdl->find_effect( it->geo_ref.mat_ref.target);
+			std::shared_ptr< collada::effect> mat = cldmdl->find_effect( it->geo_ref.mat_ref.target);
+
+			s_index_data idx = cldmehs->index();
+
+			intrusive_array<float> vbo_data = merge_vbo_buffers(idx,pos, nrm, uv);
 		}
+
 	}
 
-	collada::intrusive_array<float> vbo_data = merge_vbo_buffers(pos, nrm, uv);
-
-
-	engine::s_model ret( new engine::model() );
-
-
-
 	//engine::s_image texture_img = engine::load_png_rgba(io::file("cube_tex2d_512x512.png"));
-
-
 
 	//engine::s_surface ( new engine::textured_mesh(
 	//						  TEXTURED_QUBE_VERTEX, 192,
@@ -286,8 +271,6 @@ static engine::s_model load_model() {
 	 // std::cout << cube_mesh->index()->indices().length() << std::endl;
 
 	// convert collda model, to engine model
-
-
 
 	return ret;
 }
@@ -299,15 +282,12 @@ int main(int argc, const char** argv)
 #endif // _WIN32
 {
 
-	try {
-		engine::s_model md = load_model();
-	} catch(std::exception& exc) {
-		io::exit_with_error_message(-1, exc.what() );
-	}
-
 	if ( GLFW_TRUE == ::glfwInit() ) {
 		try {
 			engine::frame_view view(640,480,"Collada model view");
+
+			engine::s_model md = load_collada_model("tex_cube.dae");
+
 			//engine::s_surface qube( new engine::geometry_mesh(COLORED_QUBE_VERTEX,216,CUBE_INDEX,36) );
 
 			engine::s_surface qube = textured_qube();

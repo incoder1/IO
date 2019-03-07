@@ -147,7 +147,7 @@ public:
 		const char *tmp = data();
 		if( tmp == rhs || ( empty() && (nullptr == rhs  || '\0' == *rhs ) ) )
 			return true;
-		else if(nullptr == rhs)
+		else if(!empty() && nullptr == rhs)
 			return false;
 		else
 			return 0 == io_strcmp(tmp, rhs);
