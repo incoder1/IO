@@ -110,19 +110,28 @@
 #define io_toupper(__ch) __builtin_toupper((__ch))
 
 #define io_bswap16(__x) __builtin_bswap16((__x))
-#define io_clz(__x) __builtin_clz((__x))
 
-#ifdef __LP64__
-#	define io_size_t_clz(__x) __builtin_clzll((__x))
+#ifdef __ICC
+#	define io_clz(__x) _lzcnt_u32((__x))
+#	ifdef  __LP64__
+#		define io_size_t_clz(__x) _lzcnt_u64((__x))
+#	else
+#		define io_size_t_clz(__x) _lzcnt_u32((__x))
+#	endif
 #else
-#	define io_size_t_clz(__x) __builtin_clzl((__x))
-#endif // __LP64__
+#	define io_clz(__x) __builtin_clz((__x))
+#	ifdef __LP64__
+#		define io_size_t_clz(__x) __builtin_clzll((__x))
+#	else
+#		define io_size_t_clz(__x) __builtin_clzl((__x))
+#	endif // __LP64__
+#endif // __ICC
 
 #ifndef __MINGW32__
 #	define io_bswap32(__x) __builtin_bswap32((__x))
 #else
 	__forceinline uint32_t io_bswap32(uint32_t dword)  {
-		__asm__ ("bswapl %0" : "=a"(dword)  : "a"(dword) : );
+		__asm__ ("bswapl %0" : "=r"(dword)  : "r"(dword) : );
 		return dword;
 	}
 #endif // __MINGW32__
@@ -131,7 +140,7 @@
 #	define io_bswap64(__x) __builtin_bswap64((__x))
 #else
 	__forceinline uint64_t io_bswap64(uint64_t qword) {
-		__asm__ ("bswapq %0" : "=a"(qword)  : "a"(qword) : );
+		__asm__ ("bswapq %0" : "=r"(qword)  : "r"(qword) : );
 		return qword;
 	}
 #endif // __MINGW64__

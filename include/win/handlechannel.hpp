@@ -65,14 +65,27 @@ public:
 	}
 
 
-	inline ssize_t seek(std::error_code err,whence_type whence,ssize_t offset)
+#ifdef IO_CPU_BITS_64
+	int64_t seek(std::error_code& err, whence_type whence, int64_t dist) noexcept
 	{
 		::LARGE_INTEGER li;
-		li.QuadPart = offset;
-		if( !::SetFilePointerEx(hnd_, li, &li, static_cast<::DWORD>(whence) ) )
+		li.QuadPart = dist;
+		if( !::SetFilePointerEx(hnd_, li, &li, static_cast<::DWORD>(whence) ) ) {
 			err.assign(::GetLastError(), std::system_category() );
+		}
 		return li.QuadPart;
 	}
+#else
+	long seek(std::error_code& err, whence_type whence, long dist) noexcept
+	{
+		::LARGE_INTEGER li;
+		li.QuadPart = dist;
+		if( !::SetFilePointerEx(hnd_, li, &li, static_cast<::DWORD>(whence) ) ) {
+			err.assign(::GetLastError(), std::system_category() );
+		}
+		return li.QuadPart;
+	}
+#endif // IO_CPU_BITS_64
 
 	operator HANDLE () const noexcept
 	{

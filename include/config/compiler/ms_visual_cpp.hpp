@@ -21,6 +21,7 @@
 #define _DISABLE_DEPRECATE_STATIC_CPPLIB  
 
 #include <intrin.h>
+#include <stddef.h>
 #include <stdint.h>
 #include <stdlib.h>
 #include <malloc.h>
@@ -131,29 +132,24 @@
 #define io_unlikely(__expr__) !!(__expr__)
 #define io_unreachable __assume(0);
 
+
+
 // Intel intrinsic
-#if defined(_M_IX86) || defined(_M_AMD64)
-
-	#pragma intrinsic(__lzcnt, _bittest)
-
-	__forceinline int io_clz(unsigned int x)
-	{
-			return static_cast<int>( __lzcnt(x) );
-	}
-
+#ifdef __ICL
+#	define io_clz(__x) _lzcnt_u32((__x))
+#	ifdef  _M_AMD64
+#		define io_size_t_clz(__x) _lzcnt_u64((__x))
+#	else
+#		define io_size_t_clz(__x) _lzcnt_u32((__x))
+#	endif
+#elif defined(_M_IX86) || defined(_M_AMD64)
+#	pragma intrinsic(__lzcnt, _bittest)
+#	define io_clz(__x) __lzcnt((__x))
 #	ifdef IO_CPU_BITS_64
 #		pragma intrinsic(__lzcnt64)
-		__forceinline int io_size_t_clz(unsigned __int64 x)
-		{
-			return static_cast<int>( __lzcnt64(x) );
-		} 
+#		define io_size_t_clz(__x) __lzcnt64((__x))
 #	else
-	
-	__forceinline int io_size_t_clz(unsigned int x)
-	{
-			return static_cast<int>( __lzcnt(x) );
-	}
-	
+#		define io_size_t_clz(__x) __lzcnt((__x))
 #	endif
 
 #endif
