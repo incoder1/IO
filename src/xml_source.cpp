@@ -190,36 +190,62 @@ inline char source::normalize_line_endings(const char ch)
 
 char source::next() noexcept
 {
-
+	// charge more data from stream, if needed
 	if( io_unlikely( end_ == (pos_+1) ) ) {
 		last_ = charge();
 		if( pos_ == end_ || error::ok != last_ )
 			return char8_traits::to_char_type( char8_traits::eof() );
 	}
+
 	char ret = *pos_;
 	++pos_;
+
+	// check for a multi-byte tail byte
 	if( io_unlikely(utf8::ismbtail(ret) ) )
 		return ret;
-	else
-		switch( utf8::char_size( ret ) ) {
-		case io_likely(1):
-			return normalize_line_endings( ret );
+
+// Compiler specific optimization
+
+// GCC like
 #ifdef __GNUG__
 
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wpedantic"
-		case 2 ... 4:
+
+	switch( utf8::char_size( ret ) ) {
+#ifdef __ICC // case expect not working for intel
+	case 1:
+#else
+	case __builtin_expect(1,true):
+#endif // __ICC
+		return normalize_line_endings( ret );
+	case 2 ... 4:
+		++col_;
+		return ret;
+	default:
+		last_ = error::illegal_chars;
+		return char8_traits::to_char_type( char8_traits::eof() );
+	}
+
 #pragma GCC diagnostic pop
 
+// MS VС++ Like
 #else
-		case 2: case 3: case 4:
-#endif // __GNUG__
-			++col_;
-			return ret;
-		default:
-			last_ = error::illegal_chars;
-			return char8_traits::to_char_type( char8_traits::eof() );
-		}
+
+	switch( utf8::char_size( ret ) ) {
+	case 1:
+		return normalize_line_endings( ret );
+	case 2:
+	case 3:
+	case 4:
+		++col_;
+		return ret;
+	default:
+		last_ = error::illegal_chars;
+		return char8_traits::to_char_type( char8_traits::eof() );
+	}
+
+#endif // GCC
 }
 
 void source::read_until_char(byte_buffer& to, char ch,char illegal) noexcept
@@ -230,11 +256,13 @@ void source::read_until_char(byte_buffer& to, char ch,char illegal) noexcept
 		if( io_unlikely( !to.put(c) && ( !to.ln_grow() || !to.put(c) ) ) ) {
 			last_ = error::out_of_memory;
 			break;
-		} else if( c == illegal || c == EOF ) {
+		}
+		else if( c == illegal || c == EOF ) {
 			last_ = error::illegal_markup;
 			break;
 		}
-	} while( c != ch );
+	}
+	while( c != ch );
 }
 
 } // namespace xml

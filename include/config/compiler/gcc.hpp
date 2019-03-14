@@ -20,16 +20,12 @@
 #include <cstddef>
 #include <cstdint>
 
-#if __cplusplus >= 201703L
-#	define IO_CPP_17
-#elif __cplusplus >= 201402L
-#	define IO_CPP_14
-#else
-#	define IO_CPP_11
-#endif // __cplusplus
-
-
 #define HAS_PRAGMA_ONCE
+
+// Intel compiler specific
+#ifdef __ICC
+#	include <immintrin.h>
+#endif
 
 #ifndef __GXX_RTTI
 #	ifndef IO_NO_RTTI
@@ -111,6 +107,7 @@
 
 #define io_bswap16(__x) __builtin_bswap16((__x))
 
+// in case of intel compiler
 #ifdef __ICC
 #	define io_clz(__x) _lzcnt_u32((__x))
 #	ifdef  __LP64__
@@ -119,32 +116,18 @@
 #		define io_size_t_clz(__x) _lzcnt_u32((__x))
 #	endif
 #else
+// in case of gcc or clang
 #	define io_clz(__x) __builtin_clz((__x))
 #	ifdef __LP64__
 #		define io_size_t_clz(__x) __builtin_clzll((__x))
 #	else
 #		define io_size_t_clz(__x) __builtin_clzl((__x))
 #	endif // __LP64__
-#endif // __ICC
+#endif // clz
 
-#ifndef __MINGW32__
-#	define io_bswap32(__x) __builtin_bswap32((__x))
-#else
-	__forceinline uint32_t io_bswap32(uint32_t dword)  {
-		__asm__ ("bswapl %0" : "=r"(dword)  : "r"(dword) : );
-		return dword;
-	}
-#endif // __MINGW32__
 
-#ifndef __MINGW64__
-#	define io_bswap64(__x) __builtin_bswap64((__x))
-#else
-	__forceinline uint64_t io_bswap64(uint64_t qword) {
-		__asm__ ("bswapq %0" : "=r"(qword)  : "r"(qword) : );
-		return qword;
-	}
-#endif // __MINGW64__
-
+#define io_bswap32(__x) __builtin_bswap32((__x))
+#define io_bswap64(__x) __builtin_bswap64((__x))
 
 #ifndef IO_PUSH_IGNORE_UNUSED_PARAM
 

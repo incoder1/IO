@@ -84,12 +84,12 @@ if( CMAKE_COMPILER_IS_GNUCXX )
 	endif()
 
 	if( ${CMAKE_SYSTEM_PROCESSOR} STREQUAL "x86_64")
-		set(CPU_SPECIFIC_FLAGS "-mtune=generic -mmmx -msse -msse2 -mssse3 -msse3 -msse4 -mavx -mavx2 -minline-stringops-dynamically -mmovbe")
+		set(CPU_SPECIFIC_FLAGS "-minline-stringops-dynamically -mavx -mavx2 -mlzcnt -mmovbe")
 	else()
 		set(CPU_SPECIFIC_FLAGS "")
 	endif()
 
-	set(RELEASE_OPTIMIZE_FLAGS "-s -O3 -fdeclone-ctor-dtor -fdevirtualize-at-ltrans  ${CPU_SPECIFIC_FLAGS}")
+	set(RELEASE_OPTIMIZE_FLAGS "-mtune=generic -s -O3 -fdeclone-ctor-dtor -fdevirtualize-at-ltrans -fwhole-program ${CPU_SPECIFIC_FLAGS}")
 
 	if(NO_EXCEPTIONS)
 		set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fno-exceptions")
@@ -105,7 +105,7 @@ if( CMAKE_COMPILER_IS_GNUCXX )
 		set(CMAKE_SHARED_LINKER_FLAGS_RELEASE "${CMAKE_SHARED_LINKER_FLAGS} -s ${LTO_FLAGS} ${RELEASE_OPTIMIZE_FLAGS}")
 	else()
 		set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS} ${RELEASE_OPTIMIZE_FLAGS}" )
-		set(CMAKE_SHARED_LINKER_FLAGS_RELEASE "${CMAKE_SHARED_LINKER_FLAGS} -s")
+		set(CMAKE_SHARED_LINKER_FLAGS_RELEASE "${CMAKE_SHARED_LINKER_FLAGS}")
 	endif()
 
 	set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS} -g -Og")

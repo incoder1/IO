@@ -16,8 +16,8 @@ PLATFORM_SHARED_LINK_OPTIONS?=-shared -Wl,--dll -Wl,--output-def=$(TARGET)/libio
 LIBS?=-liconv.dll -lWs2_32 -lgnutls.dll 
 INCLUEDS?=-Iinclude -Iinclude/win -Iinclude/net -Isrc
 
-MMX_AND_SSE?= -mmmx -msse -msse2 -mssse3 -msse3 -msse4 -mavx -mavx2
-OPTIMIZE?=-mtune=generic -O3 -s -fwhole-program -fno-exceptions -fno-rtti -minline-stringops-dynamically -fdeclone-ctor-dtor -fdevirtualize-at-ltrans -mmovbe $(MMX_AND_SSE)
+PLATFORM_OPT_OPTIONS?= -minline-stringops-dynamically -mavx -mavx2 -mlzcnt -mmovbe
+OPTIMIZE?=-mtune=generic -O3 -s -fwhole-program -fno-exceptions -fno-rtti -fdeclone-ctor-dtor -fdevirtualize-at-ltrans $(PLATFORM_OPT_OPTIONS)
 SHARED-DEFINES?= -DIO_SHARED_LIB -DIO_BUILD
 DEFINES ?= -DNDEBUG $(SHARED-DEFINES) -DIO_TLS_PROVIDER_GNUTLS
 CPPFLAGS?= -std=gnu++17 -fno-exceptions -fno-rtti -Winline -pedantic -flto -Wl,-allow-multiple-definition $(INCLUEDS)

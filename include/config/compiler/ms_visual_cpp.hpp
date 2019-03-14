@@ -27,6 +27,11 @@
 #include <malloc.h>
 #include <string.h>
 
+// Intel compiler specific
+#ifdef __ICL
+#	include <immintrin.h>
+#endif
+
 #define HAS_PRAGMA_ONCE
 
 #ifndef _CPPRTTI
@@ -128,10 +133,15 @@
 
 #endif // ignore unused parameters warning, for stub templates and plased new operators
 
-#define io_likely(__expr__) !!(__expr__)
-#define io_unlikely(__expr__) !!(__expr__)
-#define io_unreachable __assume(0);
+#ifdef __ICL
+#	define io_likely(__expr__) __builtin_expect(!!(__expr__), 1)
+#	define io_unlikely(__expr__) __builtin_expect(!!(__expr__), 0)
+#else 
+#	define io_likely(__expr__) !!(__expr__)
+#	define io_unlikely(__expr__) !!(__expr__)
+#endif
 
+#define io_unreachable __assume(0);
 
 
 // Intel intrinsic
@@ -142,7 +152,7 @@
 #	else
 #		define io_size_t_clz(__x) _lzcnt_u32((__x))
 #	endif
-#elif defined(_M_IX86) || defined(_M_AMD64)
+#elif defined(_M_AMD64) || ( defined(_M_IX86_FP) && (_M_IX86_FP >= 2) )
 #	pragma intrinsic(__lzcnt, _bittest)
 #	define io_clz(__x) __lzcnt((__x))
 #	ifdef IO_CPU_BITS_64
@@ -151,40 +161,29 @@
 #	else
 #		define io_size_t_clz(__x) __lzcnt((__x))
 #	endif
-
-#endif
-
-// ARM/ARM 64
-#if defined(_M_ARM) || defined(_M_ARM64)
-
+#else
 	#pragma intrinsic(_BitScanReverse)
-
-	__forceinline int io_clz(unsigned long x)
-	{
+	__forceinline int io_clz(unsigned long x)  noexcept {
 		unsigned long ret = 0;
 		_BitScanReverse(&ret, x);
 		return  static_cast<int>(ret);
 	}
-	
-	// ARM64
-#	ifdef IO_CPU_BITS_64
+#	ifdef _M_X64
 #		pragma intrinsic(_BitScanReverse64)
-		__forceinline int io_size_t_clz(unsigned __int64 x)
-		{
+		__forceinline  int io_size_t_clz(unsigned __int64 x) noexcept {
 			unsigned long ret = 0;
 			_BitScanReverse64(&ret, x);
 			return static_cast<int>(ret);
 		}
-	// ARM32
 	#else 
-		__forceinline int io_size_t_clz(unsigned __int64 x)
-		{
+		__forceinline int io_size_t_clz(unsigned long x) noexcept {
 			unsigned long ret = 0;
 			_BitScanReverse(&ret, x);
 			return  static_cast<int>(ret);
 		}
-#	endif // ARM32 
-#endif // ARM bits instructions
+#	endif 
+#endif
+
 
 namespace io {
 namespace detail {

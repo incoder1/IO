@@ -13,8 +13,6 @@
 
 namespace io {
 
-namespace detail {
-
 // USE MurMur3A for 32 bit instruction set
 #ifndef IO_CPU_BITS_64
 
@@ -110,16 +108,17 @@ static uint32_t hash(const uint8_t* key, std::size_t size) noexcept
 // Original hash function can be found https://github.com/google/cityhash
 namespace cityhash {
 
-static constexpr uint64_t k0 = 0xC3A5C85C97CB3127ULL;
-static constexpr uint64_t k1 = 0xB492B66FBE98F273ULL;
-static constexpr uint64_t k2 = 0x9AE16A3B2F90404FULL;
+static constexpr uint64_t K0 = 0xC3A5C85C97CB3127ULL;
+static constexpr uint64_t K1 = 0xB492B66FBE98F273ULL;
+static constexpr uint64_t K2 = 0x9AE16A3B2F90404FULL;
 static constexpr uint64_t K_MUL = 0x9DDFEA08EB382D69ULL;
 
 // works better then std::pair
-typedef struct  {
+struct ullpair {
 	uint64_t first;
 	uint64_t second;
-} ullpair;
+};
+
 
 static inline uint64_t unaligned_load64(const uint8_t *p) noexcept
 {
@@ -167,6 +166,13 @@ static __forceinline uint64_t ror64(const uint64_t val,const uint32_t shift) noe
 	return _rotr64(val,shift);
 }
 
+#elif defined(__ICC)
+
+static __forceinline uint64_t ror64(const uint64_t val,const uint32_t shift) noexcept
+{
+	return _rotr64(val,shift);
+}
+
 #else
 
 static __forceinline uint64_t ror64(const uint64_t val,const uint32_t shift) noexcept
@@ -208,15 +214,15 @@ static inline uint64_t hash_len16(const uint64_t u,const uint64_t v,const uint64
 static uint64_t hash_len0_to16(const uint8_t *s, std::size_t len) noexcept
 {
 	if (len >= 8) {
-		uint64_t mul = k2 + len * 2;
-		uint64_t a = fetch_64(s) + k2;
+		uint64_t mul = K2 + len * 2;
+		uint64_t a = fetch_64(s) + K2;
 		uint64_t b = fetch_64(s + len - 8);
 		uint64_t c = ror64(b, 37) * mul + a;
 		uint64_t d = (ror64(a, 25) + b) * mul;
 		return hash_len16(c, d, mul);
 	}
 	else if ( len >= 4 ) {
-		uint64_t mul = k2 + len * 2;
+		uint64_t mul = K2 + len * 2;
 		uint64_t a = fetch_32(s);
 		return hash_len16(len + (a << 3), fetch_32(s + len - 4), mul);
 	}
@@ -226,20 +232,20 @@ static uint64_t hash_len0_to16(const uint8_t *s, std::size_t len) noexcept
 		uint8_t c = s[len - 1];
 		uint32_t y = static_cast<uint32_t>(a) + (static_cast<uint32_t>(b) << 8);
 		uint32_t z = len + (static_cast<uint32_t>(c) << 2);
-		return shift_mix(y * k2 ^ z * k0) * k2;
+		return shift_mix(y * K2 ^ z * K0) * K2;
 	}
-	return k2;
+	return K2;
 }
 
 static uint64_t hash_len17_to32(const uint8_t *s, size_t len) noexcept
 {
-	uint64_t mul = k2 + len * 2;
-	uint64_t a = fetch_64(s) * k1;
+	uint64_t mul = K2 + len * 2;
+	uint64_t a = fetch_64(s) * K1;
 	uint64_t b = fetch_64(s + 8);
 	uint64_t c = fetch_64(s + len - 8) * mul;
-	uint64_t d = fetch_64(s + len - 16) * k2;
+	uint64_t d = fetch_64(s + len - 16) * K2;
 	return hash_len16(ror64(a + b, 43) + ror64(c, 30) + d,
-					  a + ror64(b + k2, 18) + c, mul);
+					  a + ror64(b + K2, 18) + c, mul);
 }
 
 static ullpair weak_hash_len32_with_seeds(uint64_t w, uint64_t x, uint64_t y, uint64_t z, uint64_t a, uint64_t b) noexcept
@@ -265,12 +271,12 @@ static ullpair weak_hash_len32_with_seeds(const uint8_t* s, uint64_t a, uint64_t
 
 static uint64_t hash_len33_to_64(const uint8_t *s, size_t len) noexcept
 {
-	uint64_t mul = k2 + len * 2;
-	uint64_t a = fetch_64(s) * k2;
+	uint64_t mul = K2 + len * 2;
+	uint64_t a = fetch_64(s) * K2;
 	uint64_t b = fetch_64(s + 8);
 	uint64_t c = fetch_64(s + len - 24);
 	uint64_t d = fetch_64(s + len - 32);
-	uint64_t e = fetch_64(s + 16) * k2;
+	uint64_t e = fetch_64(s + 16) * K2;
 	uint64_t f = fetch_64(s + 24) * 9;
 	uint64_t g = fetch_64(s + len - 8);
 	uint64_t h = fetch_64(s + len - 16) * mul;
@@ -293,27 +299,27 @@ static uint64_t hash_over_64(const uint8_t* s, std::size_t count) noexcept
 	uint64_t y = fetch_64(s + count - 16) + fetch_64(s + count - 56);
 	uint64_t z = hash_len16(fetch_64(s + count - 48) + count, fetch_64(s + count - 24));
 	ullpair v = weak_hash_len32_with_seeds(s + count - 64, count, z);
-	ullpair w = weak_hash_len32_with_seeds(s + count - 32, y + k1, x);
-	x = x * k1 + fetch_64(s);
+	ullpair w = weak_hash_len32_with_seeds(s + count - 32, y + K1, x);
+	x = x * K1 + fetch_64(s);
 	// Decrease len to the nearest multiple of 64, and operate on 64-byte chunks.
 	count = (count - 1) & ~static_cast<size_t>(63);
 	do {
-		x = ror64(x + y + v.first + fetch_64(s + 8), 37) * k1;
-		y = ror64(y + v.second + fetch_64(s + 48), 42) * k1;
+		x = ror64(x + y + v.first + fetch_64(s + 8), 37) * K1;
+		y = ror64(y + v.second + fetch_64(s + 48), 42) * K1;
 		x ^= w.second;
 		y += v.first + fetch_64(s + 40);
-		z = ror64(z + w.first, 33) * k1;
-		v = weak_hash_len32_with_seeds(s, v.second * k1, x + w.first);
+		z = ror64(z + w.first, 33) * K1;
+		v = weak_hash_len32_with_seeds(s, v.second * K1, x + w.first);
 		w = weak_hash_len32_with_seeds(s + 32, z + w.second, y + fetch_64(s + 16) );
 		std::swap(z, x);
 		s += 64;
 		count -= 64;
 	}
 	while (0 != count);
-	return hash_len16(hash_len16(v.first, w.first) + shift_mix(y) * k1 + z, hash_len16(v.second, w.second) + x);
+	return hash_len16(hash_len16(v.first, w.first) + shift_mix(y) * K1 + z, hash_len16(v.second, w.second) + x);
 }
 
-#ifdef __GNUG__
+#if defined(__GNUG__) && !defined(__ICC)
 
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wpedantic"
@@ -334,7 +340,8 @@ static uint64_t hash(const uint8_t* s, std::size_t count) noexcept
 
 #pragma GCC diagnostic pop
 
-#else
+#else // non GCC
+
 static uint64_t hash(const uint8_t* s, std::size_t count) noexcept
 {
 	if ( count <= 16 )
@@ -346,13 +353,12 @@ static uint64_t hash(const uint8_t* s, std::size_t count) noexcept
 	else
 		return hash_over_64(s, count);
 }
-#endif // __GNUG__
+
+#endif // non GCC
 
 } // namespace cityhash
 
 #endif // IO_CPU_BITS_64
-
-} // namesapce detail
 
 #ifndef IO_CPU_BITS_64
 
@@ -360,7 +366,7 @@ std::size_t IO_PUBLIC_SYMBOL hash_bytes(const uint8_t* bytes, std::size_t count)
 {
 	if( io_unlikely(nullptr == bytes || 0 == count ) )
 		return 0;
-	return detail::murmur3::hash( reinterpret_cast<const uint8_t*>(bytes), count );
+	return murmur3::hash( reinterpret_cast<const uint8_t*>(bytes), count );
 }
 
 #else
@@ -369,7 +375,7 @@ std::size_t IO_PUBLIC_SYMBOL hash_bytes(const uint8_t* bytes, std::size_t count)
 {
 	if( io_unlikely( nullptr == bytes || 0 == count ) )
 		return 0;
-	return detail::cityhash::hash( bytes, count );
+	return cityhash::hash( bytes, count );
 }
 
 #endif // IO_CPU_BITS_64
