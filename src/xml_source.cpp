@@ -251,19 +251,21 @@ char source::next() noexcept
 void source::read_until_char(byte_buffer& to, char ch,char illegal) noexcept
 {
 	char c;
+	char stops[4] = {ch, illegal, EOF, '\0'};
 	do {
 		c = next();
-		if( c == illegal || c == EOF ) {
-			last_ = error::illegal_markup;
-			break;
-		} else if( io_unlikely( !to.put(c) ) ) {
+		if( io_unlikely( !to.put(c) ) ) {
 			if( !to.ln_grow() || !to.put(c) ) {
 				last_ = error::out_of_memory;
 				break;
 			}
 		}
 	}
-	while( c != ch );
+	while( nullptr == io_strchr(stops,c) );
+	if( c != ch ) {
+		last_ = error::illegal_markup;
+		to.clear();
+	}
 }
 
 } // namespace xml

@@ -285,8 +285,8 @@ int main(int argc, const char** argv)
 	if ( GLFW_TRUE == ::glfwInit() ) {
 		try {
 			engine::frame_view view(640,480,"Collada model view");
-
-			engine::s_model md = load_collada_model("tex_cube.dae");
+			 // "tex_cube.dae"
+			engine::s_model md = load_collada_model("/d/temp/dae/Five_Wheeler.dae");
 
 			//engine::s_surface qube( new engine::geometry_mesh(COLORED_QUBE_VERTEX,216,CUBE_INDEX,36) );
 

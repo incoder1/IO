@@ -12,7 +12,7 @@
 				<Option object_output="obj/debug-win-gcc-x64/" />
 				<Option type="1" />
 				<Option compiler="gcc" />
-				<Option parameters="test.xml" />
+				<Option parameters="test.xml " />
 				<Compiler>
 					<Add option="-std=c++11" />
 					<Add option="-pg" />
@@ -33,7 +33,7 @@
 				<Option object_output="obj/release-win-gcc-x64/" />
 				<Option type="1" />
 				<Option compiler="gcc" />
-				<Option parameters="test.xml" />
+				<Option parameters="d:\temp\dae\Five_Wheeler.dae" />
 				<Compiler>
 					<Add option="-flto" />
 					<Add option="-Weffc++" />

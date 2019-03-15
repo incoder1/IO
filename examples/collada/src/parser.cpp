@@ -12,8 +12,9 @@ static bool is_start_element(io::xml::event_type et) noexcept
 
 static float next_float(const char* str,char** endp)
 {
-	if( io_likely( '\0' != *str) )
+	if( io_likely( '\0' != *str) ) {
 		return std::strtof(str, endp);
+	}
 	*endp = nullptr;
 	return 0.0F;
 }
