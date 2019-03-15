@@ -83,7 +83,7 @@ const cached_string string_pool::get(const char* s, std::size_t count) noexcept
     const std::size_t str_hash = io::hash_bytes(s,count);
     pool_type::iterator it = pool_.find( str_hash );
     if( it != pool_.end() ) {
-        if( io_unlikely( pool_.count( str_hash ) > 0 ) ) {
+        if( io_unlikely( pool_.count( str_hash ) > 1 ) ) {
 			auto its = pool_.equal_range( str_hash );
 			it = std::find_if(its.first, its.second, [s,count] (const pair_type& entry) {
 				return entry.second.equal(s, count);

@@ -135,7 +135,6 @@ static void print_event(std::ostream& stm,const xml::s_event_stream_parser& s)
 }
 
 // output a string into a stream
-
 static void log_chars(std::ostream& strm,const char* msg, const const_string& chars)
 {
 	strm << msg << '\n' << chars << std::endl;

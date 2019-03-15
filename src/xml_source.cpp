@@ -253,13 +253,14 @@ void source::read_until_char(byte_buffer& to, char ch,char illegal) noexcept
 	char c;
 	do {
 		c = next();
-		if( io_unlikely( !to.put(c) && ( !to.ln_grow() || !to.put(c) ) ) ) {
-			last_ = error::out_of_memory;
-			break;
-		}
-		else if( c == illegal || c == EOF ) {
+		if( c == illegal || c == EOF ) {
 			last_ = error::illegal_markup;
 			break;
+		} else if( io_unlikely( !to.put(c) ) ) {
+			if( !to.ln_grow() || !to.put(c) ) {
+				last_ = error::out_of_memory;
+				break;
+			}
 		}
 	}
 	while( c != ch );
