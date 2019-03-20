@@ -116,7 +116,7 @@ static std::size_t extract_local_name(std::size_t& start,const char* str) noexce
 }
 
 
-#ifdef __GNUG__
+#if defined(__GNUG__) || defined(__ICL) || defined(__clang__)
 
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wpedantic"
@@ -197,7 +197,7 @@ static bool is_xml_name_char(uint32_t ch) noexcept
 static error check_xml_name(const char* tn) noexcept
 {
 	const char* c = tn;
-	if( io_unlikely( ('\0' == *c) || is_digit(*c) ) )
+	if( io_unlikely( ('\0' == *c) || io_isdigit(*c) ) )
 		return error::illegal_name;
 	uint32_t utf32c;
 	while( '\0' != *c ) {
@@ -409,7 +409,7 @@ document_event event_stream_parser::parse_start_doc() noexcept
 	}
 	else
 		++i;
-	char *stop = tstrchr(i, sep);
+	char *stop = io_strchr(i, sep);
 	if(nullptr == stop )  {
 		assign_error(error::illegal_prologue);
 		return document_event();
@@ -435,7 +435,7 @@ document_event event_stream_parser::parse_start_doc() noexcept
 		}
 		else
 			++i;
-		stop  = tstrchr( i, sep );
+		stop  = io_strchr( i, sep );
 		if(nullptr == stop ) {
 			assign_error(error::illegal_prologue);
 			return document_event();
@@ -459,7 +459,7 @@ document_event event_stream_parser::parse_start_doc() noexcept
 		}
 		else
 			++i;
-		stop  = tstrchr( i, sep );
+		stop  = io_strchr( i, sep );
 		if(nullptr == stop || (str_size(i,stop) > 3) ) {
 			assign_error(error::illegal_prologue);
 			return document_event();
@@ -709,14 +709,14 @@ attribute event_stream_parser::extract_attribute(const char* from, std::size_t& 
 		return attribute();
 
 	char* start = i;
-	i = tstrchr(start, ES);
+	i = io_strchr(start, ES);
 	int val_sep = char8_traits::to_int_type( *(++i) );
 	if( nullptr == i || !is_one_of( val_sep, QNM, APH) )
 		return attribute();
 
 	cached_string np;
 	cached_string ln;
-	char *tmp = tstrchrn( start, COLON, str_size(start,i) );
+	char *tmp = strchrn( start, COLON, str_size(start,i) );
 	if(nullptr != tmp) {
 		np = pool_->get( start,  str_size(start, tmp) );
 		start = tmp + 1;

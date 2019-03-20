@@ -161,7 +161,7 @@
 					<Add option="-Weffc++" />
 					<Add option="-pedantic" />
 					<Add option="-Wall" />
-					<Add option="-std=c++14" />
+					<Add option="-std=gnu++17" />
 					<Add option="-fno-exceptions" />
 					<Add option="-fno-rtti" />
 					<Add option="-DNDEBUG" />
@@ -176,7 +176,6 @@
 				<Linker>
 					<Add option="-O3" />
 					<Add option="-flto" />
-					<Add option="-s" />
 					<Add option="-fwhole-program" />
 					<Add option="-fdeclone-ctor-dtor" />
 					<Add option="-fdevirtualize-at-ltrans" />

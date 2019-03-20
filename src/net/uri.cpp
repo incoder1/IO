@@ -19,53 +19,53 @@ namespace io {
 
 namespace net {
 
-static inline bool is_scheme_character(char c)
+static inline bool is_scheme_character(const char c) noexcept
 {
 	return is_alnum( c ) || is_one_of(c, '+', '-', '.');
 }
 
-static inline bool is_unreserved(char c)
+static inline bool is_unreserved(const char c) noexcept
 {
 	return is_alnum(c) || is_one_of(c,'-','.','_','~');
 }
 
-static inline bool is_gen_delim(char c)
+static inline bool is_gen_delim(const char c) noexcept
 {
-	return is_one_of(c,":/?#[]@");
+	return is_one_of(c,":/?#[]@",7);
 }
 
-static bool is_sub_delim(char c)
+static bool is_sub_delim(const char c) noexcept
 {
-	return  is_one_of(c, "!$&\'()*+,;=" );
+	return  is_one_of(c, "!$&\'()*+,;=", 12);
 }
 
-static inline bool is_reserved(char c)
+static inline bool is_reserved(const char c) noexcept
 {
-	return is_one_of(c,":/?#[]@;!$&\'()*+,;=");
+	return is_one_of(c,":/?#[]@;!$&\'()*+,;=",20);
 }
 
-static inline bool is_user_info_character(char c)
+static inline bool is_user_info_character(const char c) noexcept
 {
 	return is_unreserved(c) || is_one_of(c,'%',':') || is_sub_delim(c);
 }
 
-static inline bool is_authorety_character(char c)
+static inline bool is_authorety_character(const char c) noexcept
 {
-	return is_unreserved(c) || is_one_of(c, "!$&\'()*+,;=%@:[]");
+	return is_unreserved(c) || is_one_of(c, "!$&\'()*+,;=%@:[]", 17);
 }
 
-static inline bool is_path_character(char c)
+static inline bool is_path_character(char c) noexcept
 {
-	return is_unreserved(c) || is_one_of(c,"!$&\'()*+,;=%/:@");
+	return is_unreserved(c) || is_one_of(c,"!$&\'()*+,;=%/:@",16);
 }
 
-static inline bool is_query_character(char c)
+static inline bool is_query_character(const char c) noexcept
 {
 	return cheq(c,'?') || is_path_character(c);
 }
 
 // this is international, they have the same set of legal characters
-static inline bool is_fragment_character(char c)
+static inline bool is_fragment_character(const char c) noexcept
 {
 	return is_query_character(c);
 }
@@ -209,7 +209,7 @@ s_uri uri::parse(std::error_code& ec, const char* str) noexcept
 		if(host_end != host_strt) {
 			// digits only
 			const char *j = host_end-1;
-			for( ; is_digit(*j) && j > b; j--);
+			for( ; io_isdigit(*j) && j > b; j--);
 			// has port
 			if( cheq( ':', *j ) ) {
 				host_end = j;

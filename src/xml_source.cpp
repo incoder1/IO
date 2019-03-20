@@ -248,10 +248,10 @@ char source::next() noexcept
 #endif // GCC
 }
 
-void source::read_until_char(byte_buffer& to,const char ch,const char illegal) noexcept
+void source::read_until_char(byte_buffer& to,const char lookup,const char illegal) noexcept
 {
 	char c;
-	char stops[4] = {ch, illegal, EOF, '\0'};
+	const char stops[3] = {lookup, illegal, EOF};
 	do {
 		c = next();
 		if( io_unlikely( !to.put(c) ) ) {
@@ -261,8 +261,8 @@ void source::read_until_char(byte_buffer& to,const char ch,const char illegal) n
 			}
 		}
 	}
-	while( nullptr == io_strchr(stops,c) );
-	if( c != ch ) {
+	while( is_not_one(c, stops, 3) );
+	if( lookup != c ) {
 		last_ = error::illegal_markup;
 		to.clear();
 	}
