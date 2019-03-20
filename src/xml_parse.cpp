@@ -648,38 +648,23 @@ const_string event_stream_parser::read_chars() noexcept
 		io_memmove(scan_buf_, "<", 2);
 		return const_string(tmp);
 	}
-	char c;
-	bool reading = true;
-	do {
-		c = next();
-		switch( char8_traits::to_int_type(c) ) {
-		case LEFTB:
-			reading = false;
-			break;
-		case RIGHTB:
-		case EOF:
-			reading = false;
-			assign_error(error::root_element_is_unbalanced);
-			break;
-		default:
-			if( io_unlikely( !ret.put(c) ) ) {
-				if( !ret.exp_grow() || !ret.put(c) ) {
-					reading = false;
-					assign_error(error::out_of_memory);
-				}
-			}
-			break;
+	src_->read_until_char(ret, '<', '>');
+	switch( src_->last_error() ) {
+	case error::ok:
+		if( io_likely( !ret.empty() ) ) {
+			io_memmove(scan_buf_, "<", 2);
+			ret.flip();
+			if( io_likely(ret.length() > 1 ) )
+				return const_string( ret.position().cdata(), ret.length()  - 1 );
 		}
+		break;
+	case error::illegal_markup:
+		assign_error(error::root_element_is_unbalanced);
+		break;
+	default:
+		assign_error( src_->last_error() );
 	}
-	while( reading );
-
-	io_memmove(scan_buf_, "<", 2);
-
-	if( is_error() || ret.empty() )
-		return const_string();
-
-	ret.flip();
-	return ret.empty() ? const_string() :  const_string( ret.position().cdata(), ret.length() );
+	return const_string();
 }
 
 void event_stream_parser::skip_chars() noexcept

@@ -190,7 +190,11 @@ inline const char* mbtochar32(char32_t& dst, const char* src)
 /// Returns UTF-8 string length in logical UNICODE characters
 /// \param u8str source UTF-8 string
 /// \return length in characters
+#if defined(__GNUG__) && (__cplusplus > 201402)
+inline constexpr std::size_t strlength(const char* u8str) noexcept {
+#else
 inline std::size_t strlength(const char* u8str) noexcept {
+#endif
 	std::size_t ret = 0;
 	for(const char *c = u8str; '\0' != *c; c += char_size(*c) )
 		++ret;

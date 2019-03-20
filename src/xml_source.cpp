@@ -248,7 +248,7 @@ char source::next() noexcept
 #endif // GCC
 }
 
-void source::read_until_char(byte_buffer& to, char ch,char illegal) noexcept
+void source::read_until_char(byte_buffer& to,const char ch,const char illegal) noexcept
 {
 	char c;
 	char stops[4] = {ch, illegal, EOF, '\0'};
