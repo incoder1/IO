@@ -268,6 +268,29 @@ void source::read_until_char(byte_buffer& to,const char lookup,const char illega
 	}
 }
 
+void source::read_until_double_char(byte_buffer& to, const char ch) noexcept
+{
+	const uint16_t pattern = (static_cast<uint16_t>(ch) << 8) | static_cast<uint16_t>(ch);
+	char c;
+	uint16_t i = 0;
+	do {
+		c = next();
+		if( io_unlikely( !char8_traits::not_eof(c) ) ) {
+			to.clear();
+			break;
+		} else if( !to.put(c) ) {
+			if( io_unlikely( !to.exp_grow() ) ) {
+				last_ = error::out_of_memory;
+				to.clear();
+				break;
+			}
+			to.put(c);
+		}
+		i = (i << 8) | static_cast<uint16_t>(c);
+	}
+	while( pattern != i );
+}
+
 } // namespace xml
 
 } // namesapce io

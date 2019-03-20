@@ -591,38 +591,34 @@ void event_stream_parser::skip_comment() noexcept
 		assign_error(error::illegal_commentary);
 }
 
-byte_buffer event_stream_parser::read_until_double_separator(int separator,error ec) noexcept
+byte_buffer event_stream_parser::read_until_double_separator(const char separator,const error ec) noexcept
 {
 	if( !sb_check(scan_buf_) ) {
 		assign_error(ec);
 		return byte_buffer();
 	}
-	sb_clear(scan_buf_);
-	std::error_code errc;
-	byte_buffer ret = byte_buffer::allocate(errc, HUGE_BUFF_SIZE);
-	if( errc ) {
+
+	byte_buffer ret;
+	ret.extend( HUGE_BUFF_SIZE );
+	if( !ret ) {
 		assign_error(error::out_of_memory);
-		return byte_buffer();
+		return ret;
 	}
-	const uint16_t pattern = (separator << 8) | separator;
-	char c;
-	uint16_t i = 0;
-	do {
-		c = next();
-		if( io_unlikely( !ret.put(c) &&  (!ret.exp_grow() || !ret.put(c) ) ) ) {
+
+	//ret.put(scan_buf_);
+	sb_clear(scan_buf_);
+
+	src_->read_until_double_char( ret, separator );
+
+	if( ret.empty() || !cheq(RIGHTB, next() ) ) {
+		if( error::out_of_memory == src_->last_error() )
 			assign_error(error::out_of_memory);
-			return byte_buffer();
-		}
-		i = (i << 8) | uint16_t(c);
-	}
-	while( (pattern != i || is_eof(i) ) && io_likely(!is_error()) );
-	ret.flip();
-	if( is_eof(c) || !cheq(RIGHTB, next() ) ) {
-		if(error::ok != state_.ec)
-			assign_error(ec);
+		else
+			assign_error( ec );
 		return byte_buffer();
 	}
-	return std::move(ret);
+	ret.flip();
+	return ret;
 }
 
 const_string event_stream_parser::read_comment() noexcept
@@ -708,14 +704,22 @@ attribute event_stream_parser::extract_attribute(const char* from, std::size_t& 
 	if( nullptr == i || is_one_of(*i, SOLIDUS,RIGHTB) )
 		return attribute();
 
-	char* start = i;
+	const char* start = i;
 	i = io_strchr(start, ES);
-	int val_sep = char8_traits::to_int_type( *(++i) );
-	if( nullptr == i || !is_one_of( val_sep, QNM, APH) )
+	if( nullptr == i || !is_one_of( i[1], QNM, APH) ) {
+		assign_error(error::illegal_markup);
 		return attribute();
+	} else if( cheq(i[1],i[2]) ) {
+		return attribute();
+	} else {
+		++i;
+	}
+
+	const char val_sep = *i;
 
 	cached_string np;
 	cached_string ln;
+	// find prefix if any, ans split onto qualified name
 	char *tmp = strchrn( start, COLON, str_size(start,i) );
 	if(nullptr != tmp) {
 		np = pool_->get( start,  str_size(start, tmp) );
@@ -724,7 +728,7 @@ attribute event_stream_parser::extract_attribute(const char* from, std::size_t& 
 	ln = pool_->get(start, str_size(start, i-1) );
 
 	// extract attribute value
-	i += 1; // skip ( "|' )
+	++i; // skip ( "|' )
 	start = i;
 	// find closing value separator
 	i = io_strchr(i, val_sep );
@@ -749,7 +753,7 @@ attribute event_stream_parser::extract_attribute(const char* from, std::size_t& 
 		}
 		// normalize attribute value
 		char *v = val;
-		for(char *ch = start; ch != i; ch++) {
+		for(const char *ch = start; ch != i; ch++) {
 			if( between('\t','\r',*ch) )
 				*v = ' ';
 			else

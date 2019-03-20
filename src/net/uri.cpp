@@ -107,47 +107,49 @@ static const char* str_to_lower_a(char* const dst, const char* src) noexcept
 	return dst;
 }
 
-static __forceinline  bool strneq(const char* lsh, const char* rhs, std::size_t l) noexcept
+static __forceinline  bool streq(const char* lsh, const char* rhs) noexcept
 {
-	return 0 == io_memcmp(lsh, rhs, l);
+	return 0 == io_strcmp(lsh, rhs);
 }
 
 // uri
 uint16_t IO_NO_INLINE uri::default_port_for_scheme(const char* scheme) noexcept
 {
+	// noexcept == no unordered_map
 	char sch[8];
 	str_to_lower_a(sch, scheme);
-	if( strneq("echo", sch, 4) )
+	if( streq("echo", sch) )
 		return 7;
-	else if( strneq("daytime", sch, 7) )
+	else if( streq("daytime", sch) )
 		return 13;
-	else if( strneq("ftp", sch, 3) )
+	else if( streq("ftp", sch) )
 		return 21;
-	else if( strneq("ssh", sch, 3) )
+	else if( streq("ssh", sch) )
 		return 22;
-	else if( strneq("telnet",sch,6) )
+	else if( streq("telnet", sch) )
 		return 23;
-	else if( strneq("mailto", sch, 6) )
+	else if( streq("mailto", sch) )
 		return 25;
-	else if(strneq("time", sch, 4 ) )
+	else if(streq("time", sch) )
 		return 37;
-	else if(strneq("name", sch, 4) )
+	else if(streq("name", sch) )
 		return 42;
-	else if(strneq("domain", sch, 6) )
+	else if(streq("domain", sch) )
 		return 53;
-	else if(strneq("gopher", sch, 6) )
+	else if(streq("gopher", sch) )
 		return 70;
-	else if(strneq("https", sch, 5 ) )
+	else if(streq("https", sch) )
 		return 443;
-	else if( strneq("http", sch, 4) )
+	else if( streq("http", sch) )
 		return 80;
-	else if( strneq("npp", sch, 3) )
+	else if( streq("npp", sch) )
 		return 92;
-	else if( strneq("sftp", sch, 4) )
+	else if( streq("sftp", sch) )
 		return 115;
-	else if( strneq("irc", sch, 3) )
+	else if( streq("irc", sch) )
 		return 6697;
-	return 0;
+	else
+		return 0;
 }
 
 /// std::regexp can throw an exception, and no PCRE
@@ -175,12 +177,11 @@ s_uri uri::parse(std::error_code& ec, const char* str) noexcept
 	const_string query;
 	const_string fragment;
 	const char *b = normalized;
-	const char *e = b;
-	while( !is_one_of(*e,':','/') ) {
-		if( cheq('\0',*e) )
-			return return_error(ec, std::errc::invalid_argument);
-		++e;
-	}
+
+	const char *e = std::strpbrk(b,":/");
+	if(nullptr == e)
+		return return_error(ec, std::errc::invalid_argument);
+
 	// not relative URI need to extract scheme
 	if ( cheq(*e,':') ) {
 		const char* j = b;

@@ -14,12 +14,6 @@
 #include "config.hpp"
 
 #include "charsetcvt.hpp"
-//
-#include <cstring>
-#include <climits>
-
-#include <initializer_list>
-#include <string>
 
 #ifdef HAS_PRAGMA_ONCE
 #pragma once

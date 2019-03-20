@@ -215,7 +215,7 @@ private:
 
 	//char skip_to_symbol(char symbol) noexcept;
 	byte_buffer read_entity() noexcept;
-	byte_buffer read_until_double_separator(int separator,error ec) noexcept;
+	byte_buffer read_until_double_separator(const char separator,const error ec) noexcept;
 
 	qname extract_qname(const char* from, std::size_t& len) noexcept;
 	attribute extract_attribute(const char* from, std::size_t& len) noexcept;

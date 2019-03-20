@@ -62,6 +62,11 @@ public:
     /// \param illegal an illegal character in the may occur in the stream
     void read_until_char(byte_buffer& to,const char ch,const char illegal) noexcept;
 
+	/// Reads characters into buffer until a double characters in the stream, or EOF
+    /// \param to byte buffer to read into
+    /// \param ch double characters to lookup, i.e. -- or ]]
+    void read_until_double_char(byte_buffer& to, const char ch) noexcept;
+
     /// Checks current state is end of stream
     /// \return whether end of stream
     inline bool eof() const noexcept {
