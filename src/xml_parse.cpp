@@ -278,11 +278,13 @@ event_stream_parser::event_stream_parser(s_source&& src, s_string_pool&& pool) n
 	char c;
 	do {
 		c = next();
-	} while( is_whitespace(c) && !is_error() );
+	}
+	while( is_whitespace(c) && !is_error() );
 
 	if( io_unlikely( !cheq(c,LEFTB) ) ) {
 		assign_error(error::illegal_markup);
-	} else {
+	}
+	else {
 		sb_clear(scan_buf_);
 		scan_buf_[0] = '<';
 	}
@@ -709,13 +711,9 @@ attribute event_stream_parser::extract_attribute(const char* from, std::size_t& 
 	if( nullptr == i || !is_one_of( i[1], QNM, APH) ) {
 		assign_error(error::illegal_markup);
 		return attribute();
-	} else if( cheq(i[1],i[2]) ) {
-		return attribute();
-	} else {
-		++i;
 	}
 
-	const char val_sep = *i;
+	const char val_sep = *(++i);
 
 	cached_string np;
 	cached_string ln;
@@ -726,7 +724,6 @@ attribute event_stream_parser::extract_attribute(const char* from, std::size_t& 
 		start = tmp + 1;
 	}
 	ln = pool_->get(start, str_size(start, i-1) );
-
 	// extract attribute value
 	++i; // skip ( "|' )
 	start = i;
@@ -737,36 +734,22 @@ attribute event_stream_parser::extract_attribute(const char* from, std::size_t& 
 		return attribute();
 	}
 	const std::size_t val_size = str_size(start,i);
-	const_string value;
-	if( val_size > 0) {
-		char* val = nullptr;
-		if( io_likely(val_size <= HUGE_BUFF_SIZE) ) {
-			val = static_cast<char*>( io_alloca(val_size+1) );
-			val[val_size] = '\0';
-		}
-		else {
-			val = memory_traits::calloc_temporary<char>( val_size+1 );
-			if( io_unlikely(nullptr == val) ) {
-				assign_error(error::out_of_memory);
-				return attribute();
-			}
-		}
-		// normalize attribute value
-		char *v = val;
-		for(const char *ch = start; ch != i; ch++) {
-			if( between('\t','\r',*ch) )
-				*v = ' ';
-			else
-				*v = *ch;
-			++v;
-		}
-		value = const_string(val, val_size);
-		if( io_unlikely(val_size > HUGE_BUFF_SIZE) )
-			memory_traits::free_temporary(val);
-		++i;
+	// empty value attribute, return
+	if( io_unlikely( val_size == 0 ) ) {
+		len = str_size(from, i+1);
+		return attribute( qname( std::move(np), std::move(ln) ), io::const_string() );
 	}
-	len = str_size(from, i);
+	const_string value(start, val_size);
+	char *v = const_cast<char*>( value.data() );
+	// normalize attribute value
+	// replace any non space white space characters to space character
+	// according to W3C XML spec
+	do {
+		if( between('\t','\r',*v) )
+			*v = ' ';
+	} while('\0' != *v++);
 
+	len = str_size(from, ++i);
 	return attribute( qname( std::move(np), std::move(ln) ), std::move(value) );
 }
 

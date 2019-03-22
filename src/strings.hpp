@@ -156,8 +156,8 @@ inline bool is_one_of(char what, const char* chars,const std::size_t len) noexce
 	return nullptr != strchrn(chars, len, what);
 }
 
-inline bool is_not_one(char what, const char* chars,const std::size_t len) noexcept {
-	return nullptr == char8_traits::find(chars, len, what);
+inline bool is_not_one(char what,const char* chars) noexcept {
+	return nullptr == io_strchr(chars, what);
 }
 
 inline char* find_first_symbol(const char* s) noexcept

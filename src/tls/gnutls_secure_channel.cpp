@@ -23,7 +23,7 @@ credentials credentials::system_trust_creds(std::error_code& ec) noexcept
 	credentials ret;
 	if( GNUTLS_E_SUCCESS != ::gnutls_certificate_allocate_credentials( &ret.creds_ ) )
 		ec = std::make_error_code( std::errc::protocol_error );
-	else if( gnutls_certificate_set_x509_system_trust( ret.creds_ ) < 0 )
+	else if( GNUTLS_E_UNIMPLEMENTED_FEATURE == ::gnutls_certificate_set_x509_system_trust( ret.creds_ ) )
 		ec = std::make_error_code( std::errc::protocol_error );
 	return ret;
 }
@@ -42,37 +42,46 @@ session::~session() noexcept
 		::gnutls_deinit( peer_ );
 }
 
-ssize_t session::push(::gnutls_transport_ptr_t t, const void * data, std::size_t size) noexcept
+ssize_t session::push(::gnutls_transport_ptr_t tr, const void * data, std::size_t size) noexcept
 {
-	const read_write_channel *tr = reinterpret_cast<read_write_channel*>(t);
 	std::error_code ec;
-	std::size_t ret = tr->write( ec, static_cast<const uint8_t*>(data), size);
-	return ec ?  -1 : ret;
+	session* s = static_cast<session*>( tr );
+	ssize_t ret = s->socket_->write(ec, static_cast<const uint8_t*>(data), size);
+	if( ec ) {
+		::gnutls_transport_set_errno( s->peer_, ec.value() );
+		return EOF;
+	}
+	return ret;
 }
 
-ssize_t session::pull(::gnutls_transport_ptr_t t, void * data, std::size_t max_size) noexcept
+ssize_t session::pull(::gnutls_transport_ptr_t tr, void * data, std::size_t max_size) noexcept
 {
-	const read_write_channel *tr = reinterpret_cast<read_write_channel*>(t);
+	session* s = static_cast<session*>( tr );
 	std::error_code ec;
-	std::size_t ret = tr->read( ec, static_cast<uint8_t*>(data), max_size);
-	return ec ?  -1 : ret;
+	ssize_t ret = s->socket_->read(ec, static_cast<uint8_t*>(data), max_size);
+	if( ec ) {
+		::gnutls_transport_set_errno( s->peer_, ec.value() );
+		return EOF;
+	}
+	return ret;
 }
 
 int session::client_handshake(::gnutls_session_t const peer) noexcept
 {
 	::gnutls_handshake_set_timeout(peer, GNUTLS_DEFAULT_HANDSHAKE_TIMEOUT);
-	int ret;
+	int ret = 0;
 	do {
-		ret = ::gnutls_handshake(peer);
+		::gnutls_transport_set_errno( peer, 0 );
+		ret = ::gnutls_handshake( peer );
 	}
-	while( ret < 0 && 0 == ::gnutls_error_is_fatal(ret) );
+	while( ret != GNUTLS_E_SUCCESS && 0 == ::gnutls_error_is_fatal(ret) );
 	return ret;
 }
 
 session session::client_session(std::error_code &ec, ::gnutls_certificate_credentials_t crd,s_read_write_channel&& socket) noexcept
 {
 	session ret( std::forward<s_read_write_channel>(socket) );
-	int err = ::gnutls_init( &ret.peer_, GNUTLS_CLIENT);
+	int err = ::gnutls_init( &ret.peer_, GNUTLS_CLIENT | GNUTLS_NO_EXTENSIONS);
 	if(GNUTLS_E_SUCCESS != err)
 		ec = std::make_error_code( std::errc::connection_refused );
 	else {
@@ -85,17 +94,18 @@ session session::client_session(std::error_code &ec, ::gnutls_certificate_creden
 			if(GNUTLS_E_SUCCESS != err)
 				ec = std::make_error_code( std::errc::connection_refused );
 			else {
+				::gnutls_transport_ptr_t transport = static_cast<::gnutls_transport_ptr_t>( std::addressof(ret) );
+				::gnutls_transport_set_ptr( ret.peer_, transport );
 
+				::gnutls_handshake_set_private_extensions(ret.peer_, 1 );
 				::gnutls_transport_set_push_function( ret.peer_, &session::push );
 				::gnutls_transport_set_pull_function( ret.peer_, &session::pull );
 				::gnutls_transport_set_pull_timeout_function(ret.peer_, ::gnutls_system_recv_timeout);
 
-				::gnutls_transport_ptr_t transport = reinterpret_cast<::gnutls_transport_ptr_t>( ret.socket_.get() );
-				::gnutls_transport_set_ptr( ret.peer_, transport );
-
+				::gnutls_transport_set_errno( ret.peer_, 0 );
 				err = client_handshake( ret.peer_ );
 				if(GNUTLS_E_SUCCESS != err)
-					ec = std::make_error_code( std::errc::connection_refused );
+					ec = std::make_error_code( std::errc::connection_aborted );
 			}
 		}
 	}
@@ -171,6 +181,7 @@ const service* service::instance(std::error_code& ec) noexcept
 		if(nullptr == ret) {
 			if( GNUTLS_E_SUCCESS == ::gnutls_global_init() ) {
 
+				::gnutls_global_set_log_level(9);
 				::gnutls_global_set_log_function([] (int e, const char *msg) {
 					std::fprintf(stderr, "%i %s", e, msg);
 				});

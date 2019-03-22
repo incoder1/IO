@@ -187,15 +187,19 @@ inline char source::normalize_line_endings(const char ch)
 	return ch;
 }
 
+inline bool source::fetch() noexcept
+{
+	if( io_unlikely( end_ == (pos_+1) ) ) {
+		last_ = charge();
+	}
+	return pos_ != end_ || error::ok == last_;
+}
 
 char source::next() noexcept
 {
-	// charge more data from stream, if needed
-	if( io_unlikely( end_ == (pos_+1) ) ) {
-		last_ = charge();
-		if( pos_ == end_ || error::ok != last_ )
-			return char8_traits::to_char_type( char8_traits::eof() );
-	}
+	constexpr const char EOF_CH = char8_traits::to_char_type( char8_traits::eof() );
+	if( io_unlikely( !fetch() ) )
+		return EOF_CH;
 
 	char ret = *pos_;
 	++pos_;
@@ -224,7 +228,7 @@ char source::next() noexcept
 		return ret;
 	default:
 		last_ = error::illegal_chars;
-		return char8_traits::to_char_type( char8_traits::eof() );
+		return EOF_CH;
 	}
 
 #pragma GCC diagnostic pop
@@ -242,7 +246,7 @@ char source::next() noexcept
 		return ret;
 	default:
 		last_ = error::illegal_chars;
-		return char8_traits::to_char_type( char8_traits::eof() );
+		return EOF_CH;
 	}
 
 #endif // GCC
@@ -251,17 +255,17 @@ char source::next() noexcept
 void source::read_until_char(byte_buffer& to,const char lookup,const char illegal) noexcept
 {
 	char c;
-	const char stops[3] = {lookup, illegal, EOF};
+	const char stops[4] = {lookup, illegal, EOF, '\0'};
 	do {
 		c = next();
-		if( io_unlikely( !to.put(c) ) ) {
-			if( !to.ln_grow() || !to.put(c) ) {
+		if( !to.put(c) ) {
+			if( io_unlikely( !to.ln_grow() || !to.put(c) ) ) {
 				last_ = error::out_of_memory;
 				break;
 			}
 		}
 	}
-	while( is_not_one(c, stops, 3) );
+	while( is_not_one(c, stops) );
 	if( lookup != c ) {
 		last_ = error::illegal_markup;
 		to.clear();
@@ -272,23 +276,19 @@ void source::read_until_double_char(byte_buffer& to, const char ch) noexcept
 {
 	const uint16_t pattern = (static_cast<uint16_t>(ch) << 8) | static_cast<uint16_t>(ch);
 	char c;
-	uint16_t i = 0;
+	uint16_t i;
 	do {
 		c = next();
-		if( io_unlikely( !char8_traits::not_eof(c) ) ) {
-			to.clear();
-			break;
-		} else if( !to.put(c) ) {
-			if( io_unlikely( !to.exp_grow() ) ) {
+		if( !to.put(c) ) {
+			if( io_unlikely( !to.ln_grow() || !to.put(c) ) ) {
 				last_ = error::out_of_memory;
-				to.clear();
 				break;
 			}
-			to.put(c);
 		}
 		i = (i << 8) | static_cast<uint16_t>(c);
-	}
-	while( pattern != i );
+	} while( i != pattern && char8_traits::not_eof(c) );
+	if( error::ok != last_ || cheq(c,EOF) )
+		to.clear();
 }
 
 } // namespace xml

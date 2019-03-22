@@ -63,7 +63,9 @@
 #	define io_size_t_abs(__x) __builtin_labs( (__x) )
 #endif
 
-#define io_alloca(__x) __builtin_alloca((__x))
+//#define io_alloca(__x) __builtin_alloca((__x))
+
+#define io_alloca(__x) __builtin_alloca_with_align( (__x), sizeof(size_t) << 3)
 
 #define io_memmove(__dst, __src, __bytes) __builtin_memmove( (__dst), (__src), (__bytes) )
 

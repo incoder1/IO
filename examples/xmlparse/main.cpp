@@ -24,6 +24,7 @@
 
 // C++ standard library
 #include <algorithm>
+#include <type_traits>
 
 // Unicode console, if not supported by runtime
 #if defined(__IO_WINDOWS_BACKEND__) && defined(UNICODE)

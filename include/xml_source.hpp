@@ -96,6 +96,7 @@ private:
     source(s_read_channel&& src, byte_buffer&& rb) noexcept;
     error read_more() noexcept;
     error charge() noexcept;
+    inline bool fetch() noexcept;
     inline char normalize_line_endings(const char ch);
 private:
     error last_;
