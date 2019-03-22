@@ -178,7 +178,7 @@ s_uri uri::parse(std::error_code& ec, const char* str) noexcept
 	const_string fragment;
 	const char *b = normalized;
 
-	const char *e = std::strpbrk(b,":/");
+	const char *e = io_strpbrk(b,":/");
 	if(nullptr == e)
 		return return_error(ec, std::errc::invalid_argument);
 

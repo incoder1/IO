@@ -583,11 +583,9 @@ void event_stream_parser::skip_comment() noexcept
 	char c;
 	do {
 		c = next();
-		if( is_eof(c) )
-			break;
 		i = (i << 8) | c;
 	}
-	while( !is_error() && _ptrn != i );
+	while( (_ptrn != i)  && io_unlikely( (is_eof(c) || is_error() ) ) );
 	c = next();
 	if( !cheq(RIGHTB,c) )
 		assign_error(error::illegal_commentary);
@@ -607,7 +605,6 @@ byte_buffer event_stream_parser::read_until_double_separator(const char separato
 		return ret;
 	}
 
-	//ret.put(scan_buf_);
 	sb_clear(scan_buf_);
 
 	src_->read_until_double_char( ret, separator );
@@ -740,6 +737,10 @@ attribute event_stream_parser::extract_attribute(const char* from, std::size_t& 
 		return attribute( qname( std::move(np), std::move(ln) ), io::const_string() );
 	}
 	const_string value(start, val_size);
+	if( io_unlikely( value.empty() ) ) {
+		assign_error(error::out_of_memory);
+		return attribute();
+	}
 	char *v = const_cast<char*>( value.data() );
 	// normalize attribute value
 	// replace any non space white space characters to space character
@@ -776,6 +777,22 @@ inline char event_stream_parser::next() noexcept
 	return src_->next();
 }
 
+bool event_stream_parser::validata_attr_name(const qname& name) noexcept
+{
+	bool ret = validate_xml_name( name.local_name(), true );
+	if( ret && name.has_prefix() )
+		ret = validate_xml_name(name.prefix(), true);
+	return ret;
+}
+
+bool event_stream_parser::validate_element_name(const qname& name) noexcept
+{
+	bool ret = validate_xml_name( name.local_name(), false );
+	if( ret && name.has_prefix() )
+		ret = validate_xml_name(name.prefix(), false);
+	return ret;
+}
+
 start_element_event event_stream_parser::parse_start_element() noexcept
 {
 	check_event_parser_state(event_type::start_element, start_element_event);
@@ -783,38 +800,33 @@ start_element_event event_stream_parser::parse_start_element() noexcept
 	byte_buffer buff = read_entity();
 	if( is_error() )
 		return start_element_event();
+
 	bool empty_element = cheq(SOLIDUS, *(buff.last().cdata()-3));
+	// nesting level for nodes balance
 	if( !empty_element )
 		++nesting_;
 	std::size_t len = 0;
 	qname name = extract_qname( buff.position().cdata(), len );
-	if(is_error())
-		return start_element_event();
 	// check name validity
-	if( name.has_prefix() && !validate_xml_name( name.prefix(), false ) )
+	if(is_error() || !validate_element_name(name) )
 		return start_element_event();
-	if( !validate_xml_name( name.local_name(), false ) )
-		return start_element_event();
+
 	start_element_event result( std::move(name), empty_element );
-	if( is_error() )
-		return result;
-	char *left = const_cast<char*>( buff.position().cdata() + len );
-	if( is_whitespace(*left) ) {
+	// extract attributes if any
+	const char *left =  buff.position().cdata() + len;
+	if( is_whitespace(*left) && io_likely( !is_error() ) ) {
 		std::size_t offset = 0;
 		attribute attr( extract_attribute(left,offset) );
 		while(offset != 0) {
-			qname attr_name = attr.name();
-			if( ( attr_name.has_prefix() && !validate_xml_name(attr_name.prefix(), true) )
-					||
-					!validate_xml_name( attr.name().local_name(), true )
-			  ) {
+			// validate attribute name and check for
+			// double attributes with the same name check
+			// according to W3C XML spec
+			if( io_unlikely( !validata_attr_name( attr.name() )
+				|| !result.add_attribute( std::move(attr) ) ) ) {
 				assign_error( error::illegal_attribute );
 				return start_element_event();
 			}
-			if( ! result.add_attribute( std::move(attr) ) ) {
-				assign_error( error::illegal_attribute );
-				return start_element_event();
-			}
+			// extract next attribute if any
 			left += offset;
 			attr = extract_attribute(left,offset);
 		}
