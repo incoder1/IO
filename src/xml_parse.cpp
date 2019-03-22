@@ -585,7 +585,7 @@ void event_stream_parser::skip_comment() noexcept
 		c = next();
 		i = (i << 8) | c;
 	}
-	while( (_ptrn != i)  && io_unlikely( (is_eof(c) || is_error() ) ) );
+	while( _ptrn != i && io_likely( !is_eof(c) && !is_error() ) );
 	c = next();
 	if( !cheq(RIGHTB,c) )
 		assign_error(error::illegal_commentary);

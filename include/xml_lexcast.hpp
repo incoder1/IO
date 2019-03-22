@@ -772,6 +772,10 @@ public:
 	static inline uint64_t from_string(const char_type* from,const char_type** endp) noexcept {
 		return lext_cast::str_to_qword(from,endp);
 	}
+	static inline uint64_t from_string(const char_type* from) noexcept {
+		const char_type* endp[1];
+		return lext_cast::str_to_qword(from,endp);
+	}
 };
 
 template<class __lex_cast>
@@ -844,7 +848,11 @@ public:
 	static inline void to_string(bool __b, char_type* to) noexcept {
 		return lext_cast::boolean_to_str(__b, to);
 	}
-	static inline long double from_string(const char_type* from,const char_type** endp) noexcept {
+	static inline bool from_string(const char_type* from,const char_type** endp) noexcept {
+		return lext_cast::str_to_boolean(from,endp);
+	}
+	static inline bool from_string(const char_type* from) noexcept {
+		const char_type* endp[1];
 		return lext_cast::str_to_boolean(from,endp);
 	}
 };
