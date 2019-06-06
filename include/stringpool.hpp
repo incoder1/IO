@@ -33,8 +33,7 @@ namespace io {
 class string_pool;
 DECLARE_IPTR(string_pool);
 
-// TODO: Use const_strnig instead of cached_string
-// since cached_string is not needed any longer
+
 class IO_PUBLIC_SYMBOL cached_string final {
 private:
 	static inline void intrusive_add_ref(uint8_t* const ptr) noexcept

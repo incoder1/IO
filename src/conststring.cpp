@@ -24,7 +24,7 @@ const_string::const_string(const char* str, std::size_t length) noexcept:
 	0,nullptr
 } )
 {
-	assert(nullptr != str && length > 0);
+	assert(nullptr != str && 0 != length && '\0' != *str );
 	const std::size_t size = ( '\0' != str[length] ) ? length + 1 : length;
 	if(size < detail::SSO_MAX) {
 		// Optimize short string, i.e. str size is less then sizeof(char*)+sizeof(std::size_t)
@@ -92,11 +92,12 @@ static bool carr_empty(const char* rhs, std::size_t len) noexcept
 
 bool const_string::equal(const char* rhs, std::size_t len) const noexcept
 {
-	if( io_likely( !empty() && !carr_empty(rhs, len) ) )
+	if( io_likely( !empty() && !carr_empty(rhs, len) ) ) {
 		if( size() == len )
 			return 0 == traits_type::compare( data(), rhs, len );
 		else if( empty() && carr_empty(rhs, len) )
 			return true;
+	}
 	return false;
 }
 
