@@ -14,7 +14,7 @@ model::~model() noexcept
 
 void model::add_surface(s_surface&& srf)
 {
-	surfaces_.emplace_back( std::move(srf) );
+	surfaces_.emplace_front( std::forward<s_surface>(srf) );
 }
 
 void model::render(const scene& scn) const

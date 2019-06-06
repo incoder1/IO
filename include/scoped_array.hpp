@@ -25,6 +25,13 @@ namespace io {
 /// Fixed size dynamic memory array
 template<typename T>
 class scoped_arr {
+private:
+	static inline void default_free(T* const px) noexcept {
+		memory_traits::free_temporary<T>(px);
+	}
+	static inline void temp_free(T* const px) noexcept {
+		memory_traits::free_temporary<T>(px);
+	}
 public:
 
 	typedef void (*release_function)(T* const );
@@ -49,19 +56,16 @@ public:
 	constexpr scoped_arr(T* const arr, const std::size_t len, release_function rf) noexcept:
 		len_(len),
 		mem_(arr),
-		rf_(rf) {
+		rf_(rf)
+	{
 		static_assert( std::is_copy_assignable<T>::value || std::is_move_assignable<T>::value, "T must be copy or move assignable" );
 	}
 
 	scoped_arr(const T* arr, const std::size_t len) noexcept:
 		len_(len),
 		mem_( memory_traits::calloc_temporary<T>(len) ),
-		rf_(
-			[] (T* const px) {
-		if(nullptr != px)
-			memory_traits::free_temporary<T>(px);
-	}
-	) {
+		rf_(scoped_arr<T>::default_free)
+	{
 		static_assert( !std::is_void<T>::value && (std::is_copy_assignable<T>::value || std::is_move_assignable<T>::value), "T must be copy or move assignable" );
 		assert(0 != len_ && len_ < SIZE_MAX );
 		if(nullptr != mem_)
@@ -77,10 +81,8 @@ public:
 		scoped_arr(
 			memory_traits::calloc_temporary<T>(len),
 			len,
-			[] (T* const px) {
-		if(nullptr != px)
-			memory_traits::free_temporary<T>(px);
-	}) {
+			scoped_arr<T>::temp_free)
+	{
 		static_assert( !std::is_void<T>::value && (std::is_copy_assignable<T>::value || std::is_move_assignable<T>::value), "T must be copy or move assignable" );
 	}
 

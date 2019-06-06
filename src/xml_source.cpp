@@ -276,7 +276,7 @@ void source::read_until_double_char(byte_buffer& to, const char ch) noexcept
 {
 	const uint16_t pattern = (static_cast<uint16_t>(ch) << 8) | static_cast<uint16_t>(ch);
 	char c;
-	uint16_t i;
+	uint16_t i = 0;
 	do {
 		c = next();
 		if( !to.put(c) ) {

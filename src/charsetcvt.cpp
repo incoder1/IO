@@ -145,6 +145,7 @@ const char* chconv_error_category::cstr_message(int err_code) const
 	return "Character conversion error";
 }
 
+
 #ifdef __IO_WINDOWS_BACKEND__
 
 static constexpr const char * SYSTEM_UTF16 = "UCS-2-INTERNAL";

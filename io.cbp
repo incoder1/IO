@@ -393,6 +393,7 @@
 		<Unit filename="src/charsetcvt.cpp" />
 		<Unit filename="src/charsetdetector.cpp" />
 		<Unit filename="src/charsets.cpp" />
+		<Unit filename="src/conststring.cpp" />
 		<Unit filename="src/hashing.cpp" />
 		<Unit filename="src/memory_channel.cpp" />
 		<Unit filename="src/net/http_client.cpp" />

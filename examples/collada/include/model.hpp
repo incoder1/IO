@@ -1,7 +1,7 @@
 #ifndef __MODEL_HPP_INCLUDED__
 #define __MODEL_HPP_INCLUDED__
 
-#include <vector>
+#include <forward_list>
 
 #include "surface.hpp"
 
@@ -15,7 +15,7 @@ public:
 	void add_surface(s_surface&& srf);
 	void render(const scene& scn) const;
 public:
-	std::vector<s_surface> surfaces_;
+	std::forward_list<s_surface> surfaces_;
 };
 
 DECLARE_IPTR(model);

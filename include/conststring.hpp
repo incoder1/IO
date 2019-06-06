@@ -26,18 +26,47 @@
 
 namespace io {
 
-///  \brief Immutable zero ending C style string wrapper
-class const_string final {
-private:
-	static inline void intrusive_add_ref(uint8_t* const ptr) noexcept {
-		std::size_t volatile *p = reinterpret_cast<std::size_t volatile*>(ptr);
-		detail::atomic_traits::inc(p);
-	}
-	static inline bool intrusive_release(uint8_t* const ptr) noexcept {
-		std::size_t volatile *p = reinterpret_cast<std::size_t volatile*>(ptr);
-		return static_cast<size_t>(0) == detail::atomic_traits::dec(p);
-	}
 
+namespace detail {
+
+struct long_char_buf_t {
+	std::size_t size;
+	uint8_t* char_buf;
+};
+
+static constexpr std::size_t SSO_MAX = sizeof(long_char_buf_t) - sizeof(uint8_t) - 1;
+
+struct short_char_buf_t {
+	// assuming MAX_SIZE string length is not possible, so sign-bit
+	// can be used to identify small string
+	bool flag: 1;
+	uint8_t size: 7; // assuming would never be 255, so 7 bits is enough to hold value
+	char char_buf[ SSO_MAX+1 ];
+};
+
+// Packs small strings into char array instead of allocating heap value
+// whenever possible
+// 16 bytes for most known compilers
+// tested with GCC, clang, intel and ms vc++ 17
+union sso_variant_t {
+	long_char_buf_t long_buf;
+	short_char_buf_t short_buf;
+};
+
+} // namespace detail
+
+///  \brief Immutable zero ending C style string wrapper
+class IO_PUBLIC_SYMBOL const_string final {
+private:
+
+	static const char* EMPTY_CHAR_ARRAY;
+
+	static void intrusive_add_ref(detail::sso_variant_t& var) noexcept;
+	static std::size_t intrusive_release(detail::sso_variant_t& var) noexcept;
+
+	inline bool sso() const noexcept {
+        return data_.short_buf.flag;
+	}
 
 public:
 
@@ -45,30 +74,18 @@ public:
 
 	/// Creates empty constant string  object
 	constexpr const_string() noexcept:
-		data_(nullptr)
+		data_( {0, nullptr} )
 	{}
 
-	/// Shallow copy this string (inc reference count)
-	const_string(const const_string& other) noexcept:
-		data_(other.data_)
-	{
-		if(nullptr != data_)
-			// increase reference count
-			intrusive_add_ref(data_);
-	}
+	const_string(const const_string& other) noexcept;
 
-	/// Copy assignment operator, shallow copy this string
-	const_string& operator=(const const_string& rhs) noexcept
-	{
-		const_string(rhs).swap( *this );
-		return *this;
-	}
+	const_string& operator=(const const_string& rhs) noexcept;
 
 	/// Movement constructor, default movement semantic
 	const_string(const_string&& other) noexcept:
 		data_(other.data_)
 	{
-		other.data_ = nullptr;
+		other.data_ = {0,nullptr};
 	}
 
 	/// Movement assignment operator, default movement semantic
@@ -82,27 +99,9 @@ public:
 	/// \param str pointer to character array begin
 	/// \param length count of bytes to copy from array
 	/// \throw never throws, constructs empty string if no free memory left
-	const_string(const char* str, std::size_t length) noexcept:
-		data_(nullptr) {
-		assert(nullptr != str && length > 0);
-		const std::size_t len = sizeof(std::size_t) + length + 1;
-		data_ = memory_traits::malloc_array<uint8_t>( len );
-		if(nullptr != data_) {
-			// set initial intrusive atomic reference count
-			std::size_t *rc = reinterpret_cast<std::size_t*>(data_);
-			*rc = 1;
-			// copy string data
-			char *b = reinterpret_cast<char*>( data_ + sizeof(std::size_t) );
-			traits_type::copy(b, str, length);
-		}
-	}
+	const_string(const char* str, std::size_t length) noexcept;
 
-	/// Decrement this string reference count, release allocated memory when
-	/// reference count bring to 0
-	~const_string() noexcept {
-		if(nullptr != data_ && intrusive_release(data_) )
-			memory_traits::free(data_);
-	}
+	~const_string() noexcept;
 
 	/// Deep copy a continues memory block (character array)
 	/// \param first pointer on memory block begin
@@ -116,12 +115,6 @@ public:
 		const_string(str, traits_type::length(str) )
 	{}
 
-	/// Deep copy STD lib string
-	/// \param str STD lib string to be copied
-	const_string(const std::string& str) noexcept:
-		const_string( str.data(), str.length() )
-	{}
-
 	/// Swaps this object with another one
 	/// \param with object to swap with this
 	inline void swap(const_string& with) noexcept {
@@ -131,15 +124,15 @@ public:
 	/// Returns whether this string is pointing on nullptr
 	/// \return whether nullptr string
 	inline bool empty() const noexcept {
-		return nullptr == data_;
+		return 0 == data_.long_buf.size && nullptr == data_.long_buf.char_buf;
 	}
 
 	/// Checks whether this string empty or contains only whitespace characters
 	/// \return whether this string is blank
 	inline bool blank() const noexcept {
-		if( nullptr != data_ ) {
+		if( !empty() ) {
 			char *c;
-			for(c = const_cast<char*>( data() ); io_isspace(*c); c++);
+			for(c = const_cast<char*>( data() ); io_isspace(*c); ++c);
 			return '\0' == *c;
 		}
 		return true;
@@ -147,17 +140,7 @@ public:
 
 	/// Returns raw C-style zero ending string
 	/// \return C-style string, "" if string is empty
-	inline const char* data() const noexcept {
-		return io_unlikely(empty()) ? "" : reinterpret_cast<char*>( data_ + sizeof(std::size_t) );
-	}
-
-#ifndef NDEBUG
-	/// Returns raw C-style zero ending string same as data(), provided for IDE's and debuggers
-	/// \return C-style string "" if string is empty
-	inline const char* c_str() const noexcept {
-		return data();
-	}
-#endif // NDEBUG
+	const char* data() const noexcept;
 
 	/// Converts this string to system UCS-2 ( UTF-16 LE or BE)
 	inline std::u16string convert_to_u16() const {
@@ -183,8 +166,9 @@ public:
 
 	/// Returns string size in bytes
 	/// \return string size in bytes
-	inline std::size_t size() const noexcept {
-		return empty() ? 0 : traits_type::length( data() );
+	inline std::size_t size() const noexcept
+	{
+		return empty() ? 0 : sso() ? data_.short_buf.size : data_.long_buf.size;
 	}
 
 	/// Hash this string bytes (murmur3 for 32bit, Cityhash for 64 bit)
@@ -209,33 +193,22 @@ public:
 	}
 
 	inline bool equal(const char* rhs) const noexcept {
-		const char *tmp = data();
-		if( tmp == rhs || ( empty() && (nullptr == rhs  || '\0' == *rhs ) ) )
-			return true;
-		else if(!empty() && nullptr == rhs)
-			return false;
-		else
-			return 0 == io_strcmp(tmp, rhs);
+		return equal( rhs , nullptr != rhs ? traits_type::length(rhs) : 0 );
 	}
 
+	bool equal(const char* rhs, std::size_t len) const noexcept;
+
 private:
-	inline int compare(const const_string& rhs) const noexcept {
-		if(data_ == rhs.data_)
-			return 0;
-		else if( empty() && !rhs.empty() )
-			return -1;
-		else if( !empty() && rhs.empty() )
-			return 1;
-		else
-			return io_strcmp( data(), rhs.data() );
-	}
+
+	int compare(const const_string& rhs) const noexcept;
 private:
-	uint8_t* data_;
+	detail::sso_variant_t data_;
 };
 
 inline std::ostream& operator<<(std::ostream& os, const const_string& cstr)
 {
-	return ( os << cstr.data() );
+	os.write( cstr.data(), cstr.size() );
+	return os;
 }
 
 inline std::wostream& operator<<(std::wostream& os, const const_string& cstr)

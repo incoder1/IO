@@ -191,7 +191,7 @@ inline const char* mbtochar32(char32_t& dst, const char* src)
 /// \param u8str source UTF-8 string
 /// \return length in characters
 #if defined(__GNUG__) && (__cplusplus > 201402)
-inline constexpr std::size_t strlength(const char* u8str) noexcept {
+constexpr std::size_t strlength(const char* u8str) noexcept {
 #else
 inline std::size_t strlength(const char* u8str) noexcept {
 #endif
@@ -200,6 +200,7 @@ inline std::size_t strlength(const char* u8str) noexcept {
 		++ret;
 	return ret;
 }
+
 
 } // namespace u8
 
@@ -244,7 +245,7 @@ private:
 public:
 
 	constexpr chconv_error_category() noexcept:
-		error_category()
+		std::error_category()
 	{}
 
 	virtual ~chconv_error_category() = default;
@@ -262,12 +263,12 @@ public:
 
 };
 
-#ifndef _MSC_VER
-	std::error_code IO_PUBLIC_SYMBOL make_error_code(io::converrc errc) noexcept;
-	std::error_condition  IO_PUBLIC_SYMBOL make_error_condition(io::converrc err) noexcept;
-#else
+#ifdef _MSC_VER
 	IO_PUBLIC_SYMBOL std::error_code make_error_code(io::converrc errc) noexcept;
 	IO_PUBLIC_SYMBOL std::error_condition make_error_condition(io::converrc err) noexcept;
+#else
+	std::error_code IO_PUBLIC_SYMBOL make_error_code(io::converrc errc) noexcept;
+	std::error_condition  IO_PUBLIC_SYMBOL make_error_condition(io::converrc err) noexcept;
 #endif
 
 enum class cnvrt_control

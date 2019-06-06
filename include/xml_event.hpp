@@ -169,6 +169,7 @@ public:
 		value_( std::forward<const_string>(value) )
 	{}
 
+
 	/// Returns attribute name
 	/// \return attribute name
 	inline qname name() const noexcept {

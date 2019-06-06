@@ -290,9 +290,9 @@ int main(int argc, const char** argv)
 
 			//engine::s_surface qube( new engine::geometry_mesh(COLORED_QUBE_VERTEX,216,CUBE_INDEX,36) );
 
-			engine::s_surface qube = textured_qube();
+			//engine::s_surface qube = textured_qube();
 
-			//engine::s_surface qube = normal_mapped_qube();
+			engine::s_surface qube = normal_mapped_qube();
 
 			engine::s_model mdl( new engine::model() );
 			mdl->add_surface( std::move(qube) );

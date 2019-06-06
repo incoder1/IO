@@ -96,18 +96,18 @@ static std::size_t extract_prefix(std::size_t &start, const char* str) noexcept
 
 static std::size_t extract_local_name(std::size_t& start,const char* str) noexcept
 {
-	std::size_t ret = 0;
 	char *s = const_cast<char*>(str);
 	start = 0;
 	if( is_one_of(*s, LEFTB,COLON,QM) ) {
 		++start;
 		++s;
 	}
-	if( cheq(SOLIDUS,*s) ) {
+	if( cheq(*s, SOLIDUS) ) {
 		++start;
 		++s;
 	}
 	s += xmlname_strspn(s);
+	std::size_t ret = 0;
 	if( io_unlikely( cheq(ENDL, *s) ) )
 		start = 0;
 	else
@@ -359,7 +359,7 @@ byte_buffer event_stream_parser::read_entity() noexcept
 		return byte_buffer();
 	}
 	ret.flip();
-	return std::move( ret );
+	return ret;
 }
 
 #define check_state( _STATE_TYPE, _EMPTY_RET_TYPE)\
@@ -861,13 +861,16 @@ void event_stream_parser::s_instruction_or_prologue() noexcept
 		assign_error(error::illegal_markup);
 		return;
 	}
-	for(uint8_t i=2; i < 7; i++)
+	constexpr std::size_t SCAN_START = 2;
+	constexpr std::size_t MAX_SCAN = 7;
+	for(std::size_t i=SCAN_START; i < MAX_SCAN; i++) {
 		scan_buf_[i] = next();
+	}
 	if( !sb_check(scan_buf_) ) {
 		assign_error(error::illegal_markup);
 		return;
 	}
-	else if( is_prologue(scan_buf_+2) ) {
+	if( is_prologue(scan_buf_+2) ) {
 		if(state_type::initial != state_.current) {
 			assign_error(error::illegal_prologue);
 			return;
@@ -893,9 +896,11 @@ void event_stream_parser::s_comment_cdata_or_dtd() noexcept
 		state_.current =  state_type::comment;
 		return;
 	}
-	for(uint8_t i=4; i < 9; i++)
+	constexpr std::size_t SCAN_START = 4;
+	constexpr std::size_t MAX_SCAN = 9;
+	for(std::size_t i=SCAN_START; i < MAX_SCAN; i++) {
 		scan_buf_[i] = next();
-
+	}
 	if( !sb_check(scan_buf_) ) {
 		assign_error(error::root_element_is_unbalanced);
 		return;
