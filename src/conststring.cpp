@@ -3,8 +3,6 @@
 
 namespace io {
 
-const char* const_string::EMPTY_CHAR_ARRAY = "";
-
 inline void const_string::intrusive_add_ref(detail::sso_variant_t& var) noexcept
 {
 	std::size_t volatile *p = reinterpret_cast<std::size_t volatile*>(var.long_buf.char_buf);
@@ -19,25 +17,19 @@ inline std::size_t const_string::intrusive_release(detail::sso_variant_t& var) n
 
 
 const_string::const_string(const char* str, std::size_t length) noexcept:
-	data_(
+	data_( {false,0,nullptr} )
 {
-	0,nullptr
-} )
-{
-	assert(nullptr != str && 0 != length && '\0' != *str );
+	assert(nullptr != str &&  length > 0  && length < SIZE_MAX );
 	const std::size_t size = ( '\0' != str[length] ) ? length + 1 : length;
 	if(size < detail::SSO_MAX) {
 		// Optimize short string, i.e. str size is less then sizeof(char*)+sizeof(std::size_t)
-		data_.short_buf.size = static_cast<uint8_t>(length);
-		data_.short_buf.flag = true;
-		char *p = data_.short_buf.char_buf;
-		traits_type::assign(p, size, '\0');
-		traits_type::copy(p, str, length);
+		detail::init_short(data_, length);
+		traits_type::copy(data_.short_buf.char_buf, str, length);
 	}
 	else {
 		// allocate string + reference counter
 		uint8_t* px = memory_traits::malloc_array<uint8_t>( size + sizeof(std::size_t) );
-		if( io_likely( nullptr != px) ) {
+		if( nullptr != px ) {
 			// set initial intrusive atomic reference count
 			std::size_t *rc = reinterpret_cast<std::size_t*>(px);
 			*rc = 1;
@@ -77,17 +69,17 @@ const_string::~const_string() noexcept
 
 const char* const_string::data() const noexcept
 {
+	static constexpr const char* EMPTY = "";
 	if ( empty() )
-		return EMPTY_CHAR_ARRAY;
+		return EMPTY;
 	else if( sso() )
-		return &data_.short_buf.char_buf[0];
+		return data_.short_buf.char_buf;
 	else
 		return reinterpret_cast<char*>( data_.long_buf.char_buf + sizeof(std::size_t) );
 }
 
-static bool carr_empty(const char* rhs, std::size_t len) noexcept
-{
-	return 0 == len || nullptr == rhs;
+static bool carr_empty(const char* rhs, std::size_t len) noexcept {
+	return 0 == len || nullptr == rhs || '\0' == *rhs;
 }
 
 bool const_string::equal(const char* rhs, std::size_t len) const noexcept

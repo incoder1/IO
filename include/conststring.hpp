@@ -30,17 +30,18 @@ namespace io {
 namespace detail {
 
 struct long_char_buf_t {
-	std::size_t size;
+	std::size_t sso: 1;
+	std::size_t size: (sizeof(std::size_t)*CHAR_BIT - 1);
 	uint8_t* char_buf;
 };
 
-static constexpr std::size_t SSO_MAX = sizeof(long_char_buf_t) - sizeof(uint8_t) - 1;
+static constexpr std::size_t SSO_MAX = sizeof(long_char_buf_t) - 2;
 
 struct short_char_buf_t {
-	// assuming MAX_SIZE string length is not possible, so sign-bit
-	// can be used to identify small string
-	bool flag: 1;
-	uint8_t size: 7; // assuming would never be 255, so 7 bits is enough to hold value
+	bool sso: 1;
+	// assuming MAX_SIZE string length is not possible,
+	uint8_t size: CHAR_BIT - 1;
+	// max val + zero ending char
 	char char_buf[ SSO_MAX+1 ];
 };
 
@@ -53,19 +54,32 @@ union sso_variant_t {
 	short_char_buf_t short_buf;
 };
 
+inline void init_short(sso_variant_t& v,const uint8_t size) noexcept
+{
+	v.short_buf.sso = true;
+	v.short_buf.size = size;
+}
+
+inline bool is_short(const sso_variant_t& v) noexcept {
+    return v.short_buf.sso;
+}
+
+inline std::size_t short_size(const sso_variant_t& v) noexcept {
+    return v.short_buf.size;
+}
+
 } // namespace detail
 
 ///  \brief Immutable zero ending C style string wrapper
 class IO_PUBLIC_SYMBOL const_string final {
 private:
 
-	static const char* EMPTY_CHAR_ARRAY;
-
 	static void intrusive_add_ref(detail::sso_variant_t& var) noexcept;
 	static std::size_t intrusive_release(detail::sso_variant_t& var) noexcept;
 
+	// is short string optimized version
 	inline bool sso() const noexcept {
-        return data_.short_buf.flag;
+        return detail::is_short(data_);
 	}
 
 public:
@@ -74,7 +88,7 @@ public:
 
 	/// Creates empty constant string  object
 	constexpr const_string() noexcept:
-		data_( {0, nullptr} )
+		data_( {false, 0, nullptr} )
 	{}
 
 	const_string(const const_string& other) noexcept;
@@ -85,7 +99,7 @@ public:
 	const_string(const_string&& other) noexcept:
 		data_(other.data_)
 	{
-		other.data_ = {0,nullptr};
+		other.data_ = {false,0,nullptr};
 	}
 
 	/// Movement assignment operator, default movement semantic
@@ -124,7 +138,7 @@ public:
 	/// Returns whether this string is pointing on nullptr
 	/// \return whether nullptr string
 	inline bool empty() const noexcept {
-		return 0 == data_.long_buf.size && nullptr == data_.long_buf.char_buf;
+		return 0 == data_.long_buf.size;
 	}
 
 	/// Checks whether this string empty or contains only whitespace characters
@@ -168,7 +182,7 @@ public:
 	/// \return string size in bytes
 	inline std::size_t size() const noexcept
 	{
-		return empty() ? 0 : sso() ? data_.short_buf.size : data_.long_buf.size;
+		return empty() ? 0 : sso() ? detail::short_size(data_) : data_.long_buf.size;
 	}
 
 	/// Hash this string bytes (murmur3 for 32bit, Cityhash for 64 bit)
@@ -213,17 +227,23 @@ inline std::ostream& operator<<(std::ostream& os, const const_string& cstr)
 
 inline std::wostream& operator<<(std::wostream& os, const const_string& cstr)
 {
-	return ( os << cstr.convert_to_ucs() );
+	std::wstring conv = cstr.convert_to_ucs();
+	os.write(conv.data(), conv.size() );
+	return os;
 }
 
 inline std::basic_ostream<char16_t>& operator<<(std::basic_iostream<char16_t>& os, const const_string& cstr)
 {
-	return ( os << cstr.convert_to_u16() );
+	std::u16string conv = cstr.convert_to_u16();
+	os.write( conv.data(), conv.size() );
+	return os;
 }
 
 inline std::basic_ostream<char32_t>& operator<<(std::basic_iostream<char32_t>& os, const const_string& cstr)
 {
-	return ( os << cstr.convert_to_u32() );
+	std::u32string conv = cstr.convert_to_u32();
+	os.write( conv.data(), conv.size() );
+	return os;
 }
 
 } // namespace io

@@ -34,6 +34,7 @@ OBJECTS = stdafx.pch\
 	buffer.obj\
 	hashing.obj\
 	channels.obj\
+	conststring.obj\
 	memory_channel.obj\
 	errorcheck.obj\
 	sockets.obj\
@@ -61,6 +62,7 @@ LINK_OBJECTS = $(OBJ)\stdafx.obj\
 	$(OBJ)\buffer.obj\
 	$(OBJ)\hashing.obj\
 	$(OBJ)\channels.obj\
+	$(OBJ)\conststring.obj\
 	$(OBJ)\memory_channel.obj\
 	$(OBJ)\errorcheck.obj\
 	$(OBJ)\sockets.obj\
@@ -105,6 +107,8 @@ buffer.obj:
 	$(CXX) $(CPPFLAGS) $(PCH) src\buffer.cpp /Fo$(OBJ)\buffer.obj
 channels.obj:
 	$(CXX) $(CPPFLAGS) $(PCH) src\channels.cpp /Fo$(OBJ)\channels.obj
+conststring.obj:
+	$(CXX) $(CPPFLAGS) $(PCH) src\conststring.cpp /Fo$(OBJ)\conststring.obj
 memory_channel.obj:
 	$(CXX) $(CPPFLAGS) $(PCH) src\memory_channel.cpp /Fo$(OBJ)\memory_channel.obj
 hashing.obj:

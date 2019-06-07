@@ -109,13 +109,21 @@ inline bool is_alnum(const char ch) noexcept
 }
 
 // capital  unicode-ASCII-latin1 [A-Z]
+#ifdef __GNUG__
 static constexpr inline bool is_uppercase_latin1(const char ch) noexcept
+#else
+static inline bool is_uppercase_latin1(const char ch) noexcept
+#endif // __GNUG__
 {
 	return io_isupper( ch );
 }
 
 // unicode-ASCII-latin1 [a-z]
+#ifdef __GNUG__
 static constexpr inline bool is_lowercase_latin1(const char ch) noexcept
+#else
+static inline bool is_lowercase_latin1(const char ch) noexcept
+#endif // __GNUG__
 {
 	return io_islower( ch );
 }

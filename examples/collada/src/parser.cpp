@@ -465,7 +465,7 @@ void parser::parse_library_materials(s_model& md)
 				auto attr = sev.get_attribute("","url");
                 if(!attr.second)
                 	throw std::runtime_error("instance_effect url attribute is mandatory");
-                io::const_string url = io::const_string(attr.first.data()+1, attr.first.length()-1);
+                io::const_string url = !attr.first.empty() ? io::const_string(attr.first.data()+1, attr.first.size()-1) : attr.first;
                 md->add_material_effect_link( std::move(material_id), std::move(url) );
 			}
 		}

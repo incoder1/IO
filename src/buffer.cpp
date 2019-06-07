@@ -103,7 +103,7 @@ bool byte_buffer::realloc(std::size_t size) noexcept
 			io_zerro_mem(last_, tail );
 	} else {
 		position_ = new_data;
-		last_ = position_;
+		last_ = position_ + 1;
 		io_zerro_mem(position_, capacity_);
 	}
 	arr_.reset_ownership();

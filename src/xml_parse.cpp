@@ -182,7 +182,7 @@ static bool is_xml_name_start_char(char32_t ch) noexcept
 
 static bool is_xml_name_char(uint32_t ch) noexcept
 {
-	return is_digit(ch) ||
+	return io_isdigit(ch) ||
 		   // - | . | U+00B7
 		   is_one_of(ch,0x2D,0x2E,0xB7) ||
 		   is_xml_name_start_char(ch) ||
@@ -345,9 +345,9 @@ state_type event_stream_parser::scan_next() noexcept
 
 byte_buffer event_stream_parser::read_entity() noexcept
 {
-	std::error_code ec;
-	byte_buffer ret = byte_buffer::allocate(ec, MEDIUM_BUFF_SIZE);
-	if(  io_unlikely(ec) ) {
+	byte_buffer ret;
+	ret.extend(MEDIUM_BUFF_SIZE);
+	if( !ret ) {
 		assign_error(error::out_of_memory);
 		return byte_buffer();
 	}
@@ -358,6 +358,7 @@ byte_buffer event_stream_parser::read_entity() noexcept
 		assign_error( src_->last_error() );
 		return byte_buffer();
 	}
+	ret.put('>');
 	ret.flip();
 	return ret;
 }
@@ -623,34 +624,48 @@ byte_buffer event_stream_parser::read_until_double_separator(const char separato
 const_string event_stream_parser::read_comment() noexcept
 {
 	check_state(state_type::comment, const_string)
+	constexpr std::size_t END_LEXEM_LEN = 3; // --> len
 	byte_buffer tmp( read_until_double_separator(HYPHEN, error::illegal_commentary) );
 	if( tmp.empty() || 0 == io_strcmp("--", tmp.position().cdata() ) )
 		return  const_string();
 	else
-		return const_string( tmp.position().cdata(), tmp.last().cdata()-3 );
+		return const_string( tmp.position().cdata(), tmp.last().cdata()-END_LEXEM_LEN );
 }
 
 const_string event_stream_parser::read_chars() noexcept
 {
 	check_state(state_type::characters, const_string)
 	std::error_code ec;
-	byte_buffer ret = byte_buffer::allocate(ec,HUGE_BUFF_SIZE);
-	if( ec )
+	byte_buffer ret;
+	ret.extend( HUGE_BUFF_SIZE );
+	if( !ret ) {
+		assign_error(error::out_of_memory);
 		return const_string();
-	// just "\s<" in scan stack
-	if( 0 == io_memcmp( (scan_buf_+1),"<", 2)  ) {
-		static char tmp[2] = { *scan_buf_, '\0'};
-		io_memmove(scan_buf_, "<", 2);
-		return const_string(tmp);
 	}
+	// just "\s+<" in scan stack
+	const char *i = io_strchr(scan_buf_+1, RIGHTB);
+	if( nullptr != i) {
+		const_string result;
+		if(i != scan_buf_+1)
+			result = const_string( scan_buf_+1, str_size(scan_buf_+1, i) );
+		io_memmove(scan_buf_, "<", 2);
+		return result;
+	}
+	// check for <tag></tag>
+	char c = next();
+	if( cheq(c,LEFTB) ) {
+		io_memmove(scan_buf_, "<", 2);
+		return const_string();
+	} else
+		ret.put(c);
+
 	src_->read_until_char(ret, '<', '>');
 	switch( src_->last_error() ) {
 	case error::ok:
-		if( io_likely( !ret.empty() ) ) {
+		if( !ret.empty() ) {
 			io_memmove(scan_buf_, "<", 2);
 			ret.flip();
-			if( io_likely(ret.length() > 1 ) )
-				return const_string( ret.position().cdata(), ret.length()  - 1 );
+			return const_string( ret.position().cdata(), ret.length() );
 		}
 		break;
 	case error::illegal_markup:
@@ -699,7 +714,7 @@ attribute event_stream_parser::extract_attribute(const char* from, std::size_t& 
 {
 	len = 0;
 	// skip lead spaces, don't copy them into name
-	char *i = find_first_symbol(from);
+	const char *i = find_first_symbol(from);
 	if( nullptr == i || is_one_of(*i, SOLIDUS,RIGHTB) )
 		return attribute();
 
@@ -730,9 +745,12 @@ attribute event_stream_parser::extract_attribute(const char* from, std::size_t& 
 		assign_error(error::illegal_attribute);
 		return attribute();
 	}
-	const std::size_t val_size = str_size(start,i);
+	// check for empty attribute value
+	// not valid according W3C, but can be present
+	// in sort of generated xmls
+	const std::size_t val_size =  str_size(start,i);
 	// empty value attribute, return
-	if( io_unlikely( val_size == 0 ) ) {
+	if( io_unlikely( val_size < 1 ) ) {
 		len = str_size(from, i+1);
 		return attribute( qname( std::move(np), std::move(ln) ), io::const_string() );
 	}
