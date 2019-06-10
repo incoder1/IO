@@ -101,9 +101,28 @@ public:
 		local_name_(n)
 	{}
 
-	explicit operator bool() const noexcept {
-		return !local_name_.empty();
+	qname(const qname& other) noexcept:
+		qname(other.prefix_, other.local_name_)
+	{}
+
+	qname& operator=(const qname& rhs) noexcept
+	{
+		qname( rhs ).swap( *this );
+		return *this;
 	}
+
+	qname(qname&& other) noexcept:
+		prefix_( std::move( other.prefix_) ),
+		local_name_( std::move( other.local_name_) )
+	{}
+
+	qname& operator=(qname&& rhs) noexcept
+	{
+		qname( std::forward<qname>(rhs) ).swap( *this );
+		return *this;
+	}
+
+	~qname() noexcept = default;
 
 	inline void swap(qname& other) noexcept {
 		prefix_.swap( other.prefix_ );
@@ -130,7 +149,7 @@ public:
 	}
 
 	inline bool operator==(const qname& rhs) const noexcept {
-		return prefix_.equal(rhs.prefix_.data()) && local_name_.equal(rhs.local_name_.data());
+		return prefix_ == rhs.prefix_ && local_name_ == rhs.local_name_;
 	}
 
 	inline bool operator<(const qname& rhs) const {
@@ -190,6 +209,7 @@ public:
 	bool operator==(const attribute& rhs) const noexcept {
 		return name_ == rhs.name_;
 	}
+
 private:
 	qname name_;
 	const_string value_;
@@ -207,7 +227,7 @@ private:
 
       	typedef bool result_type;
 
-     	__forceinline result_type operator()(const first_argument_type& lsh, const second_argument_type& rhs) const noexcept
+     	inline result_type operator()(const first_argument_type& lsh, const second_argument_type& rhs) const noexcept
      	{
      		return lsh.name() < rhs.name();
      	}
@@ -238,7 +258,7 @@ public:
 	}
 
 	explicit operator bool() const noexcept {
-		return static_cast<bool>(name_);
+		return !name_.local_name().empty();
 	}
 
 	bool add_attribute(attribute&& attr) noexcept;
@@ -304,7 +324,7 @@ public:
 	}
 
 	explicit operator bool() const noexcept {
-		return static_cast<bool>(name_);
+		return !name_.local_name().empty();
 	}
 
 	inline qname name() const noexcept {

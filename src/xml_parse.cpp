@@ -358,7 +358,7 @@ byte_buffer event_stream_parser::read_entity() noexcept
 		assign_error( src_->last_error() );
 		return byte_buffer();
 	}
-	ret.put('>');
+	putch(ret, '>');
 	ret.flip();
 	return ret;
 }
@@ -642,21 +642,19 @@ const_string event_stream_parser::read_chars() noexcept
 		assign_error(error::out_of_memory);
 		return const_string();
 	}
-	// just "\s+<" in scan stack
-	const char *i = io_strchr(scan_buf_+1, RIGHTB);
-	if( nullptr != i) {
-		const_string result;
-		if(i != scan_buf_+1)
-			result = const_string( scan_buf_+1, str_size(scan_buf_+1, i) );
+	// just "\s<" in scan stack
+	//const char *i = io_strchr(scan_buf_+1, RIGHTB);
+	if( io_isspace(scan_buf_[0]) && cheq(scan_buf_[1],RIGHTB) ) {
 		io_memmove(scan_buf_, "<", 2);
-		return result;
+		return const_string(scan_buf_, 1);
 	}
 	// check for <tag></tag>
 	char c = next();
 	if( cheq(c,LEFTB) ) {
 		io_memmove(scan_buf_, "<", 2);
 		return const_string();
-	} else
+	}
+	else
 		ret.put(c);
 
 	src_->read_until_char(ret, '<', '>');
@@ -715,7 +713,7 @@ attribute event_stream_parser::extract_attribute(const char* from, std::size_t& 
 	len = 0;
 	// skip lead spaces, don't copy them into name
 	const char *i = find_first_symbol(from);
-	if( nullptr == i || is_one_of(*i, SOLIDUS,RIGHTB) )
+	if( nullptr == i || is_one_of(*i, SOLIDUS,RIGHTB,0) )
 		return attribute();
 
 	const char* start = i;
@@ -766,7 +764,8 @@ attribute event_stream_parser::extract_attribute(const char* from, std::size_t& 
 	do {
 		if( between('\t','\r',*v) )
 			*v = ' ';
-	} while('\0' != *v++);
+	}
+	while('\0' != *v++);
 
 	len = str_size(from, ++i);
 	return attribute( qname( std::move(np), std::move(ln) ), std::move(value) );
@@ -795,7 +794,7 @@ inline char event_stream_parser::next() noexcept
 	return src_->next();
 }
 
-bool event_stream_parser::validata_attr_name(const qname& name) noexcept
+bool event_stream_parser::validate_attr_name(const qname& name) noexcept
 {
 	bool ret = validate_xml_name( name.local_name(), true );
 	if( ret && name.has_prefix() )
@@ -839,8 +838,11 @@ start_element_event event_stream_parser::parse_start_element() noexcept
 			// validate attribute name and check for
 			// double attributes with the same name check
 			// according to W3C XML spec
-			if( io_unlikely( !validata_attr_name( attr.name() )
-				|| !result.add_attribute( std::move(attr) ) ) ) {
+			if( !validate_attr_name( attr.name() ) ) {
+				assign_error( error::illegal_attribute );
+				return start_element_event();
+			}
+			if( !result.add_attribute( std::move(attr) ) ) {
 				assign_error( error::illegal_attribute );
 				return start_element_event();
 			}

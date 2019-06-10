@@ -3,13 +3,13 @@
 
 namespace io {
 
-inline void const_string::intrusive_add_ref(detail::sso_variant_t& var) noexcept
+void const_string::intrusive_add_ref(detail::sso_variant_t& var) noexcept
 {
 	std::size_t volatile *p = reinterpret_cast<std::size_t volatile*>(var.long_buf.char_buf);
 	detail::atomic_traits::inc(p);
 }
 
-inline std::size_t const_string::intrusive_release(detail::sso_variant_t& var) noexcept
+std::size_t const_string::intrusive_release(detail::sso_variant_t& var) noexcept
 {
 	std::size_t volatile *p = reinterpret_cast<std::size_t volatile*>(var.long_buf.char_buf);
 	return detail::atomic_traits::dec(p);
@@ -42,20 +42,6 @@ const_string::const_string(const char* str, std::size_t length) noexcept:
 	}
 }
 
-const_string::const_string(const const_string& other) noexcept:
-	data_(other.data_)
-{
-	// increase reference count if needed
-	// for long buffer
-	if( !empty() && !sso() )
-		intrusive_add_ref(data_);
-}
-
-const_string& const_string::operator=(const const_string& rhs) noexcept
-{
-	const_string(rhs).swap( *this );
-	return *this;
-}
 
 const_string::~const_string() noexcept
 {
@@ -95,7 +81,9 @@ bool const_string::equal(const char* rhs, std::size_t len) const noexcept
 
 int const_string::compare(const const_string& rhs) const noexcept
 {
-	if( io_likely( size() == rhs.size() ) )
+	if( !sso() && !rhs.sso() && data_.long_buf.char_buf == rhs.data_.long_buf.char_buf)
+		return 0;
+	else if( io_likely( size() == rhs.size() ) )
 		if( empty() && rhs.empty() )
 			return 0;
 		else

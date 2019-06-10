@@ -189,7 +189,7 @@ inline char source::normalize_line_endings(const char ch)
 
 inline bool source::fetch() noexcept
 {
-	if( io_unlikely( end_ == (pos_+1) ) ) {
+	if( end_ == (pos_+1) ) {
 		last_ = charge();
 	}
 	return pos_ != end_ || error::ok == last_;
@@ -255,19 +255,18 @@ char source::next() noexcept
 void source::read_until_char(byte_buffer& to,const char lookup,const char illegal) noexcept
 {
 	char c;
-	const char stops[4] = {lookup, illegal, EOF, '\0'};
-	for(c = next(); is_not_one(c, stops); c = next() ) {
-		if( !to.put(c) )  {
-			if( to.ln_grow() ) {
-				to.put(c);
-			} else {
+	for( c = next(); !is_one_of(c, lookup, illegal) && c != EOF; c = next() ) {
+		if( !to.put(c) ) {
+			if( !to.ln_grow() ) {
 				last_ = error::out_of_memory;
 				break;
-			}
+			} else
+				to.put(c);
 		}
 	}
 	if( lookup != c ) {
-		last_ = error::illegal_markup;
+		if(EOF == c)
+			last_ = error::illegal_markup;
 		to.clear();
 	}
 }

@@ -31,7 +31,8 @@ namespace detail {
 
 struct long_char_buf_t {
 	std::size_t sso: 1;
-	std::size_t size: (sizeof(std::size_t)*CHAR_BIT - 1);
+std::size_t size:
+	(sizeof(std::size_t)*CHAR_BIT - 1);
 	uint8_t* char_buf;
 };
 
@@ -40,7 +41,8 @@ static constexpr std::size_t SSO_MAX = sizeof(long_char_buf_t) - 2;
 struct short_char_buf_t {
 	bool sso: 1;
 	// assuming MAX_SIZE string length is not possible,
-	uint8_t size: CHAR_BIT - 1;
+uint8_t size:
+	CHAR_BIT - 1;
 	// max val + zero ending char
 	char char_buf[ SSO_MAX+1 ];
 };
@@ -60,13 +62,16 @@ inline void init_short(sso_variant_t& v,const uint8_t size) noexcept
 	v.short_buf.size = size;
 }
 
-inline bool is_short(const sso_variant_t& v) noexcept {
-    return v.short_buf.sso;
+inline bool is_short(const sso_variant_t& v) noexcept
+{
+	return v.short_buf.sso;
 }
 
-inline std::size_t short_size(const sso_variant_t& v) noexcept {
-    return v.short_buf.size;
+inline std::size_t short_size(const sso_variant_t& v) noexcept
+{
+	return v.short_buf.size;
 }
+
 
 } // namespace detail
 
@@ -79,7 +84,7 @@ private:
 
 	// is short string optimized version
 	inline bool sso() const noexcept {
-        return detail::is_short(data_);
+		return detail::is_short(data_);
 	}
 
 public:
@@ -91,9 +96,19 @@ public:
 		data_( {false, 0, nullptr} )
 	{}
 
-	const_string(const const_string& other) noexcept;
+	const_string(const const_string& other) noexcept:
+		data_(other.data_)
+	{
+		// increase reference count if needed
+		// for long buffer
+		if( !empty() && !sso() )
+			intrusive_add_ref(data_);
+	}
 
-	const_string& operator=(const const_string& rhs) noexcept;
+	const_string& operator=(const const_string& rhs) noexcept {
+		const_string(rhs).swap( *this );
+		return *this;
+	}
 
 	/// Movement constructor, default movement semantic
 	const_string(const_string&& other) noexcept:
@@ -103,8 +118,7 @@ public:
 	}
 
 	/// Movement assignment operator, default movement semantic
-	const_string& operator=(const_string&& other) noexcept
-	{
+	const_string& operator=(const_string&& other) noexcept {
 		const_string( std::forward<const_string>(other) ).swap( *this );
 		return *this;
 	}
@@ -138,7 +152,7 @@ public:
 	/// Returns whether this string is pointing on nullptr
 	/// \return whether nullptr string
 	inline bool empty() const noexcept {
-		return 0 == data_.long_buf.size;
+		return !data_.short_buf.sso && 0 == data_.long_buf.size && nullptr == data_.long_buf.char_buf;
 	}
 
 	/// Checks whether this string empty or contains only whitespace characters
@@ -180,8 +194,7 @@ public:
 
 	/// Returns string size in bytes
 	/// \return string size in bytes
-	inline std::size_t size() const noexcept
-	{
+	inline std::size_t size() const noexcept {
 		return empty() ? 0 : sso() ? detail::short_size(data_) : data_.long_buf.size;
 	}
 
@@ -199,15 +212,15 @@ public:
 	}
 
 	bool operator<(const const_string& rhs) const noexcept {
-		return 0 > compare( rhs );
+		return compare( rhs ) < 0;
 	}
 
 	bool operator>(const const_string& rhs) const noexcept {
-		return 0 < compare( rhs );
+		return compare( rhs ) > 0;
 	}
 
 	inline bool equal(const char* rhs) const noexcept {
-		return equal( rhs , nullptr != rhs ? traits_type::length(rhs) : 0 );
+		return equal( rhs, nullptr != rhs ? traits_type::length(rhs) : 0 );
 	}
 
 	bool equal(const char* rhs, std::size_t len) const noexcept;

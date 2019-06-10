@@ -219,7 +219,7 @@ private:
 
 	qname extract_qname(const char* from, std::size_t& len) noexcept;
 	attribute extract_attribute(const char* from, std::size_t& len) noexcept;
-	bool validata_attr_name(const qname& name) noexcept;
+	bool validate_attr_name(const qname& name) noexcept;
 	bool validate_element_name(const qname& name) noexcept;
 	bool validate_xml_name(const cached_string& str, bool attr) noexcept;
 
