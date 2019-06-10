@@ -221,9 +221,6 @@ static engine::s_model load_collada_model(const char* file_path) {
 	s_model cldmdl = prsr.load();
 	s_scene scn = cldmdl->scene();
 
-
-
-
 	engine::s_model ret( new engine::model() );
 
 	for( auto it = scn->cbegin(); it != scn->cend(); ++it) {
@@ -286,7 +283,7 @@ int main(int argc, const char** argv)
 		try {
 			engine::frame_view view(640,480,"Collada model view");
 			 // "tex_cube.dae"
-			engine::s_model md = load_collada_model("tex_cube.dae");
+			engine::s_model md = load_collada_model("d:\\temp\\dae\\Five_Wheeler-(COLLADA_3 (COLLAborative Design Activity)).dae");
 
 			//engine::s_surface qube( new engine::geometry_mesh(COLORED_QUBE_VERTEX,216,CUBE_INDEX,36) );
 

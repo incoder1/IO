@@ -23,18 +23,6 @@ namespace io {
 namespace detail {
 
 // mem_block
-
-mem_block::mem_block(mem_block&& other) noexcept:
-	px_( other.px_ )
-{
-	other.px_ = nullptr;
-}
-
-mem_block::~mem_block() noexcept {
-	if(nullptr != px_)
-		memory_traits::free( px_ );
-}
-
 mem_block mem_block::allocate(const std::size_t size) noexcept {
 	uint8_t *ptr = memory_traits::malloc_array<uint8_t>(size);
 	return (nullptr != ptr) ? mem_block( ptr ) : mem_block();
@@ -49,7 +37,14 @@ mem_block mem_block::wrap(const uint8_t* arr,const std::size_t size) noexcept
 	return mem_block( ptr );
 }
 
-uint8_t* mem_block::reset_ownership() noexcept {
+mem_block::mem_block(mem_block&& other) noexcept:
+	px_( other.px_ )
+{
+	other.px_ = nullptr;
+}
+
+
+inline uint8_t* mem_block::reset_ownership() noexcept {
 	uint8_t* ret = px_;
 	px_ = nullptr;
 	return ret;
@@ -90,21 +85,32 @@ void byte_buffer::move(std::size_t offset) noexcept
 
 bool byte_buffer::realloc(std::size_t size) noexcept
 {
-	uint8_t *new_data = static_cast<uint8_t*>( memory_traits::realloc(arr_.get(), size) );
-	// out of memory
-	if(nullptr == new_data)
-		return false;
-	capacity_ = size;
-	if( !empty() ) {
-		position_ = new_data + memory_traits::distance( arr_.get(), position_ );
-		last_ = new_data + memory_traits::distance(arr_.get(), last_);
-		const std::size_t tail =  memory_traits::distance(last_, (new_data + capacity_) );
-		if(tail > 0)
-			io_zerro_mem(last_, tail );
-	} else {
+	uint8_t *new_data = nullptr;
+	if( empty() ) {
+		if( nullptr == arr_.get() ) {
+			new_data = memory_traits::malloc_array<uint8_t>( size );
+		} else {
+			new_data = static_cast<uint8_t*>( memory_traits::realloc(arr_.get(), size) );
+			io_zerro_mem(position_, size);
+		}
+		if(nullptr == new_data)
+			return false;
+		capacity_ = size;
 		position_ = new_data;
 		last_ = position_ + 1;
-		io_zerro_mem(position_, capacity_);
+	} else {
+		std::size_t pos_offset =  memory_traits::distance( arr_.get(), position_ );
+		std::size_t last_offset = memory_traits::distance( arr_.get(), last_);
+		new_data = static_cast<uint8_t*>( memory_traits::realloc(arr_.get(), size) );
+		// out of memory
+		if(nullptr == new_data)
+			return false;
+		capacity_ = size;
+		position_ = new_data + pos_offset;
+		last_ = new_data + last_offset;
+		const std::size_t tail = size - last_offset;
+		if(tail > 0)
+			io_zerro_mem(last_, tail );
 	}
 	arr_.reset_ownership();
 	arr_ = std::move( detail::mem_block( new_data ) );
@@ -134,7 +140,7 @@ bool byte_buffer::ln_grow() noexcept
 byte_buffer byte_buffer::allocate(std::error_code& ec, std::size_t capacity) noexcept
 {
 	detail::mem_block block( detail::mem_block::allocate(capacity) );
-	if( io_unlikely( !block ) ) {
+	if( io_unlikely( nullptr == block.get() ) ) {
 		ec = std::make_error_code(std::errc::not_enough_memory);
 		return byte_buffer();
 	}

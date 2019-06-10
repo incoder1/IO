@@ -31,30 +31,30 @@ namespace detail {
 class IO_PUBLIC_SYMBOL mem_block {
 	mem_block(const mem_block&) = delete;
 	mem_block& operator=(const mem_block&) = delete;
+
 public:
 
 	constexpr explicit mem_block(uint8_t* const px) noexcept:
 		px_(px)
 	{}
-
 	constexpr mem_block() noexcept:
 		mem_block(nullptr)
 	{}
 
 	mem_block(mem_block&& other) noexcept;
 
-	~mem_block() noexcept;
+	~mem_block() noexcept
+	{
+		if(nullptr != px_)
+			memory_traits::free( px_ );
+	}
 
 	mem_block& operator=(mem_block&& rhs) noexcept {
 		mem_block( static_cast<mem_block&&>(rhs) ).swap( *this );
 		return *this;
 	}
 
-	explicit operator bool() const noexcept {
-		return nullptr != px_;
-	}
-
-	__forceinline uint8_t* get() const noexcept {
+	uint8_t* get() const noexcept {
 		return px_;
 	}
 
@@ -66,11 +66,13 @@ public:
 		std::swap( px_, with.px_);
 	}
 
-	uint8_t* reset_ownership() noexcept;
+	inline uint8_t* reset_ownership() noexcept;
 
 private:
 	uint8_t *px_;
 };
+
+
 
 
 } // namespace detail
@@ -573,7 +575,7 @@ public:
 		if(0 != size) {
 			const std::size_t capacity = size * sizeof(T);
 			detail::mem_block mb = detail::mem_block::wrap( reinterpret_cast<const uint8_t*>(arr), capacity );
-			if( mb ) {
+			if( nullptr != mb.get() ) {
                 byte_buffer ret( std::move(mb), capacity );
 				ret.move(capacity);
 				ret.flip();
