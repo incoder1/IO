@@ -56,20 +56,24 @@ union sso_variant_t {
 	short_char_buf_t short_buf;
 };
 
-inline void init_short(sso_variant_t& v,const uint8_t size) noexcept
-{
-	v.short_buf.sso = true;
-	v.short_buf.size = size;
-}
-
-inline bool is_short(const sso_variant_t& v) noexcept
+constexpr bool is_short(const sso_variant_t& v) noexcept
 {
 	return v.short_buf.sso;
 }
 
-inline std::size_t short_size(const sso_variant_t& v) noexcept
+constexpr std::size_t short_size(const sso_variant_t& v) noexcept
 {
 	return v.short_buf.size;
+}
+
+constexpr const char* short_str(const sso_variant_t& v) noexcept
+{
+	return v.short_buf.char_buf;
+}
+
+constexpr const char* long_str(const sso_variant_t& v) noexcept
+{
+	return reinterpret_cast<char*>( v.long_buf.char_buf + sizeof(std::size_t) );
 }
 
 
@@ -79,12 +83,23 @@ inline std::size_t short_size(const sso_variant_t& v) noexcept
 class IO_PUBLIC_SYMBOL const_string final {
 private:
 
-	static void intrusive_add_ref(detail::sso_variant_t& var) noexcept;
-	static std::size_t intrusive_release(detail::sso_variant_t& var) noexcept;
+	static void intrusive_add_ref(detail::sso_variant_t& var) noexcept {
+		std::size_t volatile *p = reinterpret_cast<std::size_t volatile*>(var.long_buf.char_buf);
+		detail::atomic_traits::inc(p);
+	}
+
+	static std::size_t intrusive_release(detail::sso_variant_t& var) noexcept {
+		std::size_t volatile *p = reinterpret_cast<std::size_t volatile*>(var.long_buf.char_buf);
+		return detail::atomic_traits::dec(p);
+	}
 
 	// is short string optimized version
 	inline bool sso() const noexcept {
 		return detail::is_short(data_);
+	}
+
+	static inline bool carr_empty(const char* rhs, std::size_t len) noexcept {
+		return 0 == len || nullptr == rhs || '\0' == *rhs;
 	}
 
 public:
@@ -97,8 +112,7 @@ public:
 	{}
 
 	const_string(const const_string& other) noexcept:
-		data_(other.data_)
-	{
+		data_(other.data_) {
 		// increase reference count if needed
 		// for long buffer
 		if( !empty() && !sso() )
@@ -112,8 +126,7 @@ public:
 
 	/// Movement constructor, default movement semantic
 	const_string(const_string&& other) noexcept:
-		data_(other.data_)
-	{
+		data_(other.data_) {
 		other.data_ = {false,0,nullptr};
 	}
 
@@ -129,7 +142,13 @@ public:
 	/// \throw never throws, constructs empty string if no free memory left
 	const_string(const char* str, std::size_t length) noexcept;
 
-	~const_string() noexcept;
+	~const_string() noexcept {
+		// check for sso, end empty string
+		// decrement atomic intrusive reference counter
+		// release long buffer if needed
+		if( !empty() && !sso() && 0 == intrusive_release(data_) )
+			memory_traits::free(data_.long_buf.char_buf);
+	}
 
 	/// Deep copy a continues memory block (character array)
 	/// \param first pointer on memory block begin
@@ -168,7 +187,9 @@ public:
 
 	/// Returns raw C-style zero ending string
 	/// \return C-style string, "" if string is empty
-	const char* data() const noexcept;
+	const char* data() const noexcept {
+		return empty() ? "" : sso() ? detail::short_str(data_) : detail::long_str(data_);
+	}
 
 	/// Converts this string to system UCS-2 ( UTF-16 LE or BE)
 	inline std::u16string convert_to_u16() const {
@@ -223,11 +244,29 @@ public:
 		return equal( rhs, nullptr != rhs ? traits_type::length(rhs) : 0 );
 	}
 
-	bool equal(const char* rhs, std::size_t len) const noexcept;
+	bool equal(const char* rhs, const std::size_t len) const noexcept {
+		if(carr_empty(rhs, len) && empty() )
+			return true;
+		else if( !empty() && !carr_empty(rhs, len) && len == size() )
+			return 0 == traits_type::compare( data(), rhs, len );
+		else
+			return false;
+	}
 
 private:
 
-	int compare(const const_string& rhs) const noexcept;
+	int compare(const const_string& rhs) const noexcept {
+		if( !sso() && !rhs.sso() && data_.long_buf.char_buf == rhs.data_.long_buf.char_buf)
+			return 0;
+		else if( empty() && rhs.empty() )
+			return 0;
+		else if( size() == rhs.size() )
+			return traits_type::compare( data(), rhs.data(), size() );
+		else if( size() < rhs.size() )
+			return -1;
+		return 1;
+	}
+
 private:
 	detail::sso_variant_t data_;
 };

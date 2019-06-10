@@ -33,7 +33,7 @@
 				<Option object_output="obj/release-win-gcc-x64/" />
 				<Option type="1" />
 				<Option compiler="gcc" />
-				<Option parameters='&quot;d:\temp\dae\Five_Wheeler-(COLLADA_3 (COLLAborative Design Activity)).dae&quot; ' />
+				<Option parameters='&quot;d:\temp\dae\Five_Wheeler-(COLLADA_3 (COLLAborative Design Activity)).dae&quot;' />
 				<Compiler>
 					<Add option="-flto" />
 					<Add option="-Weffc++" />

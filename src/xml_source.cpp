@@ -257,7 +257,7 @@ void source::read_until_char(byte_buffer& to,const char lookup,const char illega
 	char c;
 	for( c = next(); !is_one_of(c, lookup, illegal) && c != EOF; c = next() ) {
 		if( !to.put(c) ) {
-			if( !to.ln_grow() ) {
+			if( io_unlikely( !to.ln_grow() ) ) {
 				last_ = error::out_of_memory;
 				break;
 			} else

@@ -16,11 +16,12 @@
 					<Add option="-Wnon-virtual-dtor" />
 					<Add option="-Winline" />
 					<Add option="-pedantic" />
+					<Add option="-std=c++11" />
+					<Add option="-std=c11" />
 					<Add option="-pg" />
 					<Add option="-Og" />
 					<Add option="-g" />
 					<Add option="-fexceptions" />
-					<Add option="-std=gnu++17" />
 					<Add option="-minline-stringops-dynamically" />
 					<Add option="-mavx" />
 					<Add option="-mavx2" />

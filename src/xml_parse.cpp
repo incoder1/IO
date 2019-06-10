@@ -20,9 +20,8 @@ static const char* COMMENT = "<!--";
 static const char* CDATA    = "<![CDATA[";
 static const char* DOCTYPE  = "<!DOCTYPE";
 
-static const std::size_t SMALL_BUFF_SIZE = 32;
-static const std::size_t MEDIUM_BUFF_SIZE = 64;
-static const std::size_t HUGE_BUFF_SIZE = 128;
+static constexpr const std::size_t MEDIUM_BUFF_SIZE = 128;
+static constexpr const std::size_t HUGE_BUFF_SIZE = 256;
 
 // unicode constants in digit forms, to handle endians
 static constexpr const int ENDL = 0;
@@ -773,7 +772,8 @@ attribute event_stream_parser::extract_attribute(const char* from, std::size_t& 
 
 bool event_stream_parser::validate_xml_name(const cached_string& str, bool attr) noexcept
 {
-	if( validated_.end() == validated_.find( str.hash() ) ) {
+	std::size_t str_hash = str.hash();
+	if( validated_.end() == validated_.find( str_hash ) ) {
 		error err;
 		if(attr)
 			err = validate_attribute_name( str.data() );
@@ -783,7 +783,7 @@ bool event_stream_parser::validate_xml_name(const cached_string& str, bool attr)
 			assign_error( err );
 			return false;
 		}
-		validated_.insert( str.hash() );
+		validated_.insert( str_hash );
 		return true;
 	}
 	return true;
