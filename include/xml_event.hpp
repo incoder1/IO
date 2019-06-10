@@ -233,12 +233,7 @@ private:
      	}
 	};
 
-
-#ifdef __IO_WINDOWS_BACKEND__
-	typedef std::set<attribute, attr_less, enclave_allocator<attribute> > attrs_storage;
-#else
 	typedef std::set<attribute, attr_less, h_allocator<attribute> > attrs_storage;
-#endif // __IO_WINDOWS_BACKEND__
 
 public:
 	typedef attrs_storage::const_iterator iterator;

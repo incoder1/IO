@@ -357,7 +357,6 @@ byte_buffer event_stream_parser::read_entity() noexcept
 		assign_error( src_->last_error() );
 		return byte_buffer();
 	}
-	putch(ret, '>');
 	ret.flip();
 	return ret;
 }
@@ -662,7 +661,8 @@ const_string event_stream_parser::read_chars() noexcept
 		if( !ret.empty() ) {
 			io_memmove(scan_buf_, "<", 2);
 			ret.flip();
-			return const_string( ret.position().cdata(), ret.length() );
+			// don't add last <
+			return const_string( ret.position().cdata(), ret.length()-1 );
 		}
 		break;
 	case error::illegal_markup:

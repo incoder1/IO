@@ -255,16 +255,15 @@ char source::next() noexcept
 void source::read_until_char(byte_buffer& to,const char lookup,const char illegal) noexcept
 {
 	char c;
-	for( c = next(); !is_one_of(c, lookup, illegal) && c != EOF; c = next() ) {
-		if( !to.put(c) ) {
-			if( io_unlikely( !to.ln_grow() ) ) {
-				last_ = error::out_of_memory;
-				break;
-			} else
-				to.put(c);
+	char stops[4] = {lookup, illegal, EOF, '\0'};
+	do {
+		c = next();
+		if( !to.put(c) && io_unlikely(!to.ln_grow() || !to.put(c) ) ) {
+			last_ = error::out_of_memory;
+			break;
 		}
-	}
-	if( lookup != c ) {
+	} while( is_not_one(c, stops) );
+ 	if( lookup != c ) {
 		if(EOF == c)
 			last_ = error::illegal_markup;
 		to.clear();
