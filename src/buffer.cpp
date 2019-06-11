@@ -23,7 +23,8 @@ namespace io {
 namespace detail {
 
 // mem_block
-mem_block mem_block::allocate(const std::size_t size) noexcept {
+mem_block mem_block::allocate(const std::size_t size) noexcept
+{
 	uint8_t *ptr = memory_traits::malloc_array<uint8_t>(size);
 	return (nullptr != ptr) ? mem_block( ptr ) : mem_block();
 }
@@ -37,14 +38,9 @@ mem_block mem_block::wrap(const uint8_t* arr,const std::size_t size) noexcept
 	return mem_block( ptr );
 }
 
-mem_block::mem_block(mem_block&& other) noexcept:
-	px_( other.px_ )
+
+inline uint8_t* mem_block::reset_ownership() noexcept
 {
-	other.px_ = nullptr;
-}
-
-
-inline uint8_t* mem_block::reset_ownership() noexcept {
 	uint8_t* ret = px_;
 	px_ = nullptr;
 	return ret;
@@ -83,38 +79,50 @@ void byte_buffer::move(std::size_t offset) noexcept
 	last_ = position_ + 1;
 }
 
-bool byte_buffer::realloc(std::size_t size) noexcept
+uint8_t* byte_buffer::new_empty_block(std::size_t size) noexcept
 {
-	uint8_t *new_data = nullptr;
-	if( empty() ) {
-		if( nullptr == arr_.get() ) {
-			new_data = memory_traits::malloc_array<uint8_t>( size );
-		} else {
-			new_data = static_cast<uint8_t*>( memory_traits::realloc(arr_.get(), size) );
-			io_zerro_mem(position_, size);
-		}
-		if(nullptr == new_data)
-			return false;
+	uint8_t* ret;
+	if( nullptr == arr_.get() ) {
+		ret = memory_traits::malloc_array<uint8_t>( size );
+	}
+	else {
+		// realloc works slowly then malloc in case of new memory block
+		ret = static_cast<uint8_t*>( memory_traits::realloc(arr_.get(), size) );
+		io_zerro_mem(ret, size);
+	}
+	if(nullptr != ret) {
 		capacity_ = size;
-		position_ = new_data;
+		position_ = ret;
 		last_ = position_ + 1;
-	} else {
-		std::size_t pos_offset =  memory_traits::distance( arr_.get(), position_ );
-		std::size_t last_offset = memory_traits::distance( arr_.get(), last_);
-		new_data = static_cast<uint8_t*>( memory_traits::realloc(arr_.get(), size) );
-		// out of memory
-		if(nullptr == new_data)
-			return false;
+	}
+	return ret;
+}
+
+uint8_t* byte_buffer::reallocated_block(std::size_t size) noexcept
+{
+	std::size_t pos_offset =  memory_traits::distance( arr_.get(), position_ );
+	std::size_t last_offset = memory_traits::distance( arr_.get(), last_);
+	uint8_t* ret = static_cast<uint8_t*>( memory_traits::realloc(arr_.get(), size) );
+	if(nullptr != ret) {
 		capacity_ = size;
-		position_ = new_data + pos_offset;
-		last_ = new_data + last_offset;
+		position_ = ret + pos_offset;
+		last_ =  ret + last_offset;
 		const std::size_t tail = size - last_offset;
 		if(tail > 0)
 			io_zerro_mem(last_, tail );
 	}
-	arr_.reset_ownership();
-	arr_ = std::move( detail::mem_block( new_data ) );
-	return true;
+	return ret;
+}
+
+
+bool byte_buffer::realloc(std::size_t size) noexcept
+{
+	uint8_t *ret = empty() ? new_empty_block(size) : reallocated_block(size);
+	if( nullptr != ret ) {
+		arr_.reset_ownership();
+		arr_ = std::move( detail::mem_block( ret ) );
+	}
+	return nullptr != ret ;
 }
 
 bool byte_buffer::extend(std::size_t extend_size) noexcept
@@ -130,7 +138,7 @@ bool byte_buffer::exp_grow() noexcept
 
 bool byte_buffer::ln_grow() noexcept
 {
-	static constexpr std::size_t SIZE_BITS = sizeof(std::size_t) * 8;
+	static constexpr std::size_t SIZE_BITS = sizeof(std::size_t) * CHAR_BIT;
 	const std::size_t clz = io_size_t_clz(capacity_);
 	std::size_t cpt_ln2 = SIZE_BITS - (clz + 1);
 	const std::size_t gs = 1 << (--cpt_ln2);

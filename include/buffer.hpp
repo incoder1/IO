@@ -41,7 +41,11 @@ public:
 		mem_block(nullptr)
 	{}
 
-	mem_block(mem_block&& other) noexcept;
+	mem_block(mem_block&& other) noexcept:
+		px_( other.px_ )
+	{
+		other.px_ = nullptr;
+	}
 
 	~mem_block() noexcept
 	{
@@ -123,7 +127,6 @@ public:
 	inline const char* cdata() const noexcept {
 		return reinterpret_cast<char*>(position_);
 	}
-
 
 	inline byte_buffer_iterator& operator++() noexcept {
 		++position_;
@@ -556,6 +559,9 @@ private:
 	}
 
 	bool realloc(std::size_t size) noexcept;
+	uint8_t* new_empty_block(std::size_t size) noexcept;
+	uint8_t* reallocated_block(std::size_t size) noexcept;
+
 
 public:
 	/// Allocate a memory block for buffer from heap
