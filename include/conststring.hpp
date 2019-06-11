@@ -71,7 +71,7 @@ constexpr const char* short_str(const sso_variant_t& v) noexcept
 	return v.short_buf.char_buf;
 }
 
-constexpr const char* long_str(const sso_variant_t& v) noexcept
+inline const char* long_str(const sso_variant_t& v) noexcept
 {
 	return reinterpret_cast<char*>( v.long_buf.char_buf + sizeof(std::size_t) );
 }

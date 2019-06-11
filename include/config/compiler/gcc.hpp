@@ -38,11 +38,11 @@
 #endif // IO_NO_INLINE
 
 #if __BYTE_ORDER__ == __ORDER_LITTLE_ENDIAN__
-#define IO_IS_LITTLE_ENDIAN
+#define IO_IS_LITTLE_ENDIAN  1
 #endif // __ORDER_LITTLE_ENDIAN__
 
 #ifndef  __EXCEPTIONS
-#	define IO_NO_EXCEPTIONS
+#	define IO_NO_EXCEPTIONS 1
 #endif // exception
 
 #if defined(__i386__) || defined(__i486__) || defined(__i586__) || defined(__i686__) || defined(__x86_64__)

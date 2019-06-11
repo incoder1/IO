@@ -117,10 +117,11 @@ Windows 10 | GCC/G++ | 7.2.0 MinGW64 (MSYS2 build) | x86_64
 Windows 10 | GCC/G++ | 7.3.0 MinGW64 (MSYS2 build) | x86_64
 Windows 10 | GCC/G++ | 8.2.0 MinGW64 (MSYS2 build) | x86_64
 Windows 10 | GCC/G++ | 8.3.0 MinGW64 (MSYS2 build) | x86_64
+Windows 10 | GCC/G++ | 9.1.0 MinGW64 (MSYS2 build) | x86_64
 Windows 10 | MS Visual C++ | 17 | x64 
 **GNU/Lunux** | | | 
- Fedora 23 | GCC/G++ | 6.3 | x86_64   
- Fedora 26 | GCC/G++ | 7.1 | x86_64 
+ Fedora 23 | GCC/G++ | 6.3 | x86_64
+ Fedora 26 | GCC/G++ | 7.1 | x86_64
 
 ## BUILDING
  

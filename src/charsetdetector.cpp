@@ -388,7 +388,7 @@ byte_buffer prober::filter_without_english_letters(std::error_code& ec, const ui
 	if (meet_MSB && (cur_ptr > prev_ptr) )
 		ret.put(cur_ptr, cur_ptr);
 	ret.flip();
-	return std::move(ret);
+	return ret;
 }
 
 //do filtering to reduce load to probers
@@ -426,7 +426,7 @@ byte_buffer prober::filter_with_english_letters(std::error_code& ec, const uint8
 	if (!is_in_tag)
 		ret.put(prev_ptr, cur_ptr);
 	ret.flip();
-	return std::move(ret);
+	return ret;
 }
 
 // latin1_prober

@@ -585,7 +585,7 @@ public:
                 byte_buffer ret( std::move(mb), capacity );
 				ret.move(capacity);
 				ret.flip();
-				return std::move( ret );
+				return ret;
 			}
 			ec = std::make_error_code(std::errc::not_enough_memory);
 		}

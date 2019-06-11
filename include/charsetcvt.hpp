@@ -47,37 +47,32 @@ static constexpr const uint8_t B3_MASK    = 0x0F;
 static constexpr const uint8_t B4_MASK    = 0x07;
 
 #ifdef IO_IS_LITTLE_ENDIAN
-static constexpr const unsigned int MBSHIFT = (sizeof(unsigned int) << 3 ) - 8;
+static constexpr const unsigned int MBSHIFT = (sizeof(unsigned int) * CHAR_BIT ) - CHAR_BIT;
 #endif // IO_IS_LITTLE_ENDIAN
 
-inline constexpr char tail(const uint8_t tail) noexcept
+inline constexpr uint8_t tail(const char tail) noexcept
 {
-	return tail & TAIL_MASK;
+	return static_cast<uint8_t>(tail) & TAIL_MASK;
 }
 
-inline constexpr const uint8_t* make_unsigned(const char* str) noexcept
+inline constexpr uint32_t decode2(const char* mb2) noexcept
 {
-	return reinterpret_cast<const uint8_t*>(str);
+	return static_cast<char32_t>( ( ( uint8_t(mb2[0]) & B2_MASK) << SH2) + tail(mb2[1]) );
 }
 
-inline constexpr uint32_t decode2(const uint8_t* mb2) noexcept
+inline constexpr char32_t decode3(const char* mb3) noexcept
 {
-	return static_cast<char32_t>( ( (mb2[0] & B2_MASK) << SH2) + tail(mb2[1]) );
-}
-
-inline constexpr char32_t decode3(const uint8_t* mb3) noexcept
-{
-	return static_cast<char32_t>( ( (mb3[0] & B3_MASK) << SH3)  +
+	return static_cast<char32_t>( ( ( uint8_t(mb3[0]) & B3_MASK) << SH3)  +
 		   ( tail(mb3[1]) << SH2) +
 		   ( tail(mb3[2]) ) );
 }
 
-inline constexpr char32_t decode4(const uint8_t* mb4) noexcept
+inline constexpr char32_t decode4(const char* mb4) noexcept
 {
-	return static_cast<char32_t>( ( (mb4[0] & B4_MASK) << SH4) +
+	return static_cast<char32_t>( ( (uint8_t(mb4[0]) & B4_MASK) << SH4) +
 		   ( tail(mb4[1]) << SH3) +
 		   ( tail(mb4[2]) << SH2) +
-		   tail(mb4[3]) );
+		   tail( mb4[3]) );
 }
 
 }
@@ -127,37 +122,22 @@ using detail::decode4;
 
 // invert byte ordering in case of big endian
 
-inline constexpr char32_t decode2(const uint8_t* mb2) noexcept
+inline constexpr char32_t decode2(const char* mb2) noexcept
 {
 	return io_bswap32( detail::decode2(mb2) );
 }
 
-inline constexpr char32_t decode3(const uint8_t* mb3) noexcept
+inline constexpr char32_t decode3(const char* mb3) noexcept
 {
 	return io_bswap32( detail::decode3(mb3) );
 }
 
-inline constexpr char32_t decode4(const uint8_t* mb4) noexcept
+inline constexpr char32_t decode4(const char* mb4) noexcept
 {
 	return io_bswap32( detail::decode4(mb4) );
 }
 
 #endif // IO_IS_LITTLE_ENDIAN
-
-inline constexpr uint32_t decode2(const char* mb2) noexcept
-{
-	return decode2( detail::make_unsigned(mb2) );
-}
-
-inline constexpr char32_t decode3(const char* mb3) noexcept
-{
-	return decode3( detail::make_unsigned(mb3) );
-}
-
-inline constexpr char32_t decode4(const char* mb4) noexcept
-{
-	return decode3( detail::make_unsigned(mb4) );
-}
 
 /// Converts a UTF-8 single/multibyte character to full UNICODE UTF-32 value,
 /// endianes depends on current CPU

@@ -80,7 +80,7 @@ start_element_event reader::next_tag_begin(std::error_code& ec) noexcept
 		if( parser_->is_error() )
 			parser_->get_last_error(ec);
 		state_ = parser_->scan_next();
-		return std::move(ret);
+		return ret;
 	}
 	return start_element_event();
 }
@@ -113,7 +113,7 @@ end_element_event reader::next_tag_end(std::error_code& ec) noexcept
 		parser_->get_last_error(ec);
 	else
 		state_ = parser_->scan_next();
-	return std::move(ret);
+	return ret;
 }
 
 
