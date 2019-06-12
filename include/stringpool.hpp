@@ -67,7 +67,7 @@ public:
 	/// \return cached_string object or empty cached string if out of memory or s is "" or nullptr
 	/// \throw never throws
 	inline const cached_string get(const char* s) noexcept {
-		return get(s, std::char_traits<char>::length(s) );
+		return get(s, cached_string::traits_type::length(s) );
 	}
 
 	/// Returns count of strings cached by this pool

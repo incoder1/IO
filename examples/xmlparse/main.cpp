@@ -27,12 +27,12 @@
 #include <type_traits>
 
 // Unicode console, if not supported by runtime
-#if defined(__IO_WINDOWS_BACKEND__) && defined(UNICODE)
-#	include <console.hpp>
-#	define NEED_UNICODE_CONSOLE 1
-# else
+//#if defined(__IO_WINDOWS_BACKEND__) && defined(UNICODE)
+//#	include <console.hpp>
+//#	define NEED_UNICODE_CONSOLE 1
+//# else
 #	include <iostream>
-#endif
+//#endif
 
 
 using namespace io;

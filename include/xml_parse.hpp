@@ -153,9 +153,7 @@ public:
 	/// Pre-cache a string like tag or attribute local name in the parser string pool
 	/// \param str a string to pre-cache in the parsing pool
 	/// \return new cached string object
-	inline cached_string precache(const char* str) noexcept {
-		return pool_->get(str);
-	}
+	cached_string precache(const char* str) noexcept;
 
 	/// Parse XML prologue declaration into document_event structure
 	/// \return extracted document_event

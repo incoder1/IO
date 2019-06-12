@@ -200,7 +200,7 @@ static error check_xml_name(const char* tn) noexcept
 		return error::illegal_name;
 	uint32_t utf32c;
 	while( '\0' != *c ) {
-		switch( utf8::char_size(*c) ) {
+		switch( utf8::mblen(c) ) {
 		case io_likely(1):
 			utf32c = static_cast<uint32_t>( char8_traits::to_int_type(*c) );
 			++c;
@@ -218,7 +218,6 @@ static error check_xml_name(const char* tn) noexcept
 			c += 4;
 			break;
 		default:
-			io_unreachable
 			return error::illegal_name;
 		}
 		if( !is_xml_name_char(utf32c) )
@@ -305,6 +304,11 @@ __forceinline void event_stream_parser::putch(byte_buffer& buf, char ch) noexcep
 		assign_error(error::out_of_memory);
 }
 
+cached_string event_stream_parser::precache(const char* str) noexcept {
+	return pool_->get(str);
+}
+
+
 // extract name and namespace prefix if any
 qname event_stream_parser::extract_qname(const char* from, std::size_t& len) noexcept
 {
@@ -318,9 +322,9 @@ qname event_stream_parser::extract_qname(const char* from, std::size_t& len) noe
 	len += start+count;
 	const char* name = from+len;
 	count = extract_local_name(start,name);
-	if(count > 0)
+	if(count > 0) {
 		local_name = pool_->get(name+start, count);
-	else {
+	} else {
 		assign_error(error::illegal_name);
 		return qname();
 	}
@@ -774,11 +778,12 @@ bool event_stream_parser::validate_xml_name(const cached_string& str, bool attr)
 {
 	std::size_t str_hash = str.hash();
 	if( validated_.end() == validated_.find( str_hash ) ) {
+		const char *s = str.data();
 		error err;
 		if(attr)
-			err = validate_attribute_name( str.data() );
+			err = validate_attribute_name( s );
 		else
-			err = validate_tag_name( str.data() );
+			err = validate_tag_name( s );
 		if(error::ok != err ) {
 			assign_error( err );
 			return false;
@@ -817,8 +822,8 @@ start_element_event event_stream_parser::parse_start_element() noexcept
 	byte_buffer buff = read_entity();
 	if( is_error() )
 		return start_element_event();
-
-	bool empty_element = cheq(SOLIDUS, *(buff.last().cdata()-3));
+	constexpr std::size_t SELF_CLOSE_LEN = 3; // len of </ from last
+	bool empty_element = cheq(SOLIDUS, *(buff.last().cdata()-SELF_CLOSE_LEN) );
 	// nesting level for nodes balance
 	if( !empty_element )
 		++nesting_;
@@ -890,7 +895,7 @@ void event_stream_parser::s_instruction_or_prologue() noexcept
 		assign_error(error::illegal_markup);
 		return;
 	}
-	if( is_prologue(scan_buf_+2) ) {
+	if( is_prologue(scan_buf_+SCAN_START) ) {
 		if(state_type::initial != state_.current) {
 			assign_error(error::illegal_prologue);
 			return;

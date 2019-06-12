@@ -126,10 +126,11 @@ source::source(s_read_channel&& src, byte_buffer&& rb) noexcept:
 	col_(1),
 	src_(src),
 	// 1page is minimum
-	rb_( std::move(rb) )
+	rb_( std::move(rb) ),
+	mb_state_( 0 )
 {
-	pos_ = const_cast<char*>(rb_.position().cdata());
-	end_ = const_cast<char*>(rb_.last().cdata());
+	pos_ = rb_.position().cdata();
+	end_ = rb_.last().cdata();
 }
 
 source::~source() noexcept
@@ -155,8 +156,8 @@ error source::charge() noexcept
 {
 	error ec = read_more();
 	if( io_likely( ec == error::ok && !rb_.empty()) ) {
-		pos_ = const_cast<char*>(rb_.position().cdata());
-		end_ = const_cast<char*>(rb_.last().cdata());
+		pos_ = rb_.position().cdata();
+		end_ = rb_.last().cdata();
 	}
 	else
 		pos_ = end_;
@@ -201,55 +202,31 @@ char source::next() noexcept
 	if( io_unlikely( !fetch() ) )
 		return EOF_CH;
 
+	// check for a multi-byte tail byte
+	if( io_unlikely(0 != mb_state_) ) {
+		char ret = *pos_;
+		--mb_state_;
+		++pos_;
+		return ret;
+	}
+
+	unsigned int len = utf8::mblen( pos_ );
 	char ret = *pos_;
 	++pos_;
-
-	// check for a multi-byte tail byte
-	if( io_unlikely(utf8::ismbtail(ret) ) )
-		return ret;
-
-// Compiler specific optimization
-
-// GCC like
-#ifdef __GNUG__
-
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wpedantic"
-
-	switch( utf8::char_size( ret ) ) {
-#ifdef __ICC // case expect not working for intel
-	case 1:
-#else
-	case __builtin_expect(1,true):
-#endif // __ICC
-		return normalize_line_endings( ret );
-	case 2 ... 4:
+	switch( len ) {
+	case io_likely(1):
+		ret = normalize_line_endings( ret );
+		break;
+	case 2: case 3: case 4:
+		mb_state_ = len - 1;
 		++col_;
-		return ret;
+		break;
 	default:
 		last_ = error::illegal_chars;
-		return EOF_CH;
+		ret = EOF_CH;
+		break;
 	}
-
-#pragma GCC diagnostic pop
-
-// MS VС++ Like
-#else
-
-	switch( utf8::char_size( ret ) ) {
-	case 1:
-		return normalize_line_endings( ret );
-	case 2:
-	case 3:
-	case 4:
-		++col_;
-		return ret;
-	default:
-		last_ = error::illegal_chars;
-		return EOF_CH;
-	}
-
-#endif // GCC
+	return ret;
 }
 
 void source::read_until_char(byte_buffer& to,const char lookup,const char illegal) noexcept
@@ -262,8 +239,9 @@ void source::read_until_char(byte_buffer& to,const char lookup,const char illega
 			last_ = error::out_of_memory;
 			break;
 		}
-	} while( is_not_one(c, stops) );
- 	if( lookup != c ) {
+	}
+	while( is_not_one(c, stops) );
+	if( lookup != c ) {
 		if(EOF == c)
 			last_ = error::illegal_markup;
 		to.clear();
@@ -282,13 +260,15 @@ void source::read_until_double_char(byte_buffer& to, const char ch) noexcept
 		if( !to.put(c) )  {
 			if( to.exp_grow() ) {
 				to.put(c);
-			} else {
+			}
+			else {
 				last_ = error::out_of_memory;
 				break;
 			}
 		}
 		i = (i << 8) | static_cast<uint16_t>(c);
-	} while( i != pattern);
+	}
+	while( i != pattern);
 	if( error::ok != last_ || cheq(c,EOF) )
 		to.clear();
 }

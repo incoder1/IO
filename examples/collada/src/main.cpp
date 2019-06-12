@@ -208,6 +208,19 @@ collada::intrusive_array<float> merge_vbo_buffers(
 	return intrusive_array<float>();
 }
 
+void collada_to_engine(engine::s_model& mdl,const collada::s_model& cldmdl)
+{
+	collada::s_scene scn = cldmdl->scene();
+
+	for( collada::scene::const_iterator it = scn->cbegin();
+		  it != scn->cend(); ++it ) {
+		if( ! it->geo_ref.url.blank() ) {
+			collada::s_geometry geo = cldmdl->find_geometry( it->geo_ref.url );
+			std::cout<< "Geometry node name: " << geo->name() << std::endl;
+		}
+	}
+}
+
 static engine::s_model load_collada_model(const char* file_path) {
 
 	io::file dae(file_path);
@@ -215,14 +228,16 @@ static engine::s_model load_collada_model(const char* file_path) {
 	io::s_read_channel src = dae.open_for_read(ec);
 	io::check_error_code(ec);
 
-	using namespace collada;
-	parser prsr( std::move(src) );
+	collada::parser prsr( std::move(src) );
 
-	s_model cldmdl = prsr.load();
-	s_scene scn = cldmdl->scene();
+	// parse
+	collada::s_model cldmdl = prsr.load();
 
+	// load parsed COLLADA model into renderer
 	engine::s_model ret( new engine::model() );
+	collada_to_engine(ret, cldmdl);
 
+	/*
 	for( auto it = scn->cbegin(); it != scn->cend(); ++it) {
 		if( ! it->geo_ref.url.blank() ) {
 
@@ -268,7 +283,7 @@ static engine::s_model load_collada_model(const char* file_path) {
 	 // std::cout << cube_mesh->index()->indices().length() << std::endl;
 
 	// convert collda model, to engine model
-
+	*/
 	return ret;
 }
 
@@ -283,7 +298,7 @@ int main(int argc, const char** argv)
 		try {
 			engine::frame_view view(640,480,"Collada model view");
 			 // "tex_cube.dae"
-			engine::s_model md = load_collada_model("d:\\temp\\dae\\Five_Wheeler-(COLLADA_3 (COLLAborative Design Activity)).dae");
+			engine::s_model md = load_collada_model("/d/temp/dae/test.dae");
 
 			//engine::s_surface qube( new engine::geometry_mesh(COLORED_QUBE_VERTEX,216,CUBE_INDEX,36) );
 

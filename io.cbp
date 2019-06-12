@@ -163,6 +163,7 @@
 					<Add option="-pedantic" />
 					<Add option="-Wall" />
 					<Add option="-std=gnu++17" />
+					<Add option="-fchar8_t" />
 					<Add option="-fno-exceptions" />
 					<Add option="-fno-rtti" />
 					<Add option="-DNDEBUG" />

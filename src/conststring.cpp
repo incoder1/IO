@@ -8,7 +8,9 @@ const_string::const_string(const char* str, std::size_t length) noexcept:
 	data_( {false,0,nullptr} )
 {
 	assert(nullptr != str &&  length > 0  && length < SIZE_MAX );
-	const std::size_t size = ( '\0' != str[length] ) ? length + 1 : length;
+	std::size_t size = length;
+	if( '\0' != str[length-1] )
+		++size;
 	if(size < detail::SSO_MAX) {
 		// Optimize short string, i.e. str size is less then sizeof(char*)+sizeof(std::size_t)
 		data_.short_buf.sso = true;

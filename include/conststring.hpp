@@ -31,8 +31,7 @@ namespace detail {
 
 struct long_char_buf_t {
 	std::size_t sso: 1;
-std::size_t size:
-	(sizeof(std::size_t)*CHAR_BIT - 1);
+	std::size_t size: (sizeof(std::size_t)*CHAR_BIT - 1);
 	uint8_t* char_buf;
 };
 
@@ -41,8 +40,7 @@ static constexpr std::size_t SSO_MAX = sizeof(long_char_buf_t) - 2;
 struct short_char_buf_t {
 	bool sso: 1;
 	// assuming MAX_SIZE string length is not possible,
-uint8_t size:
-	CHAR_BIT - 1;
+    uint8_t size: CHAR_BIT - 1;
 	// max val + zero ending char
 	char char_buf[ SSO_MAX+1 ];
 };

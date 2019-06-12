@@ -37,7 +37,7 @@ const cached_string string_pool::get(const char* s, std::size_t count) noexcept
 
 	if( io_unlikely( (nullptr == s || '\0' == *s || count == 0 ) ) )
 		return cached_string();
-	if( count >= detail::SSO_MAX ) {
+	if( count > detail::SSO_MAX ) {
 
 		const std::size_t str_hash = io::hash_bytes(s,count);
 		pool_type::iterator it = pool_.find( str_hash );

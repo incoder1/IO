@@ -100,12 +100,13 @@ private:
     inline char normalize_line_endings(const char ch);
 private:
     error last_;
-    char *pos_;
-    char *end_;
+    const char *pos_;
+    const char *end_;
     std::size_t row_;
     std::size_t col_;
     s_read_channel src_;
     byte_buffer rb_;
+    uint8_t mb_state_;
 };
 
 } // namespace xml
