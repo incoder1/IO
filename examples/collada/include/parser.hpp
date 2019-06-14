@@ -6,7 +6,7 @@
 
 #include "collada.hpp"
 
-#include <xml_reader.hpp>
+#include <xml_parse.hpp>
 #include <xml_lexcast.hpp>
 
 namespace collada {
@@ -38,12 +38,16 @@ private:
 
 	bool is_element(const io::xml::start_element_event& e,const char* s) noexcept
 	{
-		return is_element(e, xp_->precache(s) );
+		return  e.name().local_name().sso()
+		?  e.name().local_name().equal(s)
+		: is_element(e, xp_->precache(s) );
 	}
 
 	bool is_element(const io::xml::end_element_event& e,const char* s) noexcept
 	{
-		return is_element(e, xp_->precache(s) );
+		return  e.name().local_name().sso()
+		?  e.name().local_name().equal(s)
+		: is_element(e, xp_->precache(s) );
 	}
 
 	bool is_index_data(const io::xml::start_element_event& sev,primitive_type& pt) noexcept;
@@ -88,7 +92,7 @@ private:
 	CACHE_STR(library_effects);
 	CACHE_STR(library_geometries);
 	CACHE_STR(library_visual_scenes);
-	//CACHE_STR(library_lights);
+	CACHE_STR(library_images);
 	//CACHE_STR(library_nodes);
 #undef CACHE_STR
 };

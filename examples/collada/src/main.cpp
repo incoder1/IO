@@ -143,9 +143,9 @@ static io::scoped_arr<float> calc_tangent_vertex()
 	constexpr const std::size_t src_face_size = src_vtx_stride * face_vtx_count;
 	constexpr const std::size_t dst_face_size = dst_vtx_stride * face_vtx_count;
 
-	#ifdef _OPENMP
+#ifdef _OPENMP
 	#pragma omp parallel for simd
-	#endif // _OPENMP
+#endif // _OPENMP
 	for (std::size_t i = 0; i < face_count; i++) {
 		// index of first face
 		std::size_t face_start_idx = i * src_face_size;
@@ -155,7 +155,7 @@ static io::scoped_arr<float> calc_tangent_vertex()
 		for(std::size_t j=0; j < face_vtx_count; j++) {
 			std::size_t didx = (i*dst_face_size) + (j*dst_vtx_stride);
 			std::size_t sidx = (i*src_face_size) + (j*src_vtx_stride);
-			std::memcpy( (dst + didx) , (src + sidx), sizeof(float) * src_vtx_stride);
+			std::memcpy( (dst + didx), (src + sidx), sizeof(float) * src_vtx_stride);
 			std::memcpy( (dst + didx + src_vtx_stride), tan, sizeof(tan) );
 		}
 	}
@@ -167,8 +167,8 @@ static engine::s_surface textured_qube()
 {
 	engine::s_image texture_img = engine::load_png_rgba(io::file("cube_tex2d_512x512.png"));
 	return engine::s_surface( new engine::textured_mesh(
-							  TEXTURED_QUBE_VERTEX, 192,
-							  CUBE_INDEX,36, texture_img ) );
+								  TEXTURED_QUBE_VERTEX, 192,
+								  CUBE_INDEX,36, texture_img ) );
 }
 
 
@@ -180,48 +180,56 @@ static engine::s_surface normal_mapped_qube()
 	return engine::s_surface( new engine::normal_mapped_mesh(vertex.get(), vertex.len(), CUBE_INDEX,36, diff_tex, nm_tex ) );
 }
 
-collada::intrusive_array<float> merge_vbo_buffers(
-							const collada::s_index_data& idx,
-							const collada::s_source& pos,
-							const collada::s_source&  nrm,
-							const collada::s_source& uv)
+struct vertex {
+	float coord[3];
+	float norm[3];
+	float uv[2];
+};
+
+
+void load_mesh(engine::s_model& md, const collada::s_model& src_mod, const collada::mesh* mesh)
 {
 	using namespace collada;
-
-	s_accessor pos_asr = *pos->cbegin();
-	float_array pos_arr = pos->find_float_array( pos_asr->source_id() );
-	std::size_t pos_stride = pos_asr->stride();
-
-	s_accessor nrm_asr = *nrm->cbegin();
-	float_array nrm_arr = nrm->find_float_array( nrm_asr->source_id() );
-	std::size_t nrm_stride = nrm_asr->stride();
-
-	s_accessor uv_asr = *uv->cbegin();
-	float_array uv_arr = uv->find_float_array( uv_asr->source_id() );
-	std::size_t uv_stride = uv_asr->stride();
-
-
-	//std::size_t vbo_len = pos_stride + nrm_stride + uv_stride ;
-
-	//intrusive_array<float> ret(vbo_len);
-
-	return intrusive_array<float>();
+	s_source pos, nrm, uv;
+	for(auto it = mesh->cbegin(); it != mesh->cend(); ++it) {
+		io::const_string acr_id = it->accessor_id;
+		switch(it->type) {
+		case semantic_type::position:
+			pos = mesh->find_souce(acr_id);
+			break;
+		case semantic_type::normal:
+			nrm = mesh->find_souce(acr_id);
+			break;
+		case semantic_type::texcoord:
+			uv = mesh->find_souce(acr_id);
+			break;
+		default:
+			break;
+		}
+	}
+	s_index_data idx = mesh->index();
 }
 
-void collada_to_engine(engine::s_model& mdl,const collada::s_model& cldmdl)
-{
-	collada::s_scene scn = cldmdl->scene();
 
-	for( collada::scene::const_iterator it = scn->cbegin();
-		  it != scn->cend(); ++it ) {
+
+void collada_to_engine(engine::s_model& res,const collada::s_model& src)
+{
+	collada::s_scene src_scene = src->scene();
+
+	for( collada::scene::const_iterator it = src_scene->cbegin();
+			it != src_scene->cend(); ++it ) {
 		if( ! it->geo_ref.url.blank() ) {
-			collada::s_geometry geo = cldmdl->find_geometry( it->geo_ref.url );
+			collada::s_geometry geo = src->find_geometry( it->geo_ref.url );
 			std::cout<< "Geometry node name: " << geo->name() << std::endl;
+			// TODO: dedicated function for each geometry type
+			collada::mesh* src_mesh = reinterpret_cast<collada::mesh*>( geo.get() );
+			load_mesh(res, src, src_mesh);
 		}
 	}
 }
 
-static engine::s_model load_collada_model(const char* file_path) {
+static engine::s_model load_collada_model(const char* file_path)
+{
 
 	io::file dae(file_path);
 	std::error_code ec;
@@ -238,42 +246,6 @@ static engine::s_model load_collada_model(const char* file_path) {
 	collada_to_engine(ret, cldmdl);
 
 	/*
-	for( auto it = scn->cbegin(); it != scn->cend(); ++it) {
-		if( ! it->geo_ref.url.blank() ) {
-
-			s_geometry geo = cldmdl->find_geometry( it->geo_ref.url );
-			std::cout<< "Geometry node name: " << geo->name() << std::endl;
-
-			// TODO: dedicated function for each geometry type
-			s_mesh cldmehs( reinterpret_cast<mesh*>( geo.detach() ) );
-
-			s_source pos, nrm, uv;
-
-			for(auto it = cldmehs->cbegin(); it != cldmehs->cend(); ++it) {
-				switch(it->type) {
-					case semantic_type::position:
-						pos = cldmehs->find_souce(it->accessor_id);
-						break;
-					case semantic_type::normal:
-						nrm = cldmehs->find_souce(it->accessor_id);
-						break;
-					case semantic_type::texcoord:
-						uv = cldmehs->find_souce(it->accessor_id);
-						break;
-					default:
-						break;
-				}
-			}
-
-			std::shared_ptr< collada::effect> mat = cldmdl->find_effect( it->geo_ref.mat_ref.target);
-
-			s_index_data idx = cldmehs->index();
-
-			intrusive_array<float> vbo_data = merge_vbo_buffers(idx,pos, nrm, uv);
-		}
-
-	}
-
 	//engine::s_image texture_img = engine::load_png_rgba(io::file("cube_tex2d_512x512.png"));
 
 	//engine::s_surface ( new engine::textured_mesh(
@@ -297,8 +269,8 @@ int main(int argc, const char** argv)
 	if ( GLFW_TRUE == ::glfwInit() ) {
 		try {
 			engine::frame_view view(640,480,"Collada model view");
-			 // "tex_cube.dae"
-			engine::s_model md = load_collada_model("/d/temp/dae/Five_Wheeler.dae");
+			// "tex_cube.dae"
+			engine::s_model md = load_collada_model("tex_cube.dae");
 
 			//engine::s_surface qube( new engine::geometry_mesh(COLORED_QUBE_VERTEX,216,CUBE_INDEX,36) );
 

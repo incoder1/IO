@@ -91,10 +91,6 @@ private:
 		return detail::atomic_traits::dec(p);
 	}
 
-	// is short string optimized version
-	inline bool sso() const noexcept {
-		return detail::is_short(data_);
-	}
 
 	static inline bool carr_empty(const char* rhs, std::size_t len) noexcept {
 		return 0 == len || nullptr == rhs || '\0' == *rhs;
@@ -147,7 +143,6 @@ public:
 		if( !empty() && !sso() && 0 == intrusive_release(data_) )
 			memory_traits::free(data_.long_buf.char_buf);
 	}
-
 	/// Deep copy a continues memory block (character array)
 	/// \param first pointer on memory block begin
 	/// \param last pointer on block end
@@ -164,6 +159,12 @@ public:
 	/// \param with object to swap with this
 	inline void swap(const_string& with) noexcept {
 		std::swap(data_, with.data_);
+	}
+
+	/// Check this sting is short string optimized version
+	/// \return whether short string optimized
+	inline bool sso() const noexcept {
+		return detail::is_short(data_);
 	}
 
 	/// Returns whether this string is pointing on nullptr
@@ -187,6 +188,10 @@ public:
 	/// \return C-style string, "" if string is empty
 	const char* data() const noexcept {
 		return empty() ? "" : sso() ? detail::short_str(data_) : detail::long_str(data_);
+	}
+
+	inline std::string stdstr() const {
+		return std::string( data(), size() );
 	}
 
 	/// Converts this string to system UCS-2 ( UTF-16 LE or BE)

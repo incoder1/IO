@@ -53,11 +53,21 @@ struct image {
 	io::const_string init_from;
 };
 
+struct texture {
+	io::const_string name;
+	io::const_string texcoord;
+};
+
 enum class shade_type {
 	constant,
 	lambert,
 	phong,
-	blinn_phong
+	blinn_phong,
+	diffuse_texture
+};
+
+struct constant_effect {
+	float color[4];
 };
 
 struct phong_effect {
@@ -81,30 +91,16 @@ struct transparency_effect {
 	bool invert;
 };
 
-struct ad_3dsmax_ext_effect {
-	bool double_sided;
-	bool wireframe;
-	bool faceted;
-};
 
-struct sampler_effect {
-	phong_effect mat;
-	transparency_effect transparent;
-	reflectivity_effect reflect;
-	shade_type shade;
-	ad_3dsmax_ext_effect ext_3max;
-	float bump[4];
-};
-
-union effect {
-	struct __value_t {
-		phong_effect mat;
+struct effect {
+	union __effect_val__ {
+		phong_effect pong;
 		transparency_effect transparent;
 		reflectivity_effect reflect;
-		shade_type shade;
-		ad_3dsmax_ext_effect ext_3max;
+		constant_effect constant;
 	} value;
-	sampler_effect text;
+	shade_type shade;
+	texture tex;
 };
 
 enum class primitive_type: uint8_t {
