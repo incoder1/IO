@@ -80,6 +80,9 @@ private:
 	void parse_visual_scene(s_scene& scn);
 	void library_visual_scenes(s_model& md);
 
+	// images
+	void parse_library_images(s_model& md);
+
 	void throw_parse_error();
 
 private:
@@ -93,7 +96,6 @@ private:
 	CACHE_STR(library_geometries);
 	CACHE_STR(library_visual_scenes);
 	CACHE_STR(library_images);
-	//CACHE_STR(library_nodes);
 #undef CACHE_STR
 };
 

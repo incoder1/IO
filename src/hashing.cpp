@@ -1,6 +1,6 @@
 /*
  *
- * Copyright (c) 2016-2018
+ * Copyright (c) 2016-2019
  * Viktor Gubin
  *
  * Use, modification and distribution are subject to the
@@ -113,12 +113,10 @@ static constexpr uint64_t K1 = 0xB492B66FBE98F273ULL;
 static constexpr uint64_t K2 = 0x9AE16A3B2F90404FULL;
 static constexpr uint64_t K_MUL = 0x9DDFEA08EB382D69ULL;
 
-// works better then std::pair
 struct ullpair {
 	uint64_t first;
 	uint64_t second;
 };
-
 
 static inline uint64_t unaligned_load64(const uint8_t *p) noexcept
 {
@@ -157,16 +155,11 @@ static __forceinline uint32_t fetch_32(const uint8_t *p) noexcept
 }
 #endif // IO_IS_LITTLE_ENDIAN
 
+#ifdef defined(_MSC_VER) || defined(__ICC)
+
 #ifdef _MSC_VER
-
 #	pragma intrinsic(_rotr64)
-
-static __forceinline uint64_t ror64(const uint64_t val,const uint32_t shift) noexcept
-{
-	return _rotr64(val,shift);
-}
-
-#elif defined(__ICC)
+#endif
 
 static __forceinline uint64_t ror64(const uint64_t val,const uint32_t shift) noexcept
 {

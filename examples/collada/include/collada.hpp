@@ -48,11 +48,6 @@ public:
 
 } // namespace detail
 
-struct image {
-	io::const_string id;
-	io::const_string init_from;
-};
-
 struct texture {
 	io::const_string name;
 	io::const_string texcoord;
@@ -404,7 +399,7 @@ class model final:public io::object {
 private:
 	typedef detail::param< std::shared_ptr<effect> >::param_library effect_library_t;
 	typedef detail::param< s_geometry >::param_library geometry_library_t;
-	typedef detail::param< image >::param_library image_library_t;
+	typedef detail::param< io::const_string >::param_library image_library_t;
     // links from material library to the effect library
 	typedef detail::param< io::const_string >::param_library material_library_t;
 public:
@@ -422,6 +417,9 @@ public:
 
 	void add_geometry(io::const_string&& id,s_geometry&& e);
 	s_geometry find_geometry(const io::const_string& id) noexcept;
+
+	void add_image(io::const_string&& id,io::const_string&& img);
+	io::const_string find_image(const io::const_string& id) noexcept;
 
 	s_scene scene() const noexcept {
 		return scene_;

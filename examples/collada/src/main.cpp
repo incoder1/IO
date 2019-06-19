@@ -180,17 +180,12 @@ static engine::s_surface normal_mapped_qube()
 	return engine::s_surface( new engine::normal_mapped_mesh(vertex.get(), vertex.len(), CUBE_INDEX,36, diff_tex, nm_tex ) );
 }
 
-struct vertex {
-	float coord[3];
-	float norm[3];
-	float uv[2];
-};
-
 
 void load_mesh(engine::s_model& md, const collada::s_model& src_mod, const collada::mesh* mesh)
 {
 	using namespace collada;
 	s_source pos, nrm, uv;
+	// loop over the input and look-up sources
 	for(auto it = mesh->cbegin(); it != mesh->cend(); ++it) {
 		io::const_string acr_id = it->accessor_id;
 		switch(it->type) {
@@ -207,7 +202,21 @@ void load_mesh(engine::s_model& md, const collada::s_model& src_mod, const colla
 			break;
 		}
 	}
-	s_index_data idx = mesh->index();
+
+	unsigned_int_array idx = mesh->index()->indices();
+	// TODO: mix collada to VBO
+
+	engine::s_image dtext = engine::load_png_rgba(
+										io::file("cube_tex2d_512x512.png")
+									);
+
+	engine::s_surface tm( new engine::textured_mesh(
+		// TODO: insert
+		nullptr, 0,
+		nullptr, 0,
+		dtext
+		)
+	);
 }
 
 

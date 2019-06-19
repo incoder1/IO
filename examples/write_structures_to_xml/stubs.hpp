@@ -10,19 +10,19 @@
 class config {
 public:
 
-	config():
+	typedef std::chrono::time_point<std::chrono::system_clock>  date_t;
+
+	config() noexcept:
 		id_(0),
 		enabled_(false),
 		time_created_(),
 		name_()
 	{}
 
-	config(uint8_t id, bool enabled, std::chrono::time_point<std::chrono::system_clock>&& tc, std::string&& name) noexcept:
+	config(uint8_t id, bool enabled, date_t&& tc, std::string&& name) noexcept:
 		id_(id),
 		enabled_(enabled),
-		time_created_(
-			std::forward<std::chrono::time_point<std::chrono::system_clock> > (tc)
-		),
+		time_created_( std::forward< date_t > (tc) ),
 		name_(std::forward<std::string>(name))
 	{}
 
@@ -34,11 +34,11 @@ public:
 		return enabled_;
 	}
 
-	inline const std::chrono::time_point<std::chrono::system_clock>& time_created() const noexcept {
+	inline const date_t& time_created() const noexcept {
 		return time_created_;
 	}
 
-	inline const std::chrono::time_point<std::chrono::system_clock>& date_created() const noexcept {
+	inline const date_t& date_created() const noexcept {
 		return time_created_;
 	}
 
@@ -91,16 +91,24 @@ public:
 		return id_;
 	}
 
-	typedef io::xml::complex_type<primary_conf,std::tuple<io::xml::byte_attribute>, std::tuple<> >
+	typedef io::xml::complex_type<
+				 primary_conf,
+				 std::tuple<io::xml::byte_attribute>,
+				 std::tuple<>
+			  >
 			xml_type;
 
 	xml_type to_xml_type() const {
-		return xml_type( "primary-configuration" ,std::make_tuple(io::xml::byte_attribute("id",id_) ), std::make_tuple() );
+		return xml_type( "primary-configuration",
+							std::make_tuple( io::xml::byte_attribute("id",id_) ),
+							std::tuple<>()
+						);
 	}
 
 	static primary_conf from_xml_type(const xml_type* xt) {
 		return primary_conf( std::get<0>(xt->attributes()).value() );
 	}
+
 private:
 	uint8_t id_;
 };

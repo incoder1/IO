@@ -1,6 +1,6 @@
 /*
  *
- * Copyright (c) 2017
+ * Copyright (c) 2017-2019
  * Viktor Gubin
  *
  * Use, modification and distribution are subject to the
@@ -146,21 +146,21 @@ namespace latin1 {
 // undefined
 static constexpr uint32_t UDF = 0;
 //other
-static constexpr uint32_t OTH = 1;
+static constexpr uint8_t OTH = 1;
 // ascii capital letter
-static constexpr uint32_t ASC = 2;
+static constexpr uint8_t ASC = 2;
 // ascii small letter
-static constexpr uint32_t ASS = 3;
+static constexpr uint8_t ASS = 3;
 // accent capital vowel
-static constexpr uint32_t ACV = 4;
+static constexpr uint8_t ACV = 4;
 // accent capital other
-static constexpr uint32_t ACO = 5;
+static constexpr uint8_t ACO = 5;
 // accent small vowel
-static constexpr uint32_t ASV = 6;
+static constexpr uint8_t ASV = 6;
 // accent small other
-static constexpr uint32_t ASO = 7;
+static constexpr uint8_t ASO = 7;
 // total classes
-static constexpr uint32_t CLASS_NUM = 8;
+static constexpr uint8_t CLASS_NUM = 8;
 
 static uint8_t CHAR_TO_CLASS[] = {
 	OTH, OTH, OTH, OTH, OTH, OTH, OTH, OTH,   // 00 - 07

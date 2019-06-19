@@ -44,6 +44,8 @@ void generate_xsd(app_settings& root, std::ostream& cout) {
 	io::console::reset_out_color( io::text_color::white);
 	cout<<"Resulting XSD available in generated-app-config.xsd:"<< std::endl;
 	io::console::reset_out_color( io::text_color::light_blue);
+	cout << PROLOGUE;
+	cout << SCHEMA_BEGIN;
 	rootel.to_xsd(cout);
 	cout << "<xs:element name=\"" << rootel.name() << "\" ";
 	cout << "type=\"" << io::xml::extract_xsd_type_name<app_settings>() << "\"/>";

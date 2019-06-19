@@ -1,6 +1,6 @@
 /*
  *
- * Copyright (c) 2016
+ * Copyright (c) 2016-2019
  * Viktor Gubin
  *
  * Use, modification and distribution are subject to the
@@ -37,13 +37,14 @@ namespace xml {
 
 #ifdef IO_XML_HAS_TO_XSD
 
+constexpr const char* skip_digits(const char* str) noexcept {
+    return *str > '0' && *str < '9' ? skip_digits(++str) : str;
+}
+
 /// Extract a name from typeid, in order it can be used as XSD name
 template<class T>
-const char* extract_xsd_type_name()
-{
-	char *tn = const_cast<char*>( typeid(T).name() );
-	for( ; io_isdigit(*tn); ++tn);
-	return tn;
+constexpr const char* extract_xsd_type_name() noexcept {
+	return skip_digits( typeid(T).name() );
 }
 
 #endif // IO_XML_HAS_TO_XSD
@@ -143,17 +144,17 @@ IO_PUSH_IGNORE_UNUSED_PARAM
 
 struct marshalling_functor {
 public:
-	constexpr marshalling_functor(std::ostream& to, uint8_t shift) noexcept:
-		shift_(shift),
+	constexpr marshalling_functor(std::ostream& to, uint8_t nesting) noexcept:
+		nesting_(nesting),
 		to_(to)
 	{}
 	template<class T>
-	inline constexpr void operator()(const T& t) const
+	inline void operator()(const T& t) const
 	{
-		t.marshal(to_, shift_);
+		t.marshal( to_, nesting_ );
 	}
 private:
-	uint8_t shift_;
+	uint8_t nesting_;
 	std::ostream& to_;
 };
 
@@ -171,7 +172,11 @@ private:
 public:
 	static void gen(const T& t, std::ostream& to)
 	{
-		to << "<xs:element name=\"" << t.name() << "\" type=\"" << extract_xsd_type_name<cplx_mpt>() << "\" />";
+		to << "<xs:element name=\"";
+		to << t.name();
+		to << "\" type=\"";
+		to << extract_xsd_type_name<cplx_mpt>();
+		to << "\" />";
 	}
 };
 
@@ -222,7 +227,11 @@ template<class _tuple_t>
 struct marshaller {
 	static inline void marshal(const _tuple_t& t, std::ostream& to,uint8_t shift)
 	{
-		meta::for_each( const_cast<_tuple_t&&>(t), marshalling_functor(to,shift) );
+		meta::for_each(  const_cast<_tuple_t&&>(t), marshalling_functor(to,shift) );
+	}
+	static inline void marshal(_tuple_t&& t, std::ostream& to,uint8_t shift)
+	{
+		meta::for_each( std::forward<_tuple_t>(t), marshalling_functor(to,shift) );
 	}
 };
 
@@ -230,8 +239,9 @@ template<>
 struct marshaller< std::tuple<> > {
 public:
 	static inline void marshal(const std::tuple<>& t, std::ostream& to,uint8_t shift)
-	{
-	}
+	{}
+	static inline void marshal(std::tuple<>&& t, std::ostream& to,uint8_t shift)
+	{}
 };
 
 #ifdef IO_XML_HAS_TO_XSD
@@ -241,14 +251,17 @@ struct xsd_generator {
 	{
 		meta::for_each( const_cast<_tuple_t&&>(t), xsd_functor(to) );
 	}
+	static inline void generate(_tuple_t&& t, std::ostream& to) {
+		meta::for_each( std::forward<_tuple_t&&>(t), xsd_functor(to) );
+	}
 };
 
 template<>
 struct xsd_generator< std::tuple<> > {
-public:
 	static inline void generate(const std::tuple<>& t, std::ostream& to)
-	{
-	}
+	{}
+	static inline void generate(std::tuple<>&& t, std::ostream& to)
+	{}
 };
 
 #endif // IO_XML_HAS_TO_XSD
@@ -262,6 +275,7 @@ public:
 	typedef V mapped_type;
 	typedef std::false_type is_complex;
 	typedef std::false_type is_list;
+
 	constexpr simple_type(const char* name, V v) noexcept:
 		name_(name),
 		v_(v)
@@ -279,8 +293,14 @@ public:
 
 	inline void to_xsd(std::ostream& to) const
 	{
-		to << (is_attribute ? "<xs:attribute" : "<xs:element" ) << " name=\"" << name_;
-		to <<  "\" type=\"xs:" << XS_TYPE << "\" />";
+		if( is_attribute )
+			to << "<xs:attribute name=\"";
+		else
+			to << "<xs:element name=\"";
+		to << name_;
+		to <<  "\" type=\"xs:";
+		to << XS_TYPE;
+		to << "\" />";
 	}
 #endif // IO_XML_HAS_TO_XSD
 
@@ -680,11 +700,9 @@ public:
 		min_ocurs_(min),
 		max_ocurs_(max),
 		wrapper_name_(wr),
-		has_wrapper_(false),
 		cont_(),
 		ref_count_(0)
 	{
-		has_wrapper_ = nullptr != wrapper_name_ && std::char_traits<char>::length(wrapper_name_) > 0;
 	}
 
 private:
@@ -697,10 +715,8 @@ private:
 	struct mapper<MI,std::false_type> {
 		static inline void map_to(const char* name, const MI& b, const MI& e,container& to)
 		{
-			MI it = b;
-			while(it != e) {
+			for(MI it = b; it != e; ++it) {
 				to.emplace_back( name, false, *it  );
-				++it;
 			}
 		}
 	};
@@ -709,11 +725,9 @@ private:
 	struct mapper<MI,std::true_type> {
 		static inline void map_to(const char* name,const MI& b,const MI& e,container& to)
 		{
-			MI it = b;
-			while(it != e) {
+			 for(MI it = b; it != e; ++it) {
 				to.emplace_back( it->to_xml_type() );
-				++it;
-			}
+			 }
 		}
 	};
 
@@ -724,12 +738,10 @@ private:
 	// simple type unmapper
 	template<class MC>
 	struct unmapper<MC, std::false_type > {
-		static inline void unmap_to(iterator b, iterator e, MC& to)
+		static inline void unmap_to(const iterator& b,const iterator& e, MC& to)
 		{
-			iterator it = b;
-			while( it != e) {
+			for(MC it = b; it != e; ++it ) {
 				to.emplace_back( it->value() );
-				++it;
 			}
 		}
 	};
@@ -737,13 +749,10 @@ private:
 	// complex type unmapper
 	template<class MC>
 	struct unmapper<MC, std::true_type> {
-		static inline void unmap_to(iterator b, iterator e, MC& to)
+		static inline void unmap_to(const iterator& b,const iterator& e, MC& to)
 		{
-			iterator it = b;
-			while( it != e) {
-				//element_type el = *it;
+			for(iterator it = b; it != e; ++it ) {
 				to.emplace_back( mapped_type::from_xml_type(*it) );
-				++it;
 			}
 		}
 	};
@@ -760,11 +769,53 @@ private:
 			delete i;
 		}
 	}
+
+	class wrapper_fmt {
+		wrapper_fmt(const wrapper_fmt&) = delete;
+		wrapper_fmt& operator=(const wrapper_fmt&) = delete;
+	public:
+		wrapper_fmt(const char* wrapper,uint8_t shift,std::ostream& to):
+			wrapper_(wrapper),
+			nesting_(shift),
+            to_(to)
+		{
+			if(has_wrapper()) {
+				pretty_begin(to_, nesting_);
+				to_ << '<' << wrapper_ << '>';
+				pretty_end(to_, nesting_);
+			}
+		}
+		~wrapper_fmt() noexcept {
+            if( has_wrapper() ) {
+				pretty_begin(to_,nesting_);
+				to_<< "</" <<  wrapper_ << '>';
+				pretty_end(to_,nesting_);
+            }
+		}
+	private:
+		bool has_wrapper() const noexcept {
+			return nullptr != wrapper_ && '\0' != *wrapper_;
+		}
+	private:
+		const char* wrapper_;
+		uint8_t nesting_;
+		std::ostream& to_;
+	};
+
 public:
 
-	inline void add_element(element_type&& e)
+	inline void add_element(element_type&& e) noexcept
 	{
 		cont_.emplace_back( std::forward<element_type>(e) );
+	}
+
+	inline void add_element(const element_type& e) noexcept {
+		cont_.push_back( e );
+	}
+
+	template<typename... _Args>
+	inline void add_element(_Args&&... __args) noexcept {
+		cont_.emplace_back( std::forward<_Args>(__args)... );
 	}
 
 	template<class _Iterator>
@@ -779,35 +830,22 @@ public:
 	void unmap(_STL_container& to) const
 	{
 		typedef typename element_type::is_complex complex_t;
-		typedef unmapper<_STL_container,complex_t> umpr;
-		umpr::unmap_to( cont_.cbegin(), cont_.cend(), to);
+		unmapper<_STL_container,complex_t>::unmap_to( cont_.cbegin(), cont_.cend(), to);
 	}
 
 	void marshal(std::ostream& to, uint8_t shift) const
 	{
-		uint8_t embd_shift = shift >= 1 ? shift : 0;
-		if(has_wrapper_) {
-			pretty_begin(to,shift);
-			to << '<' << wrapper_name_ << '>';
-			pretty_end(to,shift);
-			if(embd_shift > 0 ) ++embd_shift;
-		}
-
-
-		for(iterator it = cont_.cbegin(); it != cont_.cend(); ++it)
-			it->marshal(to, embd_shift);
-
-		if(has_wrapper_) {
-			pretty_begin(to,shift);
-			to << "</" << wrapper_name_ << '>';
-			pretty_end(to,shift);
+		wrapper_fmt fmt(wrapper_name_, shift, to);
+		const uint8_t nesting = shift >= 1 ? shift+1 : 0;
+		for(auto it: cont_) {
+			it.marshal(to, nesting);
 		}
 	}
 
 #ifdef IO_XML_HAS_TO_XSD
 private:
 
-	static bool holding_complex()
+	static constexpr bool holding_complex() noexcept
 	{
 		typedef typename element_type::is_complex is_cmp;
 		return std::is_same<is_cmp, std::true_type >::value;
@@ -815,9 +853,9 @@ private:
 
 	static const char* holding_type()
 	{
-		if( holding_complex() )
-			return extract_xsd_type_name<mapped_type>();
-		return element_type::XS_TYPE;
+		return holding_complex()
+			? extract_xsd_type_name<mapped_type>()
+			: element_type::XS_TYPE;
 	}
 
 	inline const char* holding_element() const
@@ -828,37 +866,46 @@ private:
 
 	void gen_xsd_type_with_wrapper(std::ostream& to) const
 	{
-		to << "<xs:element name=\"" << wrapper_name_ << "\">";
+		to << "<xs:element name=\"";
+		to << wrapper_name_;
+		to << "\">";
 		to << "<xs:complexType><xs:sequence>";
-		to << "<xs:element name=\"" << holding_element() << "\" ";
-		to << "type=\"" << holding_type() << "\" ";
-		to << "minOccurs=\"" << min_ocurs_ << "\" ";
-		to << "maxOccurs=\"";
-		if(max_ocurs_ > 0)
-			to << max_ocurs_ << "\" ";
-		else
-			to<< "unbounded\"";
-		to << "/></xs:sequence></xs:complexType></xs:element>";
+		to << "<xs:element name=\"";
+		to << holding_element();
+		to << "\" type=\"";
+		to << holding_type();
+		to << "\" minOccurs=\"";
+		to << min_ocurs_;
+		to << "\"  maxOccurs=\"";
+		if(max_ocurs_ > 0) {
+			to << max_ocurs_;
+		} else {
+			to<< "unbounded";
+		}
+		to << "\" /></xs:sequence></xs:complexType></xs:element>";
 	}
 
 	void make_xs_ref(std::ostream& to) const
 	{
-		to << "<xs:element name=\"" << holding_element() << "\" ";
-		to << "type=\"" << holding_type() << "\" ";
-		to << "minOccurs=\"" << min_ocurs_ << "\" ";
-		to << "maxOccurs=\"";
+		to << "<xs:element name=\"";
+		to << holding_element();
+		to << "\" type=\"";
+		to << holding_type();
+		to << "\"  minOccurs=\"";
+		to << min_ocurs_;
+		to << "\" maxOccurs=\"";
 		if(max_ocurs_ > 0)
-			to << max_ocurs_ << "\" ";
+			to << max_ocurs_;
 		else
-			to<< "unbounded\"";
-		to << "/>";
+			to<< "unbounded";
+		to << "\" />";
 	}
 
 public:
 
 	void to_xsd(std::ostream& to) const
 	{
-		if(has_wrapper_)
+		if( nullptr != wrapper_name_ && '\0' != *wrapper_name_ )
 			gen_xsd_type_with_wrapper(to);
 		else
 			make_xs_ref(to);
@@ -881,7 +928,6 @@ private:
 	uint32_t min_ocurs_;
 	uint32_t max_ocurs_;
 	const char* wrapper_name_;
-	bool has_wrapper_;
 	container cont_;
 	std::atomic_size_t ref_count_;
 };
@@ -977,8 +1023,8 @@ typedef detail::simple_type<
 
 /// XML/XSD complex type template
 /// \param M mapped type - i.e. domain object class or temp stub
-/// \param A std::typle stores argument XML/XSD types
-/// \param E std::typle stores embeded elements XML/XSD types
+/// \param A std::tuple stores argument XML/XSD types
+/// \param E std::tuple stores nesting elements XML/XSD types
 template<class M, class A, class E>
 class complex_type {
 private:
@@ -993,13 +1039,13 @@ public:
 	typedef std::false_type  is_list;
 
 	/// Constructs new XML/XSD complex type
-	/// \param att std::typle stores argument XML/XSD types
-	/// \param el std::typle stores embeded elements XML/XSD types
+	/// \param att std::tuple stores argument XML/XSD types
+	/// \param el std::tuple stores nesting elements XML/XSD types
 	complex_type(const char* name, attribute_types&& att,element_types&& el) noexcept:
 		self_( new impl_t(name, std::forward<A>(att), std::forward<E>(el) ) )
 	{}
 
-	/// Marshal this object into output stream recursive
+	/// Marshal this object into output stream recursively
 	/// \param to output stream to marshal into
 	/// \param shift pretty print shift, 0 - no pretty print i.e. single line
 	void marshal(std::ostream& to,const uint8_t shift) const

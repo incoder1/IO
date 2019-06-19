@@ -173,4 +173,16 @@ std::shared_ptr<effect> model::find_material(const io::const_string& id) const n
 	return std::shared_ptr<effect>();
 }
 
+void model::add_image(io::const_string&& id,io::const_string&& img)
+{
+	images_.emplace( std::forward<io::const_string>(id), std::forward<io::const_string>(img) );
+}
+
+io::const_string model::find_image(const io::const_string& id) noexcept
+{
+	image_library_t::const_iterator it = images_.find( id );
+	return ( images_.end() != it ) ? it->second : io::const_string();
+}
+
+
 } // namespace collada

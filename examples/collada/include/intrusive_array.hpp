@@ -28,9 +28,8 @@ public:
 		length_(length),
 		mem_(nullptr)
 	{
-		static_assert(
-			!std::is_void<T>::value && (std::is_copy_assignable<T>::value || std::is_move_assignable<T>::value),
-						"Copy or move assignable type expected. Void is not allowed");
+		static_assert( std::is_copy_assignable<T>::value || std::is_move_assignable<T>::value,
+						"Copy or move assignable type expected.");
 		mem_ = io::memory_traits::malloc_array<uint8_t>(sizeof(std::size_t) + ( length_ * sizeof(T) ) );
 		if(nullptr != mem_)
 			intrusive_add_ref(mem_);

@@ -44,22 +44,22 @@ static std::size_t parse_sizet(const io::const_string& str)
 }
 
 
-static bool parse_bool(const io::const_string& val)
-{
-	typedef io::xml::lexical_cast_traits<bool> bool_cast;
-	const char* str =  val.data();
-	while( std::isspace(*str) )
-		++str;
-	switch(*str) {
-	case '\0':
-	case '0':
-		return false;
-	case '1':
-		return true;
-	default:
-		return bool_cast::from_string(str, &str);
-	}
-}
+//static bool parse_bool(const io::const_string& val) noexcept
+//{
+//	typedef io::xml::lexical_cast_traits<bool> bool_cast;
+//	const char* str =  val.data();
+//	while( std::isspace(*str) )
+//		++str;
+//	switch(*str) {
+//	case '\0':
+//	case '0':
+//		return false;
+//	case '1':
+//		return true;
+//	default:
+//		return bool_cast::from_string(str, &str);
+//	}
+//}
 
 static std::size_t parse_string_array(const io::const_string& val,const std::size_t size, float* const data)
 {
@@ -124,11 +124,9 @@ static io::const_string get_attr(const io::xml::start_element_event& sev, const 
 	auto  attr = sev.get_attribute("",name);
 	if( !attr.second  ) {
 		// TODO: add error row/col
-		std::string msg("attribute ");
-		msg.append(name);
-		msg.append(" of ");
-		msg.append( sev.name().local_name().stdstr() );
-		msg.append(" element is missing");
+		std::string msg = sev.name().local_name().stdstr();
+		msg.append( name );
+		msg.append(" attribute is mandatory");
 		throw std::runtime_error( msg );
 	}
 	return sev.get_attribute("",name).first;
@@ -373,14 +371,14 @@ void parser::parse_effect(effect& ef)
 			else if( is_element(sev,"diffuse") ) {
 				sev = to_next_tag_start(state);
 				check_eod(state,ERR_MSG);
-				// this mind be a diffuse texture and not a material
-				if( !is_element(sev, "texture") ) {
-					// this is material values
-					parse_vec4( get_tag_value(), ef.value.pong.diffuse );
-				} else {
+				// this is diffuse texture and not a material
+				if( is_element(sev, "texture") ) {
 					ef.shade = shade_type::diffuse_texture;
 					ef.tex.name = get_attr(sev,"texture");
 					ef.tex.texcoord = get_attr(sev,"texcoord");
+				} else {
+					// this is material values
+					parse_vec4( get_tag_value(), ef.value.pong.diffuse );
 				}
 			}
 			else if( is_element(sev,"emission") ) {
@@ -447,10 +445,8 @@ void parser::parse_effect_library(s_model& md)
 			check_eod(state, ERR_MSG);
 			if( is_element(sev,"effect") ) {
 				effect ef;
-				std::memset(&ef, 0, sizeof(ef) );
-				io::const_string id = sev.get_attribute("","id").first;
 				parse_effect( ef );
-				md->add_effect( std::move(id), std::move(ef) );
+				md->add_effect( get_attr(sev,"id"), std::move(ef) );
 			}
 		}
 
@@ -474,16 +470,11 @@ void parser::parse_library_materials(s_model& md)
 			sev = xp_->parse_start_element();
 			check_eod(state, ERR_MSG);
 			if( is_element(sev,"material") ) {
-				auto attr = sev.get_attribute("","id");
-				if(!attr.second)
-					throw std::runtime_error("material id attribute is mandatory");
-				material_id = attr.first;
+				material_id = get_attr(sev,"id");
 			}
 			else if( is_element(sev,"instance_effect") ) {
-				auto attr = sev.get_attribute("","url");
-				if(!attr.second)
-					throw std::runtime_error("instance_effect url attribute is mandatory");
-				io::const_string url = !attr.first.empty() ? io::const_string(attr.first.data()+1, attr.first.size()-1) : attr.first;
+				io::const_string urlref = get_attr(sev,"url");
+				io::const_string url = io::const_string(urlref.data()+1, urlref.size()-1);
 				md->add_material_effect_link( std::move(material_id), std::move(url) );
 			}
 		}
@@ -698,25 +689,19 @@ void parser::parse_mesh(const s_mesh& m)
 			sev = xp_->parse_start_element();
 			check_eod(state, ERR_MSG);
 			if( is_element(sev, "source") ) {
-				io::const_string id = sev.get_attribute("","id").first;
+				io::const_string id = get_attr(sev,"id");
 				s_source src( new source() );
-				parse_source(src);
+				parse_source( src );
 				m->add_source( std::move(id), std::move(src) );
 			}
 			else if( is_element(sev, "vertices") ) {
-				m->set_vertex_id( std::move(sev.get_attribute("","id").first) );
+				m->set_vertex_id( get_attr(sev,"id") );
 				parse_vertex_data(m);
 			}
 			else if( is_index_data(sev,pt) ) {
 				s_index_data idx = m->index();
 				idx->set_primitives(pt);
-				auto attr = sev.get_attribute("","count");
-				if(!attr.second) {
-					std::string msg( sev.name().local_name().data() );
-					msg.append("  count attribute is mandatory");
-					throw std::runtime_error(msg);
-				}
-				idx->set_count(  parse_sizet( attr.first ) );
+				idx->set_count( parse_sizet( get_attr(sev,"count") ) );
 			}
 			else if( is_element(sev,"input") ) {
 				m->add_input_channel( parse_input(sev) );
@@ -746,11 +731,8 @@ void parser::pase_geometry_library(s_model& md)
 			if( sev.empty_element() )
 				continue;
 			else if( is_element(sev,"geometry") ) {
-				auto attr = sev.get_attribute("","id");
-				if( !attr.second )
-					throw std::runtime_error("geometry id argument is mandatory");
-				geometry_id = attr.first;
-				attr = sev.get_attribute("","name");
+				geometry_id = get_attr(sev,"id");
+				auto attr = sev.get_attribute("","name");
 				geometry_name = attr.second ? attr.first : io::const_string(geometry_id);
 			}
 			else if( is_element(sev,"mesh") ) {
@@ -776,23 +758,16 @@ void parser::parse_node(node& nd)
 			sev = xp_->parse_start_element();
 			check_eod(state, ERR_MSG);
 			if( is_element(sev,"instance_geometry") ) {
-				auto attr = sev.get_attribute("","url");
-				if(!attr.second)
-					throw std::runtime_error("instance_geometry url attribute is mandatory");
-				io::const_string url = attr.first;
+				io::const_string url = get_attr(sev,"url");
 				nd.geo_ref.url = io::const_string( url.data()+1, url.size() - 1);
-				attr = sev.get_attribute("","name");
+				auto attr = sev.get_attribute("","name");
 				if( attr.second )
 					nd.geo_ref.name.swap( attr.first );
 			}
 			else if(is_element(sev,"instance_material") ) {
-				auto attr = sev.get_attribute("","target");
-				if( !attr.second )
-					throw std::runtime_error("instance_material target attribute is mandatory");
-				io::const_string target( attr.first.data()+1, attr.first.size() -1);
-				nd.geo_ref.mat_ref.target.swap( target );
-				attr = sev.get_attribute("","symbol");
-				nd.geo_ref.mat_ref.symbol.swap( attr.first );
+				io::const_string tref = get_attr(sev,"target");
+				nd.geo_ref.mat_ref.target = io::const_string( tref.data()+1, tref.size() -1);
+				nd.geo_ref.mat_ref.symbol = get_attr(sev,"symbol");
 			}
 		}
 	}
@@ -813,11 +788,8 @@ void parser::parse_visual_scene(s_scene& scn)
 			check_eod(state, ERR_MSG);
 			if( is_element(sev, "node") ) {
 				node nd;
-				auto attr = sev.get_attribute("","id");
-				if(!attr.second)
-					throw std::runtime_error("node id attribute is mandatory");
-				nd.id = std::move(attr.first);
-				attr = sev.get_attribute("","name");
+				nd.id = get_attr(sev, "id");
+				auto attr = sev.get_attribute("","name");
 				if(attr.second)
 					nd.name = std::move(attr.first);
 				attr = sev.get_attribute("","type");
@@ -833,6 +805,29 @@ void parser::parse_visual_scene(s_scene& scn)
 	while( !is_end_element(et, "visual_scene") );
 }
 
+void parser::parse_library_images(s_model& md) {
+	static const char* ERR_MSG = "library_image is unbalanced";
+	io::xml::state_type state;
+	io::xml::event_type et;
+	io::xml::start_element_event sev;
+	do {
+		et = to_next_tag_event(state);
+		check_eod(state, ERR_MSG);
+		if( is_start_element(et) ) {
+			sev = xp_->parse_start_element();
+			check_eod(state, ERR_MSG);
+			if( is_element(sev, "image") ) {
+				io::const_string id = get_attr(sev, "id");
+				sev = to_next_tag_start(state);
+				check_eod(state, ERR_MSG);
+				if( !is_element(sev,"init_from") )
+					throw std::runtime_error("init_from element expected");
+				md->add_image( std::move(id), get_tag_value() );
+			}
+		}
+	} while( !is_end_element(et, library_images_) );
+}
+
 void parser::library_visual_scenes(s_model& md)
 {
 	static const char* ERR_MSG = "library_visual_scenes is unbalanced";
@@ -846,15 +841,7 @@ void parser::library_visual_scenes(s_model& md)
 			sev = xp_->parse_start_element();
 			check_eod(state, ERR_MSG);
 			if( is_element(sev,"visual_scene") ) {
-				io::const_string id;
-				io::const_string name;
-				auto attr = sev.get_attribute("","id");
-				if(attr.second)
-					id = std::move(attr.first);
-				attr = sev.get_attribute("","name");
-				if(attr.second)
-					name = std::move(attr.first);
-				s_scene scn( new scene( std::move(id), std::move(name) ) );
+				s_scene scn( new scene( get_attr(sev,"id"), sev.get_attribute("","name").first ) );
 				parse_visual_scene(scn);
 				md->set_scene( std::move(scn) );
 			}
@@ -869,25 +856,16 @@ s_model parser::load()
 	s_model ret( new model() );
 	io::xml::state_type state;
 	io::xml::start_element_event e = to_next_tag_start(state);
-	//check_eod(state, "Expecting COLLADA model file");
-	//if( !e.name().local_name().equal("COLLADA") )
-	//	throw std::runtime_error("Expecting COLLADA model file");
+	check_eod(state, "Expecting COLLADA model file");
+	if( !e.name().local_name().equal("COLLADA") )
+		throw std::runtime_error("Expecting COLLADA model file");
 	do {
 		e = to_next_tag_start(state);
 		// nothing to do
 		if( e.empty_element() )
 			continue;
-//		if( is_element(e,library_animations_) ) {
-//			// not implemented
-//			skip_element(e);
-//		}
-//		else if( is_element(e,library_animation_clips_) ) {
-//			// not implemented
-//			skip_element(e);
-//		}
 		else if( is_element(e,library_images_) ) {
-			// TODO: implement
-			skip_element(e);
+			parse_library_images(ret);
 		}
 		else if( is_element(e,library_materials_) ) {
 			parse_library_materials(ret);
@@ -900,10 +878,6 @@ s_model parser::load()
 		}
 		else if( is_element(e,library_visual_scenes_) ) {
 			library_visual_scenes(ret);
-//		}
-//		else if( is_element(e,library_nodes_) ) {
-//			// TODO: implement
-//			skip_element(e);
 		}
 	}
 	while( state != io::xml::state_type::eod );
@@ -918,11 +892,13 @@ void parser::throw_parse_error()
 {
 	std::error_code ec;
 	xp_->get_last_error(ec);
-	std::stringstream msg;
-	msg << "XML error [";
-	msg << xp_->row() << ',' << xp_->col() << "] ";
-	msg << ec.message();
-	throw std::runtime_error( msg.str() );
+	std::string msg("XML error [");
+	msg.append( std::to_string( xp_->row() ) );
+	msg.push_back(',');
+	msg.append( std::to_string( xp_->col() ) );
+	msg.append("] ");
+	msg.append( ec.message() );
+	throw std::runtime_error( msg );
 }
 
 parser::~parser() noexcept
