@@ -64,7 +64,7 @@ std::size_t conv_read_channel::read(std::error_code& ec,uint8_t* const buff, std
 	std::size_t read;
 	uint8_t** cvt_it = const_cast<uint8_t**>( &buff );
 	uint8_t* rb_it[1];
-	while( !ec && left != 0 ) {
+	while( !ec && left > 0 ) {
 		read = src_->read(ec, rdbuf, rdbuflen);
 		if(0 == read)
 			break;

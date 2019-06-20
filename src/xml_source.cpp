@@ -170,6 +170,7 @@ inline char source::normalize_line_endings(const char ch)
 {
 	switch( ch ) {
 	case CR:
+		// according xml standard \r\n should be interpret as single \n
 		if( io_likely( NL == *pos_ ) ) {
 			++pos_;
 			++row_;
@@ -190,9 +191,8 @@ inline char source::normalize_line_endings(const char ch)
 
 inline bool source::fetch() noexcept
 {
-	if( end_ == (pos_+1) ) {
+	if( end_ == (pos_+1) )
 		last_ = charge();
-	}
 	return pos_ != end_ || error::ok == last_;
 }
 
@@ -248,9 +248,17 @@ void source::read_until_char(byte_buffer& to,const char lookup,const char illega
 	}
 }
 
+static uint16_t pack_word(uint16_t w, char c) noexcept {
+#ifdef IO_IS_LITTLE_ENDIAN
+	return (w << CHAR_BIT) | static_cast<uint16_t>(c);
+#else
+	return (w >> CHAR_BIT) | static_cast<uint16_t>(ch);
+#endif // IO_IS_LITTLE_ENDIAN
+}
+
 void source::read_until_double_char(byte_buffer& to, const char ch) noexcept
 {
-	const uint16_t pattern = (static_cast<uint16_t>(ch) << 8) | static_cast<uint16_t>(ch);
+	const uint16_t pattern = pack_word(static_cast<uint16_t>(ch), ch);
 	char c;
 	uint16_t i = 0;
 	do {
@@ -266,7 +274,7 @@ void source::read_until_double_char(byte_buffer& to, const char ch) noexcept
 				break;
 			}
 		}
-		i = (i << 8) | static_cast<uint16_t>(c);
+		i = pack_word(i,c);
 	}
 	while( i != pattern);
 	if( error::ok != last_ || cheq(c,EOF) )

@@ -27,12 +27,12 @@
 #include <type_traits>
 
 // Unicode console, if not supported by runtime
-//#if defined(__IO_WINDOWS_BACKEND__) && defined(UNICODE)
-//#	include <console.hpp>
-//#	define NEED_UNICODE_CONSOLE 1
-//# else
+#if defined(__IO_WINDOWS_BACKEND__) && defined(UNICODE)
+#	include <console.hpp>
+#	define NEED_UNICODE_CONSOLE 1
+# else
 #	include <iostream>
-//#endif
+#endif
 
 
 using namespace io;
@@ -86,10 +86,11 @@ static void print_start_element(std::ostream& stm, const xml::s_event_stream_par
 			stm<<"\tattributes:\n";
 			std::for_each(e.attr_begin(), e.attr_end(), [&stm] (const xml::attribute& attr) {
 				io::xml::qname attr_name = attr.name();
+				stm << "\t\t";
 				if( attr_name.has_prefix() )
-					stm << "\t\t prefix: " << attr_name.prefix() << " name: " << attr_name.local_name() << " value: " << attr.value() << '\n';
-				else
-					stm << "\t\tname: " << attr_name.local_name() << " value: " << attr.value() << '\n';
+					stm << "prefix: " << attr_name.prefix() << ' ';
+				stm << "name: " << attr_name.local_name();
+				stm << "value: " << attr.value() << '\n';
 			} );
 		}
 		// flush to console
