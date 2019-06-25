@@ -86,15 +86,11 @@ private:
 		detail::atomic_traits::inc(p);
 	}
 
-	static std::size_t intrusive_release(detail::sso_variant_t& var) noexcept {
-		std::size_t volatile *p = reinterpret_cast<std::size_t volatile*>(var.long_buf.char_buf);
-		return detail::atomic_traits::dec(p);
-	}
-
-
 	static inline bool carr_empty(const char* rhs, std::size_t len) noexcept {
 		return 0 == len || nullptr == rhs || '\0' == *rhs;
 	}
+
+	static void long_buf_release(detail::sso_variant_t& var) noexcept;
 
 public:
 
@@ -136,13 +132,12 @@ public:
 	/// \throw never throws, constructs empty string if no free memory left
 	const_string(const char* str, std::size_t length) noexcept;
 
-	~const_string() noexcept {
-		// check for sso, end empty string
-		// decrement atomic intrusive reference counter
-		// release long buffer if needed
-		if( !empty() && !sso() && 0 == intrusive_release(data_) )
-			memory_traits::free(data_.long_buf.char_buf);
+	~const_string() noexcept
+	{
+		if( !empty() && !sso() )
+			long_buf_release(data_);
 	}
+
 	/// Deep copy a continues memory block (character array)
 	/// \param first pointer on memory block begin
 	/// \param last pointer on block end

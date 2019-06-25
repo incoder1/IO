@@ -187,39 +187,53 @@
 
 namespace io {
 namespace detail {
+	
+#ifdef _M_X64
+// 64 bit instruction set
+#	ifdef _M_ARM64
+#		pragma intrinsic(_InterlockedIncrement64_nf)
+#		pragma intrinsic(_InterlockedDecrement64_rel)
+#		define io_atomic_inc( __x ) _InterlockedIncrement64_nf( (__x) )
+#		define io_atomic_dec( __x ) _InterlockedDecrement64_rel( (__x) )
+#	else
+#		pragma intrinsic(_InterlockedIncrement64)
+#		pragma intrinsic(_InterlockedDecrement64)
+#		define io_atomic_inc( __x ) _InterlockedIncrement64( (__x) )
+#		define io_atomic_dec( __x ) _InterlockedDecrement64( (__x) )
+#	endif
+#	define io_mword( __x ) reinterpret_cast<__int64 volatile*>( (__x) )
+#else
+// 32 bit instruction set
+#	ifdef _M_ARM
+#		pragma intrinsic(_InterlockedIncrement_nf)
+#		pragma intrinsic(_InterlockedDecrement_rel)
+#		define io_atomic_inc( __x ) _InterlockedIncrement_nf( (__x) )
+#		define io_atomic_dec( __x ) _InterlockedDecrement64_rel( (__x) )
+#	else
+#		pragma intrinsic(_InterlockedIncrement)
+#		pragma intrinsic(_InterlockedDecrement)
+#		define io_atomic_inc( __x ) _InterlockedIncrement( (__x) )
+#		define io_atomic_dec( __x ) _InterlockedDecrement( (__x) )
+#	endif
+#	define io_mword( __x ) reinterpret_cast<long volatile*>( (__x) )
+#endif
 
 // MS VC++ atomic Intrinsics
 namespace atomic_traits {
-#	ifdef _M_X64 // 64 bit instruction set
-	__forceinline size_t inc(size_t volatile *ptr) {
-		__int64 volatile *p = reinterpret_cast<__int64 volatile*>(ptr);
-#	ifdef _M_ARM
-		return static_cast<size_t>( _InterlockedIncrement64_nf(p) );
-#	else
-		// Intel/AMD x64
-		return static_cast<size_t>( _InterlockedIncrement64(p) );
-#	endif // _M_ARM
+	
+	__forceinline size_t inc(size_t volatile *ptr) noexcept {
+		return static_cast<size_t>( io_atomic_inc( io_mword(ptr) );
 	}
-	__forceinline size_t dec(size_t volatile *ptr) {
-		__int64 volatile *p = reinterpret_cast<__int64 volatile*>(ptr);
-		return static_cast<size_t>( _InterlockedDecrement64(p) );
+	
+	__forceinline size_t dec(size_t volatile *ptr) noexcept {
+		return static_cast<size_t>( io_atomic_dec( io_mword(ptr) ) );
 	}
-
-#	else // 32 bit instruction set
-	__forceinline size_t inc(size_t volatile *ptr) {
-	_long volatile *p = reinterpret_cast<long volatile*>(ptr);
-#	ifdef _M_ARM
-		return static_cast<size_t>( _InterlockedIncrement_nf(p) );
-#	else // Intel/AMD x32
-		return static_cast<size_t>( _InterlockedIncrement(p) );
-#	endif // _M_ARM
-	}
-	__forceinline size_t dec(size_t volatile *ptr) {
-		long volatile *p = reinterpret_cast<long volatile*>(ptr);
-		return static_cast<size_t>( _InterlockedDecrement(p) );
-	}
-#	endif // 32 bit instruction set
+	
 } // atomic_traits
+
+#undef io_atomic_inc
+#undef io_atomic_dec
+#undef io_mword
 
 } // namespace detail
 } // namespace io

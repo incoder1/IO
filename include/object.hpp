@@ -84,8 +84,8 @@ private:
     	obj->ref_count_.fetch_add(1, std::memory_order_relaxed);
     }
     inline friend void intrusive_ptr_release(object* const obj) noexcept {
-    	if(1 == obj->ref_count_.fetch_sub(1, std::memory_order_acquire) ) {
-			std::atomic_thread_fence( std::memory_order_release);
+    	if(1 == obj->ref_count_.fetch_sub(1, std::memory_order_release) ) {
+			std::atomic_thread_fence(  std::memory_order_acquire );
 			delete obj;
     	}
     }

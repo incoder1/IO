@@ -155,7 +155,7 @@ namespace atomic_traits {
         return __atomic_add_fetch(ptr, 1, __ATOMIC_RELAXED);
     }
     __forceinline std::size_t dec(std::size_t volatile *ptr) {
-        return __atomic_sub_fetch(ptr, 1, __ATOMIC_SEQ_CST);
+        return __atomic_sub_fetch(ptr, 1, __ATOMIC_RELEASE);
     }
 } // atomic_traits
 

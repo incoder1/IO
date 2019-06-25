@@ -63,8 +63,10 @@ public:
 	}
 
 	~intrusive_array() noexcept {
-		if(nullptr != mem_ && intrusive_release(mem_) )
+		if(nullptr != mem_ && intrusive_release(mem_) ) {
+			std::atomic_thread_fence( std::memory_order_acquire  );
 			io::memory_traits::free(mem_);
+		}
 	}
 
 	T& operator[](std::size_t index) const noexcept {

@@ -155,7 +155,7 @@ static __forceinline uint32_t fetch_32(const uint8_t *p) noexcept
 }
 #endif // IO_IS_LITTLE_ENDIAN
 
-#ifdef defined(_MSC_VER) || defined(__ICC)
+#if defined(_MSC_VER) || defined(__ICC)
 
 #ifdef _MSC_VER
 #	pragma intrinsic(_rotr64)
