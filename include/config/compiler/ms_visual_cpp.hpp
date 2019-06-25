@@ -222,7 +222,7 @@ namespace detail {
 namespace atomic_traits {
 	
 	__forceinline size_t inc(size_t volatile *ptr) noexcept {
-		return static_cast<size_t>( io_atomic_inc( io_mword(ptr) );
+		return static_cast<size_t>( io_atomic_inc( io_mword(ptr) ) );
 	}
 	
 	__forceinline size_t dec(size_t volatile *ptr) noexcept {

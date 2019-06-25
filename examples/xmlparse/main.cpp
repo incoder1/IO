@@ -90,7 +90,7 @@ static void print_start_element(std::ostream& stm, const xml::s_event_stream_par
 				if( attr_name.has_prefix() )
 					stm << "prefix: " << attr_name.prefix() << ' ';
 				stm << "name: " << attr_name.local_name();
-				stm << "value: " << attr.value() << '\n';
+				stm << " value: " << attr.value() << '\n';
 			} );
 		}
 		// flush to console

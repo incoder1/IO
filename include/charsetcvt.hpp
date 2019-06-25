@@ -60,7 +60,7 @@ constexpr uint8_t make_byte(const char c) noexcept {
 }
 
 template<typename T>
-constexpr make_uint(T c) noexcept {
+constexpr unsigned int make_uint(T c) noexcept {
 	return static_cast<unsigned int>(c);
 }
 
