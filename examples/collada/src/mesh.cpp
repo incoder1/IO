@@ -137,10 +137,6 @@ textured_mesh::textured_mesh(const material_t& mat,const float *vertex, std::siz
 	diffise_tex_ul_ = program_->uniform_location(UNFM_DIFFUSE_TEXTURE);
 }
 
-textured_mesh::textured_mesh(const float *vertex, std::size_t vsize,const uint32_t* indexes,std::size_t isize,const s_image& timg):
-	textured_mesh(DEFAULT_MATERIAL, vertex, vsize,indexes, isize, timg)
-{}
-
 void textured_mesh::draw(const scene& scn) const
 {
 	::glm::mat4 projection_mat;

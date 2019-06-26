@@ -6,7 +6,7 @@
 // For non UTF-8 UNICODE encodings XML file should have byte order mark (BOM)
 
 // mini embedded version of winver.h
-// needed bu MinGW/64 headers which uses WinXP by
+// needed by MinGW/64 headers which uses WinXP by
 // default
 // We need Windows Vista +
 #ifdef _WIN32

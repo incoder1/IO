@@ -77,8 +77,6 @@ private:
 };
 
 
-
-
 } // namespace detail
 
 
@@ -134,9 +132,9 @@ public:
 	}
 
 	inline byte_buffer_iterator operator++(int) noexcept {
-		byte_buffer_iterator tmp( *this );
+		byte_buffer_iterator ret( *this );
 		++position_;
-		return tmp;
+		return ret;
 	}
 
 	inline byte_buffer_iterator& operator--() noexcept {
@@ -145,9 +143,9 @@ public:
 	}
 
 	inline byte_buffer_iterator operator--(int) noexcept {
-		byte_buffer_iterator tmp( *this );
+		byte_buffer_iterator ret( *this );
 		--position_;
-		return tmp;
+		return ret;
 	}
 
 	inline byte_buffer_iterator& operator+=(const std::size_t rhs) noexcept {
@@ -236,6 +234,8 @@ public:
 		return *this;
 	}
 
+	/// Checks buffer have underground memory array
+	/// \return whether buffer have underground memory array
 	explicit operator bool() const noexcept
 	{
 		return 0 != capacity_;
@@ -311,6 +311,7 @@ public:
 		}
 		return false;
 	}
+
 
 	/// Puts single character into this buffer current position, and increment buffer position and last
 	/// \param ch a byte to put
@@ -404,7 +405,7 @@ public:
 #ifndef _MSC_VER
 	/// Puts a small value in its binary representation into current buffer
 	/// \param small a small value
-	inline bool put(int8_t small) {
+	inline bool put(int8_t small) noexcept {
 		return put( static_cast<uint8_t>(small) );
 	}
 #endif
@@ -415,91 +416,91 @@ public:
 
 	/// Puts an unsigned short value in its binary representation into current buffer
 	/// \param us an unsigned short value
-	inline bool put(uint16_t us) {
+	inline bool put(uint16_t us) noexcept {
 		return binary_put(us);
 	}
 
-	inline uint16_t get_uint16() {
+	inline uint16_t get_uint16() noexcept {
 		return binary_get<uint16_t>();
 	}
 
 	/// Puts a signed short value in its binary representation into current buffer
 	/// \param ss a short value
-	inline bool put(int16_t ss) {
+	inline bool put(int16_t ss) noexcept {
 		return binary_put(ss);
 	}
 
-	inline int16_t get_int16() {
+	inline int16_t get_int16() noexcept {
 		return binary_get<int16_t>();
 	}
 
 	/// Puts an unsigned integer value in its binary representation into current buffer
 	/// \param ui an unsigned integer value
-	inline bool put(uint32_t ui) {
+	inline bool put(uint32_t ui) noexcept {
 		return binary_put(ui);
 	}
 
-	inline uint32_t get_uint32() {
+	inline uint32_t get_uint32() noexcept {
 		return binary_get<uint32_t>();
 	}
 
 	/// Puts a signed integer value in its binary representation into current buffer
 	/// \param si a signed integer value
-	inline bool put(int32_t si) {
+	inline bool put(int32_t si) noexcept {
 		return binary_put(si);
 	}
 
-	inline int32_t get_int32() {
+	inline int32_t get_int32() noexcept {
 		return binary_get<int32_t>();
 	}
 
 	/// Puts an unsigned long integer value in its binary representation into current buffer
 	/// \param ull an unsigned long integer value
-	inline bool put(uint64_t ull) {
+	inline bool put(uint64_t ull) noexcept {
 		return binary_put(ull);
 	}
 
-	inline uint64_t get_uint64() {
-		return binary_get<int64_t>();
+	inline uint64_t get_uint64() noexcept {
+		return binary_get<uint64_t>();
 	}
 
 	/// Puts a signed long integer value in its binary representation into current buffer
 	/// \param sll a signed long integer value
-	inline bool put(int64_t sll) {
+	inline bool put(int64_t sll) noexcept {
 		return binary_put(sll);
 	}
 
-	inline int64_t get_int64() {
+	inline int64_t get_int64() noexcept {
 		return binary_get<int64_t>();
 	}
 
 	/// Puts a float value in its binary representation into current buffer
 	/// \param f a float value
-	inline bool put(float f) {
+	inline bool put(float f) noexcept {
 		return binary_put(f);
 	}
 
-	inline float get_float() {
+	inline float get_float() noexcept {
 		return binary_get<float>();
 	}
 
 	/// Puts a double value in its binary representation into current buffer
 	/// \param d a double value
-	inline bool put(double d) {
+	inline bool put(double d) noexcept {
 		return binary_put(d);
 	}
 
-	inline double get_double() {
+	inline double get_double() noexcept {
 		return binary_get<long double>();
 	}
 
 	/// Puts a long double value in its binary representation into current buffer
 	/// \param ld a long double value
-	inline bool put(long double ld) {
+	inline bool put(long double ld) noexcept {
 		return binary_put(ld);
 	}
 
-	inline long double get_long_double() {
+	inline long double get_long_double() noexcept {
 		return binary_get<long double>();
 	}
 
@@ -541,19 +542,27 @@ private:
 
 	byte_buffer(detail::mem_block&& arr, std::size_t capacity) noexcept;
 
-	template < typename T >
-	bool binary_put(const T& v) {
-		static_assert( std::is_arithmetic<T>::value && ! std::is_pointer<T>::value, "Must be an arithmetic type" );
+	template < typename T,
+		class = typename std::enable_if<
+				std::is_arithmetic<T>::value &&
+				!std::is_pointer<T>::value
+			>::type >
+	bool binary_put(const T& v) noexcept {
 		return 0 != put( reinterpret_cast<const uint8_t*> ( std::addressof( v ) ), sizeof(T) );
 	}
 
-	template< typename T >
-	inline T binary_get() {
-		static_assert( std::is_arithmetic<T>::value && ! std::is_pointer<T>::value, "Must be an arithmetic type" );
+	template< typename T,
+			class = typename std::enable_if<
+				std::is_arithmetic<T>::value &&
+				!std::is_pointer<T>::value
+			>::type
+	>
+	inline T binary_get() noexcept {
 		if( empty() )
-			return static_cast<T>( 0 );
-		T ret;
-		io_memmove( &ret, position_, sizeof(T) );
+			return  std::is_floating_point<T>::value
+				? std::numeric_limits<T>::quiet_NaN()
+				: 0;
+		T ret = * ( reinterpret_cast<T*>( position_ ) );
 		shift( sizeof(T) );
 		return ret;
 	}

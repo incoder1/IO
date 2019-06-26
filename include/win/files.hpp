@@ -17,9 +17,10 @@
 #pragma once
 #endif // HAS_PRAGMA_ONCE
 
-#include <channels.hpp>
-#include <conststring.hpp>
+#include <algorithm>
 
+#include <channels.hpp>
+#include <text.hpp>
 #include "handlechannel.hpp"
 
 namespace io {
@@ -70,25 +71,22 @@ class IO_PUBLIC_SYMBOL file
 {
 private:
 
-	static void posix_to_windows(wchar_t* path) noexcept;
+	static void posix_to_windows(std::wstring& path) noexcept;
 
 public:
+	/// Obtains file descriptor by path the the file
+	/// name can be in DOS c:\my_file or POSIX /c/myfile format
+	/// \name path to the file
+	explicit file(const std::string& name);
 
-	explicit file(const char* name) noexcept;
-
-	explicit file(const wchar_t* name) noexcept;
-
-	file(const std::string& name) noexcept:
-		file( name.data() )
-	{}
+	/// Obtains file descriptor by path the the file
+	/// name can be in DOS c:\my_file or POSIX /c/myfile format
+	/// \name path to the file
+	explicit file(const std::wstring& name);
 
 	file(const file& c) noexcept:
-		 name_( )
-	{
-		if( c.name_ )  {
-			scoped_arr<wchar_t>( c.name_.get(), c.name_.len() ).swap( name_ );
-		}
-	}
+		 name_( c.name_ )
+	{}
 
 	file& operator=(const file& rhs)
 	{
@@ -120,8 +118,8 @@ public:
 	bool create() noexcept;
 
 	/// Returns UCS-2 encoded file path
-	inline std::wstring wpath() const  {
-        return std::wstring( name_.get() );
+	inline std::wstring wpath() const {
+        return name_;
 	}
 
 	/// Returns file size in byte
@@ -156,7 +154,7 @@ public:
 	/// \throw never throws
 	s_random_access_channel open_for_random_access(std::error_code& ec, write_open_mode mode) const noexcept;
 private:
-	scoped_arr<wchar_t> name_;
+	std::wstring name_;
 };
 
 } // namespce io

@@ -235,9 +235,14 @@ void source::read_until_char(byte_buffer& to,const char lookup,const char illega
 	char stops[4] = {lookup, illegal, EOF, '\0'};
 	do {
 		c = next();
-		if( !to.put(c) && io_unlikely(!to.exp_grow() || !to.put(c) ) ) {
-			last_ = error::out_of_memory;
-			break;
+		if( !to.put(c) ) {
+			if( io_likely( to.exp_grow() ) ) {
+				to.put(c);
+			}
+			else {
+				last_ = error::out_of_memory;
+				break;
+			}
 		}
 	}
 	while( is_not_one(c, stops) );
@@ -265,8 +270,8 @@ void source::read_until_double_char(byte_buffer& to, const char ch) noexcept
 		c = next();
 		if( io_unlikely( cheq(c,EOF) ) )
 			break;
-		if( !to.put(c) )  {
-			if( to.exp_grow() ) {
+		if( !to.put(c) ) {
+			if( io_likely( to.exp_grow() ) ) {
 				to.put(c);
 			}
 			else {

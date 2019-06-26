@@ -63,7 +63,9 @@ class textured_mesh final: public mesh
 {
 public:
 	textured_mesh(const material_t& mat,const float *vertex, std::size_t vsize,const uint32_t* indexes,std::size_t isize,const s_image& texture);
-	textured_mesh(const float *vertex, std::size_t vsize,const uint32_t* indexes,std::size_t isize,const s_image& texture);
+	textured_mesh(const float *vertex, std::size_t vsize,const uint32_t* indexes,std::size_t isize,const s_image& texture):
+		textured_mesh(DEFAULT_MATERIAL, vertex, vsize,indexes, isize, texture)
+	{}
 	virtual void draw(const scene& scn) const override;
 	virtual ~textured_mesh() noexcept = default;
 private:

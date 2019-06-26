@@ -51,8 +51,9 @@ static const float COLORED_QUBE_VERTEX[216] = {
 	1.0F,-1.0F,-1.0F,	1.0F, 0.0F, 1.0F,	1.0F, 0.0F, 0.0F
 };
 
+
 static const float TEXTURED_QUBE_VERTEX[192] = {
-	/*    coordinate   |    noramal      |    texture     */
+	/*   position     |    noramal      |    texture    */
 	// Top Quad
 	1.0F, 1.0F,-1.0F,	 0.0F, 1.0F, 0.0F,	0.34F, 0.0F,
 	-1.0F, 1.0F,-1.0F,	 0.0F, 1.0F, 0.0F,	0.0F, 0.0F,
@@ -84,6 +85,8 @@ static const float TEXTURED_QUBE_VERTEX[192] = {
 	1.0F,-1.0F, 1.0F,	1.0F, 0.0F, 0.0F,	 0.662F, 0.67F,
 	1.0F,-1.0F,-1.0F,	1.0F, 0.0F, 0.0F,	 1.0F, 0.67F
 };
+
+
 
 // TRANGLE_FAN imitation
 static const uint32_t CUBE_INDEX[36] = {
@@ -181,22 +184,28 @@ static engine::s_surface normal_mapped_qube()
 }
 
 
-void load_mesh(engine::s_model& md, const collada::s_model& src_mod, const collada::mesh* mesh)
+collada::float_array source_data(const collada::s_source src) {
+	collada::s_accessor acsr = * ( src->cbegin() );
+	return src->find_float_array( acsr->source_id() );
+}
+
+
+static engine::s_surface load_mesh(const collada::s_model& src_mdl, const collada::mesh* mesh)
 {
 	using namespace collada;
-	s_source pos, nrm, uv;
+	collada::float_array pos, nrm, uv;
 	// loop over the input and look-up sources
 	for(auto it = mesh->cbegin(); it != mesh->cend(); ++it) {
 		io::const_string acr_id = it->accessor_id;
 		switch(it->type) {
 		case semantic_type::position:
-			pos = mesh->find_souce(acr_id);
+			pos = source_data( mesh->find_souce(acr_id) );
 			break;
 		case semantic_type::normal:
-			nrm = mesh->find_souce(acr_id);
+			nrm = source_data( mesh->find_souce(acr_id) );
 			break;
 		case semantic_type::texcoord:
-			uv = mesh->find_souce(acr_id);
+			uv = source_data( mesh->find_souce(acr_id) );
 			break;
 		default:
 			break;
@@ -204,68 +213,97 @@ void load_mesh(engine::s_model& md, const collada::s_model& src_mod, const colla
 	}
 
 	unsigned_int_array idx = mesh->index()->indices();
-	// TODO: mix collada to VBO
+	std::size_t vertex_count = idx.length() / 3;
+	std::vector<float> mesh_vertex;
+	mesh_vertex.reserve( vertex_count << 3 );
+//
+	std::cout << "VBO: {\n";
+	for(std::size_t i=0; i < idx.length(); i+= 3) {
+		std::size_t pos_idx = idx[ i ];
+		std::size_t nrm_idx = idx[ i+1 ];
+		std::size_t uv_idx = idx[ i+2 ];
+		//
+		std::cout << pos[ pos_idx   ] << ',';
+		std::cout << pos[ pos_idx+1 ] << ',';
+		std::cout << pos[ pos_idx+2 ] << ", ";
+		mesh_vertex.push_back( pos[ pos_idx ] );
+		mesh_vertex.push_back( pos[ pos_idx+1 ] );
+		mesh_vertex.push_back( pos[ pos_idx+2 ] );
+		//
+		std::cout << nrm[ nrm_idx   ] << ',';
+		std::cout << nrm[ nrm_idx+1 ] << ',';
+		std::cout << nrm[ nrm_idx+2 ] << ", ";
 
-	engine::s_image dtext = engine::load_png_rgba(
+		mesh_vertex.push_back( nrm[ nrm_idx   ] );
+		mesh_vertex.push_back( nrm[ nrm_idx+1 ] );
+		mesh_vertex.push_back( nrm[ nrm_idx+2 ] );
+
+		//
+		std::cout << uv[ uv_idx  ] << ',';
+		std::cout << uv[ uv_idx+1] << ',' << std::endl;
+
+		mesh_vertex.push_back( uv[ uv_idx   ] );
+		mesh_vertex.push_back( uv[ uv_idx+1 ] );
+	}
+	std::cout << '}' << std::endl;
+
+	std::vector<unsigned int> mesh_index;
+	mesh_index.reserve(vertex_count);
+	for(unsigned int i=0; i < vertex_count; i++) {
+		mesh_index.push_back( i );
+	}
+
+	// TODO: extract from material
+	engine::s_image texture_img = engine::load_png_rgba(
 										io::file("cube_tex2d_512x512.png")
 									);
 
-	engine::s_surface tm( new engine::textured_mesh(
-		// TODO: insert
-		nullptr, 0,
-		nullptr, 0,
-		dtext
-		)
-	);
+	const float *vbo = &mesh_vertex.front();
+	std::size_t vbo_size = mesh_vertex.size();
+
+	const unsigned int* vio = &mesh_index.front();
+	std::size_t vio_size = mesh_index.size();
+
+	std::cout << "vbo size: " << vbo_size << " vio size: " << vio_size << std::endl;
+
+	return  engine::s_surface(
+				new engine::textured_mesh(
+					vbo,
+					vbo_size,
+					vio,
+					vio_size,
+					texture_img
+				)
+			);
 }
 
 
 
-void collada_to_engine(engine::s_model& res,const collada::s_model& src)
-{
-	collada::s_scene src_scene = src->scene();
 
-	for( collada::scene::const_iterator it = src_scene->cbegin();
-			it != src_scene->cend(); ++it ) {
-		if( ! it->geo_ref.url.blank() ) {
-			collada::s_geometry geo = src->find_geometry( it->geo_ref.url );
-			std::cout<< "Geometry node name: " << geo->name() << std::endl;
-			// TODO: dedicated function for each geometry type
-			collada::mesh* src_mesh = reinterpret_cast<collada::mesh*>( geo.get() );
-			load_mesh(res, src, src_mesh);
-		}
-	}
-}
-
-static engine::s_model load_collada_model(const char* file_path)
+static void load_collada_model(engine::s_model& dst_mdl,const char* file_path)
 {
 
+	// parse COLLADA file
 	io::file dae(file_path);
 	std::error_code ec;
 	io::s_read_channel src = dae.open_for_read(ec);
 	io::check_error_code(ec);
-
 	collada::parser prsr( std::move(src) );
-
-	// parse
-	collada::s_model cldmdl = prsr.load();
+	collada::s_model src_mdl = prsr.load();
 
 	// load parsed COLLADA model into renderer
-	engine::s_model ret( new engine::model() );
-	collada_to_engine(ret, cldmdl);
+	collada::s_scene src_scene = src_mdl->scene();
+	for( collada::scene::const_iterator it = src_scene->cbegin();
+			it != src_scene->cend(); ++it ) {
+		if( ! it->geo_ref.url.blank() ) {
+			collada::s_geometry geo = src_mdl->find_geometry( it->geo_ref.url );
+			std::cout<< "Geometry node name: " << geo->name() << std::endl;
+			// TODO: dedicated function for each geometry type
+			collada::mesh* src_mesh = reinterpret_cast<collada::mesh*>( geo.get() );
+			dst_mdl->add_surface( load_mesh(src_mdl, src_mesh ) );
+		}
+	}
 
-	/*
-	//engine::s_image texture_img = engine::load_png_rgba(io::file("cube_tex2d_512x512.png"));
-
-	//engine::s_surface ( new engine::textured_mesh(
-	//						  TEXTURED_QUBE_VERTEX, 192,
-	//						  CUBE_INDEX,36, texture_img ) );
-
-	 // std::cout << cube_mesh->index()->indices().length() << std::endl;
-
-	// convert collda model, to engine model
-	*/
-	return ret;
 }
 
 #ifdef _WIN32
@@ -278,18 +316,18 @@ int main(int argc, const char** argv)
 	if ( GLFW_TRUE == ::glfwInit() ) {
 		try {
 			engine::frame_view view(640,480,"Collada model view");
-			// "tex_cube.dae"
-			engine::s_model md = load_collada_model("tex_cube.dae");
 
 			//engine::s_surface qube( new engine::geometry_mesh(COLORED_QUBE_VERTEX,216,CUBE_INDEX,36) );
 
 			//engine::s_surface qube = textured_qube();
 
-			engine::s_surface qube = normal_mapped_qube();
+			//engine::s_surface qube = normal_mapped_qube();
+
 
 			engine::s_model mdl( new engine::model() );
-			mdl->add_surface( std::move(qube) );
+			load_collada_model(mdl, "tex_cube.dae");
 
+			//mdl->add_surface( std::move(qube) );
 			view.show( mdl );
 
 			return 0;

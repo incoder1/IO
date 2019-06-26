@@ -280,7 +280,7 @@ public:
 		return attributes_.cend();
 	}
 
-	std::pair<const_string, bool> get_attribute(const char* prefix, const char* attr_name) const noexcept;
+	std::pair<const_string, bool> get_attribute(const char* prefix, const char* local_name) const noexcept;
 
 	inline void swap(start_element_event& other) noexcept {
 		name_.swap(other.name_);

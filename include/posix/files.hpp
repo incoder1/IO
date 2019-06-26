@@ -18,8 +18,9 @@
 #endif // HAS_PRAGMA_ONCE
 
 #include <cerrno>
-#include <text.hpp>
 #include <string>
+
+#include <text.hpp>
 
 #ifdef __LP64__
 
@@ -27,7 +28,7 @@ extern "C" __off64_t lseek64 (int __fd, __off64_t __offset, int __whence) __THRO
 
 typedef ::__off64_t file_offset_t;
 
-static inline file_offset_t lseek_syscall(int __fd, __off64_t __offset, int __whence) {
+static inline file_offset_t lseek_syscall(int __fd, __off64_t __offset, int __whence) noexcept {
 	return ::lseek64(__fd, __offset, __whence );
 }
 
@@ -36,7 +37,7 @@ static inline file_offset_t lseek_syscall(int __fd, __off64_t __offset, int __wh
 extern "C" off_t lseek(int fd, __off_t offset, int whence);
 typedef ::__off_t file_offset_t;
 
-static inline file_offset_t lseek_syscall(int __fd, __off_t __offset, int __whence) {
+static inline file_offset_t lseek_syscall(int __fd, __off_t __offset, int __whence) noexcept {
 	return ::lseek(__fd, __offset, __whence );
 }
 
@@ -94,15 +95,13 @@ class IO_PUBLIC_SYMBOL file
 {
 public:
 
-	explicit file(const char* name) noexcept;
+	explicit file(const std::string& name) noexcept;
 
-	explicit file(const wchar_t* name) noexcept;
+	explicit file(const std::wstring& name) noexcept;
 
 	file(const file& c):
-		 name_( c.name_.len() )
-	{
-		io_memmove( name_.get(), c.name_.get(), c.name_.len() );
-	}
+		 name_( c.name_ )
+	{}
 
 	file& operator=(const file& rhs)
 	{
@@ -116,8 +115,7 @@ public:
 
 	file& operator=(file&& rhs) noexcept
 	{
-		file tmp( std::forward<file>(rhs) );
-		std::swap(name_, tmp.name_);
+		file( std::forward<file>(rhs) ).swap( *this );
 		return *this;
 	}
 
@@ -140,13 +138,13 @@ public:
 	std::size_t size() const noexcept;
 
 	/// Returns UCS-4 encoded file path
-	inline std::wstring wpath()  {
-        return transcode_to_ucs( name_.get(), std::strlen( name_.get() ) );
+	inline std::wstring wpath() const {
+        return transcode_to_ucs( name_.data(), name_.length() );
 	}
 
 	/// Returns UTF-8 encoded file path
-	inline std::string path() {
-		return std::string(name_.get());
+	inline std::string path() const {
+		return name_;
 	}
 
 	/// Opens blocking read channel from this file
@@ -174,7 +172,7 @@ public:
 	/// \throw never throws
 	s_random_access_channel open_for_random_access(std::error_code& ec, write_open_mode mode) const noexcept;
 private:
-	scoped_arr<char> name_;
+	std::string name_;
 };
 
 } // namespace io

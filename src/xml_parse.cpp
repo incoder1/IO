@@ -316,20 +316,20 @@ qname event_stream_parser::extract_qname(const char* from, std::size_t& len) noe
 	cached_string local_name;
 	len = 0;
 	std::size_t start = 0;
-	std::size_t count = extract_prefix(start, from );
+	std::size_t count = extract_prefix( start, from );
 	if( count > 0 )
-		prefix = pool_->get( from+start, count);
+		prefix = pool_->get( (from+start), count);
 	len += start+count;
 	const char* name = from+len;
 	count = extract_local_name(start,name);
 	if(count > 0) {
-		local_name = pool_->get(name+start, count);
+		local_name = pool_->get( (name+start) , count);
 	} else {
 		assign_error(error::illegal_name);
 		return qname();
 	}
 	len += start+count;
-	char* left = const_cast<char*>( from + len);
+	const char* left = from + len;
 	if( cheq(SOLIDUS,*left) ) {
 		++len;
 		++left;

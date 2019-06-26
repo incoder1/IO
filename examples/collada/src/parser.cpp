@@ -81,19 +81,17 @@ static unsigned_int_array parse_string_array(const io::const_string& val)
 	//std::vector<unsigned int> tmp;
 	std::size_t size = 0;
 	char* s = const_cast<char*>( val.data() );
+	std::size_t len = 0;
 	// count numbers
-	do {
-		for(char c = *s; std::isspace(c); c = *s) {
-			++s;
-		}
-		if( std::isdigit(*s) ) {
+	while('\0' != *s) {
+		len = std::strspn(s ,"\t\n\v\f\r ");
+		s += len;
+		len = std::strspn( s, "1234567890");
+		if(0 != len) {
 			++size;
-			for(char c= *s; std::isdigit(c); c = *s ) {
-				++s;
-			}
+			s += len;
 		}
 	}
-	while( '\0' != *s);
 	if( io_likely(0 != size) ) {
 		unsigned_int_array ret( size );
 		s = const_cast<char*>( val.data() );
