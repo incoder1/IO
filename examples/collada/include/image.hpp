@@ -52,11 +52,11 @@ namespace engine {
 	};
 
 
-	s_image load_png_rgb(io::s_read_channel&& src);
-	s_image load_png_rgb(const io::file& file);
+	s_image load_png_rgb(io::s_read_channel&& src, bool vertical_flip);
+	s_image load_png_rgb(const io::file& file, bool vertical_flip);
 
-	s_image load_png_rgba(io::s_read_channel&& src);
-	s_image load_png_rgba(const io::file& file);
+	s_image load_png_rgba(io::s_read_channel&& src, bool vertical_flip);
+	s_image load_png_rgba(const io::file& file, bool vertical_flip);
 
 
 } // namespace engine

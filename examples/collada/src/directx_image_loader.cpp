@@ -280,7 +280,22 @@ static s_IWICBitmapLock bitmap_lock(const s_IWICBitmap& bitmap, ::WICRect& rc_lo
 	return s_IWICBitmapLock(ret);
 }
 
-static io::scoped_arr<uint8_t> decode_image(const s_IStream& stream, unsigned int& w, unsigned int& h, const pixel_format pfm) {
+static io::scoped_arr<uint8_t> flip_vertically(const ::BYTE* origin,const std::size_t size,const std::size_t line_sride)
+{
+	io::scoped_arr<uint8_t> ret(size);
+	uint8_t* dst = const_cast<uint8_t*>( ret.get() );
+	const uint8_t* src = origin + size;
+#ifdef _OPENMP
+#	pragma omp parallel for
+#endif // _OPENMP
+	for(std::size_t i = 0; i < size; i += line_sride) {
+		std::memcpy( (dst+i), (src-i), line_sride);
+	}
+	return ret;
+}
+
+
+static io::scoped_arr<uint8_t> decode_image(const s_IStream& stream, unsigned int& w, unsigned int& h, const pixel_format pfm, bool vertical_flip) {
 
 	// CoInitializeEx should be called for each thread
 	static thread_local COM __ms_com_guard;
@@ -299,43 +314,45 @@ static io::scoped_arr<uint8_t> decode_image(const s_IStream& stream, unsigned in
 	::HRESULT errc = lock->GetStride(&cbStride);
 	errc = lock->GetDataPointer(&cbBufferSize, &pv);
 	validate_succeeded(errc,"Can't obtain data from bitmap");
-	return io::scoped_arr<uint8_t>(pv, cbBufferSize);
+	return  vertical_flip
+		? flip_vertically(pv, cbBufferSize, cbStride)
+		: io::scoped_arr<uint8_t>(pv, cbBufferSize);
 }
 
 
-s_image load_png_rgb(io::s_read_channel&& src)
+s_image load_png_rgb(io::s_read_channel&& src, bool vertical_flip)
 {
 	s_IStream stream( new read_stream( std::forward<io::s_read_channel>(src)), false);
 	unsigned int w,h;
-	io::scoped_arr<uint8_t> image_data = decode_image( stream, w, h, pixel_format::rgb );
+	io::scoped_arr<uint8_t> image_data = decode_image( stream, w, h, pixel_format::rgb, vertical_flip );
 	return  s_image(new image( w, h, image_format::bitmap, pixel_format::rgb, std::move(image_data) ) );
 }
 
-s_image load_png_rgb(const io::file& file)
+s_image load_png_rgb(const io::file& file,bool vertical_flip)
 {
 	IStream* src;
 	::HRESULT errc = ::SHCreateStreamOnFileEx(file.wpath().data(), STGM_READ, FILE_ATTRIBUTE_READONLY, FALSE, nullptr, &src);
 	validate_succeeded(errc, std::string("Can not open image file: ").append(file.path()) );
 	unsigned int w,h;
-	io::scoped_arr<uint8_t> image_data = decode_image( s_IStream(src,false), w, h, pixel_format::rgb );
+	io::scoped_arr<uint8_t> image_data = decode_image( s_IStream(src,false), w, h, pixel_format::rgb, vertical_flip );
 	return s_image(new image( w, h, image_format::bitmap, pixel_format::rgb, std::move(image_data) ) );
 }
 
-s_image load_png_rgba(io::s_read_channel&& src)
+s_image load_png_rgba(io::s_read_channel&& src, bool vertical_flip)
 {
 	 s_IStream stream( new read_stream( std::forward<io::s_read_channel>(src)), false);
 	unsigned int w,h;
-	io::scoped_arr<uint8_t> image_data = decode_image( stream, w, h, pixel_format::rgb );
+	io::scoped_arr<uint8_t> image_data = decode_image( stream, w, h, pixel_format::rgb, vertical_flip );
 	return  s_image(new image( w, h, image_format::bitmap, pixel_format::rgba, std::move(image_data) ) );
 }
 
-s_image load_png_rgba(const io::file& file)
+s_image load_png_rgba(const io::file& file,bool vertical_flip)
 {
 	IStream* src;
 	::HRESULT errc = ::SHCreateStreamOnFileEx(file.wpath().data(), STGM_READ, FILE_ATTRIBUTE_READONLY, FALSE, nullptr, &src);
 	validate_succeeded(errc, std::string("Can not open image file: ").append(file.path()));
 	unsigned int w,h;
-	io::scoped_arr<uint8_t> image_data = decode_image( s_IStream(src,false), w, h, pixel_format::rgba );
+	io::scoped_arr<uint8_t> image_data = decode_image( s_IStream(src,false), w, h, pixel_format::rgba, vertical_flip );
 	return s_image(new image( w, h, image_format::bitmap, pixel_format::rgba, std::move(image_data) ) );
 }
 

@@ -160,10 +160,11 @@ void textured_mesh::draw(const scene& scn) const
 	::glActiveTexture(GL_TEXTURE0);
 	::glUniform1i(diffise_tex_ul_, 0);
 	 texture_->bind();
-
 	ibo_->bind();
+	vbo_->bind();
 	::glDrawElements(GL_TRIANGLES, ibo_->size(), GL_UNSIGNED_INT, 0);
 
+	vbo_->unbind();
 	ibo_->unbind();
 	texture_->unbind();
 
@@ -255,12 +256,15 @@ void normal_mapped_mesh::draw(const scene& scn) const
 
 	::glActiveTexture(GL_TEXTURE1);
 	::glUniform1i(nm_tex_ul_, 1);
+
 	normal_map_tex_->bind();
-
 	ibo_->bind();
-	::glDrawElements(GL_TRIANGLES, ibo_->size(), GL_UNSIGNED_INT, 0);
-	ibo_->unbind();
+	vbo_->bind();
 
+	::glDrawElements(GL_TRIANGLES, ibo_->size(), GL_UNSIGNED_INT, 0);
+
+    vbo_->unbind();
+	ibo_->unbind();
 	diffuse_tex_->unbind();
 	normal_map_tex_->unbind();
 
