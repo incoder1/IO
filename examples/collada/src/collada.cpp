@@ -125,10 +125,54 @@ void scene::add_node(node&& nd)
 	nodes_.emplace_back( std::forward<node>(nd) );
 }
 
+// effect_library
+effect_library::effect_library():
+	io::object(),
+	effects_(),
+	surfaces_(),
+	sampler_refs_()
+{}
+
+void effect_library::add_effect(io::const_string&& id,effect&& e)
+{
+	effects_.emplace( std::forward<io::const_string>(id), std::make_shared<effect>( std::forward<effect>(e) ) );
+}
+
+std::shared_ptr<effect> effect_library::find_effect(const io::const_string& id) const noexcept
+{
+	effects_lib_t::const_iterator it = effects_.find( id );
+	return effects_.cend() == it ? std::shared_ptr<effect>() : it->second;
+}
+
+void effect_library::add_surface(io::const_string&& id,surface&& sf)
+{
+	surfaces_.emplace( std::forward<io::const_string>(id), std::forward<surface>(sf) );
+}
+
+std::pair<bool,surface> effect_library::find_surface(const io::const_string& id) const noexcept
+{
+	surfaces_lib_t::const_iterator it = surfaces_.find( id );
+	return surfaces_.cend() == it ? std::make_pair(false,surface()) : std::make_pair( true, it->second );
+}
+
+void effect_library::add_sampler_ref(io::const_string&& id,io::const_string&& sid)
+{
+	sampler_refs_.emplace(
+				std::forward<io::const_string>(id),
+				std::forward<io::const_string>(sid)
+			);
+}
+
+io::const_string effect_library::find_sampler_ref(const io::const_string& id) const noexcept
+{
+	sampler_refs_lib_t::const_iterator it = sampler_refs_.find( id );
+	return sampler_refs_.cend() != it ? it->second : io::const_string();
+}
+
 // model
 model::model():
 	io::object(),
-	effects_(),
+	effects_( new effect_library() ),
 	images_(),
 	meshes_(),
 	materials_(),
@@ -138,16 +182,6 @@ model::model():
 model::~model() noexcept
 {}
 
-void model::add_effect(io::const_string&& id,effect&& e)
-{
-	effects_.emplace( std::forward<io::const_string>(id), std::make_shared<effect>( std::forward<effect>(e) ) );
-}
-
-std::shared_ptr<effect> model::find_effect(const io::const_string& id) const noexcept
-{
-	effect_library_t::const_iterator it = effects_.find( id );
-	return effects_.cend() == it ? std::shared_ptr<effect>() : it->second;
-}
 
 void model::add_geometry(io::const_string&& id,s_geometry&& e)
 {
@@ -169,7 +203,7 @@ std::shared_ptr<effect> model::find_material(const io::const_string& id) const n
 {
 	material_library_t::const_iterator it = materials_.find( id );
 	if( materials_.cend() != it ) {
-		return find_effect( it->second );
+		return effects_->find_effect( it->second );
 	}
 	return std::shared_ptr<effect>();
 }

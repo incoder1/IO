@@ -196,7 +196,7 @@ static engine::s_surface load_mesh(const collada::s_model& src_mdl, const collad
 {
 	using namespace collada;
 	collada::float_array pos, nrm, uv;
-	std::size_t pos_offset, nrm_offset, uv_offset;
+	std::size_t pos_offset = 0, nrm_offset = 0, uv_offset = 0;
 	std::size_t pos_len, nrm_len, uv_len;
 	// loop over the input and look-up sources
 	for(auto it = mesh->cbegin(); it != mesh->cend(); ++it) {
@@ -258,14 +258,19 @@ static engine::s_surface load_mesh(const collada::s_model& src_mdl, const collad
 	std::cout << "vbo size: " << vbo.len() << " vio size: " << vio.len() << std::endl;
 #endif // NDEBUG
 
-	// TODO: make parsing correct, with newparam, sampler2D etc
 	io::const_string mat_id = mesh->material();
     io::const_string diffuse_texture_file;
+    collada::s_effect_library efl = src_mdl->effects();
     std::shared_ptr<collada::effect> ef = src_mdl->find_material( mat_id );
     if( ef ) {
 		switch( ef->shade ) {
 		case collada::shade_type::diffuse_texture:
-			diffuse_texture_file = src_mdl->find_image( ef->tex.texcoord );
+			{
+				// TODO: get texture type from surface type
+				io::const_string sid = efl->find_sampler_ref( ef->tex.name );
+				collada::surface srf = efl->find_surface( sid ).second;
+				diffuse_texture_file = src_mdl->find_image( srf.init_from );
+			}
 		default:
 			// TODO: detect correct mesh type
 			break;

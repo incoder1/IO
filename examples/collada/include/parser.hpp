@@ -35,7 +35,6 @@ private:
 	static bool is_element(const io::xml::start_element_event& e,const io::cached_string& ln) noexcept;
 	static bool is_element(const io::xml::end_element_event& e,const io::cached_string& ln) noexcept;
 
-
 	bool is_element(const io::xml::start_element_event& e,const char* s) noexcept
 	{
 		return  e.name().local_name().sso()
@@ -60,7 +59,8 @@ private:
 	io::const_string get_tag_value();
 
 	// parse effect library functions
-	void parse_effect(effect& effect);
+	void parse_effect(io::const_string&& id, s_effect_library& efl);
+	void parse_new_param(io::const_string&& sid, s_effect_library& efl);
 	void parse_effect_library(s_model& md);
 
 	// parse materials library functions

@@ -18,6 +18,8 @@
 					<Add option="-pedantic" />
 					<Add option="-std=c++11" />
 					<Add option="-std=c11" />
+					<Add option="-pg" />
+					<Add option="-Og" />
 					<Add option="-g" />
 					<Add option="-fexceptions" />
 					<Add option="-minline-stringops-dynamically" />
@@ -33,6 +35,7 @@
 					<Add directory="include/tls" />
 				</Compiler>
 				<Linker>
+					<Add option="-pg -lgmon" />
 					<Add library="iconv.dll" />
 					<Add library="Ws2_32" />
 					<Add library="gnutls.dll" />

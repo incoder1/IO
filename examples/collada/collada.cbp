@@ -13,7 +13,8 @@
 				<Option type="1" />
 				<Option compiler="gcc" />
 				<Compiler>
-					<Add option="-std=c++11" />
+					<Add option="-pg" />
+					<Add option="-Og" />
 					<Add option="-g" />
 					<Add option="-mavx2" />
 					<Add option="-ffast-math" />
@@ -23,6 +24,7 @@
 					<Add directory="src" />
 				</Compiler>
 				<Linker>
+					<Add option="-pg -lgmon" />
 					<Add library="glfw3.dll" />
 					<Add library="glew32" />
 					<Add library="opengl32" />
@@ -41,7 +43,6 @@
 				<Option compiler="gcc" />
 				<Compiler>
 					<Add option="-flto" />
-					<Add option="-std=gnu++17" />
 					<Add option="-fopenmp" />
 					<Add option="-fno-rtti" />
 					<Add option="-D_WIN32_WINNT=0x0600" />
@@ -99,6 +100,7 @@
 		</Build>
 		<Compiler>
 			<Add option="-Wall" />
+			<Add option="-std=gnu++17" />
 			<Add directory="include" />
 			<Add directory="include/collada" />
 			<Add directory="../../include" />

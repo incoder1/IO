@@ -404,6 +404,49 @@ private:
 
 DECLARE_IPTR(scene);
 
+enum class surface_type {
+	untyped,
+	sampler_1d,
+	sampler_2d,
+	sampler_3d,
+	cube,
+	depth,
+	rect
+};
+
+struct surface {
+	surface_type type;
+	io::const_string init_from;
+};
+
+class effect_library:public io::object {
+	effect_library(const effect_library&) = delete;
+	effect_library& operator=(const effect_library&) = delete;
+private:
+	typedef detail::param< std::shared_ptr<effect> >::param_library effects_lib_t;
+	typedef detail::param< surface >::param_library surfaces_lib_t;
+	typedef detail::param< io::const_string >::param_library sampler_refs_lib_t;
+public:
+	effect_library();
+
+	void add_effect(io::const_string&& id,effect&& e);
+	std::shared_ptr<effect> find_effect(const io::const_string& id) const noexcept;
+
+	void add_surface(io::const_string&& id,surface&& surface);
+	std::pair<bool,surface> find_surface(const io::const_string& sid) const noexcept;
+
+	void add_sampler_ref(io::const_string&& id,io::const_string&& sid);
+	io::const_string find_sampler_ref(const io::const_string& id) const noexcept;
+
+private:
+	effects_lib_t effects_;
+	surfaces_lib_t surfaces_;
+	sampler_refs_lib_t sampler_refs_;
+};
+
+DECLARE_IPTR(effect_library);
+
+
 class model final:public io::object {
 	model(const model&) = delete;
 	model& operator=(const model&) = delete;
@@ -420,8 +463,9 @@ public:
 	model();
 	virtual ~model() noexcept;
 
-	void add_effect(io::const_string&& id,effect&& e);
-	std::shared_ptr<effect> find_effect(const io::const_string& id) const noexcept;
+	s_effect_library effects() const noexcept {
+		return effects_;
+	}
 
 	void add_material_effect_link(io::const_string&& id,io::const_string&& effect_id);
 	std::shared_ptr<effect> find_material(const io::const_string& material_id) const noexcept;
@@ -441,7 +485,7 @@ public:
 	}
 
 private:
-	effect_library_t effects_;
+	s_effect_library effects_;
 	image_library_t images_;
 	geometry_library_t meshes_;
 	material_library_t materials_;

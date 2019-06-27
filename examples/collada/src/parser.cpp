@@ -84,7 +84,7 @@ static unsigned_int_array parse_string_array(const io::const_string& val)
 	std::size_t len = 0;
 	// count numbers
 	while('\0' != *s) {
-		len = std::strspn(s ,"\t\n\v\f\r ");
+		len = std::strspn(s,"\t\n\v\f\r ");
 		s += len;
 		len = std::strspn( s, "1234567890");
 		if(0 != len) {
@@ -328,14 +328,13 @@ io::const_string parser::get_tag_value()
 
 // effect library
 
-void parser::parse_effect(effect& ef)
+void parser::parse_effect(io::const_string&& id, s_effect_library& efl)
 {
 	static constexpr const char* ERR_MSG = "effect is unbalanced";
-
 	io::xml::state_type state;
 	io::xml::event_type et;
 	io::xml::start_element_event sev;
-
+	effect ef;
 	do {
 		et = to_next_tag_event(state);
 		check_eod(state, ERR_MSG);
@@ -343,12 +342,13 @@ void parser::parse_effect(effect& ef)
 		if( is_start_element(et ) )  {
 			sev = xp_->parse_start_element();
 			check_eod(state, ERR_MSG);
-
 			if( is_element(sev,"profile_COMMON") ) {
 				continue;
 			}
 			else if( is_element(sev,"technique") ) {
 				continue;
+			} else if( is_element(sev,"newparam") ) {
+				parse_new_param( get_attr(sev,"sid"), efl );
 			}
 			else if( is_element(sev,"constant") ) {
 				ef.shade = shade_type::constant;
@@ -377,7 +377,8 @@ void parser::parse_effect(effect& ef)
 					auto attr = sev.get_attribute("","texcoord");
 					if( attr.second )
 						ef.tex.texcoord = attr.first;
-				} else {
+				}
+				else {
 					// this is material values
 					parse_vec4( get_tag_value(), ef.value.pong.diffuse );
 				}
@@ -430,6 +431,69 @@ void parser::parse_effect(effect& ef)
 		}
 	}
 	while( !is_end_element(et,"effect") );
+	efl->add_effect( std::forward<io::const_string>(id), std::move(ef) );
+}
+
+
+void parser::parse_new_param(io::const_string&& sid,s_effect_library& efl)
+{
+	static constexpr const char* ERR_MSG = "newparam is unbalanced";
+	io::xml::state_type state;
+	io::xml::event_type et;
+	io::xml::start_element_event sev;
+	do {
+		et = to_next_tag_event(state);
+		check_eod(state, ERR_MSG);
+		if( is_start_element(et) ) {
+			sev = xp_->parse_start_element();
+			check_eod(state, ERR_MSG);
+			if( is_element(sev,"surface") ) {
+				surface sf;
+				io::const_string type = get_attr(sev,"type");
+				if( type.equal("1D") ) {
+					sf.type = surface_type::sampler_1d;
+				}
+				else if(type.equal("2D")) {
+					sf.type = surface_type::sampler_2d;
+				}
+				else if(type.equal("3D")) {
+					sf.type = surface_type::sampler_3d;
+				}
+				else if(type.equal("CUBE")) {
+					sf.type = surface_type::cube;
+				}
+				else if(type.equal("DEPTH")) {
+					sf.type = surface_type::depth;
+				}
+				else if(type.equal("RECT")) {
+					sf.type = surface_type::rect;
+				}
+				else {
+					sf.type = surface_type::untyped;
+				}
+				et = to_next_tag_event(state);
+				check_eod(state, ERR_MSG);
+				sev = xp_->parse_start_element();
+				check_eod(state, ERR_MSG);
+				if( is_element(sev,"init_from") ) {
+					sf.init_from = get_tag_value();
+				}
+				efl->add_surface( std::forward<io::const_string>(sid), std::move(sf) );
+			}
+			else if( is_element(sev,"sampler2D") ) {
+				et = to_next_tag_event(state);
+				check_eod(state, ERR_MSG);
+				sev = xp_->parse_start_element();
+				check_eod(state, ERR_MSG);
+				if( is_element(sev,"source") ) {
+					efl->add_sampler_ref(
+						std::forward<io::const_string>(sid),
+						get_tag_value() );
+				}
+			}
+		}
+	}
+	while( !is_end_element(et,"newparam") );
 }
 
 void parser::parse_effect_library(s_model& md)
@@ -445,12 +509,10 @@ void parser::parse_effect_library(s_model& md)
 			sev = xp_->parse_start_element();
 			check_eod(state, ERR_MSG);
 			if( is_element(sev,"effect") ) {
-				effect ef;
-				parse_effect( ef );
-				md->add_effect( get_attr(sev,"id"), std::move(ef) );
+				s_effect_library elf = md->effects();
+				parse_effect(  get_attr(sev,"id"), elf  );
 			}
 		}
-
 	}
 	while( !is_end_element(et,library_effects_) );
 }
@@ -702,7 +764,7 @@ void parser::parse_mesh(const s_mesh& m)
 			else if( is_index_data(sev,pt) ) {
 				auto attr = sev.get_attribute("","material");
 				if(attr.second)
-                    m->set_material( std::move(attr.first) );
+					m->set_material( std::move(attr.first) );
 				s_index_data idx = m->index();
 				idx->set_primitives(pt);
 				idx->set_count( parse_sizet( get_attr(sev,"count") ) );
@@ -809,7 +871,8 @@ void parser::parse_visual_scene(s_scene& scn)
 	while( !is_end_element(et, "visual_scene") );
 }
 
-void parser::parse_library_images(s_model& md) {
+void parser::parse_library_images(s_model& md)
+{
 	static const char* ERR_MSG = "library_image is unbalanced";
 	io::xml::state_type state;
 	io::xml::event_type et;
@@ -829,7 +892,8 @@ void parser::parse_library_images(s_model& md) {
 				md->add_image( std::move(id), get_tag_value() );
 			}
 		}
-	} while( !is_end_element(et, library_images_) );
+	}
+	while( !is_end_element(et, library_images_) );
 }
 
 void parser::library_visual_scenes(s_model& md)
