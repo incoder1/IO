@@ -184,8 +184,9 @@
 //}
 
 // obtains parsed float array from COLLADA source
-collada::float_array source_data(const collada::s_source& src) {
+collada::float_array source_data(const collada::s_source& src,std::size_t& stride) {
 	collada::s_accessor acsr = * ( src->cbegin() );
+	stride = acsr->stride();
 	return src->find_float_array( acsr->source_id() );
 }
 
@@ -196,20 +197,21 @@ static engine::s_surface load_mesh(const collada::s_model& src_mdl, const collad
 	using namespace collada;
 	collada::float_array pos, nrm, uv;
 	std::size_t pos_offset, nrm_offset, uv_offset;
+	std::size_t pos_len, nrm_len, uv_len;
 	// loop over the input and look-up sources
 	for(auto it = mesh->cbegin(); it != mesh->cend(); ++it) {
 		io::const_string acr_id = it->accessor_id;
 		switch(it->type) {
 		case semantic_type::position:
-			pos = source_data( mesh->find_souce(acr_id) );
+			pos = source_data( mesh->find_souce(acr_id), pos_len );
 			pos_offset = it->offset;
 			break;
 		case semantic_type::normal:
-			nrm = source_data( mesh->find_souce(acr_id) );
+			nrm = source_data( mesh->find_souce(acr_id), nrm_len);
 			nrm_offset = it->offset;
 			break;
 		case semantic_type::texcoord:
-			uv = source_data( mesh->find_souce(acr_id) );
+			uv = source_data( mesh->find_souce(acr_id), uv_len);
 			uv_offset = it->offset;
 			break;
 		default:
@@ -217,15 +219,9 @@ static engine::s_surface load_mesh(const collada::s_model& src_mdl, const collad
 		}
 	}
 
-	// TODO: Extract from COLLADA
-	const std::size_t pos_len = 3;
-	const std::size_t nrm_len = 3;
-	const std::size_t uv_len = 2;
-
 	const std::size_t pos_stride = sizeof(float) * pos_len;
 	const std::size_t nrm_stride = sizeof(float) * nrm_len;
 	const std::size_t uv_stiride = sizeof(float) * uv_len;
-
 
 
 	unsigned_int_array idx = mesh->index()->indices();
@@ -262,9 +258,23 @@ static engine::s_surface load_mesh(const collada::s_model& src_mdl, const collad
 	std::cout << "vbo size: " << vbo.len() << " vio size: " << vio.len() << std::endl;
 #endif // NDEBUG
 
-	// TODO: extract from material
+	// TODO: make parsing correct, with newparam, sampler2D etc
+	io::const_string mat_id = mesh->material();
+    io::const_string diffuse_texture_file;
+    std::shared_ptr<collada::effect> ef = src_mdl->find_material( mat_id );
+    if( ef ) {
+		switch( ef->shade ) {
+		case collada::shade_type::diffuse_texture:
+			diffuse_texture_file = src_mdl->find_image( ef->tex.texcoord );
+		default:
+			// TODO: detect correct mesh type
+			break;
+		}
+    }
+
 	engine::s_image texture_img = engine::load_png_rgba(
-										io::file("cube_tex2d_512x512.png"), true);
+										io::file( diffuse_texture_file.stdstr() ),
+										true);
 
 	return engine::s_surface(
 				new engine::textured_mesh(

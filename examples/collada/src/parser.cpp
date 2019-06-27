@@ -123,6 +123,7 @@ static io::const_string get_attr(const io::xml::start_element_event& sev, const 
 	if( !attr.second  ) {
 		// TODO: add error row/col
 		std::string msg = sev.name().local_name().stdstr();
+		msg.push_back(' ');
 		msg.append( name );
 		msg.append(" attribute is mandatory");
 		throw std::runtime_error( msg );
@@ -373,7 +374,9 @@ void parser::parse_effect(effect& ef)
 				if( is_element(sev, "texture") ) {
 					ef.shade = shade_type::diffuse_texture;
 					ef.tex.name = get_attr(sev,"texture");
-					ef.tex.texcoord = get_attr(sev,"texcoord");
+					auto attr = sev.get_attribute("","texcoord");
+					if( attr.second )
+						ef.tex.texcoord = attr.first;
 				} else {
 					// this is material values
 					parse_vec4( get_tag_value(), ef.value.pong.diffuse );
@@ -697,6 +700,9 @@ void parser::parse_mesh(const s_mesh& m)
 				parse_vertex_data(m);
 			}
 			else if( is_index_data(sev,pt) ) {
+				auto attr = sev.get_attribute("","material");
+				if(attr.second)
+                    m->set_material( std::move(attr.first) );
 				s_index_data idx = m->index();
 				idx->set_primitives(pt);
 				idx->set_count( parse_sizet( get_attr(sev,"count") ) );

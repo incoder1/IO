@@ -316,6 +316,14 @@ public:
 		vertex_id_ = std::move(id);
 	}
 
+	io::const_string material() const noexcept {
+		return material_;
+	}
+
+	void set_material(io::const_string&& material) noexcept {
+		material_ = std::move(material);
+	}
+
 	io::const_string vertex_id() const noexcept {
 		return vertex_id_;
 	}
@@ -329,6 +337,8 @@ public:
 
 	void add_input_channel(input_channel&& ich);
 
+
+
 	const_iterator cbegin() const {
 		return input_channels_.cbegin();
 	}
@@ -338,6 +348,7 @@ public:
 	}
 private:
 	io::const_string vertex_id_;
+	io::const_string material_;
 	source_library_t source_library_;
 	input_channels_library_t input_channels_;
 	s_index_data index_;

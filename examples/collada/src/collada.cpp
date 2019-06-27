@@ -81,6 +81,7 @@ geometry::~geometry() noexcept
 mesh::mesh(io::const_string&& name) noexcept:
 	geometry(geometry::surface_type::mesh, std::forward<io::const_string>(name) ),
 	vertex_id_(),
+	material_(),
 	source_library_(),
 	input_channels_(),
 	index_( new index_data() )
