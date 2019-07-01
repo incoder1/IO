@@ -20,7 +20,8 @@ uniform	float material_shininess;
 
 
 layout(location = 0) in vec3 vertex_coord;
-layout(location = 1) in vec3 vertex_normal;
+layout(location = 1) in vec3 vertex_color;
+layout(location = 2) in vec3 vertex_normal;
 
 out vec4 front_color;
 out vec4 back_color;
@@ -45,9 +46,7 @@ void main(void) {
 	vec4 vcoord = vec4( vertex_coord, 1.0 );
 	vec4 eye_norm = normalize( nm * vec4(vertex_normal,0.0) );
 	vec4 eye_pos = mv * vcoord;
-	front_color = phong_shading(eye_pos, eye_norm);
-	back_color = phong_shading(eye_pos, -eye_norm);
+	front_color = vec4(vertex_color,1.0) + phong_shading(eye_pos, eye_norm);
+	back_color = vec4(vertex_color,1.0) + phong_shading(eye_pos, -eye_norm);
 	gl_Position = mvp * vcoord;
 }
-
-

@@ -254,6 +254,13 @@
 						0 5 15
 						7 5 16
 						4 5 17
+					</p>
+				</triangles>
+				<triangles material="cube_tex2d_512x512_png-material" count="12">
+					<input semantic="VERTEX" source="#Cube-mesh-vertices" offset="0"/>
+					<input semantic="NORMAL" source="#Cube-mesh-normals" offset="1"/>
+					<input semantic="TEXCOORD" source="#Cube-mesh-map-0" offset="2" set="0"/>
+					<p>
 						0 6 18
 						1 6 19
 						2 6 20

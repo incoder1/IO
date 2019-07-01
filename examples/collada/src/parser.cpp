@@ -773,7 +773,9 @@ void parser::parse_mesh(const s_mesh& m)
 				m->add_input_channel( parse_input(sev) );
 			}
 			else if( is_element(sev,"p") ) {
-				m->index()->set_indices( parse_string_array( get_tag_value() ) );
+				unsigned_int_array all = parse_string_array( get_tag_value() );
+				s_index_data idx = m->index();
+				idx->add_indices( all.get(), all.length() );
 			}
 		}
 	}

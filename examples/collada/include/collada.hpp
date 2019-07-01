@@ -257,18 +257,20 @@ public:
 	void set_count(std::size_t count) noexcept {
 		count_ = count;
 	}
-	unsigned_int_array indices() const noexcept
+	const unsigned int* indices() const noexcept
 	{
-		return indices_;
+		return std::addressof( indices_.front() );
 	}
-	void set_indices(unsigned_int_array&& idx) noexcept
-	{
-		indices_ = std::move(idx);
+	std::size_t size() const noexcept {
+		return indices_.size();
+	}
+	void add_indices(const unsigned int* data,const std::size_t count) {
+		std::copy( data , (data+count), std::back_inserter( indices_ ) );
 	}
 private:
 	primitive_type primitives_;
 	std::size_t count_;
-	unsigned_int_array indices_;
+	std::vector<unsigned int> indices_;
 };
 
 DECLARE_IPTR(index_data);
@@ -336,7 +338,6 @@ public:
 	s_source find_souce(const io::const_string& id) const;
 
 	void add_input_channel(input_channel&& ich);
-
 
 
 	const_iterator cbegin() const {

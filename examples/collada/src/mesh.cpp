@@ -9,11 +9,83 @@ const char* geometry_mesh::VERTEX_SHADER = "gpu/geometry_mesh.vertex.glsl";
 
 const char* geometry_mesh::FRAGMENT_SHADER = "gpu/geometry_mesh.frag.glsl";
 
-geometry_mesh::geometry_mesh(const material_t& mat,const float *vertex, std::size_t vsize,const uint32_t* index,std::size_t isize):
+geometry_mesh::geometry_mesh(const material_t& mat, const float *vertex, std::size_t vsize,const uint32_t* index,std::size_t isize):
 	mesh(),
 	program_(),
 	vbo_(),
-	ibo_(),
+	vio_(),
+	mat_helper_(mat),
+	light_helper_(),
+	mvp_ul_(-1),
+	mv_ul_(-1),
+	nrm_ul_(-1)
+{
+	gl::shader vertex_sh = gl::shader::load_glsl(gl::shader_type::vertex,io::file(VERTEX_SHADER));
+	gl::shader fragment_sh =  gl::shader::load_glsl(gl::shader_type::fragment, io::file(FRAGMENT_SHADER) );
+
+	program_ = gl::program::create( std::move(vertex_sh), std::move(fragment_sh) );
+
+	vbo_ = gl::buffer::create( vertex, vsize,
+							   gl::buffer_type::ARRAY_BUFFER,
+							   gl::buffer_usage::STATIC_DRAW
+							 );
+	vio_ = gl::buffer::create( index, isize,
+							   gl::buffer_type::ELEMENT_ARRAY_BUFFER,
+							   gl::buffer_usage::STATIC_DRAW );
+
+	gl::shader_program_attribute layout[2] = {
+		{VATTR_CRD,3},
+		{VATTR_NRM,3}
+	};
+
+	program_->pass_vertex_attrib_array(vbo_, false, layout, 2);
+
+	program_->link();
+
+	mvp_ul_ = program_->uniform_location(UNFM_MVP_MAT);
+	mv_ul_ = program_->uniform_location(UNFM_MV_MAT);
+	nrm_ul_ = program_->uniform_location(UNFM_NORMAL_MAT);
+
+	mat_helper_.bind_to_shader(program_);
+	light_helper_.bind_to_shader(program_);
+}
+
+void geometry_mesh::draw(const scene& scn) const
+{
+	::glm::mat4 projection_mat;
+	::glm::mat4 model_view_mat;
+	scn.get_frustum(projection_mat,model_view_mat);
+	::glm::mat4 normal_mat( glm::transpose( glm::inverse(  glm::mat3(model_view_mat) ) ) );
+
+	program_->start();
+
+	// transfer world
+	::glUniformMatrix4fv(mvp_ul_, 1, GL_FALSE, glm::value_ptr( projection_mat * model_view_mat ) );
+	::glUniformMatrix4fv(mv_ul_, 1, GL_FALSE, glm::value_ptr( model_view_mat ) );
+	::glUniformMatrix4fv(nrm_ul_, 1, GL_FALSE, glm::value_ptr( normal_mat ) );
+
+	// transfer light
+	light_helper_.transfer_to_shader( scn.light() );
+	// transfer material
+	mat_helper_.transfer_to_shader();
+
+	vio_->bind();
+	::glDrawElements(GL_TRIANGLES, vio_->size(), GL_UNSIGNED_INT, 0);
+	vio_->unbind();
+
+	program_->stop();
+}
+
+// colored_geometry_mesh
+const char* colored_geometry_mesh::VERTEX_SHADER = "gpu/colored_geometry_mesh.vertex.glsl";
+
+const char* colored_geometry_mesh::FRAGMENT_SHADER = "gpu/geometry_mesh.frag.glsl";
+
+colored_geometry_mesh::colored_geometry_mesh(const material_t& mat,const float *vertex, std::size_t vsize,const uint32_t* index,std::size_t isize):
+	mesh(),
+	program_(),
+	vbo_(),
+	vio_(),
 	mat_helper_(mat),
 	light_helper_(),
 	mvp_ul_(-1),
@@ -30,7 +102,7 @@ geometry_mesh::geometry_mesh(const material_t& mat,const float *vertex, std::siz
 							   gl::buffer_type::ARRAY_BUFFER,
 							   gl::buffer_usage::STATIC_DRAW
 							 );
-	ibo_ = gl::buffer::create( index, isize,
+	vio_ = gl::buffer::create( index, isize,
 							   gl::buffer_type::ELEMENT_ARRAY_BUFFER,
 							   gl::buffer_usage::STATIC_DRAW );
 
@@ -52,11 +124,11 @@ geometry_mesh::geometry_mesh(const material_t& mat,const float *vertex, std::siz
 
 }
 
-geometry_mesh::geometry_mesh(const float *vertex, std::size_t vsize,const uint32_t* indexes,std::size_t isize):
-	geometry_mesh(DEFAULT_MATERIAL, vertex, vsize,indexes, isize)
+colored_geometry_mesh::colored_geometry_mesh(const float *vertex, std::size_t vsize,const uint32_t* indexes,std::size_t isize):
+	colored_geometry_mesh(DEFAULT_MATERIAL, vertex, vsize,indexes, isize)
 {}
 
-void geometry_mesh::draw(const scene& scn) const
+void colored_geometry_mesh::draw(const scene& scn) const
 {
 	::glm::mat4 projection_mat;
 	::glm::mat4 model_view_mat;
@@ -75,9 +147,9 @@ void geometry_mesh::draw(const scene& scn) const
 	// transfer material
 	mat_helper_.transfer_to_shader();
 
-	ibo_->bind();
-	::glDrawElements(GL_TRIANGLES, ibo_->size() , GL_UNSIGNED_INT, 0);
-	ibo_->unbind();
+	vio_->bind();
+	::glDrawElements(GL_TRIANGLES, vio_->size() , GL_UNSIGNED_INT, 0);
+	vio_->unbind();
 
 	program_->stop();
 }
@@ -92,7 +164,7 @@ textured_mesh::textured_mesh(const material_t& mat,const float *vertex, std::siz
 	mesh(),
 	program_(),
 	vbo_(),
-	ibo_(),
+	vio_(),
 	texture_(),
 	mat_helper_(mat),
 	light_helper_(),
@@ -109,7 +181,7 @@ textured_mesh::textured_mesh(const material_t& mat,const float *vertex, std::siz
 							   gl::buffer_type::ARRAY_BUFFER,
 							   gl::buffer_usage::STATIC_DRAW
 							 );
-	ibo_ = gl::buffer::create( indexes, isize,
+	vio_ = gl::buffer::create( indexes, isize,
 							   gl::buffer_type::ELEMENT_ARRAY_BUFFER,
 							   gl::buffer_usage::STATIC_DRAW );
 
@@ -160,12 +232,12 @@ void textured_mesh::draw(const scene& scn) const
 	::glActiveTexture(GL_TEXTURE0);
 	::glUniform1i(diffise_tex_ul_, 0);
 	 texture_->bind();
-	ibo_->bind();
+	vio_->bind();
 	vbo_->bind();
-	::glDrawElements(GL_TRIANGLES, ibo_->size(), GL_UNSIGNED_INT, 0);
+	::glDrawElements(GL_TRIANGLES, vio_->size(), GL_UNSIGNED_INT, 0);
 
 	vbo_->unbind();
-	ibo_->unbind();
+	vio_->unbind();
 	texture_->unbind();
 
 	program_->stop();
@@ -180,7 +252,7 @@ normal_mapped_mesh::normal_mapped_mesh(const material_t& mat,const float *vertex
 	mesh(),
 	program_(),
 	vbo_(),
-	ibo_(),
+	vio_(),
 	diffuse_tex_(),
 	normal_map_tex_(),
 	mat_helper_(mat),
@@ -198,7 +270,7 @@ normal_mapped_mesh::normal_mapped_mesh(const material_t& mat,const float *vertex
 							   gl::buffer_type::ARRAY_BUFFER,
 							   gl::buffer_usage::STATIC_DRAW
 							 );
-	ibo_ = gl::buffer::create( indexes, isize,
+	vio_ = gl::buffer::create( indexes, isize,
 							   gl::buffer_type::ELEMENT_ARRAY_BUFFER,
 							   gl::buffer_usage::STATIC_DRAW );
 
@@ -258,13 +330,13 @@ void normal_mapped_mesh::draw(const scene& scn) const
 	::glUniform1i(nm_tex_ul_, 1);
 
 	normal_map_tex_->bind();
-	ibo_->bind();
+	vio_->bind();
 	vbo_->bind();
 
-	::glDrawElements(GL_TRIANGLES, ibo_->size(), GL_UNSIGNED_INT, 0);
+	::glDrawElements(GL_TRIANGLES, vio_->size(), GL_UNSIGNED_INT, 0);
 
     vbo_->unbind();
-	ibo_->unbind();
+	vio_->unbind();
 	diffuse_tex_->unbind();
 	normal_map_tex_->unbind();
 

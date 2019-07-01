@@ -36,11 +36,33 @@ protected:
 
 class geometry_mesh final: public mesh
 {
+private:
+	static const char* VERTEX_SHADER;
+	static const char* FRAGMENT_SHADER;
 public:
 	geometry_mesh(const material_t& mat, const float *vertex, std::size_t vsize,const uint32_t* indexes,std::size_t isize);
-	geometry_mesh(const float *vertex, std::size_t vsize,const uint32_t* indexes,std::size_t isize);
 	virtual void draw(const scene& scn) const override;
 	virtual ~geometry_mesh() noexcept = default;
+private:
+	gl::s_program program_;
+	gl::s_buffer vbo_;
+	gl::s_buffer vio_;
+
+	material_helper mat_helper_;
+	light_helper light_helper_;
+
+	::GLint mvp_ul_;
+	::GLint mv_ul_;
+	::GLint nrm_ul_;
+};
+
+class colored_geometry_mesh final: public mesh
+{
+public:
+	colored_geometry_mesh(const material_t& mat, const float *vertex, std::size_t vsize,const uint32_t* indexes,std::size_t isize);
+	colored_geometry_mesh(const float *vertex, std::size_t vsize,const uint32_t* indexes,std::size_t isize);
+	virtual void draw(const scene& scn) const override;
+	virtual ~colored_geometry_mesh() noexcept = default;
 private:
 	static constexpr const char* VATTR_CRL = "vertex_color";
 
@@ -49,7 +71,7 @@ private:
 
 	gl::s_program program_;
 	gl::s_buffer vbo_;
-	gl::s_buffer ibo_;
+	gl::s_buffer vio_;
 
 	material_helper mat_helper_;
 	light_helper light_helper_;
@@ -74,7 +96,7 @@ private:
 
 	gl::s_program program_;
 	gl::s_buffer vbo_;
-	gl::s_buffer ibo_;
+	gl::s_buffer vio_;
 
 	gl::s_texture texture_;
 	material_helper mat_helper_;
@@ -103,7 +125,7 @@ private:
 
 	gl::s_program program_;
 	gl::s_buffer vbo_;
-	gl::s_buffer ibo_;
+	gl::s_buffer vio_;
 
 	gl::s_texture diffuse_tex_;
 	gl::s_texture normal_map_tex_;

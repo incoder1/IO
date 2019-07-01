@@ -108,6 +108,7 @@
 		<Linker>
 			<Add library="io" />
 		</Linker>
+		<Unit filename="gpu/colored_geometry_mesh.vertex.glsl" />
 		<Unit filename="gpu/geometry_mesh.frag.glsl" />
 		<Unit filename="gpu/geometry_mesh.vertex.glsl" />
 		<Unit filename="gpu/normal_mapped_mesh.frag.glsl" />
