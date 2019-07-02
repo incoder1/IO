@@ -42,11 +42,11 @@ private:
 public:
 	geometry_mesh(const material_t& mat, const float *vertex, std::size_t vsize,const uint32_t* indexes,std::size_t isize);
 	virtual void draw(const scene& scn) const override;
-	virtual ~geometry_mesh() noexcept = default;
+	virtual ~geometry_mesh() noexcept;
 private:
 	gl::s_program program_;
-	gl::s_buffer vbo_;
-	gl::s_buffer vio_;
+	::GLuint vao_;
+	std::size_t isize_;
 
 	material_helper mat_helper_;
 	light_helper light_helper_;
@@ -62,7 +62,7 @@ public:
 	colored_geometry_mesh(const material_t& mat, const float *vertex, std::size_t vsize,const uint32_t* indexes,std::size_t isize);
 	colored_geometry_mesh(const float *vertex, std::size_t vsize,const uint32_t* indexes,std::size_t isize);
 	virtual void draw(const scene& scn) const override;
-	virtual ~colored_geometry_mesh() noexcept = default;
+	virtual ~colored_geometry_mesh() noexcept override;
 private:
 	static constexpr const char* VATTR_CRL = "vertex_color";
 
@@ -70,8 +70,8 @@ private:
 	static const char* FRAGMENT_SHADER;
 
 	gl::s_program program_;
-	gl::s_buffer vbo_;
-	gl::s_buffer vio_;
+	::GLuint vao_;
+	std::size_t isize_;
 
 	material_helper mat_helper_;
 	light_helper light_helper_;
@@ -84,19 +84,20 @@ private:
 class textured_mesh final: public mesh
 {
 public:
+	textured_mesh(const material_t& mat,const float *vertex, std::size_t vsize,const uint32_t* indexes,std::size_t isize,const gl::s_texture& texture);
 	textured_mesh(const material_t& mat,const float *vertex, std::size_t vsize,const uint32_t* indexes,std::size_t isize,const s_image& texture);
 	textured_mesh(const float *vertex, std::size_t vsize,const uint32_t* indexes,std::size_t isize,const s_image& texture):
 		textured_mesh(DEFAULT_MATERIAL, vertex, vsize,indexes, isize, texture)
 	{}
 	virtual void draw(const scene& scn) const override;
-	virtual ~textured_mesh() noexcept = default;
+	virtual ~textured_mesh() noexcept override;
 private:
 	static const char* VERTEX_SHADER;
 	static const char* FRAGMENT_SHADER;
 
 	gl::s_program program_;
-	gl::s_buffer vbo_;
-	gl::s_buffer vio_;
+	::GLuint vao_;
+	std::size_t isize_;
 
 	gl::s_texture texture_;
 	material_helper mat_helper_;
@@ -116,6 +117,7 @@ public:
 	normal_mapped_mesh(const material_t& mat,const float *vertex, std::size_t vsize,const uint32_t* indexes,std::size_t isize,const s_image& difftex,const s_image& nm_text);
 	normal_mapped_mesh(const float *vertex, std::size_t vsize,const uint32_t* indexes,std::size_t isize,const s_image& difftex,const s_image& nm_text);
 	virtual void draw(const scene& scn) const override;
+	virtual ~normal_mapped_mesh() noexcept override;
 private:
 	static constexpr const char* VATTR_TAN = "tangent";
 	static constexpr const char* UNFM_NORMALMAP_TEXTURE = "normal_map_texture";
@@ -124,8 +126,8 @@ private:
 	static const char* FRAGMENT_SHADER;
 
 	gl::s_program program_;
-	gl::s_buffer vbo_;
-	gl::s_buffer vio_;
+	::GLuint vao_;
+	std::size_t isize_;
 
 	gl::s_texture diffuse_tex_;
 	gl::s_texture normal_map_tex_;

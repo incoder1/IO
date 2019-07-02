@@ -49,8 +49,9 @@ private:
 		: is_element(e, xp_->precache(s) );
 	}
 
-	bool is_index_data(const io::xml::start_element_event& sev,primitive_type& pt) noexcept;
 
+	bool is_sub_mesh(const io::xml::start_element_event& sev) noexcept;
+	bool is_sampler_ref(const io::xml::start_element_event& sev) noexcept;
 
 	/// Skip the element including all child elements
 	void skip_element(const io::xml::start_element_event& e);
@@ -67,8 +68,8 @@ private:
 	void parse_library_materials(s_model& md);
 
 	// geometry
-	void parse_vertex_data(const s_mesh& m);
-	void parse_index_data(index_data& index);
+	unsigned_int_array parse_index_data();
+	s_sub_mesh parse_sub_mesh(const io::const_string& type, io::const_string&& mat, std::size_t count);
 
 	void parse_accessor(s_accessor& src);
 	void parse_source(const s_source& src);

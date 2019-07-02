@@ -12,8 +12,8 @@ const char* geometry_mesh::FRAGMENT_SHADER = "gpu/geometry_mesh.frag.glsl";
 geometry_mesh::geometry_mesh(const material_t& mat, const float *vertex, std::size_t vsize,const uint32_t* index,std::size_t isize):
 	mesh(),
 	program_(),
-	vbo_(),
-	vio_(),
+	vao_(0),
+	isize_(isize),
 	mat_helper_(mat),
 	light_helper_(),
 	mvp_ul_(-1),
@@ -25,11 +25,15 @@ geometry_mesh::geometry_mesh(const material_t& mat, const float *vertex, std::si
 
 	program_ = gl::program::create( std::move(vertex_sh), std::move(fragment_sh) );
 
-	vbo_ = gl::buffer::create( vertex, vsize,
+	::glGenVertexArrays(1, &vao_);
+	::glBindVertexArray(vao_);
+
+	 gl::s_buffer vbo = gl::buffer::create( vertex, vsize,
 							   gl::buffer_type::ARRAY_BUFFER,
 							   gl::buffer_usage::STATIC_DRAW
 							 );
-	vio_ = gl::buffer::create( index, isize,
+
+	gl::s_buffer vio = gl::buffer::create( index, isize,
 							   gl::buffer_type::ELEMENT_ARRAY_BUFFER,
 							   gl::buffer_usage::STATIC_DRAW );
 
@@ -38,7 +42,7 @@ geometry_mesh::geometry_mesh(const material_t& mat, const float *vertex, std::si
 		{VATTR_NRM,3}
 	};
 
-	program_->pass_vertex_attrib_array(vbo_, false, layout, 2);
+	program_->pass_vertex_attrib_array(vbo, false, layout, 2);
 
 	program_->link();
 
@@ -48,6 +52,8 @@ geometry_mesh::geometry_mesh(const material_t& mat, const float *vertex, std::si
 
 	mat_helper_.bind_to_shader(program_);
 	light_helper_.bind_to_shader(program_);
+
+	::glBindVertexArray(0);
 }
 
 void geometry_mesh::draw(const scene& scn) const
@@ -69,11 +75,16 @@ void geometry_mesh::draw(const scene& scn) const
 	// transfer material
 	mat_helper_.transfer_to_shader();
 
-	vio_->bind();
-	::glDrawElements(GL_TRIANGLES, vio_->size(), GL_UNSIGNED_INT, 0);
-	vio_->unbind();
+	::glBindVertexArray(vao_);
+	::glDrawElements(GL_TRIANGLES, isize_, GL_UNSIGNED_INT, static_cast<void*>(0) );
+	::glBindVertexArray(0);
 
 	program_->stop();
+}
+
+geometry_mesh::~geometry_mesh() noexcept
+{
+	::glDeleteVertexArrays(1, &vao_);
 }
 
 // colored_geometry_mesh
@@ -84,8 +95,8 @@ const char* colored_geometry_mesh::FRAGMENT_SHADER = "gpu/geometry_mesh.frag.gls
 colored_geometry_mesh::colored_geometry_mesh(const material_t& mat,const float *vertex, std::size_t vsize,const uint32_t* index,std::size_t isize):
 	mesh(),
 	program_(),
-	vbo_(),
-	vio_(),
+	vao_(0),
+	isize_(isize),
 	mat_helper_(mat),
 	light_helper_(),
 	mvp_ul_(-1),
@@ -98,11 +109,14 @@ colored_geometry_mesh::colored_geometry_mesh(const material_t& mat,const float *
 
 	program_ = gl::program::create( std::move(vertex_sh), std::move(fragment_sh) );
 
-	vbo_ = gl::buffer::create( vertex, vsize,
+	::glGenVertexArrays(1, &vao_);
+	::glBindVertexArray(vao_);
+
+	gl::s_buffer vbo = gl::buffer::create( vertex, vsize,
 							   gl::buffer_type::ARRAY_BUFFER,
 							   gl::buffer_usage::STATIC_DRAW
 							 );
-	vio_ = gl::buffer::create( index, isize,
+	gl::s_buffer vio = gl::buffer::create( index, isize,
 							   gl::buffer_type::ELEMENT_ARRAY_BUFFER,
 							   gl::buffer_usage::STATIC_DRAW );
 
@@ -111,7 +125,7 @@ colored_geometry_mesh::colored_geometry_mesh(const material_t& mat,const float *
 		{VATTR_CRL,3},
 		{VATTR_NRM,3} };
 
-	program_->pass_vertex_attrib_array(vbo_, false, layout, 3);
+	program_->pass_vertex_attrib_array(vbo, false, layout, 3);
 
 	program_->link();
 
@@ -121,6 +135,8 @@ colored_geometry_mesh::colored_geometry_mesh(const material_t& mat,const float *
 
 	mat_helper_.bind_to_shader(program_);
 	light_helper_.bind_to_shader(program_);
+
+	::glBindVertexArray(0);
 
 }
 
@@ -147,11 +163,16 @@ void colored_geometry_mesh::draw(const scene& scn) const
 	// transfer material
 	mat_helper_.transfer_to_shader();
 
-	vio_->bind();
-	::glDrawElements(GL_TRIANGLES, vio_->size() , GL_UNSIGNED_INT, 0);
-	vio_->unbind();
+	::glBindVertexArray(vao_);
+	::glDrawElements(GL_TRIANGLES, isize_ , GL_UNSIGNED_INT, 0);
+	::glBindVertexArray(0);
 
 	program_->stop();
+}
+
+colored_geometry_mesh::~colored_geometry_mesh() noexcept
+{
+	::glDeleteVertexArrays(1, &vao_);
 }
 
 //textured_mesh
@@ -160,12 +181,12 @@ const char* textured_mesh::VERTEX_SHADER = "gpu/textured_mesh.vertex.glsl";
 
 const char* textured_mesh::FRAGMENT_SHADER = "gpu/textured_mesh.frag.glsl";
 
-textured_mesh::textured_mesh(const material_t& mat,const float *vertex, std::size_t vsize,const uint32_t* indexes,std::size_t isize,const s_image& timg):
+textured_mesh::textured_mesh(const material_t& mat,const float *vertex, std::size_t vsize,const uint32_t* indexes,std::size_t isize,const gl::s_texture& texture):
 	mesh(),
 	program_(),
-	vbo_(),
-	vio_(),
-	texture_(),
+	vao_(0),
+	isize_(isize),
+	texture_( texture ),
 	mat_helper_(mat),
 	light_helper_(),
 	mvp_ul_(-1),
@@ -177,11 +198,14 @@ textured_mesh::textured_mesh(const material_t& mat,const float *vertex, std::siz
 	gl::shader fragment_sh =  gl::shader::load_glsl(gl::shader_type::fragment, io::file(FRAGMENT_SHADER) );
 	program_ = gl::program::create( std::move(vertex_sh), std::move(fragment_sh) );
 
-	vbo_ = gl::buffer::create( vertex, vsize,
+	::glGenVertexArrays(1, &vao_);
+	::glBindVertexArray(vao_);
+
+	gl::s_buffer vbo = gl::buffer::create( vertex, vsize,
 							   gl::buffer_type::ARRAY_BUFFER,
 							   gl::buffer_usage::STATIC_DRAW
 							 );
-	vio_ = gl::buffer::create( indexes, isize,
+	gl::s_buffer vio = gl::buffer::create( indexes, isize,
 							   gl::buffer_type::ELEMENT_ARRAY_BUFFER,
 							   gl::buffer_usage::STATIC_DRAW );
 
@@ -191,11 +215,9 @@ textured_mesh::textured_mesh(const material_t& mat,const float *vertex, std::siz
 		{VATTR_NRM,3},
 		{VATTR_UV,2} };
 
-	program_->pass_vertex_attrib_array(vbo_, false, layout, 3);
+	program_->pass_vertex_attrib_array(vbo, false, layout, 3);
 
-	texture_ = gl::texture::create_texture2d_from_image(
-				   timg,
-				   gl::texture_filter::LINEAR_MIPMAP_LINEAR);
+	::glBindVertexArray(0);
 
 	program_->link();
 
@@ -207,6 +229,20 @@ textured_mesh::textured_mesh(const material_t& mat,const float *vertex, std::siz
 	light_helper_.bind_to_shader(program_);
 
 	diffise_tex_ul_ = program_->uniform_location(UNFM_DIFFUSE_TEXTURE);
+}
+
+textured_mesh::textured_mesh(const material_t& mat,const float *vertex, std::size_t vsize,const uint32_t* indexes,std::size_t isize,const s_image& timg):
+	textured_mesh(
+		mat,
+		vertex,
+		vsize,
+		indexes,
+		isize,
+		gl::texture::create_texture2d_from_image(
+				   timg,
+				   gl::texture_filter::LINEAR_MIPMAP_LINEAR)
+		)
+{
 }
 
 void textured_mesh::draw(const scene& scn) const
@@ -232,15 +268,19 @@ void textured_mesh::draw(const scene& scn) const
 	::glActiveTexture(GL_TEXTURE0);
 	::glUniform1i(diffise_tex_ul_, 0);
 	 texture_->bind();
-	vio_->bind();
-	vbo_->bind();
-	::glDrawElements(GL_TRIANGLES, vio_->size(), GL_UNSIGNED_INT, 0);
 
-	vbo_->unbind();
-	vio_->unbind();
+	::glBindVertexArray(vao_);
+	::glDrawElements(GL_TRIANGLES, isize_, GL_UNSIGNED_INT, 0);
+	::glBindVertexArray(0);
+
 	texture_->unbind();
 
 	program_->stop();
+}
+
+textured_mesh::~textured_mesh() noexcept
+{
+	::glDeleteVertexArrays(1, &vao_);
 }
 
 //normal_mapped_mesh
@@ -251,8 +291,8 @@ const char* normal_mapped_mesh::FRAGMENT_SHADER = "gpu/normal_mapped_mesh.frag.g
 normal_mapped_mesh::normal_mapped_mesh(const material_t& mat,const float *vertex, std::size_t vsize,const uint32_t* indexes,std::size_t isize,const s_image& difftex,const s_image& nm_text):
 	mesh(),
 	program_(),
-	vbo_(),
-	vio_(),
+	vao_(0),
+	isize_(isize),
 	diffuse_tex_(),
 	normal_map_tex_(),
 	mat_helper_(mat),
@@ -266,11 +306,15 @@ normal_mapped_mesh::normal_mapped_mesh(const material_t& mat,const float *vertex
 	gl::shader fragment_sh =  gl::shader::load_glsl(gl::shader_type::fragment, io::file(FRAGMENT_SHADER) );
 	program_ = gl::program::create( std::move(vertex_sh), std::move(fragment_sh) );
 
-	vbo_ = gl::buffer::create( vertex, vsize,
+	::glGenVertexArrays(1, &vao_);
+	::glBindVertexArray(vao_);
+
+	gl::s_buffer vbo = gl::buffer::create( vertex, vsize,
 							   gl::buffer_type::ARRAY_BUFFER,
 							   gl::buffer_usage::STATIC_DRAW
 							 );
-	vio_ = gl::buffer::create( indexes, isize,
+
+	gl::s_buffer vio = gl::buffer::create( indexes, isize,
 							   gl::buffer_type::ELEMENT_ARRAY_BUFFER,
 							   gl::buffer_usage::STATIC_DRAW );
 
@@ -280,7 +324,9 @@ normal_mapped_mesh::normal_mapped_mesh(const material_t& mat,const float *vertex
 		{VATTR_UV,2},
 		{VATTR_TAN,3} };
 
-	program_->pass_vertex_attrib_array(vbo_, false, layout, 4);
+	program_->pass_vertex_attrib_array(vbo, false, layout, 4);
+
+	::glBindVertexArray(0);
 
 	program_->link();
 
@@ -330,17 +376,20 @@ void normal_mapped_mesh::draw(const scene& scn) const
 	::glUniform1i(nm_tex_ul_, 1);
 
 	normal_map_tex_->bind();
-	vio_->bind();
-	vbo_->bind();
+	::glBindVertexArray(vao_);
 
-	::glDrawElements(GL_TRIANGLES, vio_->size(), GL_UNSIGNED_INT, 0);
+	::glDrawElements(GL_TRIANGLES, isize_, GL_UNSIGNED_INT, 0);
 
-    vbo_->unbind();
-	vio_->unbind();
+	::glBindVertexArray(0);
 	diffuse_tex_->unbind();
 	normal_map_tex_->unbind();
 
 	program_->stop();
+}
+
+normal_mapped_mesh::~normal_mapped_mesh() noexcept
+{
+	::glDeleteVertexArrays(1, &vao_);
 }
 
 } // namespace engine

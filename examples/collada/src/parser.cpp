@@ -365,7 +365,7 @@ void parser::parse_effect(io::const_string&& id, s_effect_library& efl)
 			else if( is_element(sev,"ambient") ) {
 				sev = to_next_tag_start(state);
 				check_eod(state,ERR_MSG);
-				parse_vec4( get_tag_value(), ef.value.pong.ambient );
+				parse_vec4( get_tag_value(), ef.value.pong.adse.vec.ambient );
 			}
 			else if( is_element(sev,"diffuse") ) {
 				sev = to_next_tag_start(state);
@@ -380,18 +380,18 @@ void parser::parse_effect(io::const_string&& id, s_effect_library& efl)
 				}
 				else {
 					// this is material values
-					parse_vec4( get_tag_value(), ef.value.pong.diffuse );
+					parse_vec4( get_tag_value(), ef.value.pong.adse.vec.diffuse );
 				}
 			}
 			else if( is_element(sev,"emission") ) {
 				sev = to_next_tag_start(state);
 				check_eod(state,ERR_MSG);
-				parse_vec4( get_tag_value(), ef.value.pong.emission );
+				parse_vec4( get_tag_value(), ef.value.pong.adse.vec.emission );
 			}
 			else if( is_element(sev,"specular") ) {
 				sev = to_next_tag_start(state);
 				check_eod(state,ERR_MSG);
-				parse_vec4( get_tag_value(), ef.value.pong.specular );
+				parse_vec4( get_tag_value(), ef.value.pong.adse.vec.specular );
 			}
 			else if( is_element(sev,"shininess") ) {
 				sev = to_next_tag_start(state);
@@ -415,7 +415,7 @@ void parser::parse_effect(io::const_string&& id, s_effect_library& efl)
 			}
 			else if( is_element(sev,"transparent") ) {
 				ef.value.transparent.used = true;
-				io::const_string opaque = sev.get_attribute("","opaque").first;
+				io::const_string opaque = get_attr(sev,"opaque");
 				ef.value.transparent.rbg = opaque.equal("RGB_ZERO") || opaque.equal("RGB_ONE");
 				ef.value.transparent.invert = opaque.equal("RGB_ZERO") || opaque.equal("A_ZERO");
 				sev = to_next_tag_start(state);
@@ -480,7 +480,7 @@ void parser::parse_new_param(io::const_string&& sid,s_effect_library& efl)
 				}
 				efl->add_surface( std::forward<io::const_string>(sid), std::move(sf) );
 			}
-			else if( is_element(sev,"sampler2D") ) {
+			else if( is_sampler_ref(sev) ) {
 				et = to_next_tag_event(state);
 				check_eod(state, ERR_MSG);
 				sev = xp_->parse_start_element();
@@ -547,46 +547,32 @@ void parser::parse_library_materials(s_model& md)
 
 // Geometry
 
-static input_channel parse_input(const io::xml::start_element_event& e)
+static input parse_input(const io::xml::start_element_event& e)
 {
-	input_channel ret;
-	auto attr = e.get_attribute("","semantic");
-	if(!attr.second)
-		throw std::runtime_error("input semantic attribute is mandatory");
-	io::const_string sematic = attr.first;
-	if( sematic.equal("VERTEX") ) {
-		ret.type = semantic_type::vertex;
-	}
-	else if( sematic.equal("POSITION") ) {
-		ret.type = semantic_type::position;
-	}
-	else if( sematic.equal("NORMAL") ) {
-		ret.type = semantic_type::normal;
-	}
-	else if( sematic.equal("TEXCOORD") ) {
-		ret.type = semantic_type::texcoord;
-	}
-	else if( sematic.equal("COLOR") ) {
-		ret.type = semantic_type::color;
-	}
-	else if( sematic.equal("TANGENT") ) {
-		ret.type = semantic_type::tangent;
-	}
-	else if( sematic.equal("BITANGENT") ) {
-		ret.type = semantic_type::bitangent;
-	}
-	attr =  e.get_attribute("","source");
-	if(!attr.second)
-		throw std::runtime_error("input source attribute is mandatory");
+	input ret;
+	io::const_string sematic = get_attr(e,"semantic");
+	constexpr const char* NAMES[7] = {
+		"VERTEX",
+		"POSITION",
+		"NORMAL",
+		"TEXCOORD",
+		"COLOR",
+		"TANGENT",
+		"BITANGENT"
+    };
+    for(uint8_t i=0; i < 7; i++) {
+		if( sematic.equal( NAMES[i] ) ) {
+			ret.type = static_cast<semantic_type>(i);
+			break;
+		}
+    }
 	// remove # at the begin
-	io::const_string src = attr.first;
+	io::const_string src = get_attr(e,"source");
 	ret.accessor_id = io::const_string( src.data()+1, src.size()-1 );
 
 	// optional attributes
-	attr = e.get_attribute("","offset");
-	if(attr.second)
-		ret.offset = parse_sizet( attr.first );
-	attr = e.get_attribute("","set");
+	ret.offset = parse_sizet( get_attr(e,"offset") );
+	auto attr = e.get_attribute("","set");
 	if(attr.second)
 		ret.set = parse_sizet( attr.first );
 
@@ -684,67 +670,106 @@ void parser::parse_source(const s_source& src)
 	while( !is_end_element(et, "source") );
 }
 
-void parser::parse_vertex_data(const s_mesh& m)
+//void parser::parse_vertex_data(sub_mesh::input_library_t& layout)
+//{
+//	io::xml::state_type state;
+//	io::xml::event_type et;
+//	io::xml::start_element_event sev;
+//	do {
+//		et = to_next_tag_event(state);
+//		check_eod(state, "vertices is unbalanced");
+//		if( is_start_element(et) ) {
+//			sev = xp_->parse_start_element();
+//			if( is_element(sev,"input") )
+//				layout.emplace_back( parse_input(sev) );
+//		}
+//	}
+//	while( !is_end_element(et,"vertices") );
+//}
+
+
+static constexpr const char* PRIMITIVES[7] = {
+        "lines",
+        "linestrips",
+        "polygons",
+        "polylist",
+        "triangles",
+        "trifans",
+		"tristrips"
+};
+
+bool parser::is_sub_mesh(const io::xml::start_element_event& sev) noexcept
 {
+	for(uint8_t i=0; i < 7; i++) {
+		if( is_element(sev,PRIMITIVES[i]) )
+			return true;
+	}
+	return false;
+}
+
+bool parser::is_sampler_ref(const io::xml::start_element_event& sev) noexcept
+{
+	const char * ln = sev.name().local_name().data();
+	// ignore 1D, 2D, 3D, CUBE, DEPTH, RECT
+	// should be taken from argument
+	return 0 == io_memcmp(ln, "sampler", 6);
+}
+
+s_sub_mesh parser::parse_sub_mesh(const io::const_string& type, io::const_string&& mat, std::size_t count)
+{
+	primitive_type pt = primitive_type::triangles;
+	for(uint8_t i=0; i < 7; i++) {
+		if( type.equal( PRIMITIVES[i] ) ) {
+			pt = static_cast<primitive_type>(i);
+			break;
+		}
+	}
+	std::string err_msg( type.data() );
+	err_msg.append(" is unbalanced");
+	const char* ERR_MSG = err_msg.data();
+
+	sub_mesh::input_library_t layout;
+	unsigned_int_array idx;
+
 	io::xml::state_type state;
 	io::xml::event_type et;
 	io::xml::start_element_event sev;
 	do {
 		et = to_next_tag_event(state);
-		check_eod(state, "vertices is unbalanced");
+		check_eod(state, ERR_MSG);
 		if( is_start_element(et) ) {
 			sev = xp_->parse_start_element();
-			if( is_element(sev,"input") )
-				m->add_input_channel( parse_input(sev) );
+			check_eod(state, ERR_MSG);
+			if( is_element(sev,"input") ) {
+				layout.emplace_back( parse_input(sev) );
+			}
+			else if( is_element(sev,"p") ) {
+				idx = parse_string_array( get_tag_value() );
+			}
 		}
-	}
-	while( !is_end_element(et,"vertices") );
-}
+	} while( !is_end_element(et, type) );
 
+	layout.shrink_to_fit();
 
-
-bool parser::is_index_data(const io::xml::start_element_event& sev,primitive_type& pt) noexcept
-{
-	if( is_element(sev,"triangles") ) {
-		pt = primitive_type::triangles;
-		return true;
-	}
-	else if( is_element(sev,"lines") ) {
-		pt = primitive_type::lines;
-		return true;
-	}
-	else if( is_element(sev,"linestrips") ) {
-		pt = primitive_type::linestrips;
-		return true;
-	}
-	else if( is_element(sev,"polygons") ) {
-		pt = primitive_type::polygons;
-		return true;
-	}
-	else if( is_element(sev,"polylist") ) {
-		pt = primitive_type::polylist;
-		return true;
-	}
-	else if( is_element(sev,"trifans") ) {
-		pt = primitive_type::trifans;
-		return true;
-	}
-	else if( is_element(sev,"tristrips")) {
-		pt = primitive_type::tristrips;
-		return true;
-	}
-	return false;
+	return s_sub_mesh(
+						new sub_mesh(
+							pt,
+							std::forward<io::const_string>(mat),
+							count,
+							std::move(layout),
+							std::move(idx)
+							)
+					);
 }
 
 void parser::parse_mesh(const s_mesh& m)
 {
 	static constexpr const char* ERR_MSG = "mesh is unbalanced";
 
-
 	io::xml::state_type state;
 	io::xml::event_type et;
 	io::xml::start_element_event sev;
-	primitive_type pt;
+
 	do {
 		et = to_next_tag_event(state);
 		check_eod(state, ERR_MSG);
@@ -758,24 +783,25 @@ void parser::parse_mesh(const s_mesh& m)
 				m->add_source( std::move(id), std::move(src) );
 			}
 			else if( is_element(sev, "vertices") ) {
-				m->set_vertex_id( get_attr(sev,"id") );
-				parse_vertex_data(m);
+				//m->set_vertex_id( get_attr(sev,"id") );
+				et = to_next_tag_event(state);
+				check_eod(state, ERR_MSG);
+				sev = xp_->parse_start_element();
+				check_eod(state, ERR_MSG);
+				if( is_element(sev, "input") ) {
+					io::const_string ref = get_attr(sev,"source");
+					m->set_pos_src_id( io::const_string( ref.data()+1, ref.size()-1 ) );
+				}
 			}
-			else if( is_index_data(sev,pt) ) {
+			else if( is_sub_mesh(sev) ) {
 				auto attr = sev.get_attribute("","material");
-				if(attr.second)
-					m->set_material( std::move(attr.first) );
-				s_index_data idx = m->index();
-				idx->set_primitives(pt);
-				idx->set_count( parse_sizet( get_attr(sev,"count") ) );
-			}
-			else if( is_element(sev,"input") ) {
-				m->add_input_channel( parse_input(sev) );
-			}
-			else if( is_element(sev,"p") ) {
-				unsigned_int_array all = parse_string_array( get_tag_value() );
-				s_index_data idx = m->index();
-				idx->add_indices( all.get(), all.length() );
+				s_sub_mesh sub_mesh = parse_sub_mesh(
+							sev.name().local_name(),
+							attr.second ? io::const_string(attr.first) : io::const_string(),
+							parse_sizet( get_attr(sev,"count") )
+							);
+				// parse sub_mesh
+				m->add_sub_mesh( std::move(sub_mesh) );
 			}
 		}
 	}

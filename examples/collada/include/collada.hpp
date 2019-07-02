@@ -66,10 +66,15 @@ struct constant_effect {
 };
 
 struct phong_effect {
-	float ambient[4];
-	float emission[4];
-	float diffuse[4];
-	float specular[4];
+	union __mat_adse {
+		struct __adse_vectors {
+			float ambient[4];
+			float diffuse[4];
+			float specular[4];
+			float emission[4];
+		} vec;
+		float mat[16];
+	} adse;
 	float shininess;
 	float refraction_index;
 };
@@ -94,8 +99,8 @@ struct effect {
 		reflectivity_effect reflect;
 		constant_effect constant;
 	} value;
-	shade_type shade;
 	texture tex;
+	shade_type shade;
 };
 
 enum class primitive_type: uint8_t {
@@ -109,16 +114,16 @@ enum class primitive_type: uint8_t {
 };
 
 
-enum class semantic_type {
-	// special type for per-index data referring to
-	// the <vertices> element carrying the per-vertex data.
-	vertex,
-	position,
-	normal,
-	texcoord,
-	color,
-	tangent,
-	bitangent
+// special type for per-index data referring to
+// the <vertices> element carrying the per-vertex data.
+enum class semantic_type: uint8_t {
+	vertex = 0,
+	position = 1,
+	normal = 2,
+	texcoord = 3,
+	color = 4,
+	tangent = 5,
+	bitangent = 6
 };
 
 enum class presision {
@@ -186,14 +191,14 @@ private:
 
 DECLARE_IPTR(accessor);
 
-struct input_channel {
+struct input {
 	// Type of the data
 	semantic_type type;
 	// ID of the accessor where to read the actual values from.
 	io::const_string accessor_id;
 	std::size_t offset;
 	std::size_t set;
-	constexpr input_channel() noexcept:
+	constexpr input() noexcept:
 		type(semantic_type::vertex),
 		accessor_id(),
 		offset(0),
@@ -239,44 +244,6 @@ private:
 
 DECLARE_IPTR(source);
 
-class index_data final:public io::object {
-	index_data(const index_data&) = delete;
-	index_data& operator=(const index_data&) = delete;
-public:
-	index_data() noexcept;
-	virtual ~index_data() noexcept override;
-	primitive_type primitives() const noexcept {
-		return primitives_;
-	}
-	void set_primitives(primitive_type type) noexcept {
-		primitives_ = type;
-	}
-	std::size_t count() const noexcept {
-		return count_;
-	}
-	void set_count(std::size_t count) noexcept {
-		count_ = count;
-	}
-	const unsigned int* indices() const noexcept
-	{
-		return std::addressof( indices_.front() );
-	}
-	std::size_t size() const noexcept {
-		return indices_.size();
-	}
-	void add_indices(const unsigned int* data,const std::size_t count) {
-		std::copy( data , (data+count), std::back_inserter( indices_ ) );
-	}
-private:
-	primitive_type primitives_;
-	std::size_t count_;
-	std::vector<unsigned int> indices_;
-};
-
-DECLARE_IPTR(index_data);
-
-class parser;
-
 
 class geometry:public io::object {
 public:
@@ -302,57 +269,82 @@ private:
 
 DECLARE_IPTR(geometry);
 
+class sub_mesh: public io::object {
+	sub_mesh(const sub_mesh&) = delete;
+	sub_mesh& operator=(const sub_mesh&) = delete;
+public:
+	typedef detail::param<input>::param_vector input_library_t;
+
+	sub_mesh(primitive_type type, io::const_string&& mat, std::size_t count,input_library_t&& layout, unsigned_int_array&& index) noexcept;
+	virtual ~sub_mesh() noexcept override;
+
+	io::const_string material() const noexcept {
+		return mat_;
+	}
+
+	input_library_t layout() const noexcept {
+		return layout_;
+	}
+
+	unsigned_int_array index() const noexcept {
+		return index_;
+	}
+
+	std::size_t count() const noexcept {
+		return count_;
+	}
+
+private:
+	primitive_type type_;
+	io::const_string mat_;
+	input_library_t layout_;
+	unsigned_int_array index_;
+	std::size_t count_;
+};
+
+DECLARE_IPTR(sub_mesh);
+
 class mesh final:public geometry {
 	mesh(const mesh&) = delete;
 	mesh& operator=(const mesh&) = delete;
 private:
 	typedef detail::param< s_source >::param_library source_library_t;
-	typedef detail::param<input_channel>::param_vector input_channels_library_t;
+	typedef detail::param< s_sub_mesh >::param_vector sub_mesh_library_t;
+
 public:
-	typedef input_channels_library_t::const_iterator const_iterator;
+	typedef sub_mesh_library_t::const_iterator const_iterator;
 
 	mesh(io::const_string&& name) noexcept;
 	virtual ~mesh() noexcept override;
 
-	void set_vertex_id(io::const_string&& id) noexcept {
-		vertex_id_ = std::move(id);
+	void set_pos_src_id(io::const_string&& psrcid) {
+		pos_src_id_ = std::move(psrcid);
 	}
 
-	io::const_string material() const noexcept {
-		return material_;
-	}
-
-	void set_material(io::const_string&& material) noexcept {
-		material_ = std::move(material);
-	}
-
-	io::const_string vertex_id() const noexcept {
-		return vertex_id_;
-	}
-
-	s_index_data index() const noexcept {
-		return index_;
+	io::const_string pos_src_id() const noexcept {
+		return pos_src_id_;
 	}
 
 	void add_source(io::const_string&& id, s_source&& src);
 	s_source find_souce(const io::const_string& id) const;
 
-	void add_input_channel(input_channel&& ich);
-
-
-	const_iterator cbegin() const {
-		return input_channels_.cbegin();
+	void add_sub_mesh(s_sub_mesh&& sm)
+	{
+		sub_meshes_.emplace_back( std::forward<s_sub_mesh>(sm) );
 	}
 
-	const_iterator cend() const {
-		return input_channels_.cend();
+	const_iterator cbegin() const noexcept {
+		return sub_meshes_.cbegin();
 	}
+
+	const_iterator cend() const noexcept {
+		return sub_meshes_.cend();
+	}
+
 private:
-	io::const_string vertex_id_;
-	io::const_string material_;
+	io::const_string pos_src_id_;
 	source_library_t source_library_;
-	input_channels_library_t input_channels_;
-	s_index_data index_;
+	sub_mesh_library_t sub_meshes_;
 };
 
 DECLARE_IPTR(mesh);

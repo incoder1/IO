@@ -19,8 +19,8 @@ void model::add_surface(s_surface&& srf)
 
 void model::render(const scene& scn) const
 {
-	for(auto s: surfaces_) {
-		s->draw( scn );
+	for(auto it = surfaces_.begin(); it != surfaces_.end(); ++it ) {
+		(*it)->draw( scn );
 	}
 }
 

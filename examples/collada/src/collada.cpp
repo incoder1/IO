@@ -56,17 +56,6 @@ void source::add_accessor(s_accessor&& acsr)
 	accessors_.emplace_back( std::forward<s_accessor>(acsr) );
 }
 
-// index_data
-index_data::index_data() noexcept:
-        io::object(),
-        primitives_(primitive_type::triangles),
-        count_(0),
-        indices_()
-{}
-
-index_data::~index_data() noexcept
-{}
-
 // geometry
 geometry::geometry(surface_type type,io::const_string&& name) noexcept:
 	io::object( ),
@@ -77,14 +66,25 @@ geometry::geometry(surface_type type,io::const_string&& name) noexcept:
 geometry::~geometry() noexcept
 {}
 
+// sub_mesh
+sub_mesh::sub_mesh(primitive_type type, io::const_string&& mat, std::size_t count,input_library_t&& layout, unsigned_int_array&& index) noexcept:
+	io::object(),
+	type_(type),
+	mat_(std::forward<io::const_string>(mat)),
+	layout_(std::forward<input_library_t>(layout)),
+	index_(std::forward<unsigned_int_array>(index)),
+	count_(count)
+{}
+
+sub_mesh::~sub_mesh() noexcept
+{}
+
 // mesh
 mesh::mesh(io::const_string&& name) noexcept:
 	geometry(geometry::surface_type::mesh, std::forward<io::const_string>(name) ),
-	vertex_id_(),
-	material_(),
+	pos_src_id_(),
 	source_library_(),
-	input_channels_(),
-	index_( new index_data() )
+	sub_meshes_()
 {
 }
 
@@ -102,11 +102,6 @@ s_source mesh::find_souce(const io::const_string& id) const
 {
 	auto it = source_library_.find( id );
 	return source_library_.cend() == it ? s_source() : it->second;
-}
-
-void mesh::add_input_channel(input_channel&& ich)
-{
- 	input_channels_.emplace_back( std::forward<input_channel>(ich) );
 }
 
 // scene
