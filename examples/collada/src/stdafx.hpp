@@ -16,7 +16,6 @@
 #include <object.hpp>
 #include <buffer.hpp>
 #include <conststring.hpp>
-#include <stringpool.hpp>
 
 /* OpenGL specific*/
 #ifdef _OPENMP
@@ -25,5 +24,8 @@
 #include "openglload.hpp"
 #include <glm/mat4x4.hpp>
 #include <glm/gtc/type_ptr.hpp>
+
+// data-types
+#include "collada.hpp"
 
 #endif // ___STDAFX_HPP__INCLUDED__

@@ -1,13 +1,9 @@
 #include "stdafx.hpp"
 
 #include "view.hpp"
-#include "image.hpp"
-#include "files.hpp"
 
 #include "model.hpp"
-#include "mesh.hpp"
-
-#include "parser.hpp"
+#include "model_loader.hpp"
 
 #include <iostream>
 
@@ -193,254 +189,12 @@
 //	return engine::s_surface( new engine::normal_mapped_mesh(vertex.get(), vertex.len(), CUBE_INDEX,36, diff_tex, nm_tex ) );
 //}
 
-struct face_accessor {
-	collada::float_array arr;
-	std::size_t offset;
-	std::size_t stride;
-	constexpr face_accessor() noexcept:
-		arr(),
-		offset(0),
-		stride(0)
-	{}
-	const float* get_vec( std::size_t index) noexcept {
-		return &arr[ index * stride ];
-	}
-};
-
-// obtains parsed float array from COLLADA source
-static void map_accessor(const collada::s_source& src,face_accessor& dst)
-{
-	collada::s_accessor src_acsr = * ( src->cbegin() );
-	dst.stride = src_acsr->stride();
-	dst.arr = src->find_float_array( src_acsr->source_id() );
-}
-
-static engine::s_surface load_static_sub_mesh(const collada::s_model& src_mdl, const collada::s_sub_mesh& sm, const collada::mesh* mesh, engine::material_t&& mat)
-{
-
-	using namespace collada;
-	face_accessor pos_acr, nrm_acr;
-
-	for(input it: sm->layout() ) {
-		io::const_string acr_id = it.accessor_id;
-		switch(it.type) {
-		case semantic_type::vertex:
-			pos_acr.offset = it.offset;
-			map_accessor( mesh->find_souce( mesh->pos_src_id() ), pos_acr );
-			break;
-		case semantic_type::normal:
-			nrm_acr.offset = it.offset;
-			map_accessor( mesh->find_souce(acr_id), nrm_acr);
-			break;
-		default:
-			break;
-		}
-	}
-
-	unsigned_int_array idx = sm->index();
-	// construct vio, as simple sequence
-	io::scoped_arr<unsigned int> vio( idx.length() / 2 );
-	for(unsigned int i=0; i < vio.len(); i++) {
-		vio[i] = i;
-	}
-
-	const std::size_t face_size = pos_acr.stride + nrm_acr.stride;
-	io::scoped_arr<float> vbo( vio.len() * face_size );
-
-	for(std::size_t i=0, offset = 0; i < idx.length(); i += 2, offset += face_size) {
-		const float *pos_v =  pos_acr.get_vec( idx[ i + pos_acr.offset ] );
-		const float *nrm_v =  nrm_acr.get_vec( idx[ i + nrm_acr.offset ] );
-		float face[face_size];
-		std::memmove( face, pos_v,  pos_acr.stride * sizeof(float) );
-		std::memmove( &face[3], nrm_v,  nrm_acr.stride * sizeof(float) );
-//#ifndef NDEBUG
-//		std::cout << (i/2) << ": ";
-//		std::cout << face[0] << ',' << face[1] << ',' << face[2] << ", ";
-//		std::cout << face[3] << ',' << face[4] << ',' << face[5] << ", ";
-//#endif // NDEBUG
-		std::memmove( &vbo[offset], face, sizeof(face) );
-	}
-
-#ifndef NDEBUG
-	std::cout << "vbo size: " << vbo.len() << " vio size: " << vio.len() << std::endl;
-#endif // NDEBUG
-
-	return engine::s_surface(
-			   new engine::geometry_mesh(
-					mat,
-					vbo.get(), vbo.len(),
-					vio.get(), vio.len()
-			   )
-		   );
-}
-
-// TODO: make it class based
-
-namespace std {
-
-template<>
-struct hash<io::const_string>: public unary_function<std::size_t,io::const_string>
-{
-    std::size_t operator()(const io::const_string& str) const noexcept {
-    	return str.hash();
-    }
-};
-
-} // namespace std
-
-static std::unordered_map<io::const_string,gl::s_texture> textures;
-
-static engine::s_surface load_textured_sub_mesh(const collada::s_model& src_mdl,const collada::s_sub_mesh& sm, const collada::mesh* mesh,const io::const_string& texture)
-{
-	using namespace collada;
-
-	std::cout << "textured sub mesh" << std::endl;
-
-	auto it = textures.find(texture);
-
-	gl::s_texture tex;
-	if( textures.end() != it) {
-		tex = it->second;
-	} else  {
-		// load texture
-		io::file image_file( texture.stdstr() );
-		if( !image_file.exist() )
-			throw std::runtime_error( texture.stdstr().append(" file is not found") );
-
-		engine::s_image timg = engine::load_png_rgba(image_file, true);
-
-		tex = gl::texture::create_texture2d_from_image(
-				   timg,
-				   gl::texture_filter::LINEAR_MIPMAP_LINEAR);
-		textures.insert( std::make_pair( texture, tex ) );
-	}
-
-	face_accessor pos_acr, nrm_acr, uv_acr;
-	// loop over the input and look-up sources
-	for(input it: sm->layout() ) {
-		io::const_string acr_id = it.accessor_id;
-		switch(it.type) {
-		case semantic_type::vertex:
-			pos_acr.offset = it.offset;
-			map_accessor( mesh->find_souce( mesh->pos_src_id() ), pos_acr );
-			break;
-		case semantic_type::normal:
-			nrm_acr.offset = it.offset;
-			map_accessor( mesh->find_souce(acr_id), nrm_acr);
-			break;
-		case semantic_type::texcoord:
-			uv_acr.offset = it.offset;
-			map_accessor( mesh->find_souce(acr_id), uv_acr);
-			break;
-		default:
-			break;
-		}
-	}
-
-
-	unsigned_int_array idx = sm->index();
-	// construct vio, as simple sequence
-	io::scoped_arr<unsigned int> vio( idx.length() / 3 );
-	for(unsigned int i=0; i < vio.len(); i++) {
-		vio[i] = i;
-	}
-
-	const std::size_t face_size = pos_acr.stride + nrm_acr.stride + uv_acr.stride;
-	io::scoped_arr<float> vbo( vio.len() * face_size );
-
-	for(std::size_t i=0, offset = 0; i < idx.length(); i += 3, offset += face_size) {
-		const float *pos_v =  pos_acr.get_vec( idx [ i + pos_acr.offset ] );
-		const float *nrm_v =  nrm_acr.get_vec( idx[ i + nrm_acr.offset ] );
-		const float *uv_v =   uv_acr.get_vec( idx[ i + uv_acr.offset] );
-		float face[face_size];
-		std::memmove( face, pos_v,  pos_acr.stride * sizeof(float) );
-		std::memmove( &face[3], nrm_v,  nrm_acr.stride * sizeof(float) );
-		std::memmove( &face[6], uv_v,  uv_acr.stride * sizeof(float) );
-//#ifndef NDEBUG
-//		std::cout << (i/3) << ": ";
-//		std::cout << face[0] << ',' << face[1] << ',' << face[2] << ", ";
-//		std::cout << face[3] << ',' << face[4] << ',' << face[5] << ", ";
-//		std::cout << face[6] << ',' << face[7] << ',' << std::endl;
-//#endif // NDEBUG
-		std::memmove( &vbo[offset], face, sizeof(face) );
-	}
-
-#ifndef NDEBUG
-	std::cout << "vbo size: " << vbo.len() << " vio size: " << vio.len() << std::endl;
-#endif // NDEBUG
-
-
-	return engine::s_surface(
-			   new engine::textured_mesh(
-				   engine::DEFAULT_MATERIAL,
-				   vbo.get(), vbo.len(),
-				   vio.get(), vio.len(),
-				   tex
-			   )
-		   );
-}
-
-
-
-
-// extracts parsed COLLADA XML surface (mesh) into video memory
-// to be used by OpenGL shader program
-static void load_mesh(engine::s_model& dst_mdl,const collada::s_model& src_mdl, const collada::mesh* mesh)
-{
-	using namespace collada;
-
-	collada::s_effect_library efl = src_mdl->effects();
-
-	for(auto it = mesh->cbegin(); it != mesh->cend(); ++it) {
-		s_sub_mesh sm = *it;
-		std::shared_ptr<effect> ef = src_mdl->find_material( sm->material() );
-		if(!ef)
-			break;
-		switch( ef->shade ) {
-		case shade_type::blinn_phong:
-		case shade_type::phong: {
-			  engine::material_t mat;
-			  std::memmove( mat.adse, ef->value.pong.adse.mat, sizeof(mat) );
-			  mat.shininess = ef->value.pong.shininess;
-			  dst_mdl->add_surface( load_static_sub_mesh( src_mdl, sm, mesh, std::move(mat) ) );
-			}
-			break;
-		case shade_type::diffuse_texture: {
-			// TODO: get texture type from surface type
-			io::const_string sid = efl->find_sampler_ref( ef->tex.name );
-			collada::surface srf = efl->find_surface( sid ).second;
-			io::const_string diffuse_texture_file = src_mdl->find_image( srf.init_from );
-			dst_mdl->add_surface( load_textured_sub_mesh( src_mdl, sm, mesh, diffuse_texture_file) );
-			break;
-		}
-		default:
-			break;
-		}
-	}
-}
-
 static void load_collada_model(engine::s_model& dst_mdl,const char* file_path)
 {
 	// parse COLLADA file
 	io::file dae(file_path);
-	std::error_code ec;
-	io::s_read_channel src = dae.open_for_read(ec);
-	io::check_error_code(ec);
-	collada::parser prsr( std::move(src) );
-	collada::s_model src_mdl = prsr.load();
-
-	// load parsed COLLADA model into renderer
-	collada::s_scene src_scene = src_mdl->scene();
-	for( collada::scene::const_iterator it = src_scene->cbegin();
-			it != src_scene->cend(); ++it ) {
-		if( ! it->geo_ref.url.blank() ) {
-			collada::s_geometry geo = src_mdl->find_geometry( it->geo_ref.url );
-			std::cout<< "Geometry node name: " << geo->name() << std::endl;
-			collada::mesh* src_mesh = reinterpret_cast<collada::mesh*>( geo.get() );
-			load_mesh(dst_mdl, src_mdl, src_mesh );
-		}
-	}
-
+	engine::model_loader ldr(dae);
+	ldr.load(dst_mdl);
 }
 
 #ifdef _WIN32
@@ -456,15 +210,15 @@ int main(int argc, const char** argv)
 
 			//engine::s_surface cube( new engine::geometry_mesh(engine::DEFAULT_MATERIAL, CUBE_VERTEX, 144, CUBE_INDEX, 36 ) );
 			//engine::s_surface cube( new engine::colored_geometry_mesh(COLORED_CUBE_VERTEX,216,CUBE_INDEX,36) );
-
 			//engine::s_surface cube = textured_cube();
-
 			//engine::s_surface cube = normal_mapped_cube();
 
-			engine::s_model mdl( new engine::model() );
-
+			// engine::s_model mdl( new engine::model() );
 			//mdl->add_surface( std::move(cube) );
+
+			engine::s_model mdl( new engine::model() );
 			load_collada_model(mdl, "tex_cube.dae");
+			//load_collada_model(mdl, "rubik_cube.dae");
 
 			view.show( mdl );
 

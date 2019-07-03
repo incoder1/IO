@@ -19,10 +19,11 @@
 #include "text.hpp"
 #include "hashing.hpp"
 
-#include <ostream>
 #include <cstring>
-#include <string>
 #include <cctype>
+#include <functional>
+#include <ostream>
+#include <string>
 
 namespace io {
 
@@ -268,6 +269,14 @@ private:
 private:
 	detail::sso_variant_t data_;
 };
+
+class const_string_hash: public std::unary_function<std::size_t,io::const_string> {
+public:
+	inline std::size_t operator()(const io::const_string& str) const noexcept {
+		return str.hash();
+	}
+};
+
 
 inline std::ostream& operator<<(std::ostream& os, const const_string& cstr)
 {

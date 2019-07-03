@@ -54,6 +54,7 @@ private:
 	::GLint mvp_ul_;
 	::GLint mv_ul_;
 	::GLint nrm_ul_;
+	bool elemens_draw_;
 };
 
 class colored_geometry_mesh final: public mesh
@@ -108,6 +109,7 @@ private:
 	::GLint nrm_ul_;
 
 	::GLint diffise_tex_ul_;
+	bool elemens_draw_;
 };
 
 

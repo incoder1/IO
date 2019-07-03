@@ -122,6 +122,7 @@
 		<Unit filename="include/intrusive_array.hpp" />
 		<Unit filename="include/mesh.hpp" />
 		<Unit filename="include/model.hpp" />
+		<Unit filename="include/model_loader.hpp" />
 		<Unit filename="include/nurb.hpp" />
 		<Unit filename="include/openglload.hpp" />
 		<Unit filename="include/parser.hpp" />
@@ -144,6 +145,7 @@
 		<Unit filename="src/main.cpp" />
 		<Unit filename="src/mesh.cpp" />
 		<Unit filename="src/model.cpp" />
+		<Unit filename="src/model_loader.cpp" />
 		<Unit filename="src/nurb.cpp" />
 		<Unit filename="src/parser.cpp" />
 		<Unit filename="src/scene.cpp" />

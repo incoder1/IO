@@ -23,13 +23,6 @@ template< typename V >
 class param {
 private:
 
-	class hash: public std::unary_function<std::size_t,io::const_string> {
-	public:
-		inline std::size_t operator()(const io::const_string& str) const noexcept {
-			return str.hash();
-		}
-	};
-
 	typedef std::equal_to<io::const_string> pred;
 
 #ifdef __IO_WINDOWS_BACKEND__
@@ -42,7 +35,7 @@ private:
 
 
 public:
-	typedef std::unordered_map<io::const_string,V,hash,pred,hashmap_allocator> param_library;
+	typedef std::unordered_map<io::const_string,V,io::const_string_hash,pred,hashmap_allocator> param_library;
 	typedef std::vector<V,container_allocator> param_vector;
 };
 
