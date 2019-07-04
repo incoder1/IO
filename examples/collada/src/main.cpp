@@ -193,6 +193,7 @@ static void load_collada_model(engine::s_model& dst_mdl,const char* file_path)
 {
 	// parse COLLADA file
 	io::file dae(file_path);
+	std::cout << "About to load " << dae.path() << " COLLADA file" << std::endl;
 	engine::model_loader ldr(dae);
 	ldr.load(dst_mdl);
 }

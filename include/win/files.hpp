@@ -1,6 +1,6 @@
 /*
  *
- * Copyright (c) 2016
+ * Copyright (c) 2016-2019
  * Viktor Gubin
  *
  * Use, modification and distribution are subject to the
@@ -118,7 +118,7 @@ public:
 	bool create() noexcept;
 
 	/// Returns UCS-2 encoded file path
-	inline std::wstring wpath() const {
+	std::wstring wpath() const {
         return name_;
 	}
 

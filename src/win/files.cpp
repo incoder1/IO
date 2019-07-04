@@ -83,19 +83,44 @@ void file::posix_to_windows(std::wstring& path) noexcept
     }
 }
 
-file::file(const std::string& name):
-	name_( transcode_to_ucs( name.data() ) )
-{
-	assert( !name_.empty() );
-	posix_to_windows( name_ );
-}
-
 file::file(const std::wstring& name):
 	name_( name )
 {
+	assert( !name_.empty() );
 	posix_to_windows( name_ );
+	// get absolute path name if needed
+    if( L':' != name_[1] ) {
+		bool existen_file = exist();
+		// open or create a file, to obtain full_path
+		::HANDLE hnd = ::CreateFileW(
+					   name_.data(),
+					   existen_file ? GENERIC_READ : GENERIC_WRITE,
+					   existen_file ? FILE_SHARE_READ : 0,
+					   nullptr,
+					   existen_file ? OPEN_EXISTING : CREATE_NEW,
+					   FILE_ATTRIBUTE_NORMAL, nullptr);
+		wchar_t full_path[MAX_PATH+1] = { L'\0' };
+		std::size_t size = ::GetFinalPathNameByHandleW( hnd, full_path, MAX_PATH, FILE_NAME_NORMALIZED | VOLUME_NAME_DOS );
+		if(0 != size) {
+			name_.clear();
+			name_.reserve( size + 1 );
+			if( 0 == io_memcmp(full_path,L"\\\\?\\",8) )
+				name_.append(full_path, 4, size-4);
+			else
+				name_.append(full_path, 0, size);
+			name_.shrink_to_fit();
+		}
+		::CloseHandle(hnd);
+		// delete if it was not exist
+		if(!existen_file)
+			::DeleteFileW( full_path );
+    }
 }
 
+file::file(const std::string& name):
+	file( transcode_to_ucs( name.data() ) )
+{
+}
 
 static inline win::synch_file_channel* new_channel(std::error_code& ec, ::HANDLE hnd) noexcept
 {
@@ -129,12 +154,13 @@ bool file::exist() const noexcept
 
 std::string file::path() const
 {
-	return transcode( name_.data() );
+
+	return transcode( wpath().data() );
 }
 
 bool file::create()  noexcept
 {
-	if( name_.empty() )
+	if( exist() || name_.empty() )
 		return false;
 	::HANDLE hnd = ::CreateFileW(
 					   name_.data(),
