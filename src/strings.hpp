@@ -97,12 +97,6 @@ inline bool is_alpha(const char ch) noexcept
 }
 
 
-// \s [^ \t\r\n\v\f]
-inline bool is_whitespace(const char ch) noexcept
-{
-	return io_isspace( ch );
-}
-
 inline bool is_alnum(const char ch) noexcept
 {
 	return is_alpha(ch) || io_isdigit(ch);
@@ -178,6 +172,13 @@ inline size_t xmlname_strspn(const char *s) noexcept
 	return io_strcspn( s, "\t\n\v\f\r />");
 }
 
+constexpr uint16_t pack_word(uint16_t w, char c) noexcept {
+#ifdef IO_IS_LITTLE_ENDIAN
+	return (w << CHAR_BIT) | static_cast<uint16_t>(c);
+#else
+	return (w >> CHAR_BIT) | static_cast<uint16_t>(ch);
+#endif // IO_IS_LITTLE_ENDIAN
+}
 
 } // namespace io
 

@@ -435,9 +435,34 @@ void parser::parse_effect(io::const_string&& id, s_effect_library& efl)
 }
 
 
+static surface_type sampler_by_name(const io::const_string& type) noexcept {
+	const char* val = type.data();
+	if( val[1] == 'D' && ('0' < val[0]) && ('4' > val[0] ) )
+		return static_cast<surface_type>( uint8_t(val[0] - '0') );
+	switch( val[0] ) {
+	case 'C':
+        if( type.equal("CUBE") )
+        	return surface_type::cube;
+		else
+			break;
+	case 'D':
+        if( type.equal("DEPTH") )
+        	return surface_type::depth;
+		else
+			break;
+	case 'R':
+		if( type.equal("RECT") )
+			return surface_type::rect;
+		else
+			break;
+	}
+	return surface_type::untyped;
+}
+
 void parser::parse_new_param(io::const_string&& sid,s_effect_library& efl)
 {
 	static constexpr const char* ERR_MSG = "newparam is unbalanced";
+
 	io::xml::state_type state;
 	io::xml::event_type et;
 	io::xml::start_element_event sev;
@@ -449,35 +474,13 @@ void parser::parse_new_param(io::const_string&& sid,s_effect_library& efl)
 			check_eod(state, ERR_MSG);
 			if( is_element(sev,"surface") ) {
 				surface sf;
-				io::const_string type = get_attr(sev,"type");
-				if( type.equal("1D") ) {
-					sf.type = surface_type::sampler_1d;
-				}
-				else if(type.equal("2D")) {
-					sf.type = surface_type::sampler_2d;
-				}
-				else if(type.equal("3D")) {
-					sf.type = surface_type::sampler_3d;
-				}
-				else if(type.equal("CUBE")) {
-					sf.type = surface_type::cube;
-				}
-				else if(type.equal("DEPTH")) {
-					sf.type = surface_type::depth;
-				}
-				else if(type.equal("RECT")) {
-					sf.type = surface_type::rect;
-				}
-				else {
-					sf.type = surface_type::untyped;
-				}
+				sf.type = sampler_by_name( get_attr(sev,"type") );
 				et = to_next_tag_event(state);
 				check_eod(state, ERR_MSG);
 				sev = xp_->parse_start_element();
 				check_eod(state, ERR_MSG);
-				if( is_element(sev,"init_from") ) {
+				if( is_element(sev,"init_from") )
 					sf.init_from = get_tag_value();
-				}
 				efl->add_surface( std::forward<io::const_string>(sid), std::move(sf) );
 			}
 			else if( is_sampler_ref(sev) ) {

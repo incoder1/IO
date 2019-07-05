@@ -7,16 +7,6 @@
 
 #include <iostream>
 
-// TRANGLE_FAN imitation
-//static const uint32_t CUBE_INDEX[36] = {
-//	0,1,2,     0,2,3,
-//	4,5,6,     4,6,7,
-//	8,9,10,    8,10,11,
-//	12,13,14,  12,14,15,
-//	16,17,18,  16,18,19,
-//	20,21,22,  20,22,23
-//};
-
 //static const float COLORED_CUBE_VERTEX[216] = {
 //	// Coordinate  | Color | Normal
 //
@@ -57,7 +47,7 @@
 //	1.0F,-1.0F,-1.0F,	1.0F, 0.0F, 1.0F,	1.0F, 0.0F, 0.0F
 //};
 
-//
+
 //static const float TEXTURED_CUBE_VERTEX[192] = {
 //	/*   position     |    noramal      |    texture    */
 //	// Top Quad
@@ -92,9 +82,7 @@
 //	1.0F,-1.0F,-1.0F,	1.0F, 0.0F, 0.0F,	 1.0F, 0.67F
 //};
 //
-//
-//
-// TRANGLE_FAN imitation
+//// TRANGLE_FAN imitation
 //static const uint32_t CUBE_INDEX[36] = {
 //	0,1,2,     0,2,3,
 //	4,5,6,     4,6,7,
@@ -103,6 +91,7 @@
 //	16,17,18,  16,18,19,
 //	20,21,22,  20,22,23
 //};
+//
 //
 //static void tangent_vector(const float * face, float *ret)
 //{
@@ -146,7 +135,7 @@
 //
 //	io::scoped_arr<float> ret(mesh_size);
 //	float *dst = ret.get();
-//	const float* src = TEXTURED_QUBE_VERTEX;
+//	const float* src = TEXTURED_CUBE_VERTEX;
 //
 //
 //	constexpr const std::size_t src_face_size = src_vtx_stride * face_vtx_count;
@@ -170,16 +159,15 @@
 //	}
 //	return ret;
 //}
-//
-//
+////
+////
 //static engine::s_surface textured_cube()
 //{
 //	engine::s_image texture_img = engine::load_png_rgba(io::file("cube_tex2d_512x512.png"), false);
 //	return engine::s_surface( new engine::textured_mesh(
-//								  TEXTURED_QUBE_VERTEX, 192,
+//								  TEXTURED_CUBE_VERTEX, 192,
 //								  CUBE_INDEX,36, texture_img ) );
 //}
-//
 //
 //static engine::s_surface normal_mapped_cube()
 //{
@@ -188,6 +176,7 @@
 //	io::scoped_arr<float> vertex = calc_tangent_vertex();
 //	return engine::s_surface( new engine::normal_mapped_mesh(vertex.get(), vertex.len(), CUBE_INDEX,36, diff_tex, nm_tex ) );
 //}
+//
 
 static void load_collada_model(engine::s_model& dst_mdl,const char* file_path)
 {
@@ -214,12 +203,12 @@ int main(int argc, const char** argv)
 			//engine::s_surface cube = textured_cube();
 			//engine::s_surface cube = normal_mapped_cube();
 
-			// engine::s_model mdl( new engine::model() );
+			//engine::s_model mdl( new engine::model() );
 			//mdl->add_surface( std::move(cube) );
 
 			engine::s_model mdl( new engine::model() );
-			load_collada_model(mdl, "tex_cube.dae");
-			//load_collada_model(mdl, "rubik_cube.dae");
+			//load_collada_model(mdl, "tex_cube.dae");
+			load_collada_model(mdl, "rubik_cube.dae");
 
 			view.show( mdl );
 

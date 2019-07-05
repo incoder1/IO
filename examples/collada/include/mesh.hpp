@@ -142,6 +142,7 @@ private:
 
 	::GLint diffise_tex_ul_;
 	::GLint nm_tex_ul_;
+	bool elemens_draw_;
 };
 
 } // namespace engine

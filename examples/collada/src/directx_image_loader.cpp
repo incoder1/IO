@@ -349,7 +349,7 @@ s_image load_png_rgba(io::s_read_channel&& src, bool vertical_flip)
 s_image load_png_rgba(const io::file& file,bool vertical_flip)
 {
 	IStream* src;
-	::HRESULT errc = ::SHCreateStreamOnFileEx(file.wpath().data(), STGM_READ, FILE_ATTRIBUTE_READONLY, FALSE, nullptr, &src);
+	::HRESULT errc = ::SHCreateStreamOnFileEx(file.wname().data(), STGM_READ, FILE_ATTRIBUTE_READONLY, FALSE, nullptr, &src);
 	validate_succeeded(errc, std::string("Can not open image file: ").append(file.path()));
 	unsigned int w,h;
 	io::scoped_arr<uint8_t> image_data = decode_image( s_IStream(src,false), w, h, pixel_format::rgba, vertical_flip );

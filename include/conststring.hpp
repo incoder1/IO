@@ -166,7 +166,7 @@ public:
 	/// Returns whether this string is pointing on nullptr
 	/// \return whether nullptr string
 	inline bool empty() const noexcept {
-		return !data_.short_buf.sso && 0 == data_.long_buf.size && nullptr == data_.long_buf.char_buf;
+		return !data_.short_buf.sso && 0 == data_.long_buf.size;
 	}
 
 	/// Checks whether this string empty or contains only whitespace characters
@@ -239,6 +239,7 @@ public:
 		return compare( rhs ) > 0;
 	}
 
+
 	inline bool equal(const char* rhs) const noexcept {
 		return equal( rhs, nullptr != rhs ? traits_type::length(rhs) : 0 );
 	}
@@ -255,7 +256,12 @@ public:
 private:
 
 	int compare(const const_string& rhs) const noexcept {
-		if( !sso() && !rhs.sso() && data_.long_buf.char_buf == rhs.data_.long_buf.char_buf)
+		if( this == std::addressof(rhs) ||
+			( !sso() && !rhs.sso()
+			   &&
+			   data_.long_buf.char_buf == rhs.data_.long_buf.char_buf
+			)
+		)
 			return 0;
 		else if( empty() && rhs.empty() )
 			return 0;

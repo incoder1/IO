@@ -12,7 +12,6 @@
 
 namespace io {
 
-
 const_string::const_string(const char* str, std::size_t length) noexcept:
 	data_( {false,0,nullptr} )
 {
@@ -55,7 +54,6 @@ void const_string::long_buf_release(detail::sso_variant_t& var) noexcept {
 		memory_traits::free(var.long_buf.char_buf);
 	}
 }
-
 
 
 } // namespace io

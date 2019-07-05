@@ -35,11 +35,15 @@ geometry_mesh::geometry_mesh(const material_t& mat, const float *vertex, std::si
 							   gl::buffer_usage::STATIC_DRAW
 
 							);
+	vbo->bind();
 	// bind VIO to VAO if we have index
-	if(elemens_draw_) {
-		gl::s_buffer vio = gl::buffer::create( index, isize,
+	// object should exist until vao is unbind
+	gl::s_buffer vio;
+	if( elemens_draw_) {
+		vio = gl::buffer::create( index, isize,
 							   gl::buffer_type::ELEMENT_ARRAY_BUFFER,
 							   gl::buffer_usage::STATIC_DRAW );
+		vio->bind();
 	}
 
 	gl::shader_program_attribute layout[2] = {
@@ -216,9 +220,13 @@ textured_mesh::textured_mesh(const material_t& mat,const float *vertex, std::siz
 							   gl::buffer_type::ARRAY_BUFFER,
 							   gl::buffer_usage::STATIC_DRAW
 							 );
+
 	vbo->bind();
+	// bind VIO to VAO if we have index
+	// object should exist until vao is unbind
+	gl::s_buffer vio;
 	if( elemens_draw_) {
-		gl::s_buffer vio = gl::buffer::create( indexes, isize,
+		vio = gl::buffer::create( indexes, isize,
 							   gl::buffer_type::ELEMENT_ARRAY_BUFFER,
 							   gl::buffer_usage::STATIC_DRAW );
 		vio->bind();
@@ -319,7 +327,8 @@ normal_mapped_mesh::normal_mapped_mesh(const material_t& mat,const float *vertex
 	mvp_ul_(-1),
 	mv_ul_(-1),
 	diffise_tex_ul_(-1),
-	nm_tex_ul_(-1)
+	nm_tex_ul_(-1),
+	elemens_draw_(nullptr != indexes)
 {
 	gl::shader vertex_sh = gl::shader::load_glsl(gl::shader_type::vertex,io::file(VERTEX_SHADER));
 	gl::shader fragment_sh =  gl::shader::load_glsl(gl::shader_type::fragment, io::file(FRAGMENT_SHADER) );
@@ -332,10 +341,17 @@ normal_mapped_mesh::normal_mapped_mesh(const material_t& mat,const float *vertex
 							   gl::buffer_type::ARRAY_BUFFER,
 							   gl::buffer_usage::STATIC_DRAW
 							 );
-
-	gl::s_buffer vio = gl::buffer::create( indexes, isize,
+	vbo->bind();
+	// bind VIO to VAO if we have index
+	// object should exist until vao is unbind
+	gl::s_buffer vio;
+	if( elemens_draw_) {
+		vio = gl::buffer::create( indexes, isize,
 							   gl::buffer_type::ELEMENT_ARRAY_BUFFER,
 							   gl::buffer_usage::STATIC_DRAW );
+		vio->bind();
+	}
+
 
 	gl::shader_program_attribute layout[4] = {
 		{VATTR_CRD,3},
@@ -395,11 +411,15 @@ void normal_mapped_mesh::draw(const scene& scn) const
 	::glUniform1i(nm_tex_ul_, 1);
 
 	normal_map_tex_->bind();
+
 	::glBindVertexArray(vao_);
-
-	::glDrawElements(GL_TRIANGLES, isize_, GL_UNSIGNED_INT, 0);
-
+	// draw with index, if any
+	if( elemens_draw_ )
+		::glDrawElements(GL_TRIANGLES, isize_, GL_UNSIGNED_INT, static_cast<void*>(0) );
+	else
+		::glDrawArrays(GL_TRIANGLES, 0, isize_);
 	::glBindVertexArray(0);
+
 	diffuse_tex_->unbind();
 	normal_map_tex_->unbind();
 

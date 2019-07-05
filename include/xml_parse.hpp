@@ -209,7 +209,7 @@ private:
 
 	// put a byte into buffer
 	// extend when needed or assign error when no memory left
-	__forceinline void putch(byte_buffer& buf, char ch) noexcept;
+	inline void putch(byte_buffer& buf, char ch) noexcept;
 
 	//char skip_to_symbol(char symbol) noexcept;
 	byte_buffer read_entity() noexcept;

@@ -28,8 +28,6 @@
 
 namespace io {
 
-
-
 typedef const_string cached_string;
 
 class string_pool;

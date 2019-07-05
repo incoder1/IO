@@ -118,16 +118,26 @@ public:
 	bool create() noexcept;
 
 	/// Returns UCS-2 encoded file path
-	std::wstring wpath() const {
-        return name_;
+	std::wstring wpath() const;
+
+	/// Return UCS-2 encoded file name
+	std::wstring wname() const {
+		return name_;
+	}
+
+	/// Returns UTF-8 encoded file path
+	std::string path() const {
+		return transcode( wpath().data() );
+	}
+
+	/// Return UTF-8 encoded file name
+	std::string name() const {
+		return transcode( name_.data() );
 	}
 
 	/// Returns file size in byte
 	/// \return file size in bytes, 0 if file not exist
     std::size_t size() const noexcept;
-
-	/// Returns UTF-8 encoded file path
-	std::string path() const;
 
 	/// Opens blocking read channel from this file
 	/// \param ec

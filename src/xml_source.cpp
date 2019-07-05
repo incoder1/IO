@@ -25,8 +25,8 @@ static constexpr unsigned int ISO_LATIN1_CP_CODE = 28591;
 static constexpr unsigned int WINDOWS_LATIN1_CP_CODE = 1252;
 static constexpr unsigned int UTF8_CP_CODE = 65001;
 
-static const char NL = '\n';
-static const char CR = '\r';
+static constexpr char NL = '\n';
+static constexpr char CR = '\r';
 
 
 static bool is_utf16(const uint8_t* bom)
@@ -49,8 +49,6 @@ static s_read_channel open_convert_channel(std::error_code& ec,io::byte_buffer& 
 		pos += 4;
 
 	new_rb = byte_buffer::allocate( ec, rb.capacity() );
-	if(ec)
-		return s_read_channel();
 	s_code_cnvtr cnv = code_cnvtr::open(
 						   ec,
 						   ch,
@@ -170,7 +168,7 @@ inline char source::normalize_line_endings(const char ch)
 {
 	switch( ch ) {
 	case CR:
-		// according xml standard \r\n should be interpret as single \n
+		// according xml standard \r\n combination should be interpret as single \n
 		if( io_likely( NL == *pos_ ) ) {
 			++pos_;
 			++row_;
@@ -251,14 +249,6 @@ void source::read_until_char(byte_buffer& to,const char lookup,const char illega
 			last_ = error::illegal_markup;
 		to.clear();
 	}
-}
-
-static uint16_t pack_word(uint16_t w, char c) noexcept {
-#ifdef IO_IS_LITTLE_ENDIAN
-	return (w << CHAR_BIT) | static_cast<uint16_t>(c);
-#else
-	return (w >> CHAR_BIT) | static_cast<uint16_t>(ch);
-#endif // IO_IS_LITTLE_ENDIAN
 }
 
 void source::read_until_double_char(byte_buffer& to, const char ch) noexcept

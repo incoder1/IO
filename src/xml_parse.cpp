@@ -39,21 +39,9 @@ static constexpr const int ES = 61 ; // '='
 static constexpr const int QM = 63; // '?'
 
 
-#ifdef UCHAR_MAX
-static constexpr const std::size_t MAX_DEPTH = UCHAR_MAX;
-#else
-
-#ifdef __GNUG__
-static constexpr const std::size_t MAX_DEPTH = __UINT8_MAX__;
-#else
-static constexpr const std::size_t MAX_DEPTH = 255;
-#endif // __GNUG__
-
-#endif // UCHAR_MAX
-
 static inline bool is_prologue(const char *s) noexcept
 {
-	return start_with(s, PROLOGUE, 3) && is_whitespace( s[3] );
+	return start_with(s, PROLOGUE, 3) && io_isspace( s[3] );
 }
 
 static inline bool is_comment(const char *s) noexcept
@@ -192,14 +180,16 @@ static bool is_xml_name_char(uint32_t ch) noexcept
 #endif // __GNUG__
 
 
-
+// Check XML name is correct according XML syntax
 static error check_xml_name(const char* tn) noexcept
 {
 	const char* c = tn;
+	// name can not start from digit
 	if( io_unlikely( ('\0' == *c) || io_isdigit(*c) ) )
 		return error::illegal_name;
 	uint32_t utf32c;
 	while( '\0' != *c ) {
+		// decode UTF-8 symbol to UTF-32 to check name
 		switch( utf8::mblen(c) ) {
 		case io_likely(1):
 			utf32c = static_cast<uint32_t>( char8_traits::to_int_type(*c) );
@@ -277,7 +267,7 @@ event_stream_parser::event_stream_parser(s_source&& src, s_string_pool&& pool) n
 	do {
 		c = next();
 	}
-	while( is_whitespace(c) && !is_error() );
+	while( io_isspace(c) && !is_error() );
 
 	if( io_unlikely( !cheq(c,LEFTB) ) ) {
 		assign_error(error::illegal_markup);
@@ -298,7 +288,7 @@ inline void event_stream_parser::assign_error(error ec) noexcept
 		state_.ec = ec;
 }
 
-__forceinline void event_stream_parser::putch(byte_buffer& buf, char ch) noexcept
+inline void event_stream_parser::putch(byte_buffer& buf, char ch) noexcept
 {
 	if( io_unlikely( !buf.put(ch) && ( !buf.ln_grow() || !buf.put(ch) ) ) )
 		assign_error(error::out_of_memory);
@@ -547,7 +537,7 @@ const_string event_stream_parser::read_dtd() noexcept
 	dtd.put(scan_buf_);
 	sb_clear(scan_buf_);
 	std::size_t brackets = 1;
-	int i;
+	char i;
 	do {
 		i = next();
 		switch( char8_traits::to_int_type(i) ) {
@@ -563,7 +553,7 @@ const_string event_stream_parser::read_dtd() noexcept
 		default:
 			break;
 		}
-		putch(dtd, static_cast<char>(i) );
+		putch(dtd, i );
 	}
 	while( brackets > 0 && !is_error() );
 	dtd.flip();
@@ -581,16 +571,14 @@ void event_stream_parser::skip_comment() noexcept
 		return;
 	}
 	sb_clear(scan_buf_);
-	static constexpr uint16_t _ptrn = (HYPHEN << 8) | HYPHEN;
-	uint16_t i = 0;
+	constexpr const uint16_t double_hyphen = pack_word( static_cast<uint16_t>('-'), '-');
+	uint16_t hw = 0;
 	char c;
 	do {
 		c = next();
-		i = (i << 8) | c;
-	}
-	while( _ptrn != i && io_likely( !is_eof(c) && !is_error() ) );
-	c = next();
-	if( !cheq(RIGHTB,c) )
+		hw = pack_word(hw, c );
+	} while( double_hyphen != hw && io_likely( !is_eof(c) && !is_error() ) );
+	if( !cheq(RIGHTB, next() ) )
 		assign_error(error::illegal_commentary);
 }
 
@@ -657,23 +645,21 @@ const_string event_stream_parser::read_chars() noexcept
 		return const_string();
 	}
 	else
-		ret.put(c);
+		ret.put( c );
 
 	src_->read_until_char(ret, '<', '>');
-	switch( src_->last_error() ) {
-	case error::ok:
-		if( !ret.empty() ) {
-			io_memmove(scan_buf_, "<", 2);
-			ret.flip();
-			// don't add last <
-			return const_string( ret.position().cdata(), ret.length()-1 );
-		}
-		break;
-	case error::illegal_markup:
-		assign_error(error::root_element_is_unbalanced);
-		break;
-	default:
-		assign_error( src_->last_error() );
+	error errc = src_->last_error();
+    if( io_unlikely( error::ok != errc  ) ) {
+		if(error::illegal_markup == errc)
+			assign_error(error::root_element_is_unbalanced);
+		else
+			assign_error( errc );
+    }
+	else if( !ret.empty() ) {
+		io_memmove(scan_buf_, "<", 2);
+		ret.flip();
+		// don't add last <
+		return const_string( ret.position().cdata(), ret.length()-1 );
 	}
 	return const_string();
 }
@@ -762,7 +748,7 @@ attribute event_stream_parser::extract_attribute(const char* from, std::size_t& 
 	}
 	char *v = const_cast<char*>( value.data() );
 	// normalize attribute value
-	// replace any non space white space characters to space character
+	// replace any white space characters to space character
 	// according to W3C XML spec
 	do {
 		if( between('\t','\r',*v) )
@@ -836,7 +822,7 @@ start_element_event event_stream_parser::parse_start_element() noexcept
 	start_element_event result( std::move(name), empty_element );
 	// extract attributes if any
 	const char *left =  buff.position().cdata() + len;
-	if( is_whitespace(*left) && io_likely( !is_error() ) ) {
+	if( io_isspace(*left) && io_likely( !is_error() ) ) {
 		std::size_t offset = 0;
 		attribute attr( extract_attribute(left,offset) );
 		while(offset != 0) {
@@ -956,7 +942,7 @@ void event_stream_parser::s_entity() noexcept
 		current_ = event_type::end_element;
 		break;
 	default:
-		if( io_unlikely( is_whitespace(second) ) )
+		if( io_unlikely( io_isspace(second) ) )
 			assign_error( error::illegal_markup );
 		else {
 			state_.current = state_type::event;

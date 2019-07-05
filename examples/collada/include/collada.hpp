@@ -390,14 +390,14 @@ private:
 
 DECLARE_IPTR(scene);
 
-enum class surface_type {
-	untyped,
-	sampler_1d,
-	sampler_2d,
-	sampler_3d,
-	cube,
-	depth,
-	rect
+enum class surface_type: uint8_t {
+	untyped = 0,
+	sampler_1d = 1,
+	sampler_2d = 2,
+	sampler_3d = 3,
+	cube = 4,
+	depth = 5,
+	rect = 6
 };
 
 struct surface {
