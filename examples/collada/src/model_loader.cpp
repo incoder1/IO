@@ -100,7 +100,11 @@ gl::s_texture model_loader::get_texture_by_name(const io::const_string& name)
 		return it->second;
 	// load texture and put int into pool
 	// TODO: Add path from base directory
-	io::file image_file( name.stdstr() );
+	std::string path = src_.path();
+	constexpr char PATH_SEP = io::file::separator();
+	std::string base_dir = path.substr(0, path.rfind( PATH_SEP ) + 1 );
+	io::file image_file( base_dir + name.stdstr() );
+
 	if( !image_file.exist() )
 		throw std::runtime_error( name.stdstr().append(" file is not found") );
 

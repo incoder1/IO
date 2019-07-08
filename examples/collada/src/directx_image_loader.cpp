@@ -285,11 +285,11 @@ static io::scoped_arr<uint8_t> flip_vertically(const ::BYTE* origin,const std::s
 	io::scoped_arr<uint8_t> ret(size);
 	uint8_t* dst = const_cast<uint8_t*>( ret.get() );
 	const uint8_t* src = origin + size;
-#ifdef _OPENMP
-#	pragma omp parallel for
-#endif // _OPENMP
-	for(std::size_t i = 0; i < size; i += line_sride) {
-		std::memcpy( (dst+i), (src-i), line_sride);
+	std::size_t lines_count = size / line_sride;
+	for(std::size_t i = 0; i < lines_count; ++i) {
+		src -= line_sride;
+		std::memcpy( dst, src, line_sride);
+		dst += line_sride;
 	}
 	return ret;
 }

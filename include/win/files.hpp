@@ -74,6 +74,11 @@ private:
 	static void posix_to_windows(std::wstring& path) noexcept;
 
 public:
+
+	static constexpr char separator() noexcept {
+		return '\\';
+	}
+
 	/// Obtains file descriptor by path the the file
 	/// name can be in DOS c:\my_file or POSIX /c/myfile format
 	/// \name path to the file
