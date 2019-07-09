@@ -139,13 +139,12 @@ public:
 
 	/// Returns UCS-4 encoded file path
 	inline std::wstring wpath() const {
-        return transcode_to_ucs( name_.data(), name_.length() );
+		std::string p = path();
+        return transcode_to_ucs( p.data(), p.length() );
 	}
 
 	/// Returns UTF-8 encoded file path
-	inline std::string path() const {
-		return name_;
-	}
+	std::string path() const;
 
 	/// Opens blocking read channel from this file
 	/// \param ec

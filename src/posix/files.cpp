@@ -14,6 +14,10 @@
 #include <fcntl.h>
 #include <sys/types.h>
 #include <sys/stat.h>
+
+
+#include <limits.h>
+#include <stdlib.h>
 #include <unistd.h>
 
 namespace io {
@@ -96,6 +100,16 @@ file::file(const std::string& name):
 file::file(const std::wstring* name):
 	name_( transcode(name.data(), name.lenght() ) )
 {}
+
+std::string path::path() const {
+	char tmp[PATH_MAX] = {'\0'};
+	if(nullptr != ::realpath(name_.data(), tmp) )
+		std::string ret( tmp );
+		ret.shrink_to_fit();
+		return ret;
+	else
+		return name_;
+}
 
 bool file::exist() const noexcept
 {
