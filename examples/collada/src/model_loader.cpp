@@ -3,27 +3,66 @@
 
 namespace engine {
 
-struct face_accessor {
-	collada::float_array arr;
-	std::size_t offset;
-	std::size_t stride;
-	constexpr face_accessor() noexcept:
-		arr(),
-		offset(0),
-		stride(0)
-	{}
-	const float* get_vec( std::size_t index) noexcept {
-		return &arr[ index * stride ];
-	}
-};
+
+namespace detail {
 
 // obtains parsed float array from COLLADA source
-static void map_accessor(const collada::s_source& src,face_accessor& dst)
+static void map_accessor(const collada::s_source& src,detail::vertex_accessor_builder& dst)
 {
 	collada::s_accessor src_acsr = * ( src->cbegin() );
-	dst.stride = src_acsr->stride();
-	dst.arr = src->find_float_array( src_acsr->source_id() );
+	dst.set_stride( src_acsr->stride() );
+	dst.set_array( src->find_float_array( src_acsr->source_id() ) );
 }
+
+// static_mesh_accessor
+static_mesh_accessor::static_mesh_accessor(vertex_accessor&& pos, vertex_accessor&& nrm, collada::unsigned_int_array&& idx):
+   position_( pos ),
+   normale_( nrm ),
+   idx_( idx ),
+   vertex_count_( 0 ),
+   vertex_size_( 0 )
+{
+   vertex_count_ = idx_.length() / 2;
+   vertex_size_ = position_.stride() + normale_.stride();
+}
+
+void static_mesh_accessor::copy_vertex(float* dst, std::size_t vertex_index)
+{
+	const std::size_t src_idx = vertex_index * 2;
+	const std::size_t pos_idx = idx_[ src_idx + position_.offset() ];
+	const std::size_t nrm_idx = idx_[ src_idx + normale_.offset() ];
+	position_.copy(dst, pos_idx );
+	normale_.copy( (dst + position_.stride() ), nrm_idx );
+}
+
+//textured_mesh_accessor
+textured_mesh_accessor::textured_mesh_accessor(vertex_accessor&& pos, vertex_accessor&& nrm, vertex_accessor&& uv, collada::unsigned_int_array&& idx):
+   position_( pos ),
+   normale_( nrm ),
+   uv_( uv ),
+   idx_( idx ),
+   vertex_count_( 0 ),
+   vertex_size_( 0 )
+{
+   vertex_count_ = idx.length() / 3;
+   vertex_size_ = position_.stride() + normale_.stride() + uv_.stride();
+}
+
+void textured_mesh_accessor::copy_vertex(float* dst, std::size_t vertex_index)
+{
+	const std::size_t src_idx = vertex_index * 3;
+	const std::size_t pos_idx = idx_[ src_idx + position_.offset() ];
+	const std::size_t nrm_idx = idx_[ src_idx + normale_.offset() ];
+	const std::size_t uv_idx = idx_[ src_idx + uv_.offset() ];
+	position_.copy(dst, pos_idx );
+	dst += position_.stride();
+	normale_.copy( dst, nrm_idx );
+	dst += normale_.stride();
+	uv_.copy( dst, uv_idx );
+}
+
+
+} // namespace detail
 
 //model_loader
 
@@ -47,40 +86,74 @@ model_loader::~model_loader() noexcept
 {
 }
 
-s_surface model_loader::load_static_sub_mesh(const collada::s_sub_mesh& sm, const collada::mesh* src_mesh, material_t&& mat)
+detail::static_mesh_accessor model_loader::create_static_mesh_accessor(const collada::s_sub_mesh& sm, const collada::mesh* src_mesh)
 {
-
 	using namespace collada;
-	face_accessor pos_acr, nrm_acr;
+	detail::vertex_accessor_builder pos, nrm;
 	for(input it: sm->layout() ) {
 		io::const_string acr_id = it.accessor_id;
 		switch(it.type) {
 		case semantic_type::vertex:
-			pos_acr.offset = it.offset;
-			map_accessor( src_mesh->find_souce( src_mesh->pos_src_id() ), pos_acr );
+			pos.set_offset(it.offset);
+			detail::map_accessor( src_mesh->find_souce( src_mesh->pos_src_id() ), pos );
 			break;
 		case semantic_type::normal:
-			nrm_acr.offset = it.offset;
-			map_accessor( src_mesh->find_souce(acr_id), nrm_acr);
+			nrm.set_offset(it.offset);
+			detail::map_accessor( src_mesh->find_souce(acr_id), nrm);
 			break;
 		default:
 			break;
 		}
 	}
 
-	unsigned_int_array idx = sm->index();
-	const std::size_t vertex_count = idx.length() / 2;
+	return detail::static_mesh_accessor(
+							pos.build(),
+							nrm.build(),
+							sm->index()	);
+}
 
-	const std::size_t face_size = pos_acr.stride + nrm_acr.stride;
-	io::scoped_arr<float> vbo( vertex_count * face_size );
+detail::textured_mesh_accessor model_loader::create_textured_mesh_accessor(const collada::s_sub_mesh& sm, const collada::mesh* src_mesh)
+{
+	using namespace collada;
+	detail::vertex_accessor_builder pos, nrm, uv;
+	// loop over the input and look-up sources
+	for(input it: sm->layout() ) {
+		io::const_string acr_id = it.accessor_id;
+		switch(it.type) {
+		case semantic_type::vertex:
+			pos.set_offset(it.offset);
+			detail::map_accessor( src_mesh->find_souce( src_mesh->pos_src_id() ), pos );
+			break;
+		case semantic_type::normal:
+			nrm.set_offset(it.offset);
+			detail::map_accessor( src_mesh->find_souce(acr_id), nrm);
+			break;
+		case semantic_type::texcoord:
+			uv.set_offset(it.offset);
+			map_accessor( src_mesh->find_souce(acr_id), uv);
+			break;
+		default:
+			break;
+		}
+	}
 
-	for(std::size_t i=0, offset = 0; i < idx.length(); i += 2, offset += face_size) {
-		const float *pos_v =  pos_acr.get_vec( idx[ i + pos_acr.offset ] );
-		const float *nrm_v =  nrm_acr.get_vec( idx[ i + nrm_acr.offset ] );
-		float face[face_size];
-		std::memmove( face, pos_v,  pos_acr.stride * sizeof(float) );
-		std::memmove( &face[3], nrm_v,  nrm_acr.stride * sizeof(float) );
-		std::memmove( &vbo[offset], face, sizeof(face) );
+	return detail::textured_mesh_accessor(pos.build(), nrm.build(), uv.build(), sm->index()	);
+}
+
+s_surface model_loader::load_static_sub_mesh(const collada::s_sub_mesh& sm, const collada::mesh* src_mesh, material_t&& mat)
+{
+
+	detail::static_mesh_accessor acr = create_static_mesh_accessor(sm, src_mesh);
+
+	const std::size_t vertex_count = acr.vertex_count();
+	const std::size_t vertex_size = acr.vertex_size();
+	io::scoped_arr<float> vbo( vertex_count * vertex_size );
+
+	#ifdef _OPENMP
+	#pragma omp parallel for
+	#endif // _OPENMP
+	for(std::size_t i=0; i < vertex_count; i++) {
+        acr.copy_vertex( &vbo[ i * vertex_size], i);
 	}
 
 	return s_surface(
@@ -90,7 +163,6 @@ s_surface model_loader::load_static_sub_mesh(const collada::s_sub_mesh& sm, cons
 				   nullptr, vertex_count
 			   )
 		   );
-
 }
 
 gl::s_texture model_loader::get_texture_by_name(const io::const_string& name)
@@ -119,48 +191,20 @@ gl::s_texture model_loader::get_texture_by_name(const io::const_string& name)
 
 s_surface model_loader::load_textured_sub_mesh(const collada::s_sub_mesh& sm, const collada::mesh* mesh,const io::const_string& texture)
 {
-	using namespace collada;
+
+	detail::textured_mesh_accessor acr = create_textured_mesh_accessor(sm, mesh);
 
 	gl::s_texture tex = get_texture_by_name(texture);
 
-	face_accessor pos_acr, nrm_acr, uv_acr;
-	// loop over the input and look-up sources
-	for(input it: sm->layout() ) {
-		io::const_string acr_id = it.accessor_id;
-		switch(it.type) {
-		case semantic_type::vertex:
-			pos_acr.offset = it.offset;
-			map_accessor( mesh->find_souce( mesh->pos_src_id() ), pos_acr );
-			break;
-		case semantic_type::normal:
-			nrm_acr.offset = it.offset;
-			map_accessor( mesh->find_souce(acr_id), nrm_acr);
-			break;
-		case semantic_type::texcoord:
-			uv_acr.offset = it.offset;
-			map_accessor( mesh->find_souce(acr_id), uv_acr);
-			break;
-		default:
-			break;
-		}
-	}
+	const std::size_t vertex_count = acr.vertex_count();
+	const std::size_t vertex_size = acr.vertex_size();
+	io::scoped_arr<float> vbo( vertex_count * vertex_size );
 
-
-	unsigned_int_array idx = sm->index();
-	const std::size_t vertex_count = idx.length() / 2;
-
-	const std::size_t face_size = pos_acr.stride + nrm_acr.stride + uv_acr.stride;
-	io::scoped_arr<float> vbo( vertex_count * face_size );
-
-	for(std::size_t i=0, offset = 0; i < idx.length(); i += 3, offset += face_size) {
-		const float *pos_v =  pos_acr.get_vec( idx [ i + pos_acr.offset ] );
-		const float *nrm_v =  nrm_acr.get_vec( idx[ i + nrm_acr.offset ] );
-		const float *uv_v =   uv_acr.get_vec( idx[ i + uv_acr.offset] );
-		float face[face_size];
-		std::memmove( face, pos_v,  pos_acr.stride * sizeof(float) );
-		std::memmove( &face[3], nrm_v,  nrm_acr.stride * sizeof(float) );
-		std::memmove( &face[6], uv_v,  uv_acr.stride * sizeof(float) );
-		std::memmove( &vbo[offset], face, sizeof(face) );
+	#ifdef _OPENMP
+	#pragma omp parallel for
+	#endif // _OPENMP
+	for(std::size_t i=0; i < vertex_count; i++) {
+        acr.copy_vertex( &vbo[ i * vertex_size], i);
 	}
 
 	return s_surface(
