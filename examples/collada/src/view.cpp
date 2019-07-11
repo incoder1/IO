@@ -79,18 +79,26 @@ frame_view::frame_view(unsigned int widht, unsigned int height,const char* title
 	// to convert mouse offset into radians angles
 	static constexpr const float TWO_PI = 3.14159265358979323846 * 2;
 
+	// initialize mouse position in the middle of the window
+	const ::GLFWvidmode* mode = ::glfwGetVideoMode( ::glfwGetPrimaryMonitor() );
+	mouse_prev_x_ = mode->width / 2;
+	mouse_prev_y_ = mode->height / 2;
+
 	// mouse motion, rotate model on mouse movement
 	::glfwSetCursorPosCallback(frame_, []
 	(::GLFWwindow *wnd,double xpos, double ypos) {
 		frame_view *self = static_cast<frame_view*>( ::glfwGetWindowUserPointer(wnd) );
-		int w, h;
-		::glfwGetFramebufferSize(wnd, &w, &h);
-		float x_delta = TWO_PI  * float( (xpos - self->mouse_prev_x_) / w );
-		float y_delta = TWO_PI  * float( (ypos - self->mouse_prev_y_) / h );
-		self->angle_x_ -= y_delta;
-		self->angle_y_ += x_delta;
-		self->mouse_prev_x_ = xpos;
-		self->mouse_prev_y_ = ypos;
+		bool left_pressed = GLFW_PRESS == ::glfwGetMouseButton(wnd, GLFW_MOUSE_BUTTON_1);
+		if( left_pressed ) {
+			int w, h;
+			::glfwGetFramebufferSize(wnd, &w, &h);
+			float x_delta = TWO_PI  * float( (xpos - self->mouse_prev_x_) / w );
+			float y_delta = TWO_PI  * float( (ypos - self->mouse_prev_y_) / h );
+			self->angle_x_ -= y_delta;
+			self->angle_y_ += x_delta;
+			self->mouse_prev_x_ = xpos;
+			self->mouse_prev_y_ = ypos;
+		}
 	} );
 
 	// mouse scroll, move model to scroll
