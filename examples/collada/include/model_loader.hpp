@@ -33,8 +33,9 @@ public:
 		return offset_;
 	}
 	void copy(float * dst, std::size_t index) const noexcept {
-		const float* src = arr_.get() + (index * stride_);
-        std::memmove(dst, src,  (stride_ * sizeof(float)) );
+		const std::size_t offset = index * stride_;
+		const float* src = arr_.get() + offset;
+		std::memmove(dst, src,  (stride_ * sizeof(float)) );
 	}
 private:
 	friend class vertex_accessor_builder;

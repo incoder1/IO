@@ -69,28 +69,17 @@ public:
 		}
 	}
 
-	T operator[](std::size_t index) const {
-		//assert( index < length_ );
-		if( index >= length_) {
-			throw std::length_error( std::to_string(index).append(" is larger then ")
-									.append( std::to_string(length_-1) ).append( " max allowed") );
-		}
-		T* px = reinterpret_cast<T*>( mem_+ sizeof(std::size_t) );
-		return px[index];
-	}
-
-	T& operator[](std::size_t index)  {
-		assert( index < length_ );
-		T* px = reinterpret_cast<T*>( mem_+ sizeof(std::size_t) );
-		return px[index];
-	}
-
 	explicit operator bool() const noexcept {
 		return nullptr != mem_;
 	}
 
 	inline const T* get() const {
 		return reinterpret_cast<T*>( mem_ + sizeof(std::size_t) );
+	}
+
+	inline T& operator[](std::size_t idx) noexcept {
+		T *px = reinterpret_cast<T*>( mem_ + sizeof(std::size_t) );
+        return px[ idx ];
 	}
 
 	inline std::size_t length() const noexcept {

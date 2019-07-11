@@ -207,8 +207,9 @@ int main(int argc, const char** argv)
 			//mdl->add_surface( std::move(cube) );
 
 			engine::s_model mdl( new engine::model() );
-			load_collada_model(mdl, "tex_cube.dae");
-			//load_collada_model(mdl, "rubik_cube.dae");
+			//load_collada_model(mdl, "models/textured_cube/text_cube.dae");
+			//load_collada_model(mdl, "models/RubiksCube/rubik_cube.dae");
+			load_collada_model(mdl,"models/Earth/Earth.dae");
 
 			view.show( mdl );
 
