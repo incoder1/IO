@@ -1,6 +1,10 @@
 #include "stdafx.hpp"
 #include "model_loader.hpp"
 
+#include <glm/vec2.hpp>
+#include <glm/vec3.hpp>
+#include <cmath>
+
 namespace engine {
 
 
@@ -59,6 +63,62 @@ void textured_mesh_accessor::copy_vertex(float* dst, std::size_t vertex_index)
 	normale_.copy( dst, nrm_idx );
 	dst += normale_.stride();
 	uv_.copy( dst, uv_idx );
+}
+
+static void tangent_vector(float * face,const std::size_t src_vetex_size)
+{
+	// 3 vertex per triangle
+	// vertex layout is
+	// {pox_x,pos_y,pos_z},{nrm_x, nrm_y, nrm_z},{uv_s,uv_t},{tan_x,tan_y,tan_z}
+
+	const std::size_t full_vertex_size = src_vetex_size + 3;
+
+	const std::size_t v1_base = 0;
+	const std::size_t v2_base = full_vertex_size;
+	const std::size_t v3_base = full_vertex_size*2;
+
+	constexpr std::size_t uv_offset = 6;
+
+	const std::size_t v1_uv_base = v1_base+uv_offset;
+	const std::size_t v2_uv_base = v2_base+uv_offset;
+	const std::size_t v3_uv_base = v3_base+uv_offset;
+
+
+	// triangle vertex positions
+	glm::vec3 pos1(face[v1_base], face[v1_base+1], face[v1_base+2]);
+	glm::vec3 pos2(face[v2_base], face[v2_base+1], face[v2_base+2]);
+	glm::vec3 pos3(face[v3_base], face[v3_base+1], face[v3_base+2]);
+
+	// triangle vertex texture mapping UV's
+	glm::vec2 uv1(face[v1_uv_base], face[v1_uv_base+1]);
+	glm::vec2 uv2(face[v2_uv_base], face[v2_uv_base+1]);
+	glm::vec2 uv3(face[v3_uv_base], face[v3_uv_base+1]);
+
+	glm::vec3 edge1 = pos2 - pos1;
+	glm::vec3 edge2 = pos3 - pos1;
+
+	glm::vec2 delta_uv1 = uv2 - uv1;
+	glm::vec2 delta_uv2 = uv3 - uv1;
+
+	// tangent
+	const float f = 1.0F / ( (delta_uv1.x * delta_uv2.y) - (delta_uv2.x * delta_uv1.y) );
+	float x = f * ( (delta_uv2.y * edge1.x) - (delta_uv1.y * edge2.x) );
+	float y = f * ( (delta_uv2.y * edge1.y) - (delta_uv1.y * edge2.y) );
+	float z = f * ( (delta_uv2.y * edge1.z) - (delta_uv1.y * edge2.z) );
+
+	// normalize
+	float inv_length = 1.0F / std::sqrt( (x * x) + (y * y) + (z * z) );
+	float tangent[3] = {x * inv_length, y * inv_length, z * inv_length};
+
+	const std::size_t v1_tan_base = src_vetex_size;
+	const std::size_t v2_tan_base = v2_base + src_vetex_size;
+	const std::size_t v3_tan_base = v3_base + src_vetex_size;
+
+	// fill tangents for all triangle vertexes
+	std::memcpy( face+v1_tan_base, tangent, sizeof(tangent) );
+	std::memcpy( face+v2_tan_base, tangent, sizeof(tangent) );
+	std::memcpy( face+v3_tan_base, tangent, sizeof(tangent) );
+
 }
 
 
@@ -146,7 +206,8 @@ s_surface model_loader::load_static_sub_mesh(const collada::s_sub_mesh& sm, cons
 	detail::static_mesh_accessor acr = create_static_mesh_accessor(sm, src_mesh);
 
 	const std::size_t vertex_count = acr.vertex_count();
-	const std::size_t vertex_size = acr.vertex_size();
+	// add tangent vector
+	const std::size_t vertex_size = acr.vertex_size() + 3;
 	io::scoped_arr<float> vbo( vertex_count * vertex_size );
 
 	#ifdef _OPENMP
@@ -200,6 +261,7 @@ s_surface model_loader::load_textured_sub_mesh(const collada::s_sub_mesh& sm, co
 	const std::size_t vertex_size = acr.vertex_size();
 	io::scoped_arr<float> vbo( vertex_count * vertex_size );
 
+
 	#ifdef _OPENMP
 	#pragma omp parallel for
 	#endif // _OPENMP
@@ -215,6 +277,46 @@ s_surface model_loader::load_textured_sub_mesh(const collada::s_sub_mesh& sm, co
 				   tex
 			   )
 		   );
+}
+
+
+s_surface model_loader::load_bummaped_mesh(const collada::s_sub_mesh& sm, const collada::mesh* mesh,const io::const_string& diffuse,const io::const_string& bump)
+{
+	detail::textured_mesh_accessor acr = create_textured_mesh_accessor(sm, mesh);
+
+	gl::s_texture diffuse_tex = get_texture_by_name(diffuse);
+	gl::s_texture bumpmap = get_texture_by_name(bump);
+
+	const std::size_t vertex_count = acr.vertex_count();
+	// add tangent
+	const std::size_t src_vertex_size = acr.vertex_size();
+	const std::size_t dst_vertex_size = src_vertex_size + 3;
+	io::scoped_arr<float> vbo( vertex_count * dst_vertex_size );
+
+	#ifdef _OPENMP
+	#pragma omp parallel for simd
+	#endif // _OPENMP
+	for(std::size_t i=0; i < vertex_count ; i += 3) {
+		// triangle face to calculate tangent vector
+		float *face = vbo.get() +  (i * dst_vertex_size);
+		// copy face into tmp buff, and calculate tangent vector
+        acr.copy_vertex( face , i);
+		acr.copy_vertex( face + dst_vertex_size, i+1);
+		acr.copy_vertex( face + (dst_vertex_size*2), i+2);
+		// calculate tangent vector for triangle
+		// and replicate it for each triangle vertex
+		detail::tangent_vector( face, src_vertex_size );
+	}
+
+	return s_surface(
+			   new normal_mapped_mesh(
+				   DEFAULT_MATERIAL,
+				   vbo.get(), vbo.len(),
+				   nullptr, vertex_count,
+				   diffuse_tex, bumpmap
+			   )
+		   );
+
 }
 
 void model_loader::load_mesh(s_model& dst_mdl,const collada::mesh* src_mesh)
@@ -237,10 +339,22 @@ void model_loader::load_mesh(s_model& dst_mdl,const collada::mesh* src_mesh)
 		break;
 		case shade_type::diffuse_texture: {
 			// TODO: get texture type from surface type
-			io::const_string sid = efl->find_sampler_ref( ef->tex.name );
+			io::const_string sid = efl->find_sampler_ref( ef->diffuse_tex->name() );
 			collada::surface srf = efl->find_surface( sid ).second;
 			io::const_string diffuse_texture_file = src_mdl_->find_image( srf.init_from );
-			dst_mdl->add_surface( load_textured_sub_mesh( sm, src_mesh, diffuse_texture_file) );
+			dst_mdl->add_surface( load_textured_sub_mesh( sm, src_mesh, diffuse_texture_file));
+		}
+		break;
+		case shade_type::bump_mapping: {
+			io::const_string sid = efl->find_sampler_ref( ef->diffuse_tex->name() );
+			collada::surface srf = efl->find_surface( sid ).second;
+			io::const_string diffuse_texture_file = src_mdl_->find_image( srf.init_from );
+
+			sid = efl->find_sampler_ref( ef->bumpmap_tex->name() );
+			srf = efl->find_surface( sid ).second;
+			io::const_string bump_texture_file = src_mdl_->find_image( srf.init_from );
+
+			dst_mdl->add_surface( load_bummaped_mesh(sm, src_mesh, diffuse_texture_file, bump_texture_file) );
 		}
 		break;
 		case shade_type::constant:

@@ -41,17 +41,45 @@ public:
 
 } // namespace detail
 
-struct texture {
-	io::const_string name;
-	io::const_string texcoord;
+class texture final: public io::object {
+public:
+
+//    constexpr texture() noexcept:
+//    	io::object(),
+//    	name_(),
+//    	texcoord_()
+//	{}
+
+	texture(io::const_string&& name, io::const_string&& texcoord) noexcept:
+		io::object(),
+		name_( std::forward<io::const_string>(name) ),
+		texcoord_( std::forward<io::const_string>(texcoord) )
+	{}
+
+	virtual ~texture() override = default;
+
+	io::const_string name() const noexcept {
+		return name_;
+	}
+
+	io::const_string texcoord() const noexcept {
+		return texcoord_;
+	}
+
+private:
+	io::const_string name_;
+	io::const_string texcoord_;
 };
+
+DECLARE_IPTR(texture);
 
 enum class shade_type {
 	constant,
 	lambert,
 	phong,
 	blinn_phong,
-	diffuse_texture
+	diffuse_texture,
+    bump_mapping
 };
 
 struct constant_effect {
@@ -92,7 +120,8 @@ struct effect {
 		reflectivity_effect reflect;
 		constant_effect constant;
 	} value;
-	texture tex;
+	s_texture diffuse_tex;
+	s_texture bumpmap_tex;
 	shade_type shade;
 };
 

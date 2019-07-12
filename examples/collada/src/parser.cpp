@@ -373,10 +373,14 @@ void parser::parse_effect(io::const_string&& id, s_effect_library& efl)
 				// this is diffuse texture and not a material
 				if( is_element(sev, "texture") ) {
 					ef.shade = shade_type::diffuse_texture;
-					ef.tex.name = get_attr(sev,"texture");
+					io::const_string name = get_attr(sev,"texture");
+					io::const_string texcoord;
 					auto attr = sev.get_attribute("","texcoord");
 					if( attr.second )
-						ef.tex.texcoord = attr.first;
+						texcoord = attr.first;
+					ef.diffuse_tex = s_texture(
+									new texture(std::move(name), std::move(texcoord))
+								);
 				}
 				else {
 					// this is material values
@@ -422,12 +426,22 @@ void parser::parse_effect(io::const_string&& id, s_effect_library& efl)
 				check_eod(state,ERR_MSG);
 				parse_vec4( get_tag_value(), ef.value.transparent.color);
 			}
-			// TODO: extract bump mapping texture
-//			else if( is_element(sev,"bump") ) {
-//				sev = to_next_tag_start(state);
-//				check_eod(state,ERR_MSG);
-//				parse_vec4( get_tag_value(), ef.text.bump );
-//			}
+			else if( is_element(sev,"bump") ) {
+				sev = to_next_tag_start(state);
+				check_eod(state,ERR_MSG);
+				// this is bump (normal) mapping effect
+				if( is_element(sev, "texture") ) {
+					ef.shade = shade_type::bump_mapping;
+					io::const_string name = get_attr(sev,"texture");
+					io::const_string texcoord;
+					auto attr = sev.get_attribute("","texcoord");
+					if( attr.second )
+						texcoord = attr.first;
+					ef.bumpmap_tex = s_texture(
+									new texture(std::move(name), std::move(texcoord))
+								);
+				}
+			}
 		}
 	}
 	while( !is_end_element(et,"effect") );

@@ -116,8 +116,23 @@ private:
 class normal_mapped_mesh final: public mesh
 {
 public:
-	normal_mapped_mesh(const material_t& mat,const float *vertex, std::size_t vsize,const uint32_t* indexes,std::size_t isize,const s_image& difftex,const s_image& nm_text);
-	normal_mapped_mesh(const float *vertex, std::size_t vsize,const uint32_t* indexes,std::size_t isize,const s_image& difftex,const s_image& nm_text);
+
+	normal_mapped_mesh(const material_t& mat,
+				const float *vertex,
+				std::size_t vsize,
+				const uint32_t* indexes,
+				std::size_t isize,
+				const gl::s_texture& difftex,const gl::s_texture& nm_text);
+
+	normal_mapped_mesh(const material_t& mat,
+				const float *vertex,
+				std::size_t vsize,
+				const uint32_t* indexes,
+				std::size_t isize,
+				const s_image& difftex,const s_image& nm_text);
+
+
+
 	virtual void draw(const scene& scn) const override;
 	virtual ~normal_mapped_mesh() noexcept override;
 private:

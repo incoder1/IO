@@ -315,13 +315,19 @@ const char* normal_mapped_mesh::VERTEX_SHADER = "gpu/normal_mapped_mesh.vertex.g
 
 const char* normal_mapped_mesh::FRAGMENT_SHADER = "gpu/normal_mapped_mesh.frag.glsl";
 
-normal_mapped_mesh::normal_mapped_mesh(const material_t& mat,const float *vertex, std::size_t vsize,const uint32_t* indexes,std::size_t isize,const s_image& difftex,const s_image& nm_text):
+normal_mapped_mesh::normal_mapped_mesh(const material_t& mat,
+				const float *vertex,
+				std::size_t vsize,
+				const uint32_t* indexes,
+				std::size_t isize,
+				const gl::s_texture& difftex,
+				const gl::s_texture& nm_text):
 	mesh(),
 	program_(),
 	vao_(0),
 	isize_(isize),
-	diffuse_tex_(),
-	normal_map_tex_(),
+	diffuse_tex_( difftex ),
+	normal_map_tex_( nm_text ),
 	mat_helper_(mat),
 	light_helper_(),
 	mvp_ul_(-1),
@@ -374,13 +380,25 @@ normal_mapped_mesh::normal_mapped_mesh(const material_t& mat,const float *vertex
 	diffise_tex_ul_ = program_->uniform_location(UNFM_DIFFUSE_TEXTURE);
 	nm_tex_ul_ = program_->uniform_location(UNFM_NORMALMAP_TEXTURE);
 
+}
+
+
+
+normal_mapped_mesh::normal_mapped_mesh(const material_t& mat,
+				const float *vertex,
+				std::size_t vsize,
+				const uint32_t* indexes,
+				std::size_t isize,
+				const s_image& difftex,const s_image& nm_text):
+	normal_mapped_mesh(mat,
+						vertex, vsize,
+						indexes, isize,
+						gl::s_texture(),
+						gl::s_texture())
+{
 	diffuse_tex_ = gl::texture::create_texture2d_from_image(difftex, gl::texture_filter::LINEAR_MIPMAP_LINEAR);
 	normal_map_tex_ = gl::texture::create_texture2d_from_image(nm_text,gl::texture_filter::NEAREST);
 }
-
-normal_mapped_mesh::normal_mapped_mesh(const float *vertex, std::size_t vsize,const uint32_t* indexes,std::size_t isize,const s_image& difftex,const s_image& nm_text):
-	normal_mapped_mesh(DEFAULT_MATERIAL, vertex, vsize, indexes, isize, difftex, nm_text)
-{}
 
 void normal_mapped_mesh::draw(const scene& scn) const
 {

@@ -124,6 +124,9 @@ class model_loader
 		s_surface load_static_sub_mesh(const collada::s_sub_mesh& sm, const collada::mesh* src_mesh, material_t&& mat);
 		/// Loads geometry-diffuse based mesh into engine's mesh renderer
 		s_surface load_textured_sub_mesh(const collada::s_sub_mesh& sm, const collada::mesh* mesh,const io::const_string& texture);
+		/// Loads geometry-diffuse-bump-map based mesh into engine's mesh renderer
+        s_surface load_bummaped_mesh(const collada::s_sub_mesh& sm, const collada::mesh* mesh,const io::const_string& diffuse,const io::const_string& bump);
+
 		/// Loads PNG texture file into OpenGL video memory
 		gl::s_texture get_texture_by_name(const io::const_string& name);
 		/// Select mesh type and load it into rendering engine
