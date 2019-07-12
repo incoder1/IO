@@ -128,6 +128,8 @@ private:
 
     static ssize_t pull(::gnutls_transport_ptr_t trpt, void * data, std::size_t max_size) noexcept;
 
+    static int timeout(::gnutls_transport_ptr_t, unsigned int ms) noexcept;
+
 private:
     ::gnutls_session_t peer_;
     s_read_write_channel socket_;

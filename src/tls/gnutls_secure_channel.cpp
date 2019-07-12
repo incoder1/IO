@@ -38,14 +38,16 @@ session::session(session&& other) noexcept:
 
 session::~session() noexcept
 {
-	if(nullptr != peer_)
+	if(nullptr != peer_) {
+		::gnutls_bye(peer_, GNUTLS_SHUT_RDWR);
 		::gnutls_deinit( peer_ );
+	}
 }
 
 ssize_t session::push(::gnutls_transport_ptr_t tr, const void * data, std::size_t size) noexcept
 {
-	std::error_code ec;
 	session* s = static_cast<session*>( tr );
+	std::error_code ec;
 	ssize_t ret = s->socket_->write(ec, static_cast<const uint8_t*>(data), size);
 	if( ec ) {
 		::gnutls_transport_set_errno( s->peer_, ec.value() );
@@ -66,17 +68,30 @@ ssize_t session::pull(::gnutls_transport_ptr_t tr, void * data, std::size_t max_
 	return ret;
 }
 
+int session::timeout(::gnutls_transport_ptr_t tr, unsigned int ms) noexcept
+{
+	int ret = ::gnutls_system_recv_timeout(tr,ms);
+	return ret;
+}
+
 int session::client_handshake(::gnutls_session_t const peer) noexcept
 {
-	::gnutls_handshake_set_timeout(peer, GNUTLS_DEFAULT_HANDSHAKE_TIMEOUT);
+//	::gnutls_handshake_set_timeout(peer,
+//                                     GNUTLS_DEFAULT_HANDSHAKE_TIMEOUT);
+//	::gnutls_session_set_verify_cert(peer, nullptr, GNUTLS_VERIFY_ALLOW_X509_V1_CA_CRT);
 	int ret = 0;
+	bool handshaked = false;
 	do {
 		::gnutls_transport_set_errno( peer, 0 );
 		ret = ::gnutls_handshake( peer );
+		handshaked = ret == GNUTLS_E_SUCCESS;
+		handshaked = handshaked || 0 != ::gnutls_error_is_fatal(ret);
 	}
-	while( ret != GNUTLS_E_SUCCESS && 0 == ::gnutls_error_is_fatal(ret) );
+	while( !handshaked );
 	return ret;
 }
+
+
 
 session session::client_session(std::error_code &ec, ::gnutls_certificate_credentials_t crd,s_read_write_channel&& socket) noexcept
 {
@@ -87,9 +102,10 @@ session session::client_session(std::error_code &ec, ::gnutls_certificate_creden
 	else {
 		/* Use default priorities */
 		err = ::gnutls_set_default_priority(ret.peer_);
-		if(GNUTLS_E_SUCCESS != err)
+		if(GNUTLS_E_SUCCESS != err) {
 			ec = std::make_error_code( std::errc::connection_refused );
-		else {
+		} else {
+		 	::gnutls_session_enable_compatibility_mode(ret.peer_);
 			err = ::gnutls_credentials_set(ret.peer_, GNUTLS_CRD_CERTIFICATE, crd);
 			if(GNUTLS_E_SUCCESS != err)
 				ec = std::make_error_code( std::errc::connection_refused );
@@ -97,10 +113,10 @@ session session::client_session(std::error_code &ec, ::gnutls_certificate_creden
 				::gnutls_transport_ptr_t transport = static_cast<::gnutls_transport_ptr_t>( std::addressof(ret) );
 				::gnutls_transport_set_ptr( ret.peer_, transport );
 
-				::gnutls_handshake_set_private_extensions(ret.peer_, 1 );
+				//::gnutls_handshake_set_private_extensions(ret.peer_, 1 );
 				::gnutls_transport_set_push_function( ret.peer_, &session::push );
 				::gnutls_transport_set_pull_function( ret.peer_, &session::pull );
-				::gnutls_transport_set_pull_timeout_function(ret.peer_, ::gnutls_system_recv_timeout);
+				::gnutls_transport_set_pull_timeout_function(ret.peer_, &session::timeout);
 
 				::gnutls_transport_set_errno( ret.peer_, 0 );
 				err = client_handshake( ret.peer_ );

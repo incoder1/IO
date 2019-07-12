@@ -95,6 +95,10 @@ class IO_PUBLIC_SYMBOL file
 {
 public:
 
+	static constexpr char separator() noexcept {
+		return '/';
+	}
+
 	explicit file(const std::string& name) noexcept;
 
 	explicit file(const std::wstring& name) noexcept;

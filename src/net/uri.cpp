@@ -19,53 +19,57 @@ namespace io {
 
 namespace net {
 
-static inline bool is_scheme_character(const char c) noexcept
+static inline bool is_scheme_character(char c)
 {
 	return is_alnum( c ) || is_one_of(c, '+', '-', '.');
 }
 
-static inline bool is_unreserved(const char c) noexcept
+static constexpr inline bool is_unreserved(char c)
 {
 	return is_alnum(c) || is_one_of(c,'-','.','_','~');
 }
 
-static inline bool is_gen_delim(const char c) noexcept
-{
-	return is_one_of(c,":/?#[]@",7);
+static constexpr bool is_one_of(char c, const char* span) {
+	return nullptr != io_strchr(span, c);
 }
 
-static bool is_sub_delim(const char c) noexcept
+static constexpr bool is_gen_delim(char c)
 {
-	return  is_one_of(c, "!$&\'()*+,;=", 12);
+	return is_one_of(c,":/?#[]@");
 }
 
-static inline bool is_reserved(const char c) noexcept
+static constexpr bool is_sub_delim(char c)
 {
-	return is_one_of(c,":/?#[]@;!$&\'()*+,;=",20);
+	return  is_one_of(c, "!$&\'()*+,;=" );
 }
 
-static inline bool is_user_info_character(const char c) noexcept
+static constexpr bool is_reserved(char c)
 {
-	return is_unreserved(c) || is_one_of(c,'%',':') || is_sub_delim(c);
+	return is_one_of(c,":/?#[]@;!$&\'()*+,;=");
 }
 
-static inline bool is_authorety_character(const char c) noexcept
+static constexpr bool is_user_info_character(char c)
 {
-	return is_unreserved(c) || is_one_of(c, "!$&\'()*+,;=%@:[]", 17);
+	return is_unreserved(c) || io::is_one_of(c,'%',':') || is_sub_delim(c);
 }
 
-static inline bool is_path_character(char c) noexcept
+static inline bool is_authorety_character(char c)
 {
-	return is_unreserved(c) || is_one_of(c,"!$&\'()*+,;=%/:@",16);
+	return is_unreserved(c) || is_one_of(c, "!$&\'()*+,;=%@:[]");
 }
 
-static inline bool is_query_character(const char c) noexcept
+static inline bool is_path_character(char c)
+{
+	return is_unreserved(c) || is_one_of(c,"!$&\'()*+,;=%/:@");
+}
+
+static inline bool is_query_character(char c)
 {
 	return cheq(c,'?') || is_path_character(c);
 }
 
 // this is international, they have the same set of legal characters
-static inline bool is_fragment_character(const char c) noexcept
+static inline bool is_fragment_character(char c)
 {
 	return is_query_character(c);
 }
@@ -107,49 +111,47 @@ static const char* str_to_lower_a(char* const dst, const char* src) noexcept
 	return dst;
 }
 
-static __forceinline  bool streq(const char* lsh, const char* rhs) noexcept
+static __forceinline  bool strneq(const char* lsh, const char* rhs, std::size_t l) noexcept
 {
-	return 0 == io_strcmp(lsh, rhs);
+	return 0 == io_memcmp(lsh, rhs, l);
 }
 
 // uri
 uint16_t IO_NO_INLINE uri::default_port_for_scheme(const char* scheme) noexcept
 {
-	// noexcept == no unordered_map
 	char sch[8];
 	str_to_lower_a(sch, scheme);
-	if( streq("echo", sch) )
+	if( strneq("echo", sch, 4) )
 		return 7;
-	else if( streq("daytime", sch) )
+	else if( strneq("daytime", sch, 7) )
 		return 13;
-	else if( streq("ftp", sch) )
+	else if( strneq("ftp", sch, 3) )
 		return 21;
-	else if( streq("ssh", sch) )
+	else if( strneq("ssh", sch, 3) )
 		return 22;
-	else if( streq("telnet", sch) )
+	else if( strneq("telnet",sch,6) )
 		return 23;
-	else if( streq("mailto", sch) )
+	else if( strneq("mailto", sch, 6) )
 		return 25;
-	else if(streq("time", sch) )
+	else if(strneq("time", sch, 4 ) )
 		return 37;
-	else if(streq("name", sch) )
+	else if(strneq("name", sch, 4) )
 		return 42;
-	else if(streq("domain", sch) )
+	else if(strneq("domain", sch, 6) )
 		return 53;
-	else if(streq("gopher", sch) )
+	else if(strneq("gopher", sch, 6) )
 		return 70;
-	else if(streq("https", sch) )
+	else if(strneq("https", sch, 5 ) )
 		return 443;
-	else if( streq("http", sch) )
+	else if( strneq("http", sch, 4) )
 		return 80;
-	else if( streq("npp", sch) )
+	else if( strneq("npp", sch, 3) )
 		return 92;
-	else if( streq("sftp", sch) )
+	else if( strneq("sftp", sch, 4) )
 		return 115;
-	else if( streq("irc", sch) )
+	else if( strneq("irc", sch, 3) )
 		return 6697;
-	else
-		return 0;
+	return 0;
 }
 
 /// std::regexp can throw an exception, and no PCRE
@@ -158,15 +160,10 @@ s_uri uri::parse(std::error_code& ec, const char* str) noexcept
 {
 	char *normalized;
 	const std::size_t len = io_strlen(str) + 1;
-	if(len <= UCHAR_MAX) {
+	if(len <= UCHAR_MAX)
 		normalized = static_cast<char*>( io_alloca( len ) );
-	} else {
+	else
 		normalized = memory_traits::calloc_temporary<char>(len);
-		if(nullptr == normalized) {
-			ec = std::make_error_code( std::errc::not_enough_memory );
-			return s_uri();
-		}
-	}
 	str_to_lower_a(normalized, str);
 
 	const_string scheme;
@@ -177,11 +174,12 @@ s_uri uri::parse(std::error_code& ec, const char* str) noexcept
 	const_string query;
 	const_string fragment;
 	const char *b = normalized;
-
-	const char *e = io_strpbrk(b,":/");
-	if(nullptr == e)
-		return return_error(ec, std::errc::invalid_argument);
-
+	const char *e = b;
+	while( is_not_one(*e,":/") ) {
+		if( cheq('\0',*e) )
+			return return_error(ec, std::errc::invalid_argument);
+		++e;
+	}
 	// not relative URI need to extract scheme
 	if ( cheq(*e,':') ) {
 		const char* j = b;
@@ -201,7 +199,7 @@ s_uri uri::parse(std::error_code& ec, const char* str) noexcept
 	// parse the authorety portion
 	if( 0 == io_memcmp(b, "//", 2) ) {
 		b += 2;
-		for( e = b; !is_one_of(*e,'/','?','#','\0'); e++) {
+		for( e = b; !io::is_one_of(*e,'/','?','#','\0'); e++) {
 			if( ! is_authorety_character(*e) )
 				return return_error(ec, std::errc::invalid_argument);
 		}
@@ -219,9 +217,7 @@ s_uri uri::parse(std::error_code& ec, const char* str) noexcept
 		}
 		// look for a user_info component
 		const char *j = host_strt;
-		while( j != host_end && is_user_info_character(*j))
-			++j;
-
+		for( ; is_user_info_character(*j) && j != host_end; j++);
 		if( cheq(*j,'@') ) {
 			host_strt = j + 1;
 			user_info = const_string(b, j );
@@ -237,7 +233,7 @@ s_uri uri::parse(std::error_code& ec, const char* str) noexcept
 	if ( cheq(*b,'/') || is_path_character(*b) ) {
 		e = b;
 		// ? # or '\0'
-		while( !is_one_of(*e, '?','#','\0') ) {
+		while( !io::is_one_of(*e, '?','#','\0') ) {
 			if (!is_path_character(*e))
 				return return_error(ec, std::errc::invalid_argument );
 			++e;
@@ -254,7 +250,7 @@ s_uri uri::parse(std::error_code& ec, const char* str) noexcept
 	if ( cheq(*b, '?') ) {
 		e = ++b;
 		// '#' or '\0'
-		while( !is_one_of(*e,'#','\0') ) {
+		while( !io::is_one_of(*e,'#','\0') ) {
 			if (!is_query_character(*e))
 				return return_error(ec, std::errc::invalid_argument );
 			++e;

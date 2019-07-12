@@ -28,4 +28,6 @@
 
 #endif // __IO_WINDOWS_BACKEND__
 
+#include <thread>
+
 #endif // __IO_THREADING_HPP_INCLUDED__

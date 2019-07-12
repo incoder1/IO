@@ -91,13 +91,13 @@ inline constexpr bool between(uint32_t first, uint32_t last, uint32_t ch) noexce
 	return ( ch >= first ) && ( ch <= last  );
 }
 
-inline bool is_alpha(const char ch) noexcept
+inline constexpr bool is_alpha(const char ch) noexcept
 {
 	return 0 != io_isalpha( ch );
 }
 
 
-inline bool is_alnum(const char ch) noexcept
+constexpr bool is_alnum(const char ch) noexcept
 {
 	return is_alpha(ch) || io_isdigit(ch);
 }
