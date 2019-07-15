@@ -44,23 +44,6 @@ static std::size_t parse_sizet(const io::const_string& str)
 }
 
 
-//static bool parse_bool(const io::const_string& val) noexcept
-//{
-//	typedef io::xml::lexical_cast_traits<bool> bool_cast;
-//	const char* str =  val.data();
-//	while( std::isspace(*str) )
-//		++str;
-//	switch(*str) {
-//	case '\0':
-//	case '0':
-//		return false;
-//	case '1':
-//		return true;
-//	default:
-//		return bool_cast::from_string(str, &str);
-//	}
-//}
-
 static std::size_t parse_string_array(const io::const_string& val,const std::size_t size, float* const data)
 {
 	std::size_t ret = 0;

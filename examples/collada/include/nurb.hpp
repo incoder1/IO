@@ -10,20 +10,18 @@
 namespace engine {
 
 /// Nonuniform Rational B-Spline Surface
-//class NURB: public surface
-//{
-//	public:
-//		NURB(const io::s_read_channel vtx,const io::s_read_channel& frag,const io::s_read_channel& tess,const io::s_read_channel& tessctrl);
-//		virtual ~NURB();
-//	private:
-//
-//	gl::s_program program_;
-////	gl::s_buffer vbo_;
-////	gl::s_buffer ibo_;
-//
-//	::GLint mvp_ul_;
-//	::GLint mv_ul_;
-//};
+class NURB: public surface
+{
+	public:
+		NURB(const io::s_read_channel vtx,const io::s_read_channel& frag,const io::s_read_channel& tess,const io::s_read_channel& tessctrl);
+		virtual ~NURB() noexcept;
+	private:
+
+	gl::s_program program_;
+
+	::GLint mvp_ul_;
+	::GLint mv_ul_;
+};
 
 } // namespace engine
 
