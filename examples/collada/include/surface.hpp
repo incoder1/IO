@@ -14,6 +14,23 @@ class surface: public io::object
 	surface(const surface&) = delete;
 	surface& operator=(const surface&) = delete;
 protected:
+
+	/// Vertex coordinate shader attribute name
+	static constexpr const char* VATTR_CRD = "vertex_coord";
+	/// Vertex normal vector shader attribute name
+	static constexpr const char* VATTR_NRM = "vertex_normal";
+	/// Vertex texture coordinates shader attribute name
+	static constexpr const char* VATTR_UV = "vertex_uv";
+
+	/// model-view-projection matrix uniform name
+	static constexpr const char* UNFM_MVP_MAT = "mvp";
+	/// model-view matrix uniform name
+	static constexpr const char* UNFM_MV_MAT = "mv";
+	/// normal matrix uniform name
+	static constexpr const char* UNFM_NORMAL_MAT = "nm";
+	/// diffuse texture uniform name
+	static constexpr const char* UNFM_DIFFUSE_TEXTURE = "diffuse_texture";
+
 	constexpr surface() noexcept:
 		io::object()
 	{}
