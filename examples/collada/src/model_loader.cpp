@@ -70,6 +70,7 @@ static void tangent_vector(float * face,const std::size_t src_vetex_size)
 	// 3 vertex per triangle
 	// vertex layout is
 	// {pox_x,pos_y,pos_z},{nrm_x, nrm_y, nrm_z},{uv_s,uv_t},{tan_x,tan_y,tan_z}
+	// bi-tangent will be calculated by vertex shader
 
 	const std::size_t full_vertex_size = src_vetex_size + 3;
 

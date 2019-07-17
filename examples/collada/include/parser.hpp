@@ -53,6 +53,10 @@ private:
 	bool is_sub_mesh(const io::xml::start_element_event& sev) noexcept;
 	bool is_sampler_ref(const io::xml::start_element_event& sev) noexcept;
 
+	/// get's mandatory tag attribute, or throw error if no such attribute
+	io::const_string get_attr(const io::xml::start_element_event& sev, const char* name);
+
+
 	/// Skip the element including all child elements
 	void skip_element(const io::xml::start_element_event& e);
 
@@ -65,6 +69,7 @@ private:
 	void parse_effect_library(s_model& md);
 
 	// parse materials library functions
+	input parse_input(const io::xml::start_element_event& e);
 	void parse_library_materials(s_model& md);
 
 	// geometry

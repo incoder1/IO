@@ -18,7 +18,10 @@ static bool is_start_element(io::xml::event_type et) noexcept
 static float next_float(const char* str,char** endp)
 {
 	if( io_likely( '\0' != *str) ) {
-		return std::strtof(str, endp);
+		float ret = std::strtof(str, endp);
+		if(str == *endp)
+			*endp = nullptr;
+		return ret;
 	}
 	*endp = nullptr;
 	return 0.0F;
@@ -100,19 +103,6 @@ static void parse_vec4(const io::const_string& val, float * ret)
 	}
 }
 
-static io::const_string get_attr(const io::xml::start_element_event& sev, const char* name)
-{
-	auto  attr = sev.get_attribute("",name);
-	if( !attr.second  ) {
-		// TODO: add error row/col
-		std::string msg = sev.name().local_name().stdstr();
-		msg.push_back(' ');
-		msg.append( name );
-		msg.append(" attribute is mandatory");
-		throw std::runtime_error( msg );
-	}
-	return sev.get_attribute("",name).first;
-}
 
 static io::xml::s_event_stream_parser open_parser(io::s_read_channel&& src)
 {
@@ -120,6 +110,10 @@ static io::xml::s_event_stream_parser open_parser(io::s_read_channel&& src)
 	io::xml::s_event_stream_parser ret = io::xml::event_stream_parser::open(ec, std::move(src) );
 	io::check_error_code( ec );
 	return ret;
+}
+
+static io::const_string unref(const io::const_string& ref) {
+	return io::const_string( ref.data()+1, ref.length()-1 );
 }
 
 // parser
@@ -142,6 +136,24 @@ parser::parser(io::s_read_channel&& src) noexcept:
 	library_geometries_ = xp_->precache("library_geometries");
 	library_visual_scenes_ = xp_->precache("library_visual_scenes");
 	library_images_ = xp_->precache("library_images");
+}
+
+io::const_string parser::get_attr(const io::xml::start_element_event& sev, const char* name)
+{
+	std::pair<io::const_string, bool> query = sev.get_attribute("",name);
+	if( io_unlikely( !query.second  ) ) {
+		std::string emsg("COLLADA error [");
+		emsg.append( std::to_string( xp_->row() ) );
+		emsg.push_back(',');
+		emsg.append( std::to_string( xp_->col() ) );
+		emsg.append("] ");
+		emsg.append(sev.name().local_name().stdstr());
+		emsg.push_back(' ');
+		emsg.append( name );
+		emsg.append(" attribute is mandatory");
+		throw std::runtime_error( emsg );
+	}
+	return query.first;
 }
 
 // XML parsing functions
@@ -415,14 +427,9 @@ void parser::parse_effect(io::const_string&& id, s_effect_library& efl)
 				// this is bump (normal) mapping effect
 				if( is_element(sev, "texture") ) {
 					ef.shade = shade_type::bump_mapping;
-					io::const_string name = get_attr(sev,"texture");
-					io::const_string texcoord;
-					auto attr = sev.get_attribute("","texcoord");
-					if( attr.second )
-						texcoord = attr.first;
-					ef.bumpmap_tex = s_texture(
-									new texture(std::move(name), std::move(texcoord))
-								);
+					auto texcoord = sev.get_attribute("","texcoord");
+					texture* t = new texture(get_attr(sev,"texture"), std::move(texcoord.first));
+					ef.bumpmap_tex = s_texture( t );
 				}
 			}
 		}
@@ -536,9 +543,7 @@ void parser::parse_library_materials(s_model& md)
 				material_id = get_attr(sev,"id");
 			}
 			else if( is_element(sev,"instance_effect") ) {
-				io::const_string urlref = get_attr(sev,"url");
-				io::const_string url = io::const_string(urlref.data()+1, urlref.size()-1);
-				md->add_material_effect_link( std::move(material_id), std::move(url) );
+				md->add_material_effect_link( std::move(material_id), unref(get_attr(sev,"url")) );
 			}
 		}
 	}
@@ -547,7 +552,7 @@ void parser::parse_library_materials(s_model& md)
 
 // Geometry
 
-static input parse_input(const io::xml::start_element_event& e)
+input parser::parse_input(const io::xml::start_element_event& e)
 {
 	input ret;
 	io::const_string sematic = get_attr(e,"semantic");
@@ -567,8 +572,7 @@ static input parse_input(const io::xml::start_element_event& e)
 		}
     }
 	// remove # at the begin
-	io::const_string src = get_attr(e,"source");
-	ret.accessor_id = io::const_string( src.data()+1, src.size()-1 );
+	ret.accessor_id = unref(get_attr(e,"source"));
 
 	// optional attributes
 	ret.offset = parse_sizet( get_attr(e,"offset") );
@@ -596,10 +600,7 @@ void parser::parse_accessor(s_accessor& acsr)
 				auto attr = sev.get_attribute("","name");
 				if(attr.second)
 					p.name = attr.first;
-				attr = sev.get_attribute("","type");
-				if(!attr.second)
-					throw std::runtime_error("type attribute expected");
-				io::const_string type = attr.first;
+				io::const_string type = get_attr(sev,"type");
 				p.presision = type.equal("float") ? presision::float32_t : presision::double64_t;
 				acsr->add_parameter( std::move(p) );
 			}
@@ -627,11 +628,8 @@ void parser::parse_source(const s_source& src)
 				continue;
 			}
 			else if( is_element(sev,"accessor") ) {
-				auto attr = sev.get_attribute("","source");
-				if(!attr.second)
-					throw std::runtime_error("accessor source attribute is mandatory");
-				io::const_string id = io::const_string( attr.first.data()+1, attr.first.size() - 1 );
-				attr =  sev.get_attribute("","count");
+				io::const_string id = unref( get_attr(sev,"source") );
+				auto attr = sev.get_attribute("","count");
 				std::size_t count = attr.second ? parse_sizet( attr.first ) : 0;
 				attr = sev.get_attribute("","stride");
 				std::size_t stride = attr.second ? parse_sizet( attr.first ) : 0;
@@ -640,15 +638,8 @@ void parser::parse_source(const s_source& src)
 				src->add_accessor( std::move(acsr) );
 			}
 			else if( is_element(sev, "float_array") ) {
-				std::size_t data_size = 0;
-				auto attr = sev.get_attribute("","id");
-				if(!attr.second)
-					throw std::runtime_error("float_array id attribute is mandatory");
-				io::const_string id = attr.first;
-				attr = sev.get_attribute("","count");
-				if(!attr.second)
-					throw std::runtime_error("float_array count attribute is mandatory");
-				data_size = parse_sizet( attr.first );
+				io::const_string id = get_attr(sev,"id");
+				std::size_t data_size = parse_sizet( get_attr(sev,"count").data() );
 
 				io::const_string data_str = get_tag_value();
 				float_array data(data_size);
@@ -783,25 +774,18 @@ void parser::parse_mesh(const s_mesh& m)
 				m->add_source( std::move(id), std::move(src) );
 			}
 			else if( is_element(sev, "vertices") ) {
-				//m->set_vertex_id( get_attr(sev,"id") );
 				et = to_next_tag_event(state);
 				check_eod(state, ERR_MSG);
 				sev = xp_->parse_start_element();
 				check_eod(state, ERR_MSG);
-				if( is_element(sev, "input") ) {
-					io::const_string ref = get_attr(sev,"source");
-					m->set_pos_src_id( io::const_string( ref.data()+1, ref.size()-1 ) );
-				}
+				if( is_element(sev, "input") )
+					m->set_pos_src_id( unref( get_attr(sev,"source") ) );
 			}
 			else if( is_sub_mesh(sev) ) {
-				auto attr = sev.get_attribute("","material");
-				s_sub_mesh sub_mesh = parse_sub_mesh(
-							sev.name().local_name(),
-							attr.second ? io::const_string(attr.first) : io::const_string(),
-							parse_sizet( get_attr(sev,"count") )
-							);
-				// parse sub_mesh
-				m->add_sub_mesh( std::move(sub_mesh) );
+				auto mat = sev.get_attribute("","material");
+				io::const_string name = sev.name().local_name();
+				std::size_t count = parse_sizet( get_attr(sev,"count") );
+				m->add_sub_mesh( parse_sub_mesh(name, std::move(mat.first), count) );
 			}
 		}
 	}
@@ -827,7 +811,7 @@ void parser::pase_geometry_library(s_model& md)
 			else if( is_element(sev,"geometry") ) {
 				geometry_id = get_attr(sev,"id");
 				auto attr = sev.get_attribute("","name");
-				geometry_name = attr.second ? attr.first : io::const_string(geometry_id);
+				geometry_name = attr.second ? attr.first : geometry_id;
 			}
 			else if( is_element(sev,"mesh") ) {
 				s_mesh m( new mesh(std::move(geometry_name) ) );
@@ -852,15 +836,13 @@ void parser::parse_node(node& nd)
 			sev = xp_->parse_start_element();
 			check_eod(state, ERR_MSG);
 			if( is_element(sev,"instance_geometry") ) {
-				io::const_string url = get_attr(sev,"url");
-				nd.geo_ref.url = io::const_string( url.data()+1, url.size() - 1);
+				nd.geo_ref.url = unref( get_attr(sev,"url") );
 				auto attr = sev.get_attribute("","name");
 				if( attr.second )
 					nd.geo_ref.name.swap( attr.first );
 			}
 			else if(is_element(sev,"instance_material") ) {
-				io::const_string tref = get_attr(sev,"target");
-				nd.geo_ref.mat_ref.target = io::const_string( tref.data()+1, tref.size() -1);
+				nd.geo_ref.mat_ref.target = unref( get_attr(sev,"target") );
 				nd.geo_ref.mat_ref.symbol = get_attr(sev,"symbol");
 			}
 		}
@@ -915,6 +897,7 @@ void parser::parse_library_images(s_model& md)
 				io::const_string id = get_attr(sev, "id");
 				sev = to_next_tag_start(state);
 				check_eod(state, ERR_MSG);
+				// TODO: add next expected
 				if( !is_element(sev,"init_from") )
 					throw std::runtime_error("init_from element expected");
 				md->add_image( std::move(id), get_tag_value() );

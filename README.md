@@ -139,7 +139,7 @@ It is considered to install prebuilt binary dependencies using pacman for MSYS2 
 
 	- pacman -S libiconv-devel libgnutls-devel
 	
-### Building with CMake (GCC only)
+### Building with CMake
 To build with CMake build tool to can use following command
 
 > cmake . -DCMAKE_BUILD_TYPE=<Release|Debug> [-DBUILD_SHARED_LIBS=ON] [-DNO_EXCEPTIONS=ON] [-DNO_RTTI=ON]
@@ -149,12 +149,19 @@ To build with CMake build tool to can use following command
 
 You can build shared or static library release or debug version, optionally you can on or off exceptions and rtti.
 
+If you choose MS VC++ solution as the Cmake output you can build with 
+>	cd target
+>	MSBuild io.sln /p:Configuration=Release /p:Platform=Win32
+instead of cmake --build .
+
+Or build from IDE
+
 ### Building with makefiles
 
 This make files have no configuration state, i.e. all compile options are predefined. Only release version with exceptions 
 and RTTI off provided.
 
-#### Windows with Microsoft VC++
+#### Windows with Microsoft VC++ and NMake
 
 You need Visual Studio or Visual Studio BuildTools version 15+
 
@@ -167,7 +174,7 @@ Then goto IO source code root directory and execute
 
 >			nmake -f NMakefile-msvcx64-dll.mak
 
-  Build result available in `target/release-win-msvc-dll-x64` sub folder
+  Build result available in `target/release-win-msvc-dll-x64` sub folder 
 
 #### Windows with GCC (MinGW64) and GNU make
 

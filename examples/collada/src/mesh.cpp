@@ -6,6 +6,8 @@
 #	include <windows.h>
 #else
 #	include <cstdio>
+#	include <climits>
+#	include <sys/types.h>
 #	include <unistd.h>
 #endif // defined
 
@@ -25,10 +27,10 @@ static std::string get_process_start_dir() {
 }
 #else
 static std::string get_process_start_dir() {
-	char  exe_name[ MAX_PATH+1 ] = {'\0'};
+	char  exe_name[ PATH_MAX+1 ] = {'\0'};
 	char query[64] = {'\0'};
-	std::snprintf(query, 64, "/proc/%d/exe", ::getpid() );
-	::readlink(query, exe_name, MAX_PATH);
+	std::snprintf(query, 64, "/proc/%u/exe", ::getpid() );
+	::readlink(query, exe_name, PATH_MAX);
 	std::string exe(exe_name);
 	return exe.substr(0, exe.find_last_of('\\'));
 }

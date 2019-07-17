@@ -93,7 +93,11 @@ inline constexpr bool between(uint32_t first, uint32_t last, uint32_t ch) noexce
 
 inline constexpr bool is_alpha(const char ch) noexcept
 {
+#ifdef __GNUG__
 	return 0 != io_isalpha( ch );
+#else
+	return between(ch,'A','Z') || between(ch,'a','z');
+#endif // __GNUG__
 }
 
 
@@ -155,7 +159,7 @@ inline char* strchrn(const char* s,const char c,const std::size_t max_len) noexc
 
 inline bool is_one_of(char what, const char* chars,const std::size_t len) noexcept
 {
-	return nullptr != strchrn(chars, len, what);
+	return nullptr != strchrn(chars, what, len);
 }
 
 inline bool is_not_one(char what,const char* chars) noexcept {

@@ -19,11 +19,9 @@ void model::add_surface(s_surface&& srf)
 
 void model::render(const scene& scn) const
 {
-	for(auto it = surfaces_.begin(); it != surfaces_.end(); ++it ) {
-		(*it)->draw( scn );
-	}
+	std::for_each(surfaces_.cbegin(), surfaces_.cend(), [scn](const s_surface& srf) {
+		srf->draw( scn );
+	} );
 }
-
-//
 
 } // namespace engine

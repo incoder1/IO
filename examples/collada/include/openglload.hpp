@@ -20,7 +20,6 @@
 //#   define GLFW_INCLUDE_GLEXT 1
 #   include "glad.h"
 #   define GLX_UNIX 1
-#	define GLFW_INCLUDE_GLEXT 1
 #   define GLFW_INCLUDE_NONE 1
 #endif // UNIX not MacOS X
 
@@ -40,25 +39,21 @@
 #endif // GLFW_FALSE
 
 #ifdef __MINGW64__
-#define GLM_ENABLE_EXPERIMENTAL
+#define GLM_ENABLE_EXPERIMENTAL 1
 #endif // WIN32
 
-// force avx2 even for debug
-#if defined(__GNUG__)
-#	ifdef __AVX2__
-#		define GLM_FORCE_AVX2
-#	endif // __AVX2__
-#	ifdef __AVX__
-#		define GLM_FORCE_AVX
-#	endif // __AVX__
-#	ifdef __SSE4_2__
-#		define GLM_FORCE_SSE42
-#	endif
-#	ifdef __SSE3__
-#		define GLM_FORCE_SSE3
-#	endif // __SSE3__
-#	ifdef __SSE2__
-#		define GLM_FORCE_SSE2
+// force x86_64 SIMD for MinGW64
+#if defined(__GNUG__) || defined(__MINGW64__)
+#	if defined(__AVX2__)
+#		define GLM_FORCE_AVX2 1
+#	elif defined(__AVX__)
+#		define GLM_FORCE_AVX 1
+#	elif defined(__SSE4_2__)
+#		define GLM_FORCE_SSE42 1
+#	elif defined(__SSE3__)
+#		define GLM_FORCE_SSE3 1
+#	elif defined(__SSE2__)
+#		define GLM_FORCE_SSE2 1
 #	endif
 #endif // defined
 
