@@ -207,8 +207,7 @@ s_surface model_loader::load_static_sub_mesh(const collada::s_sub_mesh& sm, cons
 	detail::static_mesh_accessor acr = create_static_mesh_accessor(sm, src_mesh);
 
 	const std::size_t vertex_count = acr.vertex_count();
-	// add tangent vector
-	const std::size_t vertex_size = acr.vertex_size() + 3;
+	const std::size_t vertex_size = acr.vertex_size();
 	io::scoped_arr<float> vbo( vertex_count * vertex_size );
 
 	#ifdef _OPENMP

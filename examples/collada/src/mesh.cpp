@@ -121,7 +121,7 @@ void geometry_mesh::draw(const scene& scn) const
 	::glBindVertexArray(vao_);
 	// draw with index, if any
 	if( elemens_draw_ )
-		::glDrawElements(GL_TRIANGLES, isize_, GL_UNSIGNED_INT, static_cast<void*>(0) );
+		::glDrawElements(GL_TRIANGLES, isize_, GL_UNSIGNED_INT, nullptr );
 	else
 		::glDrawArrays(GL_TRIANGLES, 0, isize_);
 

@@ -190,7 +190,7 @@ enum converrc: int {
 	no_buffer_space = 3,
 
 	/// conversation between character's is not supported
-	not_supported,
+	not_supported = 4,
 
 	/// An unknown error
 	unknown = -1

@@ -15,7 +15,7 @@ shader shader::load_glsl(shader_type type, const io::s_read_channel& src)
 		read = src->read(ec, pos, buff.available() );
 		if(0 != read) {
 			buff.move(read);
-			if( io_unlikely( !buff.ln_grow() ) )
+			if( buff.full() && !buff.ln_grow() )
 				ec = std::make_error_code( std::errc::not_enough_memory );
 		}
 	} while(0 != read && !ec);
