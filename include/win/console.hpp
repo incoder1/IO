@@ -63,7 +63,7 @@ public:
 private:
 	friend class io::console;
 
-	void change_color(::DWORD attr) noexcept;
+	void change_color(::WORD attr) noexcept;
 
 	::HANDLE hcons_;
 	::WORD orig_attr_;

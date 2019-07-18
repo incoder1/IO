@@ -80,9 +80,28 @@ private:
 } // namespace detail
 
 
+
 /// \brief The buffer iterator
 /// \details Bidirectional dynamic array iterator, STL compatible
-class byte_buffer_iterator: public std::iterator<
+#ifdef __HAS_CPP_17
+class byte_buffer_iterator {
+public:
+	typedef uint8_t         value_type;
+	typedef const uint8_t*  pointer;
+    typedef uint8_t&        reference;
+    typedef std::ptrdiff_t  difference_type;
+    typedef std::bidirectional_iterator_tag iterator_category;
+
+	constexpr byte_buffer_iterator() noexcept:
+		position_(nullptr)
+	{}
+
+	constexpr byte_buffer_iterator(pointer position) noexcept:
+		position_(position)
+	{}
+
+#else // before C++ 17
+class byte_buffer_iterator : public std::iterator<
 	std::bidirectional_iterator_tag,
 	uint8_t,
 	std::ptrdiff_t,
@@ -114,17 +133,26 @@ public:
 		position_(position)
 	{}
 
-	inline uint8_t operator*() const noexcept {
+#endif // C++ 17
+
+
+	inline value_type operator*() const noexcept {
 		return *position_;
 	}
 
-	inline const uint8_t* get() const noexcept {
+	inline pointer get() const noexcept {
 		return position_;
 	}
 
 	inline const char* cdata() const noexcept {
-		return reinterpret_cast<char*>(position_);
+		return reinterpret_cast<const char*>(position_);
 	}
+
+#if defined(__HAS_CPP_17) && defined(__cpp_char8_t)
+	inline const char8_t* u8data() const noexcept {
+		return reinterpret_cast<const char8_t*>(position_);
+	}
+#endif
 
 	inline byte_buffer_iterator& operator++() noexcept {
 		++position_;
@@ -148,12 +176,12 @@ public:
 		return ret;
 	}
 
-	inline byte_buffer_iterator& operator+=(const std::size_t rhs) noexcept {
+	inline byte_buffer_iterator& operator+=(const difference_type rhs) noexcept {
 		position_ += rhs;
 		return *this;
 	}
 
-	inline byte_buffer_iterator& operator-=(const std::size_t rhs) noexcept {
+	inline byte_buffer_iterator& operator-=(const difference_type rhs) noexcept {
 		position_ -= rhs;
 		return *this;
 	}
@@ -203,7 +231,7 @@ public:
 		return  position_ > rhs.position_;
 	}
 private:
-	uint8_t* position_;
+	pointer position_;
 };
 
 /// \brief Movable only dynamic array container, with uint8_t* underlying memory array
@@ -491,7 +519,7 @@ public:
 	}
 
 	inline double get_double() noexcept {
-		return binary_get<long double>();
+		return binary_get<double>();
 	}
 
 	/// Puts a long double value in its binary representation into current buffer

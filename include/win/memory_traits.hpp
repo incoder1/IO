@@ -93,7 +93,7 @@ struct IO_PUBLIC_SYMBOL memory_traits {
 		return diff > 0 ? static_cast<std::size_t>(diff) : 0;
 	}
 
-	/// Distance between two pointers in bytes as unsigned integral type
+	/// Distance in bytes between two pointers in bytes as unsigned integral type
 	template<typename T>
 	static inline std::size_t raw_distance(const T* less_address,const T* lager_address) noexcept
 	{

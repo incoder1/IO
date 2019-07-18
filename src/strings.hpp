@@ -134,12 +134,12 @@ static inline bool is_latin1(const char ch) noexcept
 
 inline char latin1_to_lower(const char ch) noexcept
 {
-	return io_tolower(ch);
+	return char8_traits::to_char_type( io_tolower(ch) );
 }
 
 inline char latin1_to_upper(const char ch) noexcept
 {
-	return io_toupper(ch);
+	return char8_traits::to_char_type( io_toupper(ch) );
 }
 
 inline bool start_with(const char* s,const char* pattern,const std::size_t size) noexcept

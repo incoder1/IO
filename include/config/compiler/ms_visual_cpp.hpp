@@ -16,6 +16,14 @@
 #	error "This library needs at least MS VC++ 15 with /std:c++latest compiller option"
 #endif // CPP11 detection
 
+#if _MSVC_LANG >= 201703L
+#define __HAS_CPP_17 1
+#endif // CPP17 detected
+
+#ifdef IO_BUILD
+#	define _CRT_SECURE_NO_WARNINGS 1
+#endif
+
 #define _STATIC_CPPLIB
 // disable warnings about defining _STATIC_CPPLIB
 #define _DISABLE_DEPRECATE_STATIC_CPPLIB  

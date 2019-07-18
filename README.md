@@ -149,12 +149,9 @@ To build with CMake build tool to can use following command
 
 You can build shared or static library release or debug version, optionally you can on or off exceptions and rtti.
 
-If you choose MS VC++ solution as the Cmake output you can build with 
->	cd target
->	MSBuild io.sln /p:Configuration=Release /p:Platform=Win32
-instead of cmake --build .
-
-Or build from IDE
+If you choose MS VC++ solution as the Cmake output you can goto target sub floder and build with next command
+>	MSBuild io.sln /p:Configuration=[Release|Debug]
+Or simply build solution from IDE
 
 ### Building with makefiles
 

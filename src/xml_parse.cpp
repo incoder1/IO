@@ -147,7 +147,8 @@ static bool is_xml_name_char(uint32_t ch) noexcept
 static bool is_xml_name_start_char_lo(char32_t ch) noexcept
 {
 	// _ | :
-	return is_one_of(ch,0x5F,0x3A) || is_latin1(ch);
+	constexpr int UNDERSCORE = 0x5F;
+	return UNDERSCORE == ch || COLON  == ch || io_isalpha(ch);
 }
 
 static bool is_xml_name_start_char(char32_t ch) noexcept

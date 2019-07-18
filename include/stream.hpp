@@ -104,7 +104,7 @@ public:
 			else
 				ret = __n;
 			std::copy(__s, ( __s + ret ), pos);
-			this->pbump( ret );
+			this->pbump( static_cast<int>(ret) );
 			return ret;
 		}
 		return 0;
@@ -242,7 +242,7 @@ public:
 				return -1;
 		}
 		std::memmove( static_cast<void*>(__s), this->gptr(), __n);
-		this->gbump(__n);
+		this->gbump( static_cast<int>(__n) );
 		return __n;
 	}
 

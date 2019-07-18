@@ -138,10 +138,11 @@ bool byte_buffer::exp_grow() noexcept
 
 bool byte_buffer::ln_grow() noexcept
 {
-	static constexpr std::size_t SIZE_BITS = sizeof(std::size_t) * CHAR_BIT;
-	const std::size_t clz = io_size_t_clz(capacity_);
-	std::size_t cpt_ln2 = SIZE_BITS - (clz + 1);
-	const std::size_t gs = 1 << (--cpt_ln2);
+	static constexpr unsigned int SIZE_BITS = sizeof(std::size_t) * CHAR_BIT;
+	const unsigned int clz = static_cast<unsigned int>( io_size_t_clz(capacity_) );
+	const unsigned int cpt_ln2 = SIZE_BITS - (clz + 1);
+	constexpr unsigned int mask = 1;
+	unsigned int gs = mask << (cpt_ln2 - 1);
 	return extend( gs > sizeof(std::size_t) ?  gs : sizeof(std::size_t) );
 }
 

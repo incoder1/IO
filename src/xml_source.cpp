@@ -216,7 +216,7 @@ char source::next() noexcept
 		ret = normalize_line_endings( ret );
 		break;
 	case 2: case 3: case 4:
-		mb_state_ = len - 1;
+		mb_state_ = static_cast<uint8_t>(len - 1);
 		++col_;
 		break;
 	default:

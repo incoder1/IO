@@ -55,7 +55,7 @@ public:
 	}
 private:
 	::DWORD prevCP_;
-	::DWORD prevAttr_;
+	::WORD prevAttr_;
 };
 
 static void print_error_message(int errcode,const char* message) noexcept
@@ -77,7 +77,7 @@ static void print_error_message(int errcode,const char* message) noexcept
 	output_swap oswap;
 	::DWORD written;
 	#include <cwchar>
-	if( ! ::WriteConsoleW( ::GetStdHandle(STD_ERROR_HANDLE), msg, len, &written, nullptr ) ) {
+	if( ! ::WriteConsoleW( ::GetStdHandle(STD_ERROR_HANDLE), msg, static_cast<::DWORD>(len), &written, nullptr ) ) {
 		MessageBoxExW(NULL, msg, NULL, MB_OK | MB_ICONERROR, MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT) );
 	}
 }

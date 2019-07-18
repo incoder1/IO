@@ -57,7 +57,7 @@ const cached_string string_pool::get(const char* s, std::size_t count) noexcept
 			return ret.second ? ret.first->second : cached_string(s, count);
 #ifndef IO_NO_EXCEPTIONS
 		}
-		catch(std::exception& exc) {
+		catch(std::exception&) {
 			// skip out of memory
 		}
 #endif // IO_NO_EXCEPTIONS

@@ -51,7 +51,7 @@ public:
 	inline std::size_t read(std::error_code& err, uint8_t* const buff, std::size_t bytes) const noexcept
 	{
 		::DWORD result;
-		if( ! ::ReadFile(hnd_, void_cast(buff), bytes, &result, nullptr) )
+		if( ! ::ReadFile(hnd_, void_cast(buff), static_cast<DWORD>(bytes), &result, nullptr) )
 			err.assign(::GetLastError(), std::system_category() );
 		return result;
 	}
@@ -59,7 +59,7 @@ public:
 	inline std::size_t write(std::error_code& err, const uint8_t* buff,std::size_t size) const noexcept
 	{
 		::DWORD result;
-		if ( ! ::WriteFile(hnd_, void_cast(buff), size, &result, nullptr) )
+		if ( ! ::WriteFile(hnd_, void_cast(buff), static_cast<::DWORD>(size), &result, nullptr) )
 			err.assign(::GetLastError(), std::system_category() );
 		return result;
 	}

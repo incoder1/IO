@@ -224,7 +224,7 @@ static uint64_t hash_len0_to16(const uint8_t *s, std::size_t len) noexcept
 		uint8_t b = s[len >> 1];
 		uint8_t c = s[len - 1];
 		uint32_t y = static_cast<uint32_t>(a) + (static_cast<uint32_t>(b) << 8);
-		uint32_t z = len + (static_cast<uint32_t>(c) << 2);
+		uint32_t z = static_cast<uint32_t>(len) + (static_cast<uint32_t>(c) << 2);
 		return shift_mix(y * K2 ^ z * K0) * K2;
 	}
 	return K2;
