@@ -72,7 +72,7 @@ s_texture texture::create_texture2d_from_image(const engine::s_image& img, gl::t
 			px_format = GL_RGBA;
 			break;
 		case engine::pixel_format::bgra:
-			internal_format = GL_BGRA8_EXT;
+			internal_format = GL_BGRA_EXT;
 			px_format = GL_BGRA;
 			break;
 	}

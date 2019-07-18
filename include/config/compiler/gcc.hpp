@@ -23,6 +23,7 @@
 
 #include <cstddef>
 #include <cstdint>
+#include <climits>
 
 #define HAS_PRAGMA_ONCE
 

@@ -476,7 +476,7 @@ private:
 	typedef strings<char_type> strings_traits;
 
 	template<typename T>
-	static constexpr float_max_digits() {
+	static constexpr unsigned int float_max_digits() {
 		typedef std::numeric_limits<T> limits_type;
 		return 3 + limits_type::digits - limits_type::min_exponent;
 	}

@@ -4,7 +4,7 @@
 	<Project>
 		<Option title="collada" />
 		<Option compiler="gcc" />
-		<Option virtualFolders="src\;" />
+		<Option virtualFolders="src/;" />
 		<Build>
 			<Target title="debug-gcc-win64">
 				<Option platforms="Windows;" />
@@ -83,6 +83,7 @@
 				<Option type="1" />
 				<Option compiler="gcc" />
 				<Option use_console_runner="0" />
+				<Option parameters="models/RubiksCube/rubik_cube.dae" />
 				<Compiler>
 					<Add option="-pg" />
 					<Add option="-g" />
@@ -142,6 +143,10 @@
 		<Unit filename="src/directx_image_loader.cpp">
 			<Option target="release-gcc-win64" />
 			<Option target="debug-gcc-win64" />
+		</Unit>
+		<Unit filename="src/glad.c">
+			<Option compilerVar="CC" />
+			<Option target="debug-gcc-unx-x86_64" />
 		</Unit>
 		<Unit filename="src/gnulibs_image_loader.cpp">
 			<Option target="debug-gcc-unx-x86_64" />

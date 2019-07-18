@@ -148,7 +148,7 @@ enum class semantic_type: uint8_t {
 	bitangent = 6
 };
 
-enum class presision {
+enum class presision_type {
 	float32_t, // float
 	double64_t // double
 };
@@ -156,7 +156,7 @@ enum class presision {
 
 struct parameter {
 	io::const_string name;
-	presision presision;
+	presision_type presision;
 };
 
 // Possible vertex layout

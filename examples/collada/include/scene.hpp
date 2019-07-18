@@ -5,6 +5,10 @@
 #	include <omp.h>
 #endif
 
+#ifndef GLM_ENABLE_EXPERIMENTAL
+#   define GLM_ENABLE_EXPERIMENTAL 1
+#endif // GLM_ENABLE_EXPERIMENTAL
+
 #include <glm/gtx/transform.hpp>
 #include <glm/mat4x4.hpp>
 #include <glm/vec3.hpp>

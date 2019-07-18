@@ -99,9 +99,9 @@ public:
 		return '/';
 	}
 
-	explicit file(const std::string& name) noexcept;
+	explicit file(const std::string& name);
 
-	explicit file(const std::wstring& name) noexcept;
+	explicit file(const std::wstring& name);
 
 	file(const file& c):
 		 name_( c.name_ )

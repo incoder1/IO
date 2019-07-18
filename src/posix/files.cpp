@@ -97,18 +97,18 @@ file::file(const std::string& name):
 {
 }
 
-file::file(const std::wstring* name):
-	name_( transcode(name.data(), name.lenght() ) )
+file::file(const std::wstring& name):
+	name_( transcode(name.data(), name.length() ) )
 {}
 
-std::string path::path() const {
+std::string file::path() const {
 	char tmp[PATH_MAX] = {'\0'};
-	if(nullptr != ::realpath(name_.data(), tmp) )
+	if(nullptr != ::realpath(name_.data(), tmp) ) {
 		std::string ret( tmp );
 		ret.shrink_to_fit();
 		return ret;
-	else
-		return name_;
+	}
+	return name_;
 }
 
 bool file::exist() const noexcept
@@ -130,7 +130,7 @@ static constexpr int DEFAULT_FILE_PERMS = S_IRUSR | S_IWUSR | S_IRGRP | S_IWGRP 
 
 bool file::create() noexcept
 {
-	if(!name_ || exist() )
+	if( name_.empty() || exist() )
 		return false;
     int fd = ::open( name_.data(), O_WRONLY | O_CREAT | O_TRUNC | O_SYNC,
             DEFAULT_FILE_PERMS);
@@ -144,7 +144,7 @@ bool file::create() noexcept
 
 s_read_channel file::open_for_read(std::error_code& ec) const noexcept
 {
-	if(!name_) {
+	if(name_.empty()) {
 		ec = std::make_error_code(std::errc::no_such_file_or_directory);
 		return s_read_channel();
 	}
@@ -158,7 +158,7 @@ s_read_channel file::open_for_read(std::error_code& ec) const noexcept
 
 s_write_channel file::open_for_write(std::error_code& ec,write_open_mode mode) const noexcept
 {
-	if(!name_) {
+	if(name_.empty()) {
 		ec = std::make_error_code(std::errc::no_such_file_or_directory);
 		return s_write_channel();
 	}
@@ -191,7 +191,7 @@ s_random_access_channel file::open_for_random_access(std::error_code& ec,write_o
 		ec = std::make_error_code(std::errc::no_such_file_or_directory);
 		return s_random_access_channel();
 	}
-	int fd = ::open( name_.get(), O_RDWR, O_SYNC);
+	int fd = ::open( name_.data(), O_RDWR, O_SYNC);
 	if(-1 == fd) {
 		ec.assign( errno, std::system_category() );
 		return s_random_access_channel();

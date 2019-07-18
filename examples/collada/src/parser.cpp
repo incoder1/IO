@@ -601,7 +601,7 @@ void parser::parse_accessor(s_accessor& acsr)
 				if(attr.second)
 					p.name = attr.first;
 				io::const_string type = get_attr(sev,"type");
-				p.presision = type.equal("float") ? presision::float32_t : presision::double64_t;
+				p.presision = type.equal("float") ? presision_type::float32_t : presision_type::double64_t;
 				acsr->add_parameter( std::move(p) );
 			}
 		}
