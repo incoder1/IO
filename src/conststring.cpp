@@ -53,13 +53,13 @@ const_string::const_string(const char* str, std::size_t length) noexcept:
 	data_( {false,0,nullptr} )
 {
 	assert(nullptr != str &&  length > 0  && length < SIZE_MAX );
-	std::size_t size = length;
+	std::size_t new_size = length;
 	if( '\0' != str[length-1] )
-		++size;
-	if(size < detail::SSO_MAX)
+		++new_size;
+	if(new_size < detail::SSO_MAX)
 		init_short(data_, str, length);
 	else
-		init_long(data_, size, str, length);
+		init_long(data_, new_size, str, length);
 }
 
 

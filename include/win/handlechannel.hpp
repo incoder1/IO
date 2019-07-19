@@ -39,7 +39,7 @@ class handle_channel {
 	handle_channel& operator=(handle_channel&) = delete;
 public:
 
-	constexpr handle_channel(::HANDLE hnd) noexcept:
+	constexpr explicit handle_channel(::HANDLE hnd) noexcept:
 		hnd_(hnd)
 	{}
 

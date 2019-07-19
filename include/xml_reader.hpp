@@ -88,19 +88,19 @@ public:
 		rd_(std::forward<xml::s_event_stream_parser>(parser)),
 		ec_()
 	{}
-	xml::start_element_event next_tag_begin() noexcept
+	xml::start_element_event next_tag_begin()
 	{
 		xml::start_element_event ret = rd_.next_tag_begin(ec_);
 		check_error_code(ec_);
 		return ret;
 	}
-	xml::end_element_event next_tag_end() noexcept
+	xml::end_element_event next_tag_end()
 	{
 		xml::end_element_event ret = rd_.next_tag_end(ec_);
 		check_error_code(ec_);
 		return ret;
 	}
-	const_string next_characters() noexcept
+	const_string next_characters()
 	{
 		const_string ret = rd_.next_characters(ec_);
 		check_error_code(ec_);
@@ -109,7 +109,7 @@ public:
 	xml::state_type next_state() const noexcept {
 		return rd_.next_state();
 	}
-	void to_next_state() noexcept
+	void to_next_state()
 	{
 		rd_.to_next_state(ec_);
 		check_error_code(ec_);

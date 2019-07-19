@@ -68,11 +68,11 @@ DECLARE_IPTR(read_channel);
 template <>
 class unsafe<read_channel> {
 public:
-	unsafe(s_read_channel&& ch) noexcept:
+	explicit unsafe(s_read_channel&& ch) noexcept:
 		ec_(),
 		ch_( std::forward<s_read_channel>(ch) )
 	{}
-	unsafe(const s_read_channel& ch) noexcept:
+	explicit unsafe(const s_read_channel& ch) noexcept:
 		ec_(),
 		ch_(ch)
 	{}
@@ -112,11 +112,11 @@ DECLARE_IPTR(write_channel);
 template <>
 class unsafe<write_channel> {
 public:
-	unsafe(s_write_channel&& ch) noexcept:
+	explicit unsafe(s_write_channel&& ch) noexcept:
 		ec_(),
 		ch_( std::forward<s_write_channel>(ch) )
 	{}
-	unsafe(const s_write_channel& ch) noexcept:
+	explicit unsafe(const s_write_channel& ch) noexcept:
 		ec_(),
 		ch_(ch)
 	{}
@@ -150,11 +150,11 @@ DECLARE_IPTR(read_write_channel);
 template <>
 class unsafe<read_write_channel> {
 public:
-	unsafe(s_read_write_channel&& ch) noexcept:
+	explicit unsafe(s_read_write_channel&& ch) noexcept:
 		ec_(),
 		ch_( std::forward<s_read_write_channel>(ch) )
 	{}
-	unsafe(const s_read_write_channel& ch) noexcept:
+	explicit unsafe(const s_read_write_channel& ch) noexcept:
 		ec_(),
 		ch_(ch)
 	{}
@@ -219,11 +219,11 @@ DECLARE_IPTR(random_access_channel);
 template <>
 class unsafe<random_access_channel> {
 public:
-	unsafe(s_random_access_channel&& ch) noexcept:
+	explicit unsafe(s_random_access_channel&& ch) noexcept:
 		ec_(),
 		ch_( std::forward<s_random_access_channel>(ch) )
 	{}
-	unsafe(const s_random_access_channel& ch) noexcept:
+	explicit unsafe(const s_random_access_channel& ch) noexcept:
 		ec_(),
 		ch_( ch )
 	{}

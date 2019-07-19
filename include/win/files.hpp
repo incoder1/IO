@@ -123,22 +123,23 @@ public:
 	bool create() noexcept;
 
 	/// Returns UCS-2 encoded file path
-	std::wstring wpath() const;
+	std::wstring wpath() const {
+		return name_;
+	}
 
 	/// Return UCS-2 encoded file name
 	std::wstring wname() const {
-		return name_;
+		return name_.substr( name_.rfind( separator() ) + 1, name_.length()  );
 	}
 
 	/// Returns UTF-8 encoded file path
 	std::string path() const {
-		std::wstring path = wpath();
-		return path.empty() ? "" : transcode( path.data() );
+		return name_.empty() ? "" : transcode( name_.data() );
 	}
 
 	/// Return UTF-8 encoded file name
 	std::string name() const {
-		return transcode( name_.data() );
+		return transcode( wname().data() );
 	}
 
 	/// Returns file size in byte

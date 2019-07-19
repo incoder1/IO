@@ -173,7 +173,7 @@ private:
 	typedef boost::intrusive_ptr<streambuf_type> s_streambuf_type;
 public:
 
-	channel_ostream(s_write_channel&& ch):
+	explicit channel_ostream(s_write_channel&& ch):
 		super_type( nullptr ),
 		sb_( new streambuf_type(
 		         std::forward<s_write_channel>(ch),
@@ -183,7 +183,7 @@ public:
 		this->init( sb_.get() );
 	}
 
-	channel_ostream(const s_write_channel& ch):
+	explicit channel_ostream(const s_write_channel& ch):
 		channel_ostream( s_write_channel(ch) )
 	{}
 
@@ -241,7 +241,7 @@ public:
 			if(0 == __n && !traits_type::not_eof( this->underflow() ) )
 				return -1;
 		}
-		std::memmove( static_cast<void*>(__s), this->gptr(), __n);
+		io_memmove( static_cast<void*>(__s), this->gptr(), __n);
 		this->gbump( static_cast<int>(__n) );
 		return __n;
 	}
@@ -333,14 +333,14 @@ public:
 	}
 
 
-	channel_istream(s_read_channel&& src):
+	explicit channel_istream(s_read_channel&& src):
 		channel_istream(
 			std::forward<s_read_channel>(src),
 			memory_traits::page_size()
 		)
 	{}
 
-	channel_istream(const s_read_channel& src):
+	explicit channel_istream(const s_read_channel& src):
 		channel_istream( s_read_channel(src) )
 	{}
 

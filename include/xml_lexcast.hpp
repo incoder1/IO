@@ -398,7 +398,7 @@ private:
 #ifdef io_abs
 		return io_abs(x);
 #else
-		int8_t minus_flag = x >> 0x1F;
+		int8_t minus_flag = x >> 7;
 		return (minus_flag ^ x) - minus_flag;
 #endif
 	}
@@ -579,7 +579,7 @@ public:
 #ifdef __GNUG__
 		__builtin_snprintf(buff, DOUBLE_MAX_DIGITS, "%G", v);
 #else
-		std::sprintf(buff, "%G", buff);
+		std::sprintf(buff, "%G", v);
 #endif // __GNUG__
 		return move_digits<char_type>::move( to, buff);
 	}
@@ -603,7 +603,7 @@ public:
 #ifdef __GNUG__
 		__builtin_snprintf(buff, LONG_DOUBLE_MAX_DIGITS, "%G", v);
 #else
-		std::sprintf(buff, "%G", buff);
+		std::sprintf(buff, "%G", v);
 #endif // __GNUG__
 		return move_digits<char_type>::move( to, buff);
 	}

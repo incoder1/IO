@@ -128,7 +128,7 @@ public:
 		position_(nullptr)
 	{}
 
-	constexpr byte_buffer_iterator(uint8_t* const position) noexcept:
+	constexpr explicit byte_buffer_iterator(uint8_t* const position) noexcept:
 		base_type(),
 		position_(position)
 	{}
@@ -579,19 +579,34 @@ private:
 		return 0 != put( reinterpret_cast<const uint8_t*> ( std::addressof( v ) ), sizeof(T) );
 	}
 
-	template< typename T,
-			class = typename std::enable_if<
-				std::is_arithmetic<T>::value &&
+	template < typename T>
+	inline T binary_get(typename std::enable_if<
+				std::is_integral<T>::value &&
 				!std::is_pointer<T>::value
-			>::type
-	>
-	inline T binary_get() noexcept {
-		if( empty() )
-			return  std::is_floating_point<T>::value
-				? std::numeric_limits<T>::quiet_NaN()
-				: 0;
-		T ret = * ( reinterpret_cast<T*>( position_ ) );
-		shift( sizeof(T) );
+			>::type* = nullptr) noexcept {
+		T ret;
+		if( empty() ) {
+			ret = static_cast<T>(0);
+		} else {
+			ret = * ( reinterpret_cast<T*>( position_ ) );
+			shift( sizeof(T) );
+		}
+		return ret;
+	}
+
+	template < typename T>
+	inline T binary_get(
+			typename std::enable_if<
+				std::is_floating_point<T>::value &&
+				!std::is_pointer<T>::value
+			>::type* = nullptr) noexcept {
+		T ret;
+		if( empty() ) {
+			ret = std::numeric_limits<T>::quiet_NaN();
+		} else {
+			ret = * ( reinterpret_cast<T*>( position_ ) );
+			shift( sizeof(T) );
+		}
 		return ret;
 	}
 
@@ -616,11 +631,11 @@ public:
 	static inline byte_buffer wrap(std::error_code& ec, const T* arr, std::size_t size) noexcept {
 		static_assert( std::is_fundamental<T>::value || std::is_trivial<T>::value, "Must be an array of trivial or fundamental type" );
 		if(0 != size) {
-			const std::size_t capacity = size * sizeof(T);
-			detail::mem_block mb = detail::mem_block::wrap( reinterpret_cast<const uint8_t*>(arr), capacity );
+			const std::size_t new_capacity = size * sizeof(T);
+			detail::mem_block mb = detail::mem_block::wrap( reinterpret_cast<const uint8_t*>(arr), new_capacity );
 			if( nullptr != mb.get() ) {
-                byte_buffer ret( std::move(mb), capacity );
-				ret.move(capacity);
+                byte_buffer ret( std::move(mb), new_capacity );
+				ret.move(new_capacity);
 				ret.flip();
 				return ret;
 			}

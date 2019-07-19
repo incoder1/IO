@@ -90,6 +90,34 @@ file::file(const std::wstring& name):
 {
 	assert( !name_.empty() );
 	posix_to_windows( name_ );
+
+	// get absolute path name if needed
+    if( L':' != name_[1] ) {
+		std::wstring ret;
+		bool existen_file = exist();
+		// open or create a file, to obtain full_path
+		::HANDLE hnd = ::CreateFileW(
+					   name_.data(),
+					   existen_file ? GENERIC_READ : GENERIC_WRITE,
+					   existen_file ? FILE_SHARE_READ : 0,
+					   nullptr,
+					   existen_file ? OPEN_EXISTING : CREATE_NEW,
+					   FILE_ATTRIBUTE_NORMAL, nullptr);
+		wchar_t full_path[MAX_PATH+1] = { L'\0' };
+		std::size_t path_size = ::GetFinalPathNameByHandleW( hnd, full_path, MAX_PATH, FILE_NAME_NORMALIZED | VOLUME_NAME_DOS );
+		if(0 != path_size) {
+			name_.clear();
+			if( 0 == io_memcmp(full_path,L"\\\\?\\",8) )
+				name_.append(full_path, 4, path_size-4);
+			else
+				name_.append(full_path, 0, path_size);
+			name_.shrink_to_fit();
+		}
+		::CloseHandle(hnd);
+		// delete if it was not exist
+		if(!existen_file)
+			::DeleteFileW( full_path );
+    }
 }
 
 file::file(const std::string& name):
@@ -125,40 +153,6 @@ bool file::exist() const noexcept
 		::FindClose(handle);
 	}
 	return result;
-}
-
-std::wstring file::wpath() const {
-	if( name_.empty() )
-		return L"";
-	// get absolute path name if needed
-    if( L':' != name_[1] ) {
-		std::wstring ret;
-		bool existen_file = exist();
-		// open or create a file, to obtain full_path
-		::HANDLE hnd = ::CreateFileW(
-					   name_.data(),
-					   existen_file ? GENERIC_READ : GENERIC_WRITE,
-					   existen_file ? FILE_SHARE_READ : 0,
-					   nullptr,
-					   existen_file ? OPEN_EXISTING : CREATE_NEW,
-					   FILE_ATTRIBUTE_NORMAL, nullptr);
-		wchar_t full_path[MAX_PATH+1] = { L'\0' };
-		std::size_t size = ::GetFinalPathNameByHandleW( hnd, full_path, MAX_PATH, FILE_NAME_NORMALIZED | VOLUME_NAME_DOS );
-		if(0 != size) {
-			ret.reserve( size + 1 );
-			if( 0 == io_memcmp(full_path,L"\\\\?\\",8) )
-				ret.append(full_path, 4, size-4);
-			else
-				ret.append(full_path, 0, size);
-			ret.shrink_to_fit();
-		}
-		::CloseHandle(hnd);
-		// delete if it was not exist
-		if(!existen_file)
-			::DeleteFileW( full_path );
-		return ret;
-    }
-    return name_;
 }
 
 bool file::create()  noexcept

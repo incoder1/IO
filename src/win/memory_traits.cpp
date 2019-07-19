@@ -34,7 +34,7 @@ namespace win {
 
 class heap_allocator {
 private:
-	constexpr heap_allocator(::HANDLE heap) noexcept:
+	constexpr explicit heap_allocator(::HANDLE heap) noexcept:
 		heap_(heap)
 	{}
 	static void do_destoroy() noexcept {

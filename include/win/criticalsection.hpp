@@ -53,7 +53,7 @@ class lock_guard
 	lock_guard(const lock_guard& ) = delete;
 	lock_guard& operator=(const lock_guard& ) = delete;
 public:
-	lock_guard(critical_section& cs) noexcept:
+	explicit lock_guard(critical_section& cs) noexcept:
 		cs_(cs)
 	{
 		cs_.lock();

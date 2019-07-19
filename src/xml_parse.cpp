@@ -626,7 +626,6 @@ const_string event_stream_parser::read_comment() noexcept
 const_string event_stream_parser::read_chars() noexcept
 {
 	check_state(state_type::characters, const_string)
-	std::error_code ec;
 	byte_buffer ret;
 	ret.extend( HUGE_BUFF_SIZE );
 	if( !ret ) {
@@ -650,12 +649,12 @@ const_string event_stream_parser::read_chars() noexcept
 
 	src_->read_until_char(ret, '<', '>');
 	error errc = src_->last_error();
-    if( io_unlikely( error::ok != errc  ) ) {
+	if( io_unlikely( error::ok != errc  ) ) {
 		if(error::illegal_markup == errc)
 			assign_error(error::root_element_is_unbalanced);
 		else
 			assign_error( errc );
-    }
+	}
 	else if( !ret.empty() ) {
 		io_memmove(scan_buf_, "<", 2);
 		ret.flip();

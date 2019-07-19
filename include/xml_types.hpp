@@ -207,7 +207,7 @@ public:
 
 struct xsd_functor {
 public:
-	constexpr xsd_functor(std::ostream& to) noexcept:
+	constexpr explicit xsd_functor(std::ostream& to) noexcept:
 		to_(to)
 	{}
 	template<class T>
@@ -1113,7 +1113,7 @@ public:
 		self_(new impl_t(min,max,wrapper) )
 	{}
 
-	list_type(const char* wrapper):
+	explicit list_type(const char* wrapper):
 		list_type(1,0,wrapper)
 	{}
 

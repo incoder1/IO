@@ -239,10 +239,6 @@ private:
 		return io_strlen(sb);
 	}
 
-	static __forceinline bool sb_empty(const char *sb) noexcept {
-		return '\0' == *sb;
-	}
-
 	static __forceinline void sb_append(const char* sb,const char c) noexcept {
 		const_cast<char*>(sb)[ sb_len(sb) ] = c;
 	}
