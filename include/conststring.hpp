@@ -30,10 +30,20 @@ namespace io {
 
 namespace detail {
 
+#if defined(__HAS_CPP_17) && defined(__cpp_char8_t)
+typedef char8_t utf8char;
+#else
+typedef uint8_t utf8char;
+#endif // defined
+
 struct long_char_buf_t {
+	// considering size would never be larger then SSIZE_MAX
+	// since most systems have much less memory then CPU can address
+	// so use signbit as align for sso boolean
 	std::size_t sso: 1;
 	std::size_t size: (sizeof(std::size_t)*CHAR_BIT - 1);
-	uint8_t* char_buf;
+	// layout for string is {reference_counter:size_t}{char_data}{'\0'}
+	utf8char* char_buf;
 };
 
 static constexpr std::size_t SSO_MAX = sizeof(long_char_buf_t) - 2;
@@ -82,8 +92,9 @@ inline const char* long_str(const sso_variant_t& v) noexcept
 class IO_PUBLIC_SYMBOL const_string final {
 private:
 
-	static void intrusive_add_ref(detail::sso_variant_t& var) noexcept {
+	static void long_buf_add_ref(detail::sso_variant_t& var) noexcept {
 		std::size_t volatile *p = reinterpret_cast<std::size_t volatile*>(var.long_buf.char_buf);
+		// increment string intrusive reference counter, with relaxed memory order
 		detail::atomic_traits::inc(p);
 	}
 
@@ -92,6 +103,9 @@ private:
 	}
 
 	static void long_buf_release(detail::sso_variant_t& var) noexcept;
+
+	void init_short(detail::sso_variant_t& dst, const char* str, std::size_t length) noexcept;
+	void init_long(detail::sso_variant_t& dst,std::size_t size,const char* str, std::size_t length) noexcept;
 
 public:
 
@@ -107,7 +121,7 @@ public:
 		// increase reference count if needed
 		// for long buffer
 		if( !empty() && !sso() )
-			intrusive_add_ref(data_);
+			long_buf_add_ref(data_);
 	}
 
 	const_string& operator=(const const_string& rhs) noexcept {
@@ -166,18 +180,14 @@ public:
 	/// Returns whether this string is pointing on nullptr
 	/// \return whether nullptr string
 	inline bool empty() const noexcept {
-		return !data_.short_buf.sso && 0 == data_.long_buf.size;
+		return !sso() && 0 == data_.long_buf.size;
 	}
 
 	/// Checks whether this string empty or contains only whitespace characters
 	/// \return whether this string is blank
 	inline bool blank() const noexcept {
-		if( !empty() ) {
-			char *c;
-			for(c = const_cast<char*>( data() ); io_isspace(*c); ++c);
-			return '\0' == *c;
-		}
-		return true;
+		constexpr const char* WS = "\t\n\v\f\r ";
+		return empty() ? true : size() == io_strspn(data(), WS);
 	}
 
 	/// Returns raw C-style zero ending string

@@ -1,9 +1,7 @@
 #include "stdafx.hpp"
 #include "parser.hpp"
 
-
 #include <cstring>
-#include <sstream>
 
 namespace collada {
 
@@ -47,7 +45,7 @@ static std::size_t parse_sizet(const io::const_string& str)
 }
 
 
-static std::size_t parse_string_array(const io::const_string& val,const std::size_t size, float* const data)
+static std::size_t parse_string_array(const io::const_string& val,const std::size_t size, float* const data) noexcept
 {
 	std::size_t ret = 0;
 	if( ! val.blank() ) {
@@ -57,27 +55,27 @@ static std::size_t parse_string_array(const io::const_string& val,const std::siz
 			data[ret] = next_float(s, &s);
 			++ret;
 		}
-		while( nullptr != s && '\0' != *s && ret < size );
+		while( ret < size && nullptr != s && '\0' != *s);
 	}
 	return ret;
 }
 
-static unsigned_int_array parse_string_array(const io::const_string& val)
+static unsigned_int_array parse_string_array(const io::const_string& val) noexcept
 {
 	//std::vector<unsigned int> tmp;
 	std::size_t size = 0;
 	char* s = const_cast<char*>( val.data() );
 	std::size_t len = 0;
 	// count numbers
-	while('\0' != *s) {
+	do {
 		len = std::strspn(s,"\t\n\v\f\r ");
 		s += len;
-		len = std::strspn( s, "1234567890");
+		len = std::strspn(s, "1234567890");
 		if(0 != len) {
 			++size;
 			s += len;
 		}
-	}
+	} while('\0' != *s);
 	if( io_likely(0 != size) ) {
 		unsigned_int_array ret( size );
 		s = const_cast<char*>( val.data() );
@@ -259,40 +257,6 @@ io::xml::event_type parser::to_next_tag_event(io::xml::state_type& state)
 	}
 	while( parsing );
 	return ret;
-}
-
-void parser::skip_element(const io::xml::start_element_event& e)
-{
-	if( e.empty_element() )
-		return;
-
-	io::xml::qname name = e.name();
-	std::string errmsg = name.local_name().stdstr();
-	errmsg.append(" is unbalanced");
-
-	io::xml::state_type state;
-	io::xml::event_type et;
-	io::xml::start_element_event sev;
-	io::xml::end_element_event eev;
-	std::size_t nestin_level = 1;
-	do {
-		et = to_next_tag_event(state);
-		check_eod(state, errmsg.data() );
-		if( is_start_element(et) ) {
-			sev = xp_->parse_start_element();
-			// handle a situation when a tag embed
-			// a nesting tag with the same name
-			// more likely never happens
-			if( io_unlikely( sev.name() == name ) )
-				++nestin_level;
-		}
-		else {
-			eev = xp_->parse_end_element();
-			if( eev.name() == name)
-				--nestin_level;
-		}
-	}
-	while( 0 != nestin_level );
 }
 
 io::xml::start_element_event parser::to_next_tag_start(io::xml::state_type& state)
@@ -661,23 +625,6 @@ void parser::parse_source(const s_source& src)
 	while( !is_end_element(et, "source") );
 }
 
-//void parser::parse_vertex_data(sub_mesh::input_library_t& layout)
-//{
-//	io::xml::state_type state;
-//	io::xml::event_type et;
-//	io::xml::start_element_event sev;
-//	do {
-//		et = to_next_tag_event(state);
-//		check_eod(state, "vertices is unbalanced");
-//		if( is_start_element(et) ) {
-//			sev = xp_->parse_start_element();
-//			if( is_element(sev,"input") )
-//				layout.emplace_back( parse_input(sev) );
-//		}
-//	}
-//	while( !is_end_element(et,"vertices") );
-//}
-
 
 static constexpr const char* PRIMITIVES[7] = {
         "lines",
@@ -731,12 +678,10 @@ s_sub_mesh parser::parse_sub_mesh(const io::const_string& type, io::const_string
 		if( is_start_element(et) ) {
 			sev = xp_->parse_start_element();
 			check_eod(state, ERR_MSG);
-			if( is_element(sev,"input") ) {
+			if( is_element(sev,"input") )
 				layout.emplace_back( parse_input(sev) );
-			}
-			else if( is_element(sev,"p") ) {
+			else if( is_element(sev,"p") )
 				idx = parse_string_array( get_tag_value() );
-			}
 		}
 	} while( !is_end_element(et, type) );
 
@@ -920,6 +865,7 @@ void parser::library_visual_scenes(s_model& md)
 			sev = xp_->parse_start_element();
 			check_eod(state, ERR_MSG);
 			if( is_element(sev,"visual_scene") ) {
+				// name attribute is optional
 				s_scene scn( new scene( get_attr(sev,"id"), sev.get_attribute("","name").first ) );
 				parse_visual_scene(scn);
 				md->set_scene( std::move(scn) );
@@ -936,11 +882,11 @@ s_model parser::load()
 	io::xml::state_type state;
 	io::xml::start_element_event e = to_next_tag_start(state);
 	check_eod(state, "Expecting COLLADA model file");
-	if( !e.name().local_name().equal("COLLADA") )
+	if( ! is_element(e,"COLLADA") )
 		throw std::runtime_error("Expecting COLLADA model file");
 	do {
 		e = to_next_tag_start(state);
-		// nothing to do
+		// nothing to do, this is some empty section
 		if( e.empty_element() )
 			continue;
 		else if( is_element(e,library_images_) ) {
@@ -958,6 +904,7 @@ s_model parser::load()
 		else if( is_element(e,library_visual_scenes_) ) {
 			library_visual_scenes(ret);
 		}
+		// skip sections we are not interesting in
 	}
 	while( state != io::xml::state_type::eod );
 

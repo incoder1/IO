@@ -131,7 +131,7 @@ public:
 
 	explicit operator bool () const noexcept
     {
-        return px_ != nullptr;
+        return nullptr != px_;
     }
 
 	intrusive_ptr& operator=(intrusive_ptr const & rhs) noexcept
@@ -187,7 +187,7 @@ public:
 
     inline void swap(intrusive_ptr & rhs) noexcept
     {
-        T * tmp = px_;
+        T* tmp = px_;
         px_ = rhs.px_;
         rhs.px_ = tmp;
     }

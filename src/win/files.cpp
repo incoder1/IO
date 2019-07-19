@@ -128,6 +128,8 @@ bool file::exist() const noexcept
 }
 
 std::wstring file::wpath() const {
+	if( name_.empty() )
+		return L"";
 	// get absolute path name if needed
     if( L':' != name_[1] ) {
 		std::wstring ret;

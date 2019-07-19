@@ -38,10 +38,11 @@ const cached_string string_pool::get(const char* s, std::size_t count) noexcept
 	if( io_unlikely( (nullptr == s || '\0' == *s || count == 0 ) ) )
 		return cached_string();
 	if( count > detail::SSO_MAX ) {
-
 		const std::size_t str_hash = io::hash_bytes(s,count);
 		pool_type::iterator it = pool_.find( str_hash );
 		if( it != pool_.end() ) {
+			// handle hash-miss collision
+			// more likely never happens, since City Hash
 			if( io_unlikely( pool_.count( str_hash ) > 1 ) ) {
 				auto its = pool_.equal_range( str_hash );
 				it = std::find_if(its.first, its.second, [s,count] (const pair_type& entry) {
@@ -54,14 +55,18 @@ const cached_string string_pool::get(const char* s, std::size_t count) noexcept
 		try {
 #endif // IO_NO_EXCEPTIONS
 			std::pair<pool_type::iterator,bool> ret = pool_.emplace( str_hash, cached_string(s, count) );
-			return ret.second ? ret.first->second : cached_string(s, count);
+			if( io_likely( ret.second ) )
+				return ret.first->second;
 #ifndef IO_NO_EXCEPTIONS
 		}
 		catch(std::exception&) {
-			// skip out of memory
+			// skip out of memory, and return string as it is
+			// i.e. empty string
 		}
 #endif // IO_NO_EXCEPTIONS
 	}
+	// no problem on SSO string, it should not be pulled since
+	// all data stored inside string object it self
 	return cached_string(s, count);
 }
 

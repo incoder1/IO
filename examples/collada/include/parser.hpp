@@ -57,9 +57,6 @@ private:
 	io::const_string get_attr(const io::xml::start_element_event& sev, const char* name);
 
 
-	/// Skip the element including all child elements
-	void skip_element(const io::xml::start_element_event& e);
-
 	/// returns current tag value
 	io::const_string get_tag_value();
 

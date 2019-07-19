@@ -132,7 +132,8 @@ public:
 
 	/// Returns UTF-8 encoded file path
 	std::string path() const {
-		return transcode( wpath().data() );
+		std::wstring path = wpath();
+		return path.empty() ? "" : transcode( path.data() );
 	}
 
 	/// Return UTF-8 encoded file name

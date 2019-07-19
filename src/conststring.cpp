@@ -12,6 +12,43 @@
 
 namespace io {
 
+void const_string::init_short(detail::sso_variant_t& dst, const char* str, std::size_t length) noexcept
+{
+	dst.short_buf.sso = true;
+	dst.short_buf.size = length;
+	io_zerro_mem(dst.short_buf.char_buf, detail::SSO_MAX);
+	traits_type::move(dst.short_buf.char_buf, str, length);
+}
+
+void const_string::init_long(detail::sso_variant_t& dst,std::size_t size,const char* str, std::size_t length) noexcept
+{
+	// allocate string + reference counter, by calloc
+	detail::utf8char* px = memory_traits::malloc_array<detail::utf8char>( size + sizeof(std::size_t) );
+	if( nullptr != px ) {
+		// set initial intrusive reference count
+		std::size_t *rc = reinterpret_cast<std::size_t*>(px);
+		// can be regular non atomic store operation, since new block of memory
+		// not shared between any threads yet
+		*rc = 1;
+		// copy string data
+		io_memmove( px + sizeof(std::size_t), str, length);
+		dst.long_buf.size = length;
+		dst.long_buf.char_buf = px;
+	}
+}
+
+void const_string::long_buf_release(detail::sso_variant_t& var) noexcept
+{
+	// decrement atomic intrusive reference counter
+	// release long buffer if needed
+	if( 0 == detail::atomic_traits::dec(reinterpret_cast<std::size_t volatile*>(var.long_buf.char_buf)) ) {
+		// infer read memory barrier
+		std::atomic_thread_fence( std::memory_order_acquire  );
+		// release string memory
+		memory_traits::free(var.long_buf.char_buf);
+	}
+}
+
 const_string::const_string(const char* str, std::size_t length) noexcept:
 	data_( {false,0,nullptr} )
 {
@@ -19,40 +56,10 @@ const_string::const_string(const char* str, std::size_t length) noexcept:
 	std::size_t size = length;
 	if( '\0' != str[length-1] )
 		++size;
-	if(size < detail::SSO_MAX) {
-		// Optimize short string, i.e. str size is less then sizeof(char*)+sizeof(std::size_t)
-		data_.short_buf.sso = true;
-		data_.short_buf.size = length;
-		traits_type::assign(data_.short_buf.char_buf, '\0', detail::SSO_MAX);
-		traits_type::move(data_.short_buf.char_buf, str, length);
-	}
-	else {
-		// allocate string + reference counter
-		uint8_t* px = memory_traits::malloc_array<uint8_t>( size + sizeof(std::size_t) );
-		if( nullptr != px ) {
-			// set initial intrusive reference count
-			std::size_t *rc = reinterpret_cast<std::size_t*>(px);
-			// can be regular non atomic store operation, since new block of memory
-			// not shared between any threads yet
-			*rc = 1;
-			// copy string data
-			char *b = reinterpret_cast<char*>( px + sizeof(std::size_t) );
-			traits_type::move(b, str, length);
-			data_.long_buf.size = length;
-			data_.long_buf.char_buf = px;
-		}
-	}
-}
-
-void const_string::long_buf_release(detail::sso_variant_t& var) noexcept {
-	std::size_t volatile *p = reinterpret_cast<std::size_t volatile*>(var.long_buf.char_buf);
-	// decrement atomic intrusive reference counter
-	// release long buffer if needed
-	if( 0 == detail::atomic_traits::dec(p) ) {
-		// infer read memory barrier
-		std::atomic_thread_fence( std::memory_order_acquire  );
-		memory_traits::free(var.long_buf.char_buf);
-	}
+	if(size < detail::SSO_MAX)
+		init_short(data_, str, length);
+	else
+		init_long(data_, size, str, length);
 }
 
 

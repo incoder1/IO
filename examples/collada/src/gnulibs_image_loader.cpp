@@ -87,8 +87,11 @@ public:
 
 		uint8_t* px = data.get();
 		if(flip_) {
-            for (::png_uint_32 i = height, j = 0; j < height ; --i, ++j) {
-                std::memcpy( px + (rowbytes*j) , row_pointers[i], rowbytes  );
+#ifdef _OPENMP
+#           pragma omp parallel for
+#endif // _OPENMP
+            for (::png_uint_32 i = height-1; i > 0 ; i--) {
+                std::memcpy( px + (rowbytes*(height-(i+1))) , row_pointers[i], rowbytes  );
             }
 		} else {
 #ifdef _OPENMP
