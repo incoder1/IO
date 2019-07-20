@@ -24,7 +24,7 @@ public:
 		mem_(nullptr)
 	{}
 
-	intrusive_array(std::size_t length) noexcept:
+	explicit intrusive_array(std::size_t length) noexcept:
 		length_(length),
 		mem_(nullptr)
 	{

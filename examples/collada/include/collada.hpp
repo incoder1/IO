@@ -44,12 +44,6 @@ public:
 class texture final: public io::object {
 public:
 
-//    constexpr texture() noexcept:
-//    	io::object(),
-//    	name_(),
-//    	texcoord_()
-//	{}
-
 	texture(io::const_string&& name, io::const_string&& texcoord) noexcept:
 		io::object(),
 		name_( std::forward<io::const_string>(name) ),
@@ -336,7 +330,7 @@ private:
 public:
 	typedef sub_mesh_library_t::const_iterator const_iterator;
 
-	mesh(io::const_string&& name) noexcept;
+	explicit mesh(io::const_string&& name) noexcept;
 	virtual ~mesh() noexcept override;
 
 	void set_pos_src_id(io::const_string&& psrcid) {

@@ -40,7 +40,7 @@ private:
 class NURB: public surface
 {
 	public:
-		NURB(gl::s_program&& po);
+		explicit NURB(gl::s_program&& po);
 		virtual ~NURB() noexcept override;
 		virtual void draw(const scene& scn) const override;
 	private:

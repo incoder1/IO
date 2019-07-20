@@ -12,10 +12,16 @@
 namespace collada {
 
 
+/// Parses COLLADA model asssets from XML file
 class parser {
 public:
+	/// Constructs COLLADA parser for read stream points to XML data
+	/// \param src XML source data
 	parser(io::s_read_channel&& src) noexcept;
 
+
+	/// Parse COLLADA XML into internal memory structures
+	/// which can be used by model loader, to load by renderer engine
 	s_model load();
 
 	virtual ~parser() noexcept;
@@ -23,16 +29,25 @@ public:
 private:
 
 	// StAX parsing helpers
+	/// Move XML parser to next parser state, i.e. skip XML specific declarations like dtd etc
 	io::xml::state_type to_next_state() noexcept;
+	/// Move XML parser next parser event, i.e. skip spaces between tags, comments, dtd
 	io::xml::event_type to_next_event(io::xml::state_type& state);
+	/// Move XML parser to next tag event, i.e. element start or element end
+	/// skips any comments or characters
 	io::xml::event_type to_next_tag_event(io::xml::state_type& state);
+	/// Move XML parser to next element start event, skis anything before this event
 	io::xml::start_element_event to_next_tag_start(io::xml::state_type& state);
+	/// Checks for end of document, i.e. no more data or parsing error
 	inline void check_eod(io::xml::state_type state,const char* msg);
+	/// Checks XML parser event is end element event of the required element local name
 	bool is_end_element(io::xml::event_type et,const io::cached_string& local_name);
+	/// Checks XML parser event is end element event of the required full tag name
 	inline bool is_end_element(io::xml::event_type et,const io::xml::qname& tagname);
 
-
+	/// Checks start element points to element of the required element local name
 	static bool is_element(const io::xml::start_element_event& e,const io::cached_string& ln) noexcept;
+	/// Checks end element points to element of the required element local name
 	static bool is_element(const io::xml::end_element_event& e,const io::cached_string& ln) noexcept;
 
 	bool is_element(const io::xml::start_element_event& e,const char* s) noexcept
@@ -49,13 +64,13 @@ private:
 		: is_element(e, xp_->precache(s) );
 	}
 
-
+	/// Check to points/lines/triangles/polyline etc
 	bool is_sub_mesh(const io::xml::start_element_event& sev) noexcept;
+	/// Check for reference on texture sampler element
 	bool is_sampler_ref(const io::xml::start_element_event& sev) noexcept;
 
 	/// get's mandatory tag attribute, or throw error if no such attribute
 	io::const_string get_attr(const io::xml::start_element_event& sev, const char* name);
-
 
 	/// returns current tag value
 	io::const_string get_tag_value();

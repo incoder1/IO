@@ -16,16 +16,15 @@
       || defined(__linux__)\
       )\
       && !defined(__APPLE__)
-//#   define GL_GLEXT_PROTOTYPES 1
-//#   define GLFW_INCLUDE_GLEXT 1
 #   include "glad.h"
 #   define GLX_UNIX 1
 #   define GLFW_INCLUDE_NONE 1
 #endif // UNIX not MacOS X
 
 #ifdef __APPLE__
-#	define GLFW_INCLUDE_GLEXT 1
 #	define GLFW_INCLUDE_GLCOREARB 1
+#   define GL_GLEXT_PROTOTYPES 1
+#	define GLFW_INCLUDE_GLEXT 1
 #endif // __APPLE__
 
 #include <GLFW/glfw3.h>
