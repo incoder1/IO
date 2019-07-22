@@ -25,6 +25,8 @@ enum class shader_type: ::GLuint {
 };
 
 
+/// Gets shader file relative to the program executable directory
+io::file shader_file(const char* name);
 // Shader object.
 class shader
 {

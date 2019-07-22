@@ -18,30 +18,6 @@ const char* geometry_mesh::VERTEX_SHADER = "gpu/geometry_mesh.vertex.glsl";
 
 const char* geometry_mesh::FRAGMENT_SHADER = "gpu/geometry_mesh.frag.glsl";
 
-#ifdef  __IO_WINDOWS_BACKEND__
-static std::string get_process_start_dir() {
-	char  exe_name[ MAX_PATH+1 ] = {'\0'};
-	::GetModuleFileNameA(nullptr,exe_name,MAX_PATH);
-	std::string exe(exe_name);
-	return exe.substr(0, exe.find_last_of('\\'));
-}
-#else
-static std::string get_process_start_dir() {
-	char  exe_name[ PATH_MAX+1 ] = {'\0'};
-	char query[64] = {'\0'};
-	std::snprintf(query, 64, "/proc/%u/exe", ::getpid() );
-	::readlink(query, exe_name, PATH_MAX);
-	std::string exe(exe_name);
-	return exe.substr(0, exe.find_last_of('\\'));
-}
-#endif // __IO_WINDOWS_BACKEND__
-
-static io::file shader_file(const char* name) {
-	std::string full_name = get_process_start_dir();
-	full_name.push_back( io::file::separator() );
-	full_name.append( name );
-	return io::file(full_name);
-}
 
 geometry_mesh::geometry_mesh(const material_t& mat, const float *vertex, std::size_t vsize,const uint32_t* index,std::size_t isize):
 	mesh(),
@@ -55,8 +31,8 @@ geometry_mesh::geometry_mesh(const material_t& mat, const float *vertex, std::si
 	nrm_ul_(-1),
 	elemens_draw_(nullptr != index)
 {
-	gl::shader vertex_sh = gl::shader::load_glsl(gl::shader_type::vertex,shader_file(VERTEX_SHADER));
-	gl::shader fragment_sh =  gl::shader::load_glsl(gl::shader_type::fragment,shader_file(FRAGMENT_SHADER) );
+	gl::shader vertex_sh = gl::shader::load_glsl(gl::shader_type::vertex,gl::shader_file(VERTEX_SHADER));
+	gl::shader fragment_sh =  gl::shader::load_glsl(gl::shader_type::fragment,gl::shader_file(FRAGMENT_SHADER) );
 
 	program_ = gl::program::create( std::move(vertex_sh), std::move(fragment_sh) );
 
@@ -152,8 +128,8 @@ colored_geometry_mesh::colored_geometry_mesh(const material_t& mat,const float *
 	nrm_ul_(-1)
 {
 
-	gl::shader vertex_sh = gl::shader::load_glsl(gl::shader_type::vertex,shader_file(VERTEX_SHADER));
-	gl::shader fragment_sh =  gl::shader::load_glsl(gl::shader_type::fragment,shader_file(FRAGMENT_SHADER));
+	gl::shader vertex_sh = gl::shader::load_glsl(gl::shader_type::vertex,gl::shader_file(VERTEX_SHADER));
+	gl::shader fragment_sh =  gl::shader::load_glsl(gl::shader_type::fragment,gl::shader_file(FRAGMENT_SHADER));
 
 	program_ = gl::program::create( std::move(vertex_sh), std::move(fragment_sh) );
 
@@ -243,8 +219,8 @@ textured_mesh::textured_mesh(const material_t& mat,const float *vertex, std::siz
 	diffise_tex_ul_(-1),
 	elemens_draw_(nullptr != indexes)
 {
-	gl::shader vertex_sh = gl::shader::load_glsl(gl::shader_type::vertex,shader_file(VERTEX_SHADER));
-	gl::shader fragment_sh =  gl::shader::load_glsl(gl::shader_type::fragment,shader_file(FRAGMENT_SHADER) );
+	gl::shader vertex_sh = gl::shader::load_glsl(gl::shader_type::vertex,gl::shader_file(VERTEX_SHADER));
+	gl::shader fragment_sh =  gl::shader::load_glsl(gl::shader_type::fragment,gl::shader_file(FRAGMENT_SHADER) );
 	program_ = gl::program::create( std::move(vertex_sh), std::move(fragment_sh) );
 
 	::glGenVertexArrays(1, &vao_);
@@ -370,8 +346,8 @@ normal_mapped_mesh::normal_mapped_mesh(const material_t& mat,
 	nm_tex_ul_(-1),
 	elemens_draw_(nullptr != indexes)
 {
-	gl::shader vertex_sh = gl::shader::load_glsl(gl::shader_type::vertex,shader_file(VERTEX_SHADER));
-	gl::shader fragment_sh =  gl::shader::load_glsl(gl::shader_type::fragment,shader_file(FRAGMENT_SHADER) );
+	gl::shader vertex_sh = gl::shader::load_glsl(gl::shader_type::vertex,gl::shader_file(VERTEX_SHADER));
+	gl::shader fragment_sh =  gl::shader::load_glsl(gl::shader_type::fragment,gl::shader_file(FRAGMENT_SHADER) );
 	program_ = gl::program::create( std::move(vertex_sh), std::move(fragment_sh) );
 
 	::glGenVertexArrays(1, &vao_);

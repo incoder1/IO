@@ -5,6 +5,8 @@
 #include "model.hpp"
 #include "model_loader.hpp"
 
+#include "nurb.hpp"
+
 
 #ifndef NDEBUG
 #	include <iostream>
@@ -57,10 +59,13 @@ int main(int argc, const char** argv)
 		try {
 			engine::frame_view view(640,480,"Collada model view");
 
-			//engine::s_model mdl( new engine::model() );
+			engine::s_model mdl( new engine::model() );
+
+			//engine::s_surface nurb = engine::NURB::create(engine::DEFAULT_MATERIAL,nullptr,0,0,0);
+			//mdl->add_surface( std::move(nurb) );
+
 			//mdl->add_surface( std::move(cube) );
 
-			engine::s_model mdl( new engine::model() );
 			//load_collada_model(mdl, "models/textured_cube/text_cube.dae");
 			//load_collada_model(mdl, "models/RubiksCube/rubik_cube.dae");
 			//load_collada_model(mdl,"models/Earth/Earth.dae");

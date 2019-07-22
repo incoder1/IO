@@ -10,45 +10,38 @@
 
 namespace engine {
 
-namespace detail {
-
-class tess_builder {
-public:
-
-	/// Adds vertex shader
-	void vertex(const io::s_read_channel& src);
-	/// Adds fragment shader
-	void fragment(const io::s_read_channel& src);
-	/// Adds Tessellation Control Shader
-	void tcs(const io::s_read_channel& src);
-	/// Adds Tessellation Evaluation Shader
-	void tes(const io::s_read_channel& src);
-
-	gl::s_program build();
-
-private:
-	gl::shader vertex_;
-	gl::shader fragment_;
-	gl::shader tcs_;
-	gl::shader tes_;
-};
-
-} // namespace detail
-
 
 /// Nonuniform Rational B-Spline Surface
-class NURB: public surface
-{
-	public:
-		explicit NURB(gl::s_program&& po);
-		virtual ~NURB() noexcept override;
-		virtual void draw(const scene& scn) const override;
-	private:
+/// WARN! OpenGL 4.2+ required, since tesselation stage needed
+class NURB: public surface {
+private:
+	static const char* VERTEX;
+	static const char* FRAGMETN;
+	static const char* TCS;
+	static const char* TES;
+	static const char* UNFM_TESSELATION_LEVEL;
+public:
+	static s_surface create(const material_t& mat,const float* vbo,std::size_t vbo_size,unsigned int base_count,int tess_level);
+	virtual ~NURB() noexcept override;
+	virtual void draw(const scene& scn) const override;
+private:
+
+	NURB(gl::s_program&& po,const material_t& mat,const float* points,std::size_t points_size,unsigned int base_count,int tess_level);
+
+	material_helper mat_helper_;
+	light_helper light_helper_;
 
 	gl::s_program program_;
 
 	::GLint mvp_ul_;
 	::GLint mv_ul_;
+	::GLint nrm_ul_;
+	::GLint tess_level_ul_;
+
+	::GLuint vao_;
+
+	unsigned int base_count_;
+	int tess_level_;
 };
 
 } // namespace engine

@@ -3,11 +3,36 @@
 
 namespace gl {
 
+#ifdef  __IO_WINDOWS_BACKEND__
+static std::string get_process_start_dir() {
+	char  exe_name[ MAX_PATH+1 ] = {'\0'};
+	::GetModuleFileNameA(nullptr,exe_name,MAX_PATH);
+	std::string exe(exe_name);
+	return exe.substr(0, exe.find_last_of('\\'));
+}
+#else
+static std::string get_process_start_dir() {
+	char  exe_name[ PATH_MAX+1 ] = {'\0'};
+	char query[64] = {'\0'};
+	std::snprintf(query, 64, "/proc/%u/exe", ::getpid() );
+	::readlink(query, exe_name, PATH_MAX);
+	std::string exe(exe_name);
+	return exe.substr(0, exe.find_last_of('\\'));
+}
+#endif // __IO_WINDOWS_BACKEND__
+
+io::file shader_file(const char* name) {
+	std::string full_name = get_process_start_dir();
+	full_name.push_back( io::file::separator() );
+	full_name.append( name );
+	return io::file(full_name);
+}
+
 // shader
 shader shader::load_glsl(shader_type type, const io::s_read_channel& src)
 {
 	std::error_code ec;
-	io::byte_buffer buff = io::byte_buffer::allocate(ec, io::memory_traits::page_size() / 2 );
+	io::byte_buffer buff = io::byte_buffer::allocate(ec, io::memory_traits::page_size() / 4 );
 	io::check_error_code(ec);
 	std::size_t read = 0;
 	do {
@@ -15,7 +40,7 @@ shader shader::load_glsl(shader_type type, const io::s_read_channel& src)
 		read = src->read(ec, pos, buff.available() );
 		if(0 != read) {
 			buff.move(read);
-			if( buff.full() && !buff.ln_grow() )
+			if( !buff.ln_grow() )
 				ec = std::make_error_code( std::errc::not_enough_memory );
 		}
 	} while(0 != read && !ec);

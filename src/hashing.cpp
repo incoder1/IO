@@ -113,6 +113,8 @@ static constexpr uint64_t K1 = 0xB492B66FBE98F273ULL;
 static constexpr uint64_t K2 = 0x9AE16A3B2F90404FULL;
 static constexpr uint64_t K_MUL = 0x9DDFEA08EB382D69ULL;
 
+constexpr const std::size_t MURMUR_C1 = 47;
+
 struct ullpair {
 	uint64_t first;
 	uint64_t second;
@@ -178,16 +180,16 @@ static __forceinline uint64_t ror64(const uint64_t val,const uint32_t shift) noe
 
 static constexpr inline uint64_t shift_mix(uint64_t val) noexcept
 {
-	return val ^ (val >> 47);
+	return val ^ (val >> MURMUR_C1);
 }
 
 static inline uint64_t hash_len16(uint64_t u, uint64_t v) noexcept
 {
 	// Murmur-inspired hashing.
 	uint64_t a = (u ^ v) * K_MUL;
-	a ^= (a >> 47);
+	a ^= (a >> MURMUR_C1);
 	uint64_t b = (v ^ a) * K_MUL;
-	b ^= (b >> 47);
+	b ^= (b >> MURMUR_C1);
 	b *= K_MUL;
 	return b;
 }
@@ -197,9 +199,9 @@ static inline uint64_t hash_len16(const uint64_t u,const uint64_t v,const uint64
 {
 	// Murmur-inspired hashing.
 	uint64_t mur_a = (u ^ v) * mul;
-	mur_a ^= (mur_a >> 47);
+	mur_a ^= (mur_a >> MURMUR_C1);
 	uint64_t ret = (v ^ mur_a) * mul;
-	ret ^= (ret >> 47);
+	ret ^= (ret >> MURMUR_C1);
 	ret *= mul;
 	return ret;
 }
@@ -220,11 +222,11 @@ static uint64_t hash_len0_to16(const uint8_t *s, std::size_t len) noexcept
 		return hash_len16(len + (a << 3), fetch_32(s + len - 4), mul);
 	}
 	else if (len > 0) {
-		uint8_t a = s[0];
-		uint8_t b = s[len >> 1];
-		uint8_t c = s[len - 1];
-		uint32_t y = static_cast<uint32_t>(a) + (static_cast<uint32_t>(b) << 8);
-		uint32_t z = static_cast<uint32_t>(len) + (static_cast<uint32_t>(c) << 2);
+		uint32_t a = static_cast<uint32_t>(s[0]);
+		uint32_t b = static_cast<uint32_t>(s[len >> 1]);
+		uint32_t c = static_cast<uint32_t>(s[len - 1]);
+		uint32_t y = a + (b << 8);
+		uint32_t z = len + (c << 2);
 		return shift_mix(y * K2 ^ z * K0) * K2;
 	}
 	return K2;
@@ -273,7 +275,7 @@ static uint64_t hash_len33_to_64(const uint8_t *s, size_t len) noexcept
 	uint64_t f = fetch_64(s + 24) * 9;
 	uint64_t g = fetch_64(s + len - 8);
 	uint64_t h = fetch_64(s + len - 16) * mul;
-	uint64_t u = ror64(a + g, 43) + (ror64(b, 30) + c) * 9;
+	uint64_t u = ror64( (a + g), 43) + (ror64(b, 30) + c) * 9;
 	uint64_t v = ((a + g) ^ d) + f + 1;
 	uint64_t w = io_bswap64((u + v) * mul) + h;
 	uint64_t x = ror64(e + f, 42) + c;
@@ -288,22 +290,23 @@ static uint64_t hash_over_64(const uint8_t* s, std::size_t count) noexcept
 {
 	// For arrays over 64 bytes we hash the end first, and then as we
 	// loop we keep 56 bytes of state: v, w, x, y, and z.
-	uint64_t x = fetch_64(s + count - 40);
-	uint64_t y = fetch_64(s + count - 16) + fetch_64(s + count - 56);
-	uint64_t z = hash_len16(fetch_64(s + count - 48) + count, fetch_64(s + count - 24));
-	ullpair v = weak_hash_len32_with_seeds(s + count - 64, count, z);
-	ullpair w = weak_hash_len32_with_seeds(s + count - 32, y + K1, x);
-	x = x * K1 + fetch_64(s);
+	const uint8_t *p = s + count;
+	uint64_t x = fetch_64( p - 40);
+	uint64_t y = fetch_64( p - 16) + fetch_64( p - 56);
+	uint64_t z = hash_len16( (fetch_64(p - 48) + count), fetch_64(p - 24) );
+	ullpair v = weak_hash_len32_with_seeds( (p - 64), count, z);
+	ullpair w = weak_hash_len32_with_seeds( (p - 32), (y + K1), x);
+	x = (x * K1) + fetch_64(s);
 	// Decrease len to the nearest multiple of 64, and operate on 64-byte chunks.
-	count = (count - 1) & ~static_cast<size_t>(63);
+	count = (count - 1) & ~static_cast<std::size_t>(63);
 	do {
-		x = ror64(x + y + v.first + fetch_64(s + 8), 37) * K1;
-		y = ror64(y + v.second + fetch_64(s + 48), 42) * K1;
+		x = ror64( (x + y + v.first + fetch_64(s + 8)), 37) * K1;
 		x ^= w.second;
+		y = ror64( (y + v.second + fetch_64(s + 48)), 42) * K1;
 		y += v.first + fetch_64(s + 40);
-		z = ror64(z + w.first, 33) * K1;
-		v = weak_hash_len32_with_seeds(s, v.second * K1, x + w.first);
-		w = weak_hash_len32_with_seeds(s + 32, z + w.second, y + fetch_64(s + 16) );
+		z = ror64( (z + w.first), 33) * K1;
+		v = weak_hash_len32_with_seeds(s, (v.second * K1), (x + w.first) );
+		w = weak_hash_len32_with_seeds( (s + 32), (z + w.second), (y + fetch_64(s + 16)) );
 		std::swap(z, x);
 		s += 64;
 		count -= 64;
