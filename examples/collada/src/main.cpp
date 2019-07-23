@@ -81,8 +81,7 @@ int main(int argc, const char** argv)
 		}
 		catch(std::exception& exc) {
 #ifndef NDEBUG
-			std::cerr<< exc.what();
-			std::cerr.flush();
+			std::cerr<< exc.what() << std::endl;
 #endif // NDEBUG
 		}
 		::glfwTerminate();

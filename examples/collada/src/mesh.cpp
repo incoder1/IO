@@ -1,6 +1,5 @@
 #include "stdafx.hpp"
 #include "mesh.hpp"
-#include <glm/gtc/type_ptr.hpp>
 
 #ifdef  __IO_WINDOWS_BACKEND__
 #	include <windows.h>
@@ -14,9 +13,9 @@
 namespace engine {
 
 // geometry_mesh
-const char* geometry_mesh::VERTEX_SHADER = "gpu/geometry_mesh.vertex.glsl";
+const char* geometry_mesh::VERTEX_SHADER = "gpu/mesh/geometry_mesh.vertex.glsl";
 
-const char* geometry_mesh::FRAGMENT_SHADER = "gpu/geometry_mesh.frag.glsl";
+const char* geometry_mesh::FRAGMENT_SHADER = "gpu/mesh/geometry_mesh.frag.glsl";
 
 
 geometry_mesh::geometry_mesh(const material_t& mat, const float *vertex, std::size_t vsize,const uint32_t* index,std::size_t isize):
@@ -112,9 +111,9 @@ geometry_mesh::~geometry_mesh() noexcept
 }
 
 // colored_geometry_mesh
-const char* colored_geometry_mesh::VERTEX_SHADER = "gpu/colored_geometry_mesh.vertex.glsl";
+const char* colored_geometry_mesh::VERTEX_SHADER = "gpu/mesh/colored_geometry_mesh.vertex.glsl";
 
-const char* colored_geometry_mesh::FRAGMENT_SHADER = "gpu/geometry_mesh.frag.glsl";
+const char* colored_geometry_mesh::FRAGMENT_SHADER = "gpu/mesh/geometry_mesh.frag.glsl";
 
 colored_geometry_mesh::colored_geometry_mesh(const material_t& mat,const float *vertex, std::size_t vsize,const uint32_t* index,std::size_t isize):
 	mesh(),
@@ -188,7 +187,7 @@ void colored_geometry_mesh::draw(const scene& scn) const
 	mat_helper_.transfer_to_shader();
 
 	::glBindVertexArray(vao_);
-	::glDrawElements(GL_TRIANGLES, isize_ , GL_UNSIGNED_INT, 0);
+	::glDrawElements(GL_TRIANGLES, isize_ , GL_UNSIGNED_INT, nullptr);
 	::glBindVertexArray(0);
 
 	program_->stop();
@@ -201,9 +200,9 @@ colored_geometry_mesh::~colored_geometry_mesh() noexcept
 
 //textured_mesh
 
-const char* textured_mesh::VERTEX_SHADER = "gpu/textured_mesh.vertex.glsl";
+const char* textured_mesh::VERTEX_SHADER = "gpu/mesh/textured_mesh.vertex.glsl";
 
-const char* textured_mesh::FRAGMENT_SHADER = "gpu/textured_mesh.frag.glsl";
+const char* textured_mesh::FRAGMENT_SHADER = "gpu/mesh/textured_mesh.frag.glsl";
 
 textured_mesh::textured_mesh(const material_t& mat,const float *vertex, std::size_t vsize,const uint32_t* indexes,std::size_t isize,const gl::s_texture& texture):
 	mesh(),
@@ -305,7 +304,7 @@ void textured_mesh::draw(const scene& scn) const
 	::glBindVertexArray(vao_);
 	// draw with index, if any
 	if( elemens_draw_ )
-		::glDrawElements(GL_TRIANGLES, isize_, GL_UNSIGNED_INT, static_cast<void*>(0) );
+		::glDrawElements(GL_TRIANGLES, isize_, GL_UNSIGNED_INT, nullptr );
 	else
 		::glDrawArrays(GL_TRIANGLES, 0, isize_);
 	::glBindVertexArray(0);
@@ -321,9 +320,9 @@ textured_mesh::~textured_mesh() noexcept
 }
 
 //normal_mapped_mesh
-const char* normal_mapped_mesh::VERTEX_SHADER = "gpu/normal_mapped_mesh.vertex.glsl";
+const char* normal_mapped_mesh::VERTEX_SHADER = "gpu/mesh/normal_mapped_mesh.vertex.glsl";
 
-const char* normal_mapped_mesh::FRAGMENT_SHADER = "gpu/normal_mapped_mesh.frag.glsl";
+const char* normal_mapped_mesh::FRAGMENT_SHADER = "gpu/mesh/normal_mapped_mesh.frag.glsl";
 
 normal_mapped_mesh::normal_mapped_mesh(const material_t& mat,
 				const float *vertex,

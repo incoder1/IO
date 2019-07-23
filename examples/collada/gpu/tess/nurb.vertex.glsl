@@ -12,6 +12,8 @@ invariant gl_Position;
 
 layout(location = 0) in vec3 vertex_coord;
 
+invariant gl_Position;
+
 void main(void) {
-	gl_Position = vec4(vertex_coord, 1.0);
+	gl_Position = gl_Position = vec4(vertex_coord, 1.0);
 }

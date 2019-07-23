@@ -115,17 +115,6 @@
 		<Linker>
 			<Add library="io" />
 		</Linker>
-		<Unit filename="gpu/colored_geometry_mesh.vertex.glsl" />
-		<Unit filename="gpu/geometry_mesh.frag.glsl" />
-		<Unit filename="gpu/geometry_mesh.vertex.glsl" />
-		<Unit filename="gpu/normal_mapped_mesh.frag.glsl" />
-		<Unit filename="gpu/normal_mapped_mesh.vertex.glsl" />
-		<Unit filename="gpu/nurb.frag.glsl" />
-		<Unit filename="gpu/nurb.tcs.glsl" />
-		<Unit filename="gpu/nurb.tes.glsl" />
-		<Unit filename="gpu/nurb.vertex.glsl" />
-		<Unit filename="gpu/textured_mesh.frag.glsl" />
-		<Unit filename="gpu/textured_mesh.vertex.glsl" />
 		<Unit filename="include/collada.hpp" />
 		<Unit filename="include/image.hpp">
 			<Option virtualFolder="src/" />
@@ -137,6 +126,7 @@
 		<Unit filename="include/nurb.hpp" />
 		<Unit filename="include/openglload.hpp" />
 		<Unit filename="include/parser.hpp" />
+		<Unit filename="include/polymesh.hpp" />
 		<Unit filename="include/renderer.hpp" />
 		<Unit filename="include/scene.hpp" />
 		<Unit filename="include/shader.hpp" />
@@ -163,6 +153,7 @@
 		<Unit filename="src/model_loader.cpp" />
 		<Unit filename="src/nurb.cpp" />
 		<Unit filename="src/parser.cpp" />
+		<Unit filename="src/polymesh.cpp" />
 		<Unit filename="src/scene.cpp" />
 		<Unit filename="src/shader.cpp" />
 		<Unit filename="src/stdafx.hpp">

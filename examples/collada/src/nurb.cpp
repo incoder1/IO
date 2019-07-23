@@ -1,14 +1,12 @@
 #include "stdafx.hpp"
 #include "nurb.hpp"
 
-#include <glm/gtc/type_ptr.hpp>
-
 namespace engine {
 
-const char* NURB::VERTEX = "gpu/nurb.vertex.glsl";
-const char* NURB::FRAGMETN = "gpu/nurb.frag.glsl";
-const char* NURB::TCS = "gpu/nurb.tcs.glsl";
-const char* NURB::TES = "gpu/nurb.tes.glsl";
+const char* NURB::VERTEX = "gpu/tess/tess.vertex.glsl";
+const char* NURB::FRAGMETN = "gpu/tess/nurb.frag.glsl";
+const char* NURB::TCS = "gpu/tess/nurb.tcs.glsl";
+const char* NURB::TES = "gpu/tess/nurb.tes.glsl";
 const char* NURB::UNFM_TESSELATION_LEVEL = "tess_level";
 
 s_surface NURB::create(const material_t& mat,const float* vbo,std::size_t vbo_size,unsigned int vcount,int tess_level)
