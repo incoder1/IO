@@ -1,4 +1,4 @@
-#version 330
+#version 330 compatibility
 
 #pragma optimize(on)
 
@@ -14,7 +14,7 @@ uniform mat4 material_adse;
 uniform	float material_shininess;
 
 uniform sampler2D diffuse_texture;
-uniform sampler2D normal_map_texture;
+uniform sampler2D bumpmap_texture;
 
 in vec2 frag_uv;
 in vec4 tangent_light_position;
@@ -39,7 +39,7 @@ vec4 phong_shading(vec4 norm) {
 }
 
 void main(void) {
-	vec3 n = normalize( texture(normal_map_texture, frag_uv ).rgb );
+	vec3 n = normalize( texture(bumpmap_texture, frag_uv ).rgb );
 	n = normalize( (n * 2.0) - 1.0 );
 	vec4 diffuse_color = texture( diffuse_texture, frag_uv );
 	vec4 normal;

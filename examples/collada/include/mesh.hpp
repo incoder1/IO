@@ -123,7 +123,7 @@ public:
 	virtual ~normal_mapped_mesh() noexcept override;
 private:
 	static constexpr const char* VATTR_TAN = "tangent";
-	static constexpr const char* UNFM_NORMALMAP_TEXTURE = "normal_map_texture";
+	static constexpr const char* UNFM_BUMPMAP_TEXTURE = "bumpmap_texture";
 
 	static const char* VERTEX_SHADER;
 	static const char* FRAGMENT_SHADER;
@@ -133,7 +133,7 @@ private:
 	std::size_t isize_;
 
 	gl::s_texture diffuse_tex_;
-	gl::s_texture normal_map_tex_;
+	gl::s_texture bumpmap_tex_;
 
 	material_helper mat_helper_;
 	light_helper light_helper_;
@@ -142,7 +142,7 @@ private:
 	::GLint mv_ul_;
 
 	::GLint diffise_tex_ul_;
-	::GLint nm_tex_ul_;
+	::GLint bump_tex_ul_;
 	bool elemens_draw_;
 };
 

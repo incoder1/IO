@@ -48,6 +48,7 @@ static void load_collada_model(engine::s_model& dst_mdl,io::file&& dae)
 	ldr.load(dst_mdl);
 }
 
+
 #ifdef _WIN32
 int WINAPI WinMain (HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nShowCmd)
 #else
@@ -61,7 +62,8 @@ int main(int argc, const char** argv)
 
 			engine::s_model mdl( new engine::model() );
 
-			//engine::s_surface nurb = engine::NURB::create(engine::DEFAULT_MATERIAL,nullptr,0,0,0);
+			//engine::s_surface nurb = engine::NURB::create(engine::DEFAULT_MATERIAL,quad, 48, 16, 4);
+
 			//mdl->add_surface( std::move(nurb) );
 
 			//mdl->add_surface( std::move(cube) );

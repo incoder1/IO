@@ -120,6 +120,10 @@
 		<Unit filename="gpu/geometry_mesh.vertex.glsl" />
 		<Unit filename="gpu/normal_mapped_mesh.frag.glsl" />
 		<Unit filename="gpu/normal_mapped_mesh.vertex.glsl" />
+		<Unit filename="gpu/nurb.frag.glsl" />
+		<Unit filename="gpu/nurb.tcs.glsl" />
+		<Unit filename="gpu/nurb.tes.glsl" />
+		<Unit filename="gpu/nurb.vertex.glsl" />
 		<Unit filename="gpu/textured_mesh.frag.glsl" />
 		<Unit filename="gpu/textured_mesh.vertex.glsl" />
 		<Unit filename="include/collada.hpp" />

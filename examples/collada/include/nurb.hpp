@@ -21,12 +21,12 @@ private:
 	static const char* TES;
 	static const char* UNFM_TESSELATION_LEVEL;
 public:
-	static s_surface create(const material_t& mat,const float* vbo,std::size_t vbo_size,unsigned int base_count,int tess_level);
+	static s_surface create(const material_t& mat,const float* vbo,std::size_t vbo_size,unsigned int vcount,int tess_level);
 	virtual ~NURB() noexcept override;
 	virtual void draw(const scene& scn) const override;
 private:
 
-	NURB(gl::s_program&& po,const material_t& mat,const float* points,std::size_t points_size,unsigned int base_count,int tess_level);
+	NURB(gl::s_program&& po,const material_t& mat,const float* points,std::size_t points_size,unsigned int vcount,int tess_level);
 
 	material_helper mat_helper_;
 	light_helper light_helper_;
@@ -40,7 +40,7 @@ private:
 
 	::GLuint vao_;
 
-	unsigned int base_count_;
+	unsigned int vcount_;
 	int tess_level_;
 };
 

@@ -331,19 +331,19 @@ normal_mapped_mesh::normal_mapped_mesh(const material_t& mat,
 				const uint32_t* indexes,
 				std::size_t isize,
 				const gl::s_texture& difftex,
-				const gl::s_texture& nm_text):
+				const gl::s_texture& bump_text):
 	mesh(),
 	program_(),
 	vao_(0),
 	isize_(isize),
 	diffuse_tex_( difftex ),
-	normal_map_tex_( nm_text ),
+	bumpmap_tex_( bump_text ),
 	mat_helper_(mat),
 	light_helper_(),
 	mvp_ul_(-1),
 	mv_ul_(-1),
 	diffise_tex_ul_(-1),
-	nm_tex_ul_(-1),
+	bump_tex_ul_(-1),
 	elemens_draw_(nullptr != indexes)
 {
 	gl::shader vertex_sh = gl::shader::load_glsl(gl::shader_type::vertex,gl::shader_file(VERTEX_SHADER));
@@ -388,7 +388,7 @@ normal_mapped_mesh::normal_mapped_mesh(const material_t& mat,
 	light_helper_.bind_to_shader(program_);
 
 	diffise_tex_ul_ = program_->uniform_location(UNFM_DIFFUSE_TEXTURE);
-	nm_tex_ul_ = program_->uniform_location(UNFM_NORMALMAP_TEXTURE);
+	bump_tex_ul_ = program_->uniform_location(UNFM_BUMPMAP_TEXTURE);
 
 }
 
@@ -399,7 +399,7 @@ normal_mapped_mesh::normal_mapped_mesh(const material_t& mat,
 				std::size_t vsize,
 				const uint32_t* indexes,
 				std::size_t isize,
-				const s_image& difftex,const s_image& nm_text):
+				const s_image& difftex,const s_image& bump_tex):
 	normal_mapped_mesh(mat,
 						vertex, vsize,
 						indexes, isize,
@@ -407,7 +407,7 @@ normal_mapped_mesh::normal_mapped_mesh(const material_t& mat,
 						gl::s_texture())
 {
 	diffuse_tex_ = gl::texture::create_texture2d_from_image(difftex, gl::texture_filter::LINEAR_MIPMAP_LINEAR);
-	normal_map_tex_ = gl::texture::create_texture2d_from_image(nm_text,gl::texture_filter::NEAREST);
+	bumpmap_tex_ = gl::texture::create_texture2d_from_image(bump_tex,gl::texture_filter::NEAREST);
 }
 
 void normal_mapped_mesh::draw(const scene& scn) const
@@ -436,20 +436,20 @@ void normal_mapped_mesh::draw(const scene& scn) const
 	diffuse_tex_->bind();
 
 	::glActiveTexture(GL_TEXTURE1);
-	::glUniform1i(nm_tex_ul_, 1);
+	::glUniform1i(bump_tex_ul_, 1);
 
-	normal_map_tex_->bind();
+	bumpmap_tex_->bind();
 
 	::glBindVertexArray(vao_);
 	// draw with index, if any
 	if( elemens_draw_ )
-		::glDrawElements(GL_TRIANGLES, isize_, GL_UNSIGNED_INT, static_cast<void*>(0) );
+		::glDrawElements(GL_TRIANGLES, isize_, GL_UNSIGNED_INT, nullptr );
 	else
 		::glDrawArrays(GL_TRIANGLES, 0, isize_);
 	::glBindVertexArray(0);
 
 	diffuse_tex_->unbind();
-	normal_map_tex_->unbind();
+	bumpmap_tex_->unbind();
 
 	program_->stop();
 }

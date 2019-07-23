@@ -7,7 +7,6 @@
 
 namespace engine {
 
-
 namespace detail {
 
 // obtains parsed float array from COLLADA source
@@ -211,7 +210,7 @@ s_surface model_loader::load_static_sub_mesh(const collada::s_sub_mesh& sm, cons
 	io::scoped_arr<float> vbo( vertex_count * vertex_size );
 
 	#ifdef _OPENMP
-	#pragma omp parallel for
+	#pragma omp parallel for simd
 	#endif // _OPENMP
 	for(std::size_t i=0; i < vertex_count; i++) {
         acr.copy_vertex( &vbo[ i * vertex_size], i);
@@ -263,7 +262,7 @@ s_surface model_loader::load_textured_sub_mesh(const collada::s_sub_mesh& sm, co
 
 
 	#ifdef _OPENMP
-	#pragma omp parallel for
+	#pragma omp parallel for simd
 	#endif // _OPENMP
 	for(std::size_t i=0; i < vertex_count; i++) {
         acr.copy_vertex( &vbo[ i * vertex_size], i);
@@ -287,16 +286,17 @@ s_surface model_loader::load_bummaped_mesh(const collada::s_sub_mesh& sm, const 
 	gl::s_texture diffuse_tex = get_texture_by_name(diffuse);
 	gl::s_texture bumpmap = get_texture_by_name(bump);
 
+	constexpr std::size_t TAN_STRIDE = 3;
 	const std::size_t vertex_count = acr.vertex_count();
 	// add tangent
 	const std::size_t src_vertex_size = acr.vertex_size();
-	const std::size_t dst_vertex_size = src_vertex_size + 3;
+	const std::size_t dst_vertex_size = src_vertex_size + TAN_STRIDE;
 	io::scoped_arr<float> vbo( vertex_count * dst_vertex_size );
 
 	#ifdef _OPENMP
 	#pragma omp parallel for simd
 	#endif // _OPENMP
-	for(std::size_t i=0; i < vertex_count ; i += 3) {
+	for(std::size_t i=0; i < vertex_count; i += TAN_STRIDE) {
 		// triangle face to calculate tangent vector
 		float *face = vbo.get() +  (i * dst_vertex_size);
 		// copy face into tmp buff, and calculate tangent vector

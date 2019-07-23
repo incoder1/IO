@@ -11,7 +11,7 @@ const char* NURB::TCS = "gpu/nurb.tcs.glsl";
 const char* NURB::TES = "gpu/nurb.tes.glsl";
 const char* NURB::UNFM_TESSELATION_LEVEL = "tess_level";
 
-s_surface NURB::create(const material_t& mat,const float* vbo,std::size_t vbo_size,unsigned int base_count,int tess_level)
+s_surface NURB::create(const material_t& mat,const float* vbo,std::size_t vbo_size,unsigned int vcount,int tess_level)
 {
 	gl::shader vtx = gl::shader::load_glsl( gl::shader_type::vertex, gl::shader_file(VERTEX) );
 	gl::shader frag = gl::shader::load_glsl( gl::shader_type::fragment, gl::shader_file(FRAGMETN) );
@@ -20,10 +20,10 @@ s_surface NURB::create(const material_t& mat,const float* vbo,std::size_t vbo_si
 	gl::s_program glpo = gl::program::create( std::move(vtx), std::move(frag) );
 	glpo->attach_shader( std::move(tcs) );
 	glpo->attach_shader( std::move(tes) );
-	return s_surface( new NURB( std::move(glpo), mat, vbo, vbo_size, base_count, tess_level) );
+	return s_surface( new NURB( std::move(glpo), mat, vbo, vbo_size, vcount, tess_level) );
 }
 
-NURB::NURB(gl::s_program&& po,const material_t& mat,const float* points,std::size_t points_size,unsigned int base_count,int tess_level):
+NURB::NURB(gl::s_program&& po,const material_t& mat,const float* points,std::size_t points_size,unsigned int vcount,int tess_level):
 	surface(),
 	mat_helper_(mat),
 	light_helper_(),
@@ -33,7 +33,7 @@ NURB::NURB(gl::s_program&& po,const material_t& mat,const float* points,std::siz
 	nrm_ul_(-1),
 	tess_level_ul_(-1),
 	vao_(0),
-	base_count_(base_count),
+	vcount_(vcount),
 	tess_level_(tess_level)
 {
 	::glGenVertexArrays(1, &vao_);
@@ -43,7 +43,7 @@ NURB::NURB(gl::s_program&& po,const material_t& mat,const float* points,std::siz
 										   gl::buffer_type::ARRAY_BUFFER, gl::buffer_usage::STATIC_DRAW);
 
 	vbo->bind();
-	gl::shader_program_attribute layout[1] = { {VATTR_CRD,2} };
+	gl::shader_program_attribute layout[1] = { {VATTR_CRD,3} };
 	program_->pass_vertex_attrib_array(vbo, false, layout, 1);
 
 	program_->link();
@@ -58,6 +58,8 @@ NURB::NURB(gl::s_program&& po,const material_t& mat,const float* points,std::siz
 	// material and light uniforms
 	mat_helper_.bind_to_shader(program_);
 	light_helper_.bind_to_shader(program_);
+
+	::glPatchParameteri(GL_PATCH_VERTICES, vcount);
 
 	// unbind vao
 	::glBindVertexArray(0);
@@ -92,7 +94,7 @@ void NURB::draw(const scene& scn) const
 
 	::glBindVertexArray(vao_);
 
-	::glDrawArrays(GL_PATCHES, 0, base_count_);
+	::glDrawArrays(GL_PATCHES, 0, vcount_);
 
 	// unbind VAO
 	::glBindVertexArray(0);
