@@ -76,6 +76,7 @@ private:
 	io::const_string get_tag_value();
 
 	// parse effect library functions
+	s_texture parse_effect_texture_ref(const io::xml::start_element_event& sev);
 	void parse_effect(io::const_string&& id, s_effect_library& efl);
 	void parse_new_param(io::const_string&& sid, s_effect_library& efl);
 	void parse_effect_library(s_model& md);
@@ -105,16 +106,13 @@ private:
 
 private:
 	io::xml::s_event_stream_parser xp_;
-	// pre-cached rare element names
-#define CACHE_STR(__x) io::cached_string __x##_
-// pre-cache needed elements, to speed up the main parsing loop
+// pre-cache root section elements, to speed up the main parsing loop
 // using pointers compare instead of a string compare;
-	CACHE_STR(library_materials);
-	CACHE_STR(library_effects);
-	CACHE_STR(library_geometries);
-	CACHE_STR(library_visual_scenes);
-	CACHE_STR(library_images);
-#undef CACHE_STR
+	io::cached_string library_materials_;
+	io::cached_string library_effects_;
+	io::cached_string library_geometries_;
+	io::cached_string library_visual_scenes_;
+	io::cached_string library_images_;
 };
 
 } // namespace collada

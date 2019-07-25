@@ -1,7 +1,8 @@
 #include "stdafx.hpp"
 #include "parser.hpp"
 
-#include <cstring>
+#include <cstdlib>
+#include <stdlib.h>
 
 namespace collada {
 
@@ -12,29 +13,23 @@ static bool is_start_element(io::xml::event_type et) noexcept
 	return io::xml::event_type::start_element == et;
 }
 
-
-static float next_float(const char* str,char** endp)
+static float next_float(const char* str,const char* &endp) noexcept
 {
-	if( io_likely( '\0' != *str) ) {
-		float ret = std::strtof(str, endp);
-		if(str == *endp)
-			*endp = nullptr;
-		return ret;
-	}
-	*endp = nullptr;
-	return 0.0F;
+	float ret = std::strtof(str, const_cast<char**> ( std::addressof(endp) ) );
+	if(str == endp)
+		endp = nullptr;
+	return ret;
 }
 
-
-static unsigned int next_uint(const char* str,char** endp)
+static unsigned int next_uint(const char* str,const char* &endp) noexcept
 {
-	if( io_likely( '\0' != *str) )
-		return std::strtoul(str, endp, 10);
-	*endp = nullptr;
-	return 0;
+	unsigned int ret = std::strtoul(str, const_cast<char**> ( std::addressof(endp) ), 10);
+	if(str == endp)
+		endp = nullptr;
+	return ret;
 }
 
-static std::size_t parse_sizet(const io::const_string& str)
+static std::size_t parse_sizet(const io::const_string& str) noexcept
 {
 	char *s = const_cast<char*>( str.data() );
 #ifdef IO_CPU_BITS_64
@@ -44,27 +39,31 @@ static std::size_t parse_sizet(const io::const_string& str)
 #endif
 }
 
+static bool not_empty(const char* str) noexcept {
+	return nullptr != str && '\0' != *str;
+}
 
-static std::size_t parse_string_array(const io::const_string& val,const std::size_t size, float* const data) noexcept
+
+/// Parses space separated list of floats
+static std::size_t parse_string_array(const io::const_string& val,float* const to, const std::size_t size) noexcept
 {
 	std::size_t ret = 0;
 	if( ! val.blank() ) {
-		// parse space separated list of floats
-		char *s = const_cast<char*>( val.data() );
+		const char *s = val.data();
 		do {
-			data[ret] = next_float(s, &s);
-			++ret;
+			to[ret++] = next_float(s, s);
 		}
-		while( ret < size && nullptr != s && '\0' != *s);
+		while( ret < size && not_empty(s) );
 	}
 	return ret;
 }
 
+/// Parses space separated list of unsigned integers
 static unsigned_int_array parse_string_array(const io::const_string& val) noexcept
 {
 	//std::vector<unsigned int> tmp;
 	std::size_t size = 0;
-	char* s = const_cast<char*>( val.data() );
+	const char* s = val.data() ;
 	std::size_t len = 0;
 	// count numbers
 	do {
@@ -80,7 +79,7 @@ static unsigned_int_array parse_string_array(const io::const_string& val) noexce
 		unsigned_int_array ret( size );
 		s = const_cast<char*>( val.data() );
 		for(std::size_t i=0; i < size; i++) {
-			ret[i] = next_uint(s, &s);
+			ret[i] = next_uint(s, s);
 		}
 		return ret;
 	}
@@ -89,15 +88,15 @@ static unsigned_int_array parse_string_array(const io::const_string& val) noexce
 
 static float parse_float(const io::const_string& val)
 {
-	char* s = const_cast<char*>( val.data() );
-	return next_float(s, &s);
+	const char* s = val.data();
+	return next_float(s, s);
 }
 
 static void parse_vec4(const io::const_string& val, float * ret)
 {
-	char* s = const_cast<char*>( val.data() );
+	const char* s = val.data();
 	for( std::size_t i = 0; i < 4; i++) {
-		ret[i] = next_float(s, &s);
+		ret[i] = next_float(s, s);
 	}
 }
 
@@ -287,6 +286,13 @@ io::const_string parser::get_tag_value()
 
 // effect library
 
+s_texture parser::parse_effect_texture_ref(const io::xml::start_element_event& sev)
+{
+	io::const_string name = get_attr(sev,"texture");
+	auto texcoord_attr = sev.get_attribute("","texcoord");
+	return s_texture( new texture(std::move(name), std::move(texcoord_attr.first) ) );
+}
+
 void parser::parse_effect(io::const_string&& id, s_effect_library& efl)
 {
 	static constexpr const char* ERR_MSG = "effect is unbalanced";
@@ -332,14 +338,7 @@ void parser::parse_effect(io::const_string&& id, s_effect_library& efl)
 				// this is diffuse texture and not a material
 				if( is_element(sev, "texture") ) {
 					ef.shade = shade_type::diffuse_texture;
-					io::const_string name = get_attr(sev,"texture");
-					io::const_string texcoord;
-					auto attr = sev.get_attribute("","texcoord");
-					if( attr.second )
-						texcoord = attr.first;
-					ef.diffuse_tex = s_texture(
-									new texture(std::move(name), std::move(texcoord))
-								);
+					ef.diffuse_tex = parse_effect_texture_ref(sev);
 				}
 				else {
 					// this is material values
@@ -391,9 +390,7 @@ void parser::parse_effect(io::const_string&& id, s_effect_library& efl)
 				// this is bump (normal) mapping effect
 				if( is_element(sev, "texture") ) {
 					ef.shade = shade_type::bump_mapping;
-					auto texcoord = sev.get_attribute("","texcoord");
-					texture* t = new texture(get_attr(sev,"texture"), std::move(texcoord.first));
-					ef.bumpmap_tex = s_texture( t );
+					ef.bumpmap_tex = parse_effect_texture_ref(sev);
 				}
 			}
 		}
@@ -402,29 +399,29 @@ void parser::parse_effect(io::const_string&& id, s_effect_library& efl)
 	efl->add_effect( std::forward<io::const_string>(id), std::move(ef) );
 }
 
-
 static surface_type sampler_by_name(const io::const_string& type) noexcept {
 	const char* val = type.data();
 	if( val[1] == 'D' && ('0' < val[0]) && ('4' > val[0] ) )
 		return static_cast<surface_type>( uint8_t(val[0] - '0') );
+	surface_type ret = surface_type::untyped;
 	switch( val[0] ) {
 	case 'C':
-        if( type.equal("CUBE") )
-        	return surface_type::cube;
-		else
-			break;
+        if( type.equal("CUBE") ) {
+        	ret = surface_type::cube;
+        }
+		break;
 	case 'D':
-        if( type.equal("DEPTH") )
-        	return surface_type::depth;
-		else
-			break;
+        if( type.equal("DEPTH") ) {
+        	ret = surface_type::depth;
+        }
+		break;
 	case 'R':
-		if( type.equal("RECT") )
-			return surface_type::rect;
-		else
-			break;
+		if( type.equal("RECT") ) {
+			ret = surface_type::rect;
+		}
+		break;
 	}
-	return surface_type::untyped;
+	return ret;
 }
 
 void parser::parse_new_param(io::const_string&& sid,s_effect_library& efl)
@@ -607,7 +604,7 @@ void parser::parse_source(const s_source& src)
 
 				io::const_string data_str = get_tag_value();
 				float_array data(data_size);
-				std::size_t actual_size = parse_string_array( data_str, data_size, const_cast<float*>( data.get() ) );
+				std::size_t actual_size = parse_string_array( data_str, const_cast<float*>( data.get() ), data_size);
 				if( io_likely(actual_size == data_size ) ) {
 					src->add_float_array( std::move(id), std::move(data) );
 				}

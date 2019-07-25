@@ -3,7 +3,7 @@
 
 namespace engine {
 
-const char* poly_mesh::VERTEX = "gpu/tess/tess.vertex.glsl";
+const char* poly_mesh::VERTEX = "gpu/tess/polygon.vertex.glsl";
 const char* poly_mesh::FRAGMETN = "gpu/tess/polygon.frag.glsl";
 const char* poly_mesh::GEOMETY = "gpu/tess/polygon.geo.glsl";
 const char* poly_mesh::TCS = "gpu/tess/polygon.tcs.glsl";

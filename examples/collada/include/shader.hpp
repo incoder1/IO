@@ -34,16 +34,30 @@ class shader
 	shader& operator=(const shader&) = delete;
 public:
 
+	/// Loads and compiles a GLSL shader from any readable source
+	/// \param type GLSL shading stage type
+	/// \param src shader source channel
+	/// \return compiled shader
 	static shader load_glsl(shader_type type,const io::s_read_channel& src);
-	static shader load_glsl(shader_type type,const io::file& file);
+	/// Loads and compiles a GLSL shader from file
+	/// \param type GLSL shading stage type
+	/// \param src shader source file
+	/// \return compiled shader
+	static shader load_glsl(shader_type type,const io::file& src);
 
+	/// Compiles GLSL shader from string source
+	/// \throw runtime_error in case of compilation failure
 	shader(shader_type type, const char* source);
 	shader(shader&& other) noexcept;
 	shader& operator=(shader&& rhs) noexcept;
 	~shader() noexcept;
+	/// Gets OpenGL shader identifier
+	/// \return shader identifier
 	inline ::GLuint handle() const noexcept {
 		return hsdr_;
 	}
+	/// Gets this shader pipeline state type
+	/// \return pipeline state type
 	inline shader_type type() const noexcept {
 		return type_;
 	}
@@ -61,27 +75,60 @@ struct shader_program_attribute
 
 class program;
 DECLARE_IPTR(program);
+
+/// OpenGL program object
 class program final:public io::object {
 private:
 	program(shader&& vertex, shader&& fragment);
 	void validate(::GLenum pname,const char* emsg);
 public:
+	/// Creates a new OpenGL program object
+	/// \param vertex - vertex stage shader
+	/// \param fragment - fragment stage shader
+	/// \throw std::invalid_argument when vertex or fragment are not correct shader type
 	static s_program create(shader&& vertex, shader&& fragment);
+	/// Attaches additional shading pipeline shader ( geometry, tesselation, compute etc )
+	/// \param sh additional shader
+	/// \throw logic_error when attempting to attach additional vertex or fragment shader
 	void attach_shader(shader&& sh);
+	/// Links OpengGL program object
+	/// \throw runtime_error in case of linking or validation error
 	void link();
-	inline void start() {
+	/// Starts OpenGL rendering pipeline
+	inline void start() noexcept {
 		::glUseProgram(hprg_);
 	}
-	inline void stop() {
+	/// Stopes OpenGL rendering pipeline
+	inline void stop() noexcept {
 		::glUseProgram(0);
 	}
+	/// Passing vertex attribute to program
+	/// \param attr_no vertex attribute number
+	/// \param vbo vertex buffer object to bind
+	/// \param normalized whether attribute array normalized
+	/// \param stride vertex attribute stride
+	/// \param size vertex attribute size in bytes
+	/// \param offset vertex attribute offset inside VBO
 	void pass_vertex_attrib_array(::GLsizei attr_no, const s_buffer& vbo, bool normalized,uint8_t stride, uint8_t size, uint8_t offset);
 
+	/// Passing vertex attributes in a VBO to program
+	/// \param vbo vertex buffer object to bind
+	/// \param normalized whether attribute array normalized
+	/// \param layout array of vertex attributes layout in format {name,stride}, layout index follows the attribute number
+	/// \param lsize size of  layout array
 	void pass_vertex_attrib_array(const s_buffer& vbo, bool normalized,const shader_program_attribute* layout,std::size_t lsize);
 
+	/// Binds attribute location to the shader attribute name
 	void bind_attrib_location(::GLsizei attr_no, const char* name);
+	/// Gets GLSL program uniform location (identifier) by its name
+	/// \param uniform a uniform name
+	/// \return uniform location
 	::GLuint uniform_location(const char* uniform);
+	/// Gets GLSL program vertex attribute number (identifier) by its name
+	/// \param attribute_name a vertex attribute name
+	/// \return attribute number
 	::GLuint attribute_number(const char* attribute_name);
+	/// Destroys underlying OpenGL program object
 	virtual ~program() noexcept override;
 private:
 	::GLuint hprg_;

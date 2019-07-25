@@ -15,6 +15,7 @@
 
 #include "intrusive_array.hpp"
 
+/// A reasonable sub-set of COLLADA model, to parse into and load into rendering engine
 namespace collada {
 
 namespace detail {
@@ -41,6 +42,7 @@ public:
 
 } // namespace detail
 
+/// Contains COLLADA model texture
 class texture final: public io::object {
 public:
 
@@ -67,12 +69,19 @@ private:
 
 DECLARE_IPTR(texture);
 
+/// COLLADA model shade type
 enum class shade_type {
+	/// Constant color
 	constant,
+	/// Lambert physical object shading type
 	lambert,
+	/// Phong shading aproximation type
 	phong,
+	/// Blin-Phong shading aproximation shading type
 	blinn_phong,
+	/// Phong shading aproximation with the diffuse texture base color
 	diffuse_texture,
+	/// Phong shading aproximation with the diffuse and bump-mapping textures
     bump_mapping
 };
 
@@ -80,7 +89,9 @@ struct constant_effect {
 	float color[4];
 };
 
+/// Any kind of Phong shading effect
 struct phong_effect {
+	/// Material ambient/diffuse/specular/emission components
 	union __mat_adse {
 		struct __adse_vectors {
 			float ambient[4];
@@ -90,15 +101,20 @@ struct phong_effect {
 		} vec;
 		float mat[16];
 	} adse;
+	/// Material shininess multiplicator
 	float shininess;
+	/// Material index of refraction
 	float refraction_index;
 };
 
+
+/// Reflectivity effect components
 struct reflectivity_effect {
 	float color[4];
 	float value;
 };
 
+/// Transparency effect components
 struct transparency_effect {
 	float color[4];
 	bool used;
@@ -106,7 +122,7 @@ struct transparency_effect {
 	bool invert;
 };
 
-
+/// Any kind of COLLADA model effect masked union
 struct effect {
 	union __effect_val__ {
 		phong_effect pong;
@@ -116,9 +132,11 @@ struct effect {
 	} value;
 	s_texture diffuse_tex;
 	s_texture bumpmap_tex;
+	/// Effect shading type
 	shade_type shade;
 };
 
+/// COLLADA model element types
 enum class primitive_type: uint8_t {
 	lines = 0,
 	linestrips = 1,
@@ -132,6 +150,7 @@ enum class primitive_type: uint8_t {
 
 // special type for per-index data referring to
 // the <vertices> element carrying the per-vertex data.
+// i.e. vertex attribute semantic
 enum class semantic_type: uint8_t {
 	vertex = 0,
 	position = 1,
@@ -207,6 +226,7 @@ private:
 
 DECLARE_IPTR(accessor);
 
+/// COLLADA model input tag section
 struct input {
 	// Type of the data
 	semantic_type type;
@@ -222,9 +242,14 @@ struct input {
 	{}
 };
 
+/// Float data array, parsed from COLLADA float_array content
+/// e.g. string of space separated floats
 typedef intrusive_array<float> float_array;
+/// unsigned integers data array, parsed from COLLADA <p> tag content
+/// e.g. string of space separated unsigned ints
 typedef intrusive_array<unsigned int> unsigned_int_array;
 
+/// COLLADA model source data section
 class source final:public io::object {
 	source(const source&) = delete;
 	source& operator=(const source&) = delete;
@@ -260,7 +285,7 @@ private:
 
 DECLARE_IPTR(source);
 
-
+/// COLLADA model geometry section, stored in geometry_library global section
 class geometry:public io::object {
 public:
 	enum class surface_type {
@@ -285,6 +310,8 @@ private:
 
 DECLARE_IPTR(geometry);
 
+
+/// A COLLADA model mesh sub-sources, i.e. lines/tiangles/polyline etc
 class sub_mesh: public io::object {
 	sub_mesh(const sub_mesh&) = delete;
 	sub_mesh& operator=(const sub_mesh&) = delete;
@@ -294,18 +321,22 @@ public:
 	sub_mesh(primitive_type type, io::const_string&& mat, std::size_t count,input_library_t&& layout, unsigned_int_array&& index) noexcept;
 	virtual ~sub_mesh() noexcept override;
 
+	/// Gests a id to the material effect in the material library
 	io::const_string material() const noexcept {
 		return mat_;
 	}
 
+	/// Gets layout
 	input_library_t layout() const noexcept {
 		return layout_;
 	}
 
+	/// Gets vertex array attributes index data, element index meaning is corespound to the layout
 	unsigned_int_array index() const noexcept {
 		return index_;
 	}
 
+	/// Gets this sub-mesh vertex count
 	std::size_t count() const noexcept {
 		return count_;
 	}
@@ -320,6 +351,7 @@ private:
 
 DECLARE_IPTR(sub_mesh);
 
+/// COLLADA model mesh section data
 class mesh final:public geometry {
 	mesh(const mesh&) = delete;
 	mesh& operator=(const mesh&) = delete;
@@ -391,6 +423,7 @@ struct node {
 	instance_geometry geo_ref;
 };
 
+/// COLLADA model scene section
 class scene final:public io::object
 {
 public:
@@ -413,6 +446,7 @@ private:
 
 DECLARE_IPTR(scene);
 
+/// COLLADA model surface type e.g. texture type
 enum class surface_type: uint8_t {
 	untyped = 0,
 	sampler_1d = 1,
@@ -423,11 +457,13 @@ enum class surface_type: uint8_t {
 	rect = 6
 };
 
+/// COLLADA model surface section - i.e. texture
 struct surface {
 	surface_type type;
 	io::const_string init_from;
 };
 
+/// COLLADA model effect_library section
 class effect_library:public io::object {
 	effect_library(const effect_library&) = delete;
 	effect_library& operator=(const effect_library&) = delete;
@@ -456,6 +492,7 @@ private:
 DECLARE_IPTR(effect_library);
 
 
+/// COLLADA assets model  e.g. meshes/patches and bound materials,texture images etc all in one
 class model final:public io::object {
 	model(const model&) = delete;
 	model& operator=(const model&) = delete;

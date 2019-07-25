@@ -3,7 +3,7 @@
 
 namespace engine {
 
-const char* NURB::VERTEX = "gpu/tess/tess.vertex.glsl";
+const char* NURB::VERTEX = "gpu/tess/nurb.vertex.glsl";
 const char* NURB::FRAGMETN = "gpu/tess/nurb.frag.glsl";
 const char* NURB::TCS = "gpu/tess/nurb.tcs.glsl";
 const char* NURB::TES = "gpu/tess/nurb.tes.glsl";
