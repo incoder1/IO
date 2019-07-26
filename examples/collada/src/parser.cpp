@@ -60,7 +60,8 @@ static std::size_t parse_string_array(const io::const_string& val,float* const t
 }
 
 /// Parses space separated list of unsigned integers
-static unsigned_int_array parse_string_array(const io::const_string& val) noexcept
+template<typename T>
+static intrusive_array<T> parse_string_array(const io::const_string& val) noexcept
 {
 	//std::vector<unsigned int> tmp;
 	std::size_t size = 0;
@@ -79,14 +80,14 @@ static unsigned_int_array parse_string_array(const io::const_string& val) noexce
 	while('\0' != *s);
 	if( io_likely(0 != size) ) {
 		// Parse numbers
-		unsigned_int_array ret( size );
-		s = const_cast<char*>( val.data() );
+		intrusive_array<T> ret( size );
+		s = val.data();
 		for(std::size_t i=0; i < size; i++) {
-			ret[i] = next_uint(s, s);
+			ret[i] = static_cast<T>( next_uint(s, s) );
 		}
 		return ret;
 	}
-	return unsigned_int_array();
+	return intrusive_array<T>();
 }
 
 static float parse_float(const io::const_string& val)
@@ -112,7 +113,7 @@ static io::xml::s_event_stream_parser open_parser(io::s_read_channel&& src)
 	return ret;
 }
 
-static io::const_string unref(const io::const_string& ref)
+static io::const_string unref(const io::const_string& ref) noexcept
 {
 	return io::const_string( ref.data()+1, ref.length()-1 );
 }
@@ -670,6 +671,7 @@ s_sub_mesh parser::parse_sub_mesh(const io::const_string& type, io::const_string
 
 	sub_mesh::input_library_t layout;
 	unsigned_int_array idx;
+	byte_array vcount;
 
 	io::xml::state_type state;
 	io::xml::event_type et;
@@ -680,10 +682,13 @@ s_sub_mesh parser::parse_sub_mesh(const io::const_string& type, io::const_string
 		if( is_start_element(et) ) {
 			sev = xp_->parse_start_element();
 			check_eod(state, ERR_MSG);
-			if( is_element(sev,"input") )
+			if( is_element(sev,"input") ) {
 				layout.emplace_back( parse_input(sev) );
-			else if( is_element(sev,"p") )
-				idx = parse_string_array( get_tag_value() );
+			} else if( is_element(sev,"vcount") ) {
+				vcount = parse_string_array<uint8_t>( get_tag_value() );
+			} else if( is_element(sev,"p") ) {
+				idx = parse_string_array<unsigned int>( get_tag_value() );
+			}
 		}
 	}
 	while( !is_end_element(et, type) );
@@ -696,7 +701,8 @@ s_sub_mesh parser::parse_sub_mesh(const io::const_string& type, io::const_string
 				   std::forward<io::const_string>(mat),
 				   count,
 				   std::move(layout),
-				   std::move(idx)
+				   std::move(idx),
+				   std::move(vcount)
 			   )
 		   );
 }

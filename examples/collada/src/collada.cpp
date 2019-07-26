@@ -67,12 +67,13 @@ geometry::~geometry() noexcept
 {}
 
 // sub_mesh
-sub_mesh::sub_mesh(primitive_type type, io::const_string&& mat, std::size_t count,input_library_t&& layout, unsigned_int_array&& index) noexcept:
+sub_mesh::sub_mesh(primitive_type type, io::const_string&& mat, std::size_t count,input_library_t&& layout, unsigned_int_array&& index, byte_array&& vcount) noexcept:
 	io::object(),
 	type_(type),
 	mat_(std::forward<io::const_string>(mat)),
 	layout_(std::forward<input_library_t>(layout)),
 	index_(std::forward<unsigned_int_array>(index)),
+	vcount_(std::forward<byte_array>(vcount)),
 	count_(count)
 {}
 

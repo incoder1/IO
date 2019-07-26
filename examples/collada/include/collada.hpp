@@ -245,6 +245,9 @@ struct input {
 /// Float data array, parsed from COLLADA float_array content
 /// e.g. string of space separated floats
 typedef intrusive_array<float> float_array;
+/// byte data array, parsed from COLLADA vcount content
+/// e.g. string of space separated bytes
+typedef intrusive_array<uint8_t> byte_array;
 /// unsigned integers data array, parsed from COLLADA <p> tag content
 /// e.g. string of space separated unsigned ints
 typedef intrusive_array<unsigned int> unsigned_int_array;
@@ -318,7 +321,13 @@ class sub_mesh: public io::object {
 public:
 	typedef detail::param<input>::param_vector input_library_t;
 
-	sub_mesh(primitive_type type, io::const_string&& mat, std::size_t count,input_library_t&& layout, unsigned_int_array&& index) noexcept;
+	sub_mesh(primitive_type type,
+			io::const_string&& mat,
+			std::size_t count,
+			input_library_t&& layout,
+			unsigned_int_array&& index,
+			byte_array&& vcount) noexcept;
+
 	virtual ~sub_mesh() noexcept override;
 
 	/// Gests a id to the material effect in the material library
@@ -336,6 +345,11 @@ public:
 		return index_;
 	}
 
+	/// Gets vertex count peer polygon for polygonal meshes
+	byte_array vcount() const noexcept {
+		return vcount_;
+	}
+
 	/// Gets this sub-mesh vertex count
 	std::size_t count() const noexcept {
 		return count_;
@@ -346,6 +360,7 @@ private:
 	io::const_string mat_;
 	input_library_t layout_;
 	unsigned_int_array index_;
+	byte_array vcount_;
 	std::size_t count_;
 };
 
