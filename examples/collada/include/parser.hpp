@@ -52,6 +52,7 @@ private:
 
 	bool is_element(const io::xml::start_element_event& e,const char* s) noexcept
 	{
+		// do not, pre-cache sso optimized strings, since it have no sense
 		return  e.name().local_name().sso()
 		?  e.name().local_name().equal(s)
 		: is_element(e, xp_->precache(s) );
@@ -59,10 +60,14 @@ private:
 
 	bool is_element(const io::xml::end_element_event& e,const char* s) noexcept
 	{
+		// do not, pre-cache sso optimized strings, since it have no sense
 		return  e.name().local_name().sso()
 		?  e.name().local_name().equal(s)
 		: is_element(e, xp_->precache(s) );
 	}
+
+	/// Throw a parsing error, with line and column number
+	void throw_parse_error();
 
 	/// Check to points/lines/triangles/polyline etc
 	bool is_sub_mesh(const io::xml::start_element_event& sev) noexcept;
@@ -85,7 +90,7 @@ private:
 	input parse_input(const io::xml::start_element_event& e);
 	void parse_library_materials(s_model& md);
 
-	// geometry
+	// parse geometry library functions
 	unsigned_int_array parse_index_data();
 	s_sub_mesh parse_sub_mesh(const io::const_string& type, io::const_string&& mat, std::size_t count);
 
@@ -99,15 +104,13 @@ private:
 	void parse_visual_scene(s_scene& scn);
 	void library_visual_scenes(s_model& md);
 
-	// images
+	// Parse image library functions
 	void parse_library_images(s_model& md);
 
-	void throw_parse_error();
 
 private:
 	io::xml::s_event_stream_parser xp_;
 // pre-cache root section elements, to speed up the main parsing loop
-// using pointers compare instead of a string compare;
 	io::cached_string library_materials_;
 	io::cached_string library_effects_;
 	io::cached_string library_geometries_;

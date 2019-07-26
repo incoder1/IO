@@ -11,12 +11,12 @@ const char* poly_mesh::TES = "gpu/tess/polygon.tes.glsl";
 
 s_surface poly_mesh::create(const material_t& mat,const float* points,std::size_t points_size,unsigned int vcount)
 {
-	gl::shader vtx = gl::shader::load_glsl( gl::shader_type::vertex, gl::shader_file(VERTEX) );
-	gl::shader frag = gl::shader::load_glsl( gl::shader_type::fragment, gl::shader_file(FRAGMETN) );
-	gl::shader geo = gl::shader::load_glsl( gl::shader_type::fragment, gl::shader_file(GEOMETY) );
-	gl::shader tcs = gl::shader::load_glsl(gl::shader_type::tess_control, gl::shader_file(TCS) );
-	gl::shader tes = gl::shader::load_glsl(gl::shader_type::tess_evaluation, gl::shader_file(TES) );
-	gl::s_program glpo = gl::program::create( std::move(vtx), std::move(frag) );
+	gl::shader vtx = gl::shader::load_glsl(gl::shader_type::vertex, gl::shader_file(VERTEX));
+	gl::shader frag = gl::shader::load_glsl(gl::shader_type::fragment, gl::shader_file(FRAGMETN));
+	gl::shader geo = gl::shader::load_glsl(gl::shader_type::fragment, gl::shader_file(GEOMETY));
+	gl::shader tcs = gl::shader::load_glsl(gl::shader_type::tess_control, gl::shader_file(TCS));
+	gl::shader tes = gl::shader::load_glsl(gl::shader_type::tess_evaluation, gl::shader_file(TES));
+	gl::s_program glpo = gl::program::create(std::move(vtx),std::move(frag));
 	glpo->attach_shader( std::move(geo) );
 	glpo->attach_shader( std::move(tcs) );
 	glpo->attach_shader( std::move(tes) );

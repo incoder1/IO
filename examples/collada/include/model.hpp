@@ -8,11 +8,17 @@
 
 namespace engine {
 
+/// Rendering engine model e.g. combination of 3D graphical primitives (surfaces)
 class model:public io::object {
 public:
+	/// Constructs new empty model
 	model();
 	virtual ~model() noexcept;
+	/// Adds a surface to the model
+	/// \param srf a surface to be added
 	void add_surface(s_surface&& srf);
+	/// Renders all surfaces together
+	/// \param scn 3D scene to render the model
 	void render(const scene& scn) const;
 public:
 	std::forward_list<s_surface> surfaces_;

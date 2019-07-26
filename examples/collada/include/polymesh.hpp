@@ -8,7 +8,7 @@
 
 namespace engine {
 
-/// Polygonal based mesh surface (patch grid)
+/// Polygonal based mesh surface (patch). e.g. mesh combined from polygons instead of triangles
 /// WARN! OpenGL 4.2+ required, since tesselation and geometry stages needed
 class poly_mesh final:public surface
 {

@@ -39,7 +39,8 @@ static std::size_t parse_sizet(const io::const_string& str) noexcept
 #endif
 }
 
-static bool not_empty(const char* str) noexcept {
+static bool not_empty(const char* str) noexcept
+{
 	return nullptr != str && '\0' != *str;
 }
 
@@ -74,8 +75,10 @@ static unsigned_int_array parse_string_array(const io::const_string& val) noexce
 			++size;
 			s += len;
 		}
-	} while('\0' != *s);
+	}
+	while('\0' != *s);
 	if( io_likely(0 != size) ) {
+		// Parse numbers
 		unsigned_int_array ret( size );
 		s = const_cast<char*>( val.data() );
 		for(std::size_t i=0; i < size; i++) {
@@ -109,7 +112,8 @@ static io::xml::s_event_stream_parser open_parser(io::s_read_channel&& src)
 	return ret;
 }
 
-static io::const_string unref(const io::const_string& ref) {
+static io::const_string unref(const io::const_string& ref)
+{
 	return io::const_string( ref.data()+1, ref.length()-1 );
 }
 
@@ -126,14 +130,13 @@ bool parser::is_element(const io::xml::end_element_event& e,const io::cached_str
 }
 
 parser::parser(io::s_read_channel&& src) noexcept:
-	xp_( open_parser( std::forward<io::s_read_channel>(src) ) )
-{
-	library_materials_ = xp_->precache("library_materials");
-	library_effects_ = xp_->precache("library_effects");
-	library_geometries_ = xp_->precache("library_geometries");
-	library_visual_scenes_ = xp_->precache("library_visual_scenes");
-	library_images_ = xp_->precache("library_images");
-}
+	xp_( open_parser( std::forward<io::s_read_channel>(src) ) ),
+	library_materials_( xp_->precache("library_materials") ),
+	library_effects_( xp_->precache("library_effects") ),
+	library_geometries_( xp_->precache("library_geometries") ),
+	library_visual_scenes_( xp_->precache("library_visual_scenes") ),
+	library_images_( xp_->precache("library_images") )
+{}
 
 io::const_string parser::get_attr(const io::xml::start_element_event& sev, const char* name)
 {
@@ -263,10 +266,10 @@ io::xml::start_element_event parser::to_next_tag_start(io::xml::state_type& stat
 	io::xml::event_type et;
 	do {
 		et = to_next_tag_event(state);
-		if(io::xml::state_type::eod == state)
-			return io::xml::start_element_event();
-		if( io::xml::event_type::end_element == et)
+		if(io::xml::event_type::end_element == et)
 			xp_->parse_end_element();
+		else if(io::xml::state_type::eod == state)
+			return io::xml::start_element_event();
 	}
 	while(io::xml::event_type::start_element != et );
 	return xp_->parse_start_element();
@@ -312,7 +315,8 @@ void parser::parse_effect(io::const_string&& id, s_effect_library& efl)
 			}
 			else if( is_element(sev,"technique") ) {
 				continue;
-			} else if( is_element(sev,"newparam") ) {
+			}
+			else if( is_element(sev,"newparam") ) {
 				parse_new_param( get_attr(sev,"sid"), efl );
 			}
 			else if( is_element(sev,"constant") ) {
@@ -399,21 +403,22 @@ void parser::parse_effect(io::const_string&& id, s_effect_library& efl)
 	efl->add_effect( std::forward<io::const_string>(id), std::move(ef) );
 }
 
-static surface_type sampler_by_name(const io::const_string& type) noexcept {
+static surface_type sampler_by_name(const io::const_string& type) noexcept
+{
 	const char* val = type.data();
 	if( val[1] == 'D' && ('0' < val[0]) && ('4' > val[0] ) )
 		return static_cast<surface_type>( uint8_t(val[0] - '0') );
 	surface_type ret = surface_type::untyped;
 	switch( val[0] ) {
 	case 'C':
-        if( type.equal("CUBE") ) {
-        	ret = surface_type::cube;
-        }
+		if( type.equal("CUBE") ) {
+			ret = surface_type::cube;
+		}
 		break;
 	case 'D':
-        if( type.equal("DEPTH") ) {
-        	ret = surface_type::depth;
-        }
+		if( type.equal("DEPTH") ) {
+			ret = surface_type::depth;
+		}
 		break;
 	case 'R':
 		if( type.equal("RECT") ) {
@@ -525,13 +530,13 @@ input parser::parse_input(const io::xml::start_element_event& e)
 		"COLOR",
 		"TANGENT",
 		"BITANGENT"
-    };
-    for(uint8_t i=0; i < 7; i++) {
+	};
+	for(uint8_t i=0; i < 7; i++) {
 		if( sematic.equal( NAMES[i] ) ) {
 			ret.type = static_cast<semantic_type>(i);
 			break;
 		}
-    }
+	}
 	// remove # at the begin
 	ret.accessor_id = unref(get_attr(e,"source"));
 
@@ -624,13 +629,13 @@ void parser::parse_source(const s_source& src)
 
 
 static constexpr const char* PRIMITIVES[7] = {
-        "lines",
-        "linestrips",
-        "polygons",
-        "polylist",
-        "triangles",
-        "trifans",
-		"tristrips"
+	"lines",
+	"linestrips",
+	"polygons",
+	"polylist",
+	"triangles",
+	"trifans",
+	"tristrips"
 };
 
 bool parser::is_sub_mesh(const io::xml::start_element_event& sev) noexcept
@@ -680,19 +685,20 @@ s_sub_mesh parser::parse_sub_mesh(const io::const_string& type, io::const_string
 			else if( is_element(sev,"p") )
 				idx = parse_string_array( get_tag_value() );
 		}
-	} while( !is_end_element(et, type) );
+	}
+	while( !is_end_element(et, type) );
 
 	layout.shrink_to_fit();
 
 	return s_sub_mesh(
-						new sub_mesh(
-							pt,
-							std::forward<io::const_string>(mat),
-							count,
-							std::move(layout),
-							std::move(idx)
-							)
-					);
+			   new sub_mesh(
+				   pt,
+				   std::forward<io::const_string>(mat),
+				   count,
+				   std::move(layout),
+				   std::move(idx)
+			   )
+		   );
 }
 
 void parser::parse_mesh(const s_mesh& m)
@@ -925,8 +931,6 @@ void parser::throw_parse_error()
 }
 
 parser::~parser() noexcept
-{
-}
-
+{}
 
 } // namespace collada

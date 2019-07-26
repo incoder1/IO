@@ -161,9 +161,12 @@ void program::link()
 	} );
 	::glLinkProgram(hprg_);
 	// detach all shader objects after linking program
+	// since no longer needed
 	std::for_each(shaders_.begin(), shaders_.end(), [this] (const shader& sh) {
 		::glDetachShader(hprg_, sh.handle() );
 	} );
+	// now we can clean shaders since they are no longer needed
+	shaders_.clear();
 	validate(GL_LINK_STATUS, "Shader program link error:\n");
 	::glValidateProgram(hprg_);
 	validate(GL_VALIDATE_STATUS, "Shader program validate error:\n");

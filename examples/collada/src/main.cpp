@@ -1,12 +1,15 @@
+/**
+ * Parses a COLLADA XML file model and display it using a OpenGL based rendering engine
+ * This is not full featured COLLADA model viewer, the propose is demonstrate using IO library
+ * in useful and complex applications
+ */
 #include "stdafx.hpp"
 
 #include "view.hpp"
-
 #include "model.hpp"
 #include "model_loader.hpp"
 
 #include "nurb.hpp"
-
 
 #ifndef NDEBUG
 #	include <iostream>

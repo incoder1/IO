@@ -12,14 +12,17 @@ namespace engine {
 class mesh : public surface
 {
 protected:
-
-
 	constexpr mesh() noexcept:
 		surface()
 	{}
-
+public:
+	virtual ~mesh() noexcept = 0;
+	virtual void draw(const scene& scn) const override = 0;
 };
 
+/// A triangle based mesh which specify only a geometry
+/// e.g. {position:[x,y,z],normal[x,y,z]} vertex attributes
+/// and a material
 class geometry_mesh final: public mesh
 {
 private:
@@ -43,6 +46,9 @@ private:
 	bool elemens_draw_;
 };
 
+/// A triangle based mesh which specify geometry an base colors
+/// e.g. {position:[x,y,z],color:[r,g,b],normal[x,y,z]} vertex attributes
+/// and a material
 class colored_geometry_mesh final: public mesh
 {
 public:
@@ -68,6 +74,8 @@ private:
 	::GLint nrm_ul_;
 };
 
+/// A triangle based mesh which specify geometry and takes color from applied diffuse texture
+/// e.g. {position:[x,y,z],normal[x,y,z],uv:[u,v]} vertex attributes
 class textured_mesh final: public mesh
 {
 public:
@@ -98,7 +106,10 @@ private:
 	bool elemens_draw_;
 };
 
-
+/// A triangle based mesh which specify geometry and takes color from applied diffuse texture
+/// as well as contains bump-mapping (normal mapping style) additional depth
+/// e.g. {position:[x,y,z],normal[x,y,z],uv:[u,v],tangent:[x,y,z]} vertex attributes
+/// Note, bi-tangent is calculated by the GPU with vertex shader and should not be passed
 class normal_mapped_mesh final: public mesh
 {
 public:

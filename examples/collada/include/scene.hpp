@@ -17,6 +17,7 @@
 
 namespace engine  {
 
+/// Rendering scene
 class scene {
 public:
 
@@ -28,24 +29,39 @@ public:
 	static scene perspective(int width, int height, float z_near, float z_far);
 
 	/// Creates scene with frustum perspective
+	/// \param width scene width from the eye position (center of the screen) to the left and right limit plane
+	/// \param height scene height from the eye position (center of the screen) to the top and bottom limit plane
+	/// \param eye_distance distance from the center of the scene ({0,0,0}) to the user eye
+	/// \param depth distance from the center of the scene to the backward limit plane
 	scene(float width, float height,float eye_distance,float depth);
 
-	/// Update the perspective when view-port changed
-	void update_view_perspective(int widht,int height) noexcept;
+	/// Updates the perspective when view-port changed
+	/// \param width new view port width in pixels
+	/// \param height new view port height in pixels
+	void update_view_perspective(int width,int height) noexcept;
 
-	/// Rotate model on x and y axis
+	/// Rotates model on x and y axis
+	/// \param x_rad x axis rotation angle in radians
+	/// \param y_rad y axis rotation angle in radians
 	void rotate_model(float x_rad, float y_rad) noexcept;
 
 	/// Translate model on z axis
+	/// \param distance an offset by z axis
 	void move_model(float distance) noexcept;
 
 	/// Move light position
+	/// \param x light x axis position
+	/// \param y light y axis position
+	/// \param z light z axis position
 	void move_light(float x, float y, float z) noexcept;
 
 	/// Get OpenGL LH frustum matrix
+	/// \param prj projection matrix
+    /// \param mv model view matrix
 	void get_frustum(glm::mat4 &prj, glm::mat4& mv) const noexcept;
 
-	/// Light parameters
+	/// Gets current light parameters
+	/// \return light parameters
 	const light_t light() const noexcept {
 		return light_;
 	}

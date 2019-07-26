@@ -96,9 +96,9 @@ frame_view::frame_view(unsigned int widht, unsigned int height,const char* title
 			float y_delta = TWO_PI  * float( (ypos - self->mouse_prev_y_) / h );
 			self->angle_x_ -= y_delta;
 			self->angle_y_ += x_delta;
-			self->mouse_prev_x_ = xpos;
-			self->mouse_prev_y_ = ypos;
 		}
+		self->mouse_prev_x_ = xpos;
+		self->mouse_prev_y_ = ypos;
 	} );
 
 	// mouse scroll, move model to scroll

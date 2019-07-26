@@ -6,8 +6,13 @@ namespace engine {
 /// Material parameters to be used by GPU shader
 /// 4 vectors matrix + shines
 struct material_t {
-	/// 0-3: ambient, 4-7: diffuse, 8-11: specular, 12-15: emission
+	/// color components matrix:
+	/// 0-3: ambient vector
+	/// 4-7: diffuse vector
+	/// 8-11: specular vector
+	/// 12-15: emission vector
 	float adse[16];
+	/// Material shininess, should be multiplied on 128 for OpenGL
 	float shininess;
 };
 
@@ -22,7 +27,7 @@ static constexpr const material_t DEFAULT_MATERIAL = {
 	0.0
 };
 
-// White plastic material
+/// White plastic material
 static constexpr const material_t WHITE_PLASTIC_MATERIAL = {
 	{
 		0.0F,0.0F,0.0F,1.0F,
@@ -36,10 +41,13 @@ static constexpr const material_t WHITE_PLASTIC_MATERIAL = {
 /// Light parameters  to be used by GPU shader
 /// 4 vectors matrix
 struct light_t {
-	/// 0-3: position, 4-7: ambient color, 8-11: diffuse color , 12-15: specular
+	/// 0-3: position, 4-7: ambient color vector
+	/// 8-11: diffuse color vector
+	/// 12-15: specular color vector
 	float pads[16];
 };
 
+/// Default OpenGL light position
 static constexpr const light_t DEFAULT_LIGHT = {
 	{
 	 0.0F,0.0F,1.0F,0.0F,

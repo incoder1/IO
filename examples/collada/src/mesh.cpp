@@ -12,6 +12,10 @@
 
 namespace engine {
 
+// mesh
+mesh::~mesh() noexcept
+{}
+
 // geometry_mesh
 const char* geometry_mesh::VERTEX_SHADER = "gpu/mesh/geometry_mesh.vertex.glsl";
 

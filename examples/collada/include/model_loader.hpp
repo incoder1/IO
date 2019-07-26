@@ -19,6 +19,7 @@ namespace engine {
 
 namespace detail {
 
+/// A helper facade on top of COLLADA mesh accessors
 class vertex_accessor {
 public:
 	constexpr vertex_accessor() noexcept:
@@ -26,12 +27,16 @@ public:
 		offset_(0),
 		stride_(0)
 	{}
+	/// obtains vertex array attribute stride
 	std::size_t stride() const noexcept {
 		return stride_;
 	}
+	/// obtains vertex array attribute offset
 	std::size_t offset() const noexcept {
 		return offset_;
 	}
+	/// Copy vertex array attribute into destination VBO on specified position
+	/// can be used to merge all vertex array attributes into single VBO
 	void copy(float * dst, std::size_t index) const noexcept {
 		const std::size_t offset = index * stride_;
 		const float* src = arr_.get() + offset;
@@ -65,6 +70,7 @@ private:
 	vertex_accessor ret_;
 };
 
+/// An accessor for {position:[x,y,z],normal:[x,y,z]} vertex layout
 class static_mesh_accessor
 {
 public:
@@ -84,6 +90,7 @@ private:
 	std::size_t vertex_size_;
 };
 
+/// An accessor for {position:[x,y,z],normal:[x,y,z],uv:[u,v]} vertex layout
 struct textured_mesh_accessor
 {
 	textured_mesh_accessor(vertex_accessor&& pos, vertex_accessor&& nrm, vertex_accessor&& uv, collada::unsigned_int_array&& idx);
@@ -105,6 +112,7 @@ private:
 
 } // namespace detail
 
+/// Loads a COLLADA parsed assets into rendering engine
 class model_loader
 {
 	public:
