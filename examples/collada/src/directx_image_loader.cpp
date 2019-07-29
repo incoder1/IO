@@ -283,14 +283,14 @@ static s_IWICBitmapLock bitmap_lock(const s_IWICBitmap& bitmap, ::WICRect& rc_lo
 static io::scoped_arr<uint8_t> flip_vertically(const ::BYTE* origin,const std::size_t size,const std::size_t line_stride)
 {
 	io::scoped_arr<uint8_t> ret(size);
-	uint8_t* dst = const_cast<uint8_t*>( ret.get() ) + (size - line_stride);
+	uint8_t* dst = const_cast<uint8_t*>( ret.get() );
 	const uint8_t* src = origin;
 	const std::size_t lines_count = size / line_stride;
 	#ifdef _OPENMP
 	#pragma omp parallel for simd
 	#endif // _OPENMP
 	for(std::size_t i = 0; i < lines_count; i++) {
-		uint8_t *d = dst - (i*line_stride);
+		uint8_t *d = dst + (line_stride * (lines_count-i-1) );
 		const uint8_t *s = src + (i*line_stride);
 		std::memcpy( d, s, line_stride);
 	}

@@ -17,8 +17,6 @@ class poly_mesh final:public surface
 		static const char* VERTEX;
 		/// Fragment shader name
 		static const char* FRAGMETN;
-		/// Geometry shader name
-		static const char* GEOMETY;
 		/// tesselation control shader name
 		static const char* TCS;
 		/// tesselation evaluation shader name

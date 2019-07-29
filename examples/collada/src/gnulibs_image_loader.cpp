@@ -91,7 +91,7 @@ public:
 #           pragma omp parallel for
 #endif // _OPENMP
             for (::png_uint_32 i = height-1; i > 0 ; i--) {
-                std::memcpy( px + (rowbytes*(height-(i+1))) , row_pointers[i], rowbytes  );
+                std::memcpy( px + (rowbytes*(height-i-1)) , row_pointers[i], rowbytes  );
             }
 		} else {
 #ifdef _OPENMP

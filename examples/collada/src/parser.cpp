@@ -63,23 +63,22 @@ static std::size_t parse_string_array(const io::const_string& val,float* const t
 template<typename T>
 static intrusive_array<T> parse_string_array(const io::const_string& val) noexcept
 {
-	//std::vector<unsigned int> tmp;
+	constexpr const char* WHITESPACE = "\t\n\v\f\r ";
+	constexpr const char* DIGIGTS = "1234567890";
 	std::size_t size = 0;
-	const char* s = val.data() ;
+	const char* s = val.data();
 	std::size_t len = 0;
 	// count numbers
 	do {
-		len = std::strspn(s,"\t\n\v\f\r ");
-		s += len;
-		len = std::strspn(s, "1234567890");
-		if(0 != len) {
+		// skip all whitespace characters and all digits
+		len = io_strspn( (s += io_strspn(s,WHITESPACE) ), DIGIGTS );
+		if(0 != len)
 			++size;
-			s += len;
-		}
+		s += len;
 	}
-	while('\0' != *s);
+	while( 0 != len && not_empty(s) );
+	// Parse numbers if any
 	if( io_likely(0 != size) ) {
-		// Parse numbers
 		intrusive_array<T> ret( size );
 		s = val.data();
 		for(std::size_t i=0; i < size; i++) {
