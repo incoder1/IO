@@ -10,6 +10,7 @@
 #include "model_loader.hpp"
 
 #include "nurb.hpp"
+#include "polymesh.hpp"
 
 #ifndef NDEBUG
 #	include <iostream>
@@ -51,6 +52,41 @@ static void load_collada_model(engine::s_model& dst_mdl,io::file&& dae)
 	ldr.load(dst_mdl);
 }
 
+// polygonal cube for test
+static float CUBE[] = {
+	// position | normal
+	// left
+	 1.0F, 1.0F, 1.0F, 1.0F, 0.0F, 0.0F,
+	 1.0F, 1.0F,-1.0F, 1.0F, 0.0F, 0.0F,
+	 1.0F,-1.0F,-1.0F, 1.0F, 0.0F, 0.0F,
+	 1.0F,-1.0F, 1.0F, 1.0F, 0.0F, 0.0F,
+	// front
+	-1.0F, 1.0F, 1.0F, 0.0F, 0.0F, 1.0F,
+	 1.0F, 1.0F, 1.0F, 0.0F, 0.0F, 1.0F,
+	 1.0F,-1.0F, 1.0F, 0.0F, 0.0F, 1.0F,
+	-1.0F,-1.0F, 1.0F, 0.0F, 0.0F, 1.0F,
+	 // top
+	-1.0F, 1.0F, 1.0F, 0.0F, 1.0F, 0.0F,
+	-1.0F, 1.0F,-1.0F, 0.0F, 1.0F, 0.0F,
+	 1.0F, 1.0F,-1.0F, 0.0F, 1.0F, 0.0F,
+	 1.0F, 1.0F, 1.0F, 0.0F, 1.0F, 0.0F,
+     // bottom
+	-1.0F,-1.0F, 1.0F, 0.0F,-1.0F, 0.0F,
+	-1.0F,-1.0F,-1.0F, 0.0F,-1.0F, 0.0F,
+	 1.0F,-1.0F,-1.0F, 0.0F,-1.0F, 0.0F,
+	 1.0F,-1.0F, 1.0F, 0.0F,-1.0F, 0.0F,
+	// right
+	-1.0F, 1.0F, 1.0F, -1.0F, 0.0F, 0.0F,
+	-1.0F, 1.0F,-1.0F, -1.0F, 0.0F, 0.0F,
+	-1.0F,-1.0F,-1.0F, -1.0F, 0.0F, 0.0F,
+	-1.0F,-1.0F, 1.0F, -1.0F, 0.0F, 0.0F,
+	// back
+	-1.0F, 1.0F,-1.0F, 0.0F, 0.0F, -1.0F,
+	 1.0F, 1.0F,-1.0F, 0.0F, 0.0F, -1.0F,
+	 1.0F,-1.0F,-1.0F, 0.0F, 0.0F, -1.0F,
+	-1.0F,-1.0F,-1.0F, 0.0F, 0.0F, -1.0F
+};
+
 
 #ifdef _WIN32
 int WINAPI WinMain (HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nShowCmd)
@@ -65,20 +101,21 @@ int main(int argc, const char** argv)
 
 			engine::s_model mdl( new engine::model() );
 
+			engine::s_surface cube = engine::poly_mesh::create(engine::DEFAULT_MATERIAL, CUBE, 144);
+			mdl->add_surface( std::move(cube) );
+
 			//engine::s_surface nurb = engine::NURB::create(engine::DEFAULT_MATERIAL,quad, 48, 16, 4);
 
 			//mdl->add_surface( std::move(nurb) );
 
-			//mdl->add_surface( std::move(cube) );
-
 			//load_collada_model(mdl, "models/textured_cube/text_cube.dae");
 			//load_collada_model(mdl, "models/RubiksCube/rubik_cube.dae");
 			//load_collada_model(mdl,"models/Earth/Earth.dae");
-#ifdef __IO_WINDOWS_BACKEND__
-			load_collada_model(mdl, open_file_dialog() );
-#else
-			load_collada_model(mdl, io::file(argv[1]) );
-#endif
+//#ifdef __IO_WINDOWS_BACKEND__
+//			load_collada_model(mdl, open_file_dialog() );
+//#else
+//			load_collada_model(mdl, io::file(argv[1]) );
+//#endif
 			view.show( mdl );
 			return 0;
 		}

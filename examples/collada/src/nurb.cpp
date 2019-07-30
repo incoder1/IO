@@ -57,8 +57,6 @@ NURB::NURB(gl::s_program&& po,const material_t& mat,const float* points,std::siz
 	mat_helper_.bind_to_shader(program_);
 	light_helper_.bind_to_shader(program_);
 
-	::glPatchParameteri(GL_PATCH_VERTICES, vcount);
-
 	// unbind vao
 	::glBindVertexArray(0);
 }
@@ -89,6 +87,9 @@ void NURB::draw(const scene& scn) const
 	light_helper_.transfer_to_shader( scn.light() );
 	// transfer material
 	mat_helper_.transfer_to_shader();
+
+	// TODO: vcount must be 16 control points
+	::glPatchParameteri(GL_PATCH_VERTICES, vcount_);
 
 	::glBindVertexArray(vao_);
 

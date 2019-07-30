@@ -21,12 +21,13 @@ class poly_mesh final:public surface
 		static const char* TCS;
 		/// tesselation evaluation shader name
 		static const char* TES;
+		static const char* UNFM_TESSELATION_LEVEL;
 	public:
-		static s_surface create(const material_t& mat,const float* points,std::size_t points_size,unsigned int vcount);
+		static s_surface create(const material_t& mat,const float* points,std::size_t points_size);
 		virtual void draw(const scene& scn) const override;
 		virtual ~poly_mesh() noexcept override;
 	private:
-		poly_mesh(gl::s_program&& po,const material_t& mat,const float* points,std::size_t points_size,unsigned int vcount);
+		poly_mesh(gl::s_program&& po,const material_t& mat,const float* points,std::size_t points_size);
 	private:
 		material_helper mat_helper_;
 		light_helper light_helper_;
@@ -35,8 +36,6 @@ class poly_mesh final:public surface
 
 		// model view projection matrix uniform identifier
 		::GLint mvp_ul_;
-		// model view matrix uniform identifier
-		::GLint mv_ul_;
 		// normal matrix uniform identifier
 		::GLint nrm_ul_;
 		// tesselation level uniform identifier
