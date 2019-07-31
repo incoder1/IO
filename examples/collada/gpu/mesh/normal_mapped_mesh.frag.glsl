@@ -24,7 +24,11 @@ out vec4 fragment_color;
 invariant fragment_color;
 
 vec4 phong_shading(vec4 norm) {
-	vec4 s = normalize( tangent_light_position - tangent_eye_position );
+	vec4 s;
+	if(0.0 == light_pads[0].w)
+		s = normalize( tangent_light_position );
+	else
+		s = normalize( tangent_light_position - tangent_eye_position );
 	vec4 ambient = light_pads[1] * material_adse[0];
 	float cos_theta = clamp(dot(norm,s), 0.0, 1.0);
 	vec4 diffuse = light_pads[2] * material_adse[1] * cos_theta;

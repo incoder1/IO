@@ -136,10 +136,16 @@ frame_view::frame_view(unsigned int widht, unsigned int height,const char* title
 		case GLFW_KEY_S:
 			self->scn_.move_light(0.0F, 0.0F, 0.5F);
 			break;
-		case GLFW_KEY_ESCAPE:
-			if (action == GLFW_RELEASE) {
-				glfwSetWindowShouldClose(wnd, true);
+		case GLFW_KEY_SPACE:
+			if (GLFW_RELEASE == action) {
+				light_t l = self->scn_.light();
+				float w = (0.0F == l.pads[3]) ? 1.0F : 0.0F;
+				self->scn_.set_light(l.pads[0], l.pads[1], l.pads[2], w);
 			}
+			break;
+		case GLFW_KEY_ESCAPE:
+			if (GLFW_RELEASE == action)
+				glfwSetWindowShouldClose(wnd, true);
 			break;
 		}
 	});

@@ -49,11 +49,18 @@ public:
 	/// \param distance an offset by z axis
 	void move_model(float distance) noexcept;
 
-	/// Move light position
-	/// \param x light x axis position
-	/// \param y light y axis position
-	/// \param z light z axis position
-	void move_light(float x, float y, float z) noexcept;
+	/// Sets light direction or position
+	/// \param x light x axis value
+	/// \param y light y axis value
+	/// \param z light z axis value
+	/// \param w light direction vector when 0.0F or position if 1.0F
+	void set_light(float x, float y, float z, float w) noexcept;
+
+	/// Move light direction or position
+	/// \param x_delta light x axis direction or position delta
+	/// \param y_delta light y axis direction or position delta
+	/// \param z_delta light z axis direction or position delta
+	void move_light(float x_delta, float y_delta, float z_delta) noexcept;
 
 	/// Get OpenGL LH frustum matrix
 	/// \param prj projection matrix

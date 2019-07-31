@@ -32,6 +32,7 @@ scene::scene(float width, float height,float eye_distance,float depth):
 	light_(DEFAULT_LIGHT)
 {
 	light_.pads[2] = eye_distance;
+	light_.pads[3] = 1.0F; // make light positioned
 }
 
 
@@ -54,6 +55,14 @@ void scene::update_view_perspective(int width,int height) noexcept
 void scene::move_model(float distance) noexcept
 {
 	distance_z_ = distance;
+}
+
+void scene::set_light(float x, float y, float z, float w) noexcept
+{
+	light_.pads[0] = x;
+	light_.pads[1] = y;
+	light_.pads[2] = z;
+	light_.pads[3] = w;
 }
 
 void scene::move_light(float x_delta, float y_delta, float z_delta) noexcept

@@ -18,7 +18,11 @@ in vec4 tess_normal;
 invariant out vec4 frag_color;
 
 vec4 phong_shading(vec4 eye_pos, vec4 norm) {
-	vec4 s = normalize( light_pads[0] - eye_pos );
+	vec4 s;
+	if(0.0 == light_pads[0].w)
+		s = normalize( light_pads[0] );
+	else
+		s = normalize( light_pads[0] - eye_pos );
 	vec4 v = normalize( -eye_pos );
 	vec4 r = reflect( -s, norm );
 	vec4 ambient = light_pads[1] * material_adse[0];
