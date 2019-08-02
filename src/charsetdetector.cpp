@@ -92,8 +92,7 @@ public:
 		byte_pos_(0)
 	{}
 
-	state_t next_state(uint8_t c) noexcept
-	{
+	state_t next_state(uint8_t c) noexcept {
 		// for each byte we get its class,
 		// if it is first byte, we also get byte length
 		uint32_t byte_class = get_class( c, model_);
@@ -108,8 +107,7 @@ public:
 		return  state_;
 	}
 
-	inline uint8_t current_char_len() const noexcept
-	{
+	inline uint8_t current_char_len() const noexcept {
 		return char_len_;
 	}
 
@@ -131,13 +129,13 @@ static constexpr uint32_t PCK8BITS(uint32_t a,uint32_t b,uint32_t c, uint32_t d)
 }
 
 static constexpr uint32_t PCK4BITS(uint32_t a, uint32_t b, uint32_t c,uint32_t d,
-                                   uint32_t e, uint32_t f, uint32_t g, uint32_t h)
+								   uint32_t e, uint32_t f, uint32_t g, uint32_t h)
 {
 	return PCK8BITS( ( (b << 4) | a),
-	                 ( (d << 4) | c),
-	                 ( (f << 4) | e),
-	                 ( (h << 4) | g)
-	               );
+					 ( (d << 4) | c),
+					 ( (f << 4) | e),
+					 ( (h << 4) | g)
+				   );
 }
 
 
@@ -380,7 +378,8 @@ byte_buffer prober::filter_without_english_letters(std::error_code& ec, const ui
 				ret.put(cur_ptr, cur_ptr);
 				ret.put(' ');
 				meet_MSB = false;
-			} else
+			}
+			else
 				//ignore current segment. (either because it is just a symbol or just an English word)
 				prev_ptr = cur_ptr + 1;
 		}
@@ -416,7 +415,8 @@ byte_buffer prober::filter_with_english_letters(std::error_code& ec, const uint8
 			if (cur_ptr > prev_ptr && !is_in_tag) {
 				ret.put( prev_ptr, cur_ptr);
 				prev_ptr = cur_ptr;
-			} else
+			}
+			else
 				prev_ptr = cur_ptr + 1;
 		}
 	}
@@ -437,8 +437,7 @@ private:
 	latin1_prober() noexcept:
 		prober()
 	{}
-	float calc_confidence(const uint32_t *freq_counter) const noexcept
-	{
+	float calc_confidence(const uint32_t *freq_counter) const noexcept {
 		float ret = 0.0f;
 		std::size_t total = 0;
 		for (std::size_t i = 0; i < FREQ_CAT_NUM; i++)
@@ -450,20 +449,17 @@ private:
 		return ( ret < 0.0f) ? 0.0f : (ret * 0.50f);
 	}
 public:
-	static s_prober create(std::error_code& ec) noexcept
-	{
+	static s_prober create(std::error_code& ec) noexcept {
 		return s_prober( nobadalloc<latin1_prober>::construct(ec) );
 	}
-	virtual charset get_charset() const noexcept override
-	{
+	virtual charset get_charset() const noexcept override {
 #ifdef __IO_WINDOWS_BACKEND__
 		return code_pages::CP_1252;
 #else
 		return code_pages::ISO_8859_1;
 #endif // __IO_WINDOWS_BACKEND__
 	}
-	virtual bool probe(std::error_code& ec,float& confidence,const uint8_t* buff, std::size_t size) const noexcept override
-	{
+	virtual bool probe(std::error_code& ec,float& confidence,const uint8_t* buff, std::size_t size) const noexcept override {
 		using namespace coding::latin1;
 		typedef byte_buffer::iterator buff_it_t;
 
@@ -581,8 +577,7 @@ private:
 		prober()
 	{}
 
-	float calc_confidance(uint8_t multibyte_chars) const noexcept
-	{
+	float calc_confidance(uint8_t multibyte_chars) const noexcept {
 		float unlike = 0.99F;
 		if (multibyte_chars < 6) {
 			for (uint8_t i = 0; i < multibyte_chars; i++)
@@ -593,16 +588,13 @@ private:
 	}
 
 public:
-	static s_prober create(std::error_code& ec) noexcept
-	{
+	static s_prober create(std::error_code& ec) noexcept {
 		return s_prober( nobadalloc<utf8_prober>::construct(ec) );
 	}
-	virtual charset get_charset() const noexcept override
-	{
+	virtual charset get_charset() const noexcept override {
 		return code_pages::UTF_8;
 	}
-	virtual bool probe(std::error_code& ec,float& confidence,const uint8_t* buff, std::size_t size) const noexcept override
-	{
+	virtual bool probe(std::error_code& ec,float& confidence,const uint8_t* buff, std::size_t size) const noexcept override {
 		coding::state_t coding_state;
 		coding::state_machine sm( &coding::unicode::UTF8_MODEL );
 		uint8_t multibyte_chars = 0;
@@ -631,8 +623,7 @@ public:
 
 class bad_alloc_handler {
 public:
-	static void handle()
-	{
+	static void handle() {
 		_bad_alloc.store(true);
 	}
 	static std::atomic_bool _bad_alloc;
@@ -653,9 +644,9 @@ s_charset_detector charset_detector::create(std::error_code& ec) noexcept
 		return s_charset_detector();
 	v_pobers probers( { latin1_prob, utf8_prob} );
 	return !ec ?  s_charset_detector(
-	           nobadalloc<charset_detector>::construct(ec, std::move(probers) )
-	       )
-	       : s_charset_detector();
+			   nobadalloc<charset_detector>::construct(ec, std::move(probers) )
+		   )
+		   : s_charset_detector();
 }
 
 charset_detector::charset_detector(v_pobers&& probers) noexcept:

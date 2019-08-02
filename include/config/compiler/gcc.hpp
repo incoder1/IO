@@ -58,6 +58,7 @@
 #define IO_CPU_BITS_64 1
 #endif // __LP64__
 
+// should not be used unless something specific, i.e. inline assembly based function
 #ifndef __forceinline
 #	define __forceinline inline __attribute__((__always_inline__))
 #endif // __forceinline
@@ -68,9 +69,13 @@
 #	define io_size_t_abs(__x) __builtin_labs( (__x) )
 #endif
 
+// Force compiler intrinsics to avoid standard library calls
+// It allows to use inlined assembly operators even when compiler options off intrinsics
+// optimizations with debug builds
+
 //#define io_alloca(__x) __builtin_alloca((__x))
 
-#define io_alloca(__x) __builtin_alloca_with_align( (__x), sizeof(size_t) << 3)
+#define io_alloca(__x) __builtin_alloca_with_align( (__x), sizeof(size_t) )
 
 #define io_memmove(__dst, __src, __bytes) __builtin_memmove( (__dst), (__src), (__bytes) )
 
@@ -80,7 +85,7 @@
 
 #define io_zerro_mem(__p,__bytes) __builtin_memset( (__p), 0, (__bytes) )
 
-#define io_memchr(__s,__c,__n) __builtin_memchr( (__s), (__c), (__n) )
+#define io_memchr(__s,__c,__n) __builtin_memchr((__s),(__c),(__n))
 
 #define io_strstr(__s1,__s2) __builtin_strstr( (__s1), (__s2) )
 
@@ -154,7 +159,11 @@
 namespace io {
 namespace detail {
 
-/// GCC intrinsics for atomic pointer
+// GCC intrinsics for atomic pointer
+// used only to save memory since std::atomic_size_t is 8/16 bytes long
+// A size_t for reference counter and another std::atomic<size_t>* this
+// should not be used with any non dynamically allocated memory,
+// otherwise can bring to undefined results
 namespace atomic_traits {
      __forceinline std::size_t inc(std::size_t volatile *ptr) {
         return __atomic_add_fetch(ptr, 1, __ATOMIC_RELAXED);

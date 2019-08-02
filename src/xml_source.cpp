@@ -230,7 +230,7 @@ char source::next() noexcept
 void source::read_until_char(byte_buffer& to,const char lookup,const char illegal) noexcept
 {
 	char c;
-	char stops[4] = {lookup, illegal, EOF, '\0'};
+	char stops[3] = {lookup, illegal, EOF};
 	do {
 		c = next();
 		if( !to.put(c) ) {
@@ -243,7 +243,7 @@ void source::read_until_char(byte_buffer& to,const char lookup,const char illega
 			}
 		}
 	}
-	while( is_not_one(c, stops) );
+	while( nullptr == io_memchr(stops, static_cast<int>(c), 3) );
 	if( lookup != c ) {
 		if(EOF == c)
 			last_ = error::illegal_markup;

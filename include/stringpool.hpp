@@ -52,7 +52,6 @@ public:
 	virtual ~string_pool() noexcept override;
 
 	/// Returns a cached_string object for the raw character array.
-	/// Allocates memory, if string is not presented in this pool
 	/// \param s source character array
 	/// \param size size of array in bytes
 	/// \return cached_string object or empty cached string if out of memory or size is 0
@@ -60,7 +59,6 @@ public:
 	const cached_string get(const char* s, std::size_t count) noexcept;
 
 	/// Returns a cached_string object for the C zero ending string
-	/// Allocates memory, if string is not presented in memory.
 	/// \param s source zero terminated C string
 	/// \return cached_string object or empty cached string if out of memory or s is "" or nullptr
 	/// \throw never throws

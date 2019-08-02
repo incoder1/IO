@@ -180,12 +180,10 @@ s_uri uri::parse(std::error_code& ec, const char* str) noexcept
 	const_string query;
 	const_string fragment;
 	const char *b = normalized;
-	const char *e = b;
-	while( is_not_one(*e,":/") ) {
-		if( cheq('\0',*e) )
+	const char *e;
+	for(e = b; '\0' != *e && nullptr == io_memchr(":/", *e, 2); ++e);
+	if( cheq('\0',*e) )
 			return return_error(ec, std::errc::invalid_argument);
-		++e;
-	}
 	// not relative URI need to extract scheme
 	if ( cheq(*e,':') ) {
 		const char* j = b;

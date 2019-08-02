@@ -122,7 +122,7 @@ public:
 
 	/// Checks parser in error state
 	/// \return true if parser in error state, false otherwise
-	__forceinline bool is_error() const noexcept {
+	inline bool is_error() const noexcept {
 		return error::ok != state_.ec;
 	}
 
@@ -204,6 +204,11 @@ private:
 	void s_characters_or_eod() noexcept;
 	void s_entity() noexcept;
 
+	// checks for error in previews operation
+	inline bool error_state_ok() const noexcept {
+		return error::ok == state_.ec;
+	}
+
 	// assign an error
 	inline void assign_error(xml::error ec) noexcept;
 
@@ -223,28 +228,29 @@ private:
 
 	inline char next() noexcept;
 
-	static __forceinline bool is_eof(char ch) noexcept {
+	static inline bool is_eof(char ch) noexcept {
 		return !std::char_traits<char>::not_eof(ch);
 	}
 
-	static __forceinline bool sb_check(const char* sb) noexcept {
-		return nullptr == io_memchr(sb, EOF, MAX_SCAN_BUFF_SIZE);
+	inline bool scan_failed() noexcept {
+		return nullptr != io_strchr(scan_buf_, EOF);
 	}
 
-	static __forceinline void sb_clear(const char* sb) noexcept {
-		io_zerro_mem( const_cast<char*>(sb), MAX_SCAN_BUFF_SIZE);
+	inline void sb_clear() noexcept {
+		io_zerro_mem( const_cast<char*>(scan_buf_), MAX_SCAN_BUFF_SIZE);
 	}
 
-	static __forceinline std::size_t sb_len(const char *sb) noexcept {
-		return io_strlen(sb);
+	inline std::size_t sb_len() noexcept {
+		return io_strlen(scan_buf_);
 	}
 
-	static __forceinline void sb_append(const char* sb,const char c) noexcept {
-		const_cast<char*>(sb)[ sb_len(sb) ] = c;
+	inline void sb_append(const char c) noexcept {
+		char appender[2] = {c,'\0'};
+		sb_append(appender);
 	}
 
-	static __forceinline void sb_append(const char* sb,const char* str) noexcept {
-		io_strcat( const_cast<char*>(sb), str);
+	inline void sb_append(const char* str) noexcept {
+		io_strcat( scan_buf_, str);
 	}
 
 private:

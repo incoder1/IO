@@ -162,10 +162,6 @@ inline bool is_one_of(char what, const char* chars,const std::size_t len) noexce
 	return nullptr != strchrn(chars, what, len);
 }
 
-inline bool is_not_one(char what,const char* chars) noexcept {
-	return nullptr == io_strchr(chars, what);
-}
-
 inline char* find_first_symbol(const char* s) noexcept
 {
 	return const_cast<char*>(s) + io_strspn(s, "\t\n\v\f\r ");

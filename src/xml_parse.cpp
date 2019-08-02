@@ -268,13 +268,13 @@ event_stream_parser::event_stream_parser(s_source&& src, s_string_pool&& pool) n
 	do {
 		c = next();
 	}
-	while( io_isspace(c) && !is_error() );
+	while( io_isspace(c) && error_state_ok() );
 
 	if( io_unlikely( !cheq(c,LEFTB) ) ) {
 		assign_error(error::illegal_markup);
 	}
 	else {
-		sb_clear(scan_buf_);
+		sb_clear();
 		scan_buf_[0] = '<';
 	}
 }
@@ -295,7 +295,8 @@ inline void event_stream_parser::putch(byte_buffer& buf, char ch) noexcept
 		assign_error(error::out_of_memory);
 }
 
-cached_string event_stream_parser::precache(const char* str) noexcept {
+cached_string event_stream_parser::precache(const char* str) noexcept
+{
 	return pool_->get(str);
 }
 
@@ -314,8 +315,9 @@ qname event_stream_parser::extract_qname(const char* from, std::size_t& len) noe
 	const char* name = from+len;
 	count = extract_local_name(start,name);
 	if(count > 0) {
-		local_name = pool_->get( (name+start) , count);
-	} else {
+		local_name = pool_->get( (name+start), count);
+	}
+	else {
 		assign_error(error::illegal_name);
 		return qname();
 	}
@@ -346,7 +348,7 @@ byte_buffer event_stream_parser::read_entity() noexcept
 		return byte_buffer();
 	}
 	ret.put( scan_buf_ );
-	sb_clear( scan_buf_ );
+	sb_clear();
 	src_->read_until_char( ret, static_cast<char>(RIGHTB), static_cast<char>(LEFTB) );
 	if( src_->eof() ) {
 		assign_error( src_->last_error() );
@@ -536,7 +538,7 @@ const_string event_stream_parser::read_dtd() noexcept
 		return const_string();
 	}
 	dtd.put(scan_buf_);
-	sb_clear(scan_buf_);
+	sb_clear();
 	std::size_t brackets = 1;
 	char i;
 	do {
@@ -556,7 +558,7 @@ const_string event_stream_parser::read_dtd() noexcept
 		}
 		putch(dtd, i );
 	}
-	while( brackets > 0 && !is_error() );
+	while( brackets > 0 && error_state_ok() );
 	dtd.flip();
 	return const_string( dtd.position().cdata(), dtd.last().cdata() );
 }
@@ -567,25 +569,26 @@ void event_stream_parser::skip_comment() noexcept
 		assign_error(error::invalid_state);
 		return;
 	}
-	if( !sb_check(scan_buf_) ) {
+	if( scan_failed() ) {
 		assign_error(error::illegal_commentary);
 		return;
 	}
-	sb_clear(scan_buf_);
+	sb_clear();
 	constexpr const uint16_t double_hyphen = pack_word( static_cast<uint16_t>('-'), '-');
 	uint16_t hw = 0;
 	char c;
 	do {
 		c = next();
 		hw = pack_word(hw, c );
-	} while( double_hyphen != hw && io_likely( !is_eof(c) && !is_error() ) );
+	}
+	while( double_hyphen != hw && io_likely( !is_eof(c) && error_state_ok() ) );
 	if( !cheq(RIGHTB, next() ) )
 		assign_error(error::illegal_commentary);
 }
 
 byte_buffer event_stream_parser::read_until_double_separator(const char separator,const error ec) noexcept
 {
-	if( !sb_check(scan_buf_) ) {
+	if( scan_failed() ) {
 		assign_error(ec);
 		return byte_buffer();
 	}
@@ -597,7 +600,7 @@ byte_buffer event_stream_parser::read_until_double_separator(const char separato
 		return ret;
 	}
 
-	sb_clear(scan_buf_);
+	sb_clear();
 
 	src_->read_until_double_char( ret, separator );
 
@@ -670,18 +673,18 @@ void event_stream_parser::skip_chars() noexcept
 		assign_error(error::invalid_state);
 		return;
 	}
-	for(int i = char8_traits::to_int_type( next() ); !is_error() ; i = char8_traits::to_int_type( next() ) ) {
+	for(int i = char8_traits::to_int_type( next() ); error_state_ok() ; i = char8_traits::to_int_type( next() ) ) {
 		switch(i) {
 		case LEFTB:
-			sb_clear( scan_buf_ );
-			sb_append( scan_buf_, static_cast<char>(LEFTB) );
+			sb_clear();
+			sb_append( static_cast<char>(LEFTB) );
 			return;
 		case RIGHTB:
-			sb_clear( scan_buf_ );
+			sb_clear();
 			assign_error(error::illegal_chars);
 			return;
 		case io_unlikely(EOF):
-			sb_clear( scan_buf_ );
+			sb_clear();
 			assign_error(error::root_element_is_unbalanced);
 			return;
 		}
@@ -822,53 +825,47 @@ start_element_event event_stream_parser::parse_start_element() noexcept
 	start_element_event result( std::move(name), empty_element );
 	// extract attributes if any
 	const char *left =  buff.position().cdata() + len;
-	if( io_isspace(*left) && io_likely( !is_error() ) ) {
-		std::size_t offset = 0;
-		attribute attr( extract_attribute(left,offset) );
-		while(offset != 0) {
+	if( io_isspace(*left) && error_state_ok() ) {
+		std::size_t offset;
+		attribute attr = extract_attribute(left,offset);
+		while( (0 < offset) && error_state_ok() ) {
 			// validate attribute name and check for
 			// double attributes with the same name check
 			// according to W3C XML spec
-			if( !validate_attr_name( attr.name() ) ) {
+			if( !validate_attr_name( attr.name() ) || !result.add_attribute( std::move(attr) ) ) {
 				assign_error( error::illegal_attribute );
-				return start_element_event();
+			} else {
+				// extract next attribute if there were any
+				attr = extract_attribute( (left += offset) ,offset);
 			}
-			if( !result.add_attribute( std::move(attr) ) ) {
-				assign_error( error::illegal_attribute );
-				return start_element_event();
-			}
-			// extract next attribute if any
-			left += offset;
-			attr = extract_attribute(left,offset);
 		}
 	}
-	return  result;
+	return error_state_ok() ?  std::move(result) : start_element_event();
 }
 
 end_element_event event_stream_parser::parse_end_element() noexcept
 {
 	check_event_parser_state(event_type::end_element, end_element_event )
+	qname name;
+	if( io_likely(nesting_ > 0) ) {
 
-	if(nesting_ == 0) {
+		if(0 == (--nesting_) )
+			state_.current =  state_type::eod;
+
+		byte_buffer buff = read_entity();
+		if( error_state_ok() ) {
+			std::size_t len = 0;
+			name = extract_qname( buff.position().cdata(), len );
+		}
+	} else {
 		assign_error(error::root_element_is_unbalanced);
-		return end_element_event();
 	}
-	--nesting_;
-	if(0 == nesting_)
-		state_.current =  state_type::eod;
-	byte_buffer buff = read_entity();
-	if( is_error() )
-		return end_element_event();
-	std::size_t len = 0;
-	qname name = extract_qname( buff.position().cdata(), len );
-	if( is_error() )
-		return end_element_event();
 	return end_element_event( std::move(name) );
 }
 
 void event_stream_parser::s_instruction_or_prologue() noexcept
 {
-	if(0 != nesting_) {
+	if( 0 != nesting_ ) {
 		assign_error(error::illegal_markup);
 		return;
 	}
@@ -877,17 +874,17 @@ void event_stream_parser::s_instruction_or_prologue() noexcept
 	for(std::size_t i=SCAN_START; i < MAX_SCAN; i++) {
 		scan_buf_[i] = next();
 	}
-	if( !sb_check(scan_buf_) ) {
+	if( scan_failed() ) {
 		assign_error(error::illegal_markup);
-		return;
 	}
-	if( is_prologue(scan_buf_+SCAN_START) ) {
-		if(state_type::initial != state_.current) {
-			assign_error(error::illegal_prologue);
-			return;
+	else if( is_prologue(scan_buf_+SCAN_START) ) {
+		if( state_type::initial == state_.current ) {
+			current_ = event_type::start_document;
+			state_.current = state_type::event;
 		}
-		current_ = event_type::start_document;
-		state_.current = state_type::event;
+		else {
+			assign_error(error::illegal_prologue);
+		}
 	}
 	else {
 		current_ = event_type::processing_instruction;
@@ -899,54 +896,52 @@ void event_stream_parser::s_comment_cdata_or_dtd() noexcept
 {
 	scan_buf_[2] = next();
 	scan_buf_[3] = next();
-	if( !sb_check(scan_buf_)  ) {
+	if( scan_failed()  ) {
 		assign_error(error::root_element_is_unbalanced);
-		return;
 	}
-	if( is_comment(scan_buf_) ) {
+	else if( is_comment(scan_buf_) ) {
 		state_.current =  state_type::comment;
-		return;
 	}
-	constexpr std::size_t SCAN_START = 4;
-	constexpr std::size_t MAX_SCAN = 9;
-	for(std::size_t i=SCAN_START; i < MAX_SCAN; i++) {
-		scan_buf_[i] = next();
+	else {
+		constexpr std::size_t SCAN_START = 4;
+		constexpr std::size_t MAX_SCAN = 9;
+		for(std::size_t i = SCAN_START; i < MAX_SCAN; i++) {
+			scan_buf_[i] = next();
+		}
+		if( scan_failed() )
+			assign_error(error::root_element_is_unbalanced);
+		else if( is_cdata(scan_buf_) )
+			state_.current = state_type::cdata;
+		else if( is_doc_type(scan_buf_) )
+			state_.current = state_type::dtd;
+		else
+			assign_error(error::illegal_markup);
 	}
-	if( !sb_check(scan_buf_) ) {
-		assign_error(error::root_element_is_unbalanced);
-		return;
-	}
-
-	if( is_cdata(scan_buf_) )
-		state_.current = state_type::cdata;
-	else if( is_doc_type(scan_buf_) )
-		state_.current = state_type::dtd;
-	else
-		assign_error(error::illegal_markup);
 }
 
 
 void event_stream_parser::s_entity() noexcept
 {
 	scan_buf_[1] = next();
-	int second = char8_traits::to_int_type( scan_buf_[1] );
+	const int second = char8_traits::to_int_type( scan_buf_[1] );
 	switch( second ) {
-	case QM:
-		s_instruction_or_prologue();
-		break;
-	case EM:
-		s_comment_cdata_or_dtd();
-		break;
 	case SOLIDUS:
 		state_.current = state_type::event;
 		current_ = event_type::end_element;
 		break;
+	case EM:
+		s_comment_cdata_or_dtd();
+		break;
+	case QM:
+		s_instruction_or_prologue();
+		break;
 	default:
-		if( io_unlikely( io_isspace(second) ) )
-			assign_error( error::illegal_markup );
-		else {
+		if( io_likely( !io_isspace(second) ) ) {
 			state_.current = state_type::event;
 			current_ = event_type::start_element;
+		}
+		else {
+			assign_error( error::illegal_markup );
 		}
 	}
 }
