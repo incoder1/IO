@@ -61,7 +61,7 @@ static std::size_t parse_string_array(const io::const_string& val,float* const t
 
 /// Parses space separated list of unsigned integers
 template<typename T>
-static intrusive_array<T> parse_string_array(const io::const_string& val) noexcept
+static util::intrusive_array<T> parse_string_array(const io::const_string& val) noexcept
 {
 	constexpr const char* WHITESPACE = "\t\n\v\f\r ";
 	constexpr const char* DIGIGTS = "1234567890";
@@ -79,14 +79,14 @@ static intrusive_array<T> parse_string_array(const io::const_string& val) noexce
 	while( 0 != len && not_empty(s) );
 	// Parse numbers if any
 	if( io_likely(0 != size) ) {
-		intrusive_array<T> ret( size );
+		util::intrusive_array<T> ret( size );
 		s = val.data();
 		for(std::size_t i=0; i < size; i++) {
 			ret[i] = static_cast<T>( next_uint(s, s) );
 		}
 		return ret;
 	}
-	return intrusive_array<T>();
+	return util::intrusive_array<T>();
 }
 
 static float parse_float(const io::const_string& val)
@@ -540,8 +540,9 @@ input parser::parse_input(const io::xml::start_element_event& e)
 	// remove # at the begin
 	ret.accessor_id = unref(get_attr(e,"source"));
 
-	// optional attributes
+	//
 	ret.offset = parse_sizet( get_attr(e,"offset") );
+	// optional attributes
 	auto attr = e.get_attribute("","set");
 	if(attr.second)
 		ret.set = parse_sizet( attr.first );

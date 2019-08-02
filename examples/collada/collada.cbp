@@ -115,6 +115,7 @@
 		<Linker>
 			<Add library="io" />
 		</Linker>
+		<Unit filename="include/array_view.hpp" />
 		<Unit filename="include/collada.hpp" />
 		<Unit filename="include/image.hpp">
 			<Option virtualFolder="src/" />

@@ -82,7 +82,7 @@ void geometry_mesh::draw(const scene& scn) const
 {
 	::glm::mat4 projection_mat;
 	::glm::mat4 model_view_mat;
-	scn.get_frustum(projection_mat,model_view_mat);
+	scn.world(projection_mat,model_view_mat);
 	::glm::mat4 normal_mat( glm::transpose( glm::inverse(  glm::mat3(model_view_mat) ) ) );
 
 	program_->start();
@@ -175,7 +175,7 @@ void colored_geometry_mesh::draw(const scene& scn) const
 {
 	::glm::mat4 projection_mat;
 	::glm::mat4 model_view_mat;
-	scn.get_frustum(projection_mat,model_view_mat);
+	scn.world(projection_mat,model_view_mat);
 	::glm::mat4 normal_mat( glm::transpose( glm::inverse(  glm::mat3(model_view_mat) ) ) );
 
 	program_->start();
@@ -285,7 +285,7 @@ void textured_mesh::draw(const scene& scn) const
 {
 	::glm::mat4 projection_mat;
 	::glm::mat4 model_view_mat;
-	scn.get_frustum(projection_mat,model_view_mat);
+	scn.world(projection_mat,model_view_mat);
 	::glm::mat4 normal_mat( glm::transpose( glm::inverse(  glm::mat3(model_view_mat) ) ) );
 
 	program_->start();
@@ -418,7 +418,7 @@ void normal_mapped_mesh::draw(const scene& scn) const
 
 	glm::mat4 projection_mat;
 	glm::mat4 model_view_mat;
-	scn.get_frustum(projection_mat,model_view_mat);
+	scn.world(projection_mat,model_view_mat);
 
 	glm::mat4 mvp = projection_mat * model_view_mat;
 

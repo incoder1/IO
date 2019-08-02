@@ -5,7 +5,6 @@
 
 #include "surface.hpp"
 
-
 namespace engine {
 
 /// Rendering engine model e.g. combination of 3D graphical primitives (surfaces)

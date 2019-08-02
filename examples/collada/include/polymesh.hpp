@@ -1,12 +1,17 @@
 #ifndef __POLYMESH_HPP_INCLUDED__
 #define __POLYMESH_HPP_INCLUDED__
 
+#include "array_view.hpp"
+#include "intrusive_array.hpp"
 #include "vbo.hpp"
 #include "shader.hpp"
 #include "surface.hpp"
 #include "texture.hpp"
 
 namespace engine {
+
+typedef util::array_view<float> float_array_view;
+typedef util::intrusive_array<uint8_t> byte_array;
 
 /// Polygonal based mesh surface (patch). e.g. mesh combined from polygons instead of triangles
 /// WARN! OpenGL 4.2+ required, since tesselation and geometry stages needed
@@ -23,11 +28,11 @@ class poly_mesh final:public surface
 		static const char* TES;
 		static const char* UNFM_TESSELATION_LEVEL;
 	public:
-		static s_surface create(const material_t& mat,const float* points,std::size_t points_size);
+		static s_surface create(const material_t& mat,float_array_view&& knots, byte_array&& vertices);
 		virtual void draw(const scene& scn) const override;
 		virtual ~poly_mesh() noexcept override;
 	private:
-		poly_mesh(gl::s_program&& po,const material_t& mat,const float* points,std::size_t points_size);
+		poly_mesh(gl::s_program&& po,const material_t& mat,float_array_view&& knots, byte_array&& vertices);
 	private:
 		material_helper mat_helper_;
 		light_helper light_helper_;
@@ -42,8 +47,8 @@ class poly_mesh final:public surface
 		::GLint tess_level_ul_;
 		// vertex array object
 		::GLuint vao_;
-
-		unsigned int vcount_;
+		// vertex count in each polygon
+		byte_array vertices_;
 };
 
 } // namespace engine

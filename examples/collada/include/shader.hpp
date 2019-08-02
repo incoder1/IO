@@ -16,7 +16,7 @@
 namespace gl {
 
 enum class shader_type: ::GLuint {
- comute = GL_COMPUTE_SHADER,
+ compute = GL_COMPUTE_SHADER,
  vertex = GL_VERTEX_SHADER,
  tess_control = GL_TESS_CONTROL_SHADER,
  tess_evaluation = GL_TESS_EVALUATION_SHADER,
@@ -110,14 +110,12 @@ public:
 	/// \param size vertex attribute size in bytes
 	/// \param offset vertex attribute offset inside VBO
 	void pass_vertex_attrib_array(::GLsizei attr_no, const s_buffer& vbo, bool normalized,uint8_t stride, uint8_t size, uint8_t offset);
-
 	/// Passing vertex attributes in a VBO to program
 	/// \param vbo vertex buffer object to bind
 	/// \param normalized whether attribute array normalized
 	/// \param layout array of vertex attributes layout in format {name,stride}, layout index follows the attribute number
-	/// \param lsize size of  layout array
+	/// \param lsize size of layout array in elements
 	void pass_vertex_attrib_array(const s_buffer& vbo, bool normalized,const shader_program_attribute* layout,std::size_t lsize);
-
 	/// Binds attribute location to the shader attribute name
 	void bind_attrib_location(::GLsizei attr_no, const char* name);
 	/// Gets GLSL program uniform location (identifier) by its name

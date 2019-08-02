@@ -169,7 +169,7 @@ detail::static_mesh_accessor model_loader::create_static_mesh_accessor(const col
 	return detail::static_mesh_accessor(
 							pos.build(),
 							nrm.build(),
-							sm->index()	);
+							sm->primitive()	);
 }
 
 detail::textured_mesh_accessor model_loader::create_textured_mesh_accessor(const collada::s_sub_mesh& sm, const collada::mesh* src_mesh)
@@ -197,7 +197,7 @@ detail::textured_mesh_accessor model_loader::create_textured_mesh_accessor(const
 		}
 	}
 
-	return detail::textured_mesh_accessor(pos.build(), nrm.build(), uv.build(), sm->index()	);
+	return detail::textured_mesh_accessor(pos.build(), nrm.build(), uv.build(), sm->primitive()	);
 }
 
 s_surface model_loader::load_static_sub_mesh(const collada::s_sub_mesh& sm, const collada::mesh* src_mesh, material_t&& mat)

@@ -81,18 +81,18 @@ read_stream::read_stream(io::s_read_channel&& ch):
 	mem_proxy_(::SHCreateMemStream(nullptr,0)),
 	ref_count_(1)
 {
-	std::size_t volatile read;
-	::ULONG volatile written;
+	std::size_t read;
+	::ULONG written;
 	std::error_code ec;
-	io::scoped_arr<uint8_t> arr( io::memory_traits::page_size() << 2 );
-	do {
-		read = ch_->read( ec, arr.get(), arr.len() );
-		written = 0;
+	io::scoped_arr<uint8_t> arr( io::memory_traits::page_size() );
+	read = ch_->read( ec, arr.get(), arr.len() );
+	while(!ec && read > 0 ) {
 		for(std::size_t left = read; left > 0; left -= written) {
-			mem_proxy_->Write( ( arr.get() + (read - left ) ), left, (ULONG*)(&written) );
+			uint8_t *px = arr.get() + (read - left);
+			mem_proxy_->Write(px, left, &written);
 		}
+		read = ch_->read( ec, arr.get(), arr.len() );
 	}
-	while(!ec && read > 0 );
 	if(ec)
 		throw std::system_error(ec);
 	::LARGE_INTEGER pos;

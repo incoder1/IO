@@ -7,6 +7,8 @@
 extern "C" int gladLoadGL(void);
 #endif
 
+#include <math.h>
+
 
 namespace engine  {
 

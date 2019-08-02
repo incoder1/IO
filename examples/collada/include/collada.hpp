@@ -244,13 +244,13 @@ struct input {
 
 /// Float data array, parsed from COLLADA float_array content
 /// e.g. string of space separated floats
-typedef intrusive_array<float> float_array;
+typedef util::intrusive_array<float> float_array;
 /// byte data array, parsed from COLLADA vcount content
 /// e.g. string of space separated bytes
-typedef intrusive_array<uint8_t> byte_array;
+typedef util::intrusive_array<uint8_t> byte_array;
 /// unsigned integers data array, parsed from COLLADA <p> tag content
 /// e.g. string of space separated unsigned ints
-typedef intrusive_array<unsigned int> unsigned_int_array;
+typedef util::intrusive_array<unsigned int> unsigned_int_array;
 
 /// COLLADA model source data section
 class source final:public io::object {
@@ -340,9 +340,10 @@ public:
 		return layout_;
 	}
 
-	/// Gets vertex array attributes index data, element index meaning is corespound to the layout
-	unsigned_int_array index() const noexcept {
-		return index_;
+	/// Contains a list of integers that specify the vertex attributes (indices) for an individual
+	/// vertex array attributes
+	unsigned_int_array primitive() const noexcept {
+		return primitive_;
 	}
 
 	/// Gets vertex count peer polygon for polygonal meshes
@@ -359,7 +360,7 @@ private:
 	primitive_type type_;
 	io::const_string mat_;
 	input_library_t layout_;
-	unsigned_int_array index_;
+	unsigned_int_array primitive_;
 	byte_array vcount_;
 	std::size_t count_;
 };

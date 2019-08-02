@@ -4,9 +4,13 @@
 #include <config.hpp>
 #include <type_traits>
 
-namespace collada {
+namespace util {
 
-template<typename T>
+template<typename T, class = typename
+		std::enable_if<
+				std::is_copy_assignable<T>::value || std::is_move_assignable<T>::value
+			>::type
+	>
 class intrusive_array {
 private:
 	static inline void intrusive_add_ref(uint8_t* const ptr) noexcept {
@@ -24,16 +28,27 @@ public:
 		mem_(nullptr)
 	{}
 
-	explicit intrusive_array(std::size_t length) noexcept:
-		length_(length),
+	explicit intrusive_array(std::size_t len) noexcept:
+		length_(len),
 		mem_(nullptr)
 	{
-		static_assert( std::is_copy_assignable<T>::value || std::is_move_assignable<T>::value,
-						"Copy or move assignable type expected.");
 		mem_ = io::memory_traits::malloc_array<uint8_t>(sizeof(std::size_t) + ( length_ * sizeof(T) ) );
 		if(nullptr != mem_)
 			intrusive_add_ref(mem_);
 	}
+
+	intrusive_array(const T* src, std::size_t len) noexcept:
+		length_(len),
+		mem_(nullptr)
+	{
+		const std::size_t bytes = length_ * sizeof(T);
+		mem_ = static_cast<uint8_t*>(io::memory_traits::malloc(sizeof(std::size_t) + bytes));
+		if(nullptr != mem_) {
+			intrusive_add_ref(mem_);
+			io_memmove( (mem_ + sizeof(std::size_t)), src, bytes );
+		}
+	}
+
 
 	intrusive_array(const intrusive_array& other) noexcept:
 		length_(other.length_),
@@ -100,6 +115,6 @@ private:
 	uint8_t *mem_;
 };
 
-} // namespace collada
+} // namespace util
 
 #endif // __INTRUSIVE_ARRAY_HPP_INCLUDED__

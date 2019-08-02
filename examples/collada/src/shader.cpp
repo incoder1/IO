@@ -74,7 +74,28 @@ shader::shader(shader_type type, const char* source):
 		::glGetShaderiv(hsdr_, GL_INFO_LOG_LENGTH, &val);
 		::GLchar *log = static_cast<GLchar*>( io_alloca(val) );
 		::glGetShaderInfoLog(hsdr_, val, &val, log);
-		std::string msg("Error compiling shader:\n\t");
+		std::string msg("Error compiling ");
+		switch(type_) {
+		case shader_type::compute:
+			msg.append("compute");
+			break;
+		case shader_type::vertex:
+			msg.append("vertex");
+			break;
+		case shader_type::tess_control:
+			msg.append("tesselation control");
+			break;
+		case shader_type::tess_evaluation:
+			msg.append("tesselation evaluation");
+			break;
+		case shader_type::geometry:
+			msg.append("geometry");
+			break;
+		case shader_type::fragment:
+			msg.append("fragment");
+			break;
+		}
+		msg.append(" shader:\n\t");
 		msg.append(log);
 		throw std::runtime_error( msg );
 	}
@@ -195,6 +216,7 @@ void program::pass_vertex_attrib_array(::GLsizei attr_no, const s_buffer& vbo, b
 
 	validate_opengl("Can not pass vertex attributes array");
 }
+
 
 void program::pass_vertex_attrib_array(const s_buffer& vbo, bool normalized,const shader_program_attribute* layout,std::size_t lsize)
 {

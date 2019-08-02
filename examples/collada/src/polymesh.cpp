@@ -9,7 +9,7 @@ const char* poly_mesh::TCS = "gpu/tess/polygon.tcs.glsl";
 const char* poly_mesh::TES = "gpu/tess/polygon.tes.glsl";
 const char* poly_mesh::UNFM_TESSELATION_LEVEL = "tess_level";
 
-s_surface poly_mesh::create(const material_t& mat,const float* points,std::size_t points_size)
+s_surface poly_mesh::create(const material_t& mat,float_array_view&& knots, byte_array&& vertices)
 {
 	gl::shader vtx = gl::shader::load_glsl(gl::shader_type::vertex, gl::shader_file(VERTEX));
 	gl::shader frag = gl::shader::load_glsl(gl::shader_type::fragment, gl::shader_file(FRAGMETN));
@@ -18,10 +18,14 @@ s_surface poly_mesh::create(const material_t& mat,const float* points,std::size_
 	gl::s_program glpo = gl::program::create(std::move(vtx),std::move(frag));
 	glpo->attach_shader( std::move(tcs) );
 	glpo->attach_shader( std::move(tes) );
-	return s_surface( new poly_mesh( std::move(glpo), mat, points, points_size ) );
+	return s_surface( new poly_mesh(
+					std::move(glpo),
+					mat,
+					std::forward<float_array_view>(knots),
+					std::forward<byte_array>(vertices) ) );
 }
 
-poly_mesh::poly_mesh(gl::s_program&& po,const material_t& mat,const float* points,std::size_t points_size):
+poly_mesh::poly_mesh(gl::s_program&& po,const material_t& mat,float_array_view&& knots, byte_array&& vertices):
 	surface(),
 	mat_helper_(mat),
 	light_helper_(),
@@ -30,12 +34,12 @@ poly_mesh::poly_mesh(gl::s_program&& po,const material_t& mat,const float* point
 	nrm_ul_(-1),
 	tess_level_ul_(-1),
 	vao_(0),
-	vcount_( points_size / 6 )
+	vertices_( std::forward<byte_array>(vertices) )
 {
 	::glGenVertexArrays(1, &vao_);
 	::glBindVertexArray(vao_);
 
-	gl::s_buffer vbo = gl::buffer::create( points, points_size,
+	gl::s_buffer vbo = gl::buffer::create( knots.get(), knots.size(),
 										   gl::buffer_type::ARRAY_BUFFER, gl::buffer_usage::STATIC_DRAW);
 
 	vbo->bind();
@@ -68,7 +72,7 @@ void poly_mesh::draw(const scene& scn) const
 {
 	::glm::mat4 projection_mat;
 	::glm::mat4 model_view_mat;
-	scn.get_frustum(projection_mat,model_view_mat);
+	scn.world(projection_mat,model_view_mat);
 	::glm::mat4 normal_mat( glm::transpose( glm::inverse(  glm::mat3(model_view_mat) ) ) );
 
 	program_->start();
@@ -89,7 +93,7 @@ void poly_mesh::draw(const scene& scn) const
 
 	::glBindVertexArray(vao_);
 
-	::glDrawArrays(GL_PATCHES, 0, vcount_);
+	::glDrawArrays(GL_PATCHES, 0, 144 );
 
 	// unbind VAO
 	::glBindVertexArray(0);
