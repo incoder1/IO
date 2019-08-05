@@ -218,11 +218,13 @@ s_surface model_loader::load_static_sub_mesh(const collada::s_sub_mesh& sm, cons
 
 	return s_surface(
 			   new geometry_mesh(
-				   mat,
-				   vbo.get(), vbo.len(),
-				   nullptr, vertex_count
-			   )
-		   );
+							sufrace_data(
+									mat,vertex_count,
+				   					util::array_view<float>(vbo.get(),vbo.len()),
+									util::array_view<unsigned int>()
+									)
+								)
+				);
 }
 
 gl::s_texture model_loader::get_texture_by_name(const io::const_string& name)
@@ -270,10 +272,12 @@ s_surface model_loader::load_textured_sub_mesh(const collada::s_sub_mesh& sm, co
 
 	return s_surface(
 			   new textured_mesh(
-				   DEFAULT_MATERIAL,
-				   vbo.get(), vbo.len(),
-				   nullptr, vertex_count,
-				   tex
+					sufrace_data(
+						DEFAULT_MATERIAL, vertex_count,
+						util::array_view<float>(vbo.get(), vbo.len()),
+						util::array_view<unsigned int>()
+					 ),
+					tex
 			   )
 		   );
 }
@@ -309,14 +313,16 @@ s_surface model_loader::load_bummaped_mesh(const collada::s_sub_mesh& sm, const 
 	}
 
 	return s_surface(
-			   new normal_mapped_mesh(
-				   DEFAULT_MATERIAL,
-				   vbo.get(), vbo.len(),
-				   nullptr, vertex_count,
-				   diffuse_tex, bumpmap
+			new normal_mapped_mesh(
+				sufrace_data(
+				   DEFAULT_MATERIAL, vertex_count,
+				   util::array_view<float>(vbo.get(), vbo.len()),
+				   util::array_view<unsigned int>()
+				),
+				diffuse_tex,
+				bumpmap
 			   )
 		   );
-
 }
 
 void model_loader::load_mesh(s_model& dst_mdl,const collada::mesh* src_mesh)

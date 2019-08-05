@@ -2,7 +2,8 @@
 #define __VBO_HPP_INCLUDED__
 
 #include <object.hpp>
-#include <vector>
+
+#include "array_view.hpp"
 #include "openglload.hpp"
 
 namespace gl {
@@ -99,17 +100,15 @@ private:
 	static s_buffer create(const void* data, std::size_t size, buffer_type bt, data_type dt, buffer_usage u);
 public:
 
-	static inline s_buffer create(const unsigned int* data, std::size_t size, buffer_type bt, buffer_usage u)
-	{
-        return create( static_cast<const void*>(data), (size*sizeof(unsigned int)), bt, data_type::UNSIGNED_INT, u);
+	static inline s_buffer create(const util::array_view<unsigned int>& data, buffer_type bt, buffer_usage u) {
+		const void* px =  static_cast<const void*>( data.get() );
+		std::size_t size = data.bytes();
+		return create( px, size, bt, data_type::UNSIGNED_INT , u);
 	}
 
-	static inline s_buffer create(const float* data, std::size_t size, buffer_type bt, buffer_usage u) {
-		return create( static_cast<const void*>(data), (size*sizeof(float)), bt, data_type::FLOAT, u);
-	}
-
-	static inline s_buffer create(const std::vector<float>& data, buffer_type bt, buffer_usage u) {
-		return create( std::addressof( *data.begin() ), data.size(), bt, u);
+	static inline s_buffer create(const util::array_view<float>& data, buffer_type bt, buffer_usage u) {
+		const void* px =  static_cast<const void*>( data.get() );
+		return create( px, data.bytes(), bt, data_type::FLOAT , u );
 	}
 
 	virtual ~buffer() noexcept override;

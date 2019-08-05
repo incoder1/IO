@@ -22,17 +22,17 @@ const char* geometry_mesh::VERTEX_SHADER = "gpu/mesh/geometry_mesh.vertex.glsl";
 const char* geometry_mesh::FRAGMENT_SHADER = "gpu/mesh/geometry_mesh.frag.glsl";
 
 
-geometry_mesh::geometry_mesh(const material_t& mat, const float *vertex, std::size_t vsize,const uint32_t* index,std::size_t isize):
+geometry_mesh::geometry_mesh(sufrace_data&& data):
 	mesh(),
 	program_(),
 	vao_(0),
-	isize_(isize),
-	mat_helper_(mat),
+	vertex_count_( data.vertex_count() ),
+	mat_helper_( data.material() ),
 	light_helper_(),
 	mvp_ul_(-1),
 	mv_ul_(-1),
 	nrm_ul_(-1),
-	elemens_draw_(nullptr != index)
+	elemens_draw_( data.index() )
 {
 	gl::shader vertex_sh = gl::shader::load_glsl(gl::shader_type::vertex,gl::shader_file(VERTEX_SHADER));
 	gl::shader fragment_sh =  gl::shader::load_glsl(gl::shader_type::fragment,gl::shader_file(FRAGMENT_SHADER) );
@@ -43,17 +43,17 @@ geometry_mesh::geometry_mesh(const material_t& mat, const float *vertex, std::si
 	::glBindVertexArray(vao_);
 
 	// bind VBO to VAO
-	 gl::s_buffer vbo = gl::buffer::create( vertex, vsize,
+	 gl::s_buffer vbo = gl::buffer::create(
+							   data.vertex(),
 							   gl::buffer_type::ARRAY_BUFFER,
 							   gl::buffer_usage::STATIC_DRAW
-
 							);
 	vbo->bind();
 	// bind VIO to VAO if we have index
 	// object should exist until vao is unbind
 	gl::s_buffer vio;
 	if( elemens_draw_) {
-		vio = gl::buffer::create( index, isize,
+		vio = gl::buffer::create( data.index(),
 							   gl::buffer_type::ELEMENT_ARRAY_BUFFER,
 							   gl::buffer_usage::STATIC_DRAW );
 		vio->bind();
@@ -100,9 +100,9 @@ void geometry_mesh::draw(const scene& scn) const
 	::glBindVertexArray(vao_);
 	// draw with index, if any
 	if( elemens_draw_ )
-		::glDrawElements(GL_TRIANGLES, isize_, GL_UNSIGNED_INT, nullptr );
+		::glDrawElements(GL_TRIANGLES, vertex_count_, GL_UNSIGNED_INT, nullptr );
 	else
-		::glDrawArrays(GL_TRIANGLES, 0, isize_);
+		::glDrawArrays(GL_TRIANGLES, 0, vertex_count_);
 
 	::glBindVertexArray(0);
 
@@ -119,12 +119,12 @@ const char* colored_geometry_mesh::VERTEX_SHADER = "gpu/mesh/colored_geometry_me
 
 const char* colored_geometry_mesh::FRAGMENT_SHADER = "gpu/mesh/geometry_mesh.frag.glsl";
 
-colored_geometry_mesh::colored_geometry_mesh(const material_t& mat,const float *vertex, std::size_t vsize,const uint32_t* index,std::size_t isize):
+colored_geometry_mesh::colored_geometry_mesh(sufrace_data&& data):
 	mesh(),
 	program_(),
 	vao_(0),
-	isize_(isize),
-	mat_helper_(mat),
+	vertex_count_( data.vertex_count() ),
+	mat_helper_( data.material() ),
 	light_helper_(),
 	mvp_ul_(-1),
 	mv_ul_(-1),
@@ -139,11 +139,11 @@ colored_geometry_mesh::colored_geometry_mesh(const material_t& mat,const float *
 	::glGenVertexArrays(1, &vao_);
 	::glBindVertexArray(vao_);
 
-	gl::s_buffer vbo = gl::buffer::create( vertex, vsize,
+	gl::s_buffer vbo = gl::buffer::create( data.vertex(),
 							   gl::buffer_type::ARRAY_BUFFER,
 							   gl::buffer_usage::STATIC_DRAW
 							 );
-	gl::s_buffer vio = gl::buffer::create( index, isize,
+	gl::s_buffer vio = gl::buffer::create( data.index(),
 							   gl::buffer_type::ELEMENT_ARRAY_BUFFER,
 							   gl::buffer_usage::STATIC_DRAW );
 
@@ -167,10 +167,6 @@ colored_geometry_mesh::colored_geometry_mesh(const material_t& mat,const float *
 
 }
 
-colored_geometry_mesh::colored_geometry_mesh(const float *vertex, std::size_t vsize,const uint32_t* indexes,std::size_t isize):
-	colored_geometry_mesh(DEFAULT_MATERIAL, vertex, vsize,indexes, isize)
-{}
-
 void colored_geometry_mesh::draw(const scene& scn) const
 {
 	::glm::mat4 projection_mat;
@@ -191,7 +187,7 @@ void colored_geometry_mesh::draw(const scene& scn) const
 	mat_helper_.transfer_to_shader();
 
 	::glBindVertexArray(vao_);
-	::glDrawElements(GL_TRIANGLES, isize_ , GL_UNSIGNED_INT, nullptr);
+	::glDrawElements(GL_TRIANGLES, vertex_count_ , GL_UNSIGNED_INT, nullptr);
 	::glBindVertexArray(0);
 
 	program_->stop();
@@ -208,19 +204,19 @@ const char* textured_mesh::VERTEX_SHADER = "gpu/mesh/textured_mesh.vertex.glsl";
 
 const char* textured_mesh::FRAGMENT_SHADER = "gpu/mesh/textured_mesh.frag.glsl";
 
-textured_mesh::textured_mesh(const material_t& mat,const float *vertex, std::size_t vsize,const uint32_t* indexes,std::size_t isize,const gl::s_texture& texture):
+textured_mesh::textured_mesh(sufrace_data&& data,const gl::s_texture& texture):
 	mesh(),
 	program_(),
 	vao_(0),
-	isize_(isize),
+	vertex_count_( data.vertex_count() ),
 	texture_( texture ),
-	mat_helper_(mat),
+	mat_helper_( data.material() ),
 	light_helper_(),
 	mvp_ul_(-1),
 	mv_ul_(-1),
 	nrm_ul_(-1),
 	diffise_tex_ul_(-1),
-	elemens_draw_(nullptr != indexes)
+	elemens_draw_( data.index() )
 {
 	gl::shader vertex_sh = gl::shader::load_glsl(gl::shader_type::vertex,gl::shader_file(VERTEX_SHADER));
 	gl::shader fragment_sh =  gl::shader::load_glsl(gl::shader_type::fragment,gl::shader_file(FRAGMENT_SHADER) );
@@ -229,7 +225,7 @@ textured_mesh::textured_mesh(const material_t& mat,const float *vertex, std::siz
 	::glGenVertexArrays(1, &vao_);
 	::glBindVertexArray(vao_);
 
-	gl::s_buffer vbo = gl::buffer::create( vertex, vsize,
+	gl::s_buffer vbo = gl::buffer::create( data.vertex(),
 							   gl::buffer_type::ARRAY_BUFFER,
 							   gl::buffer_usage::STATIC_DRAW
 							 );
@@ -239,7 +235,7 @@ textured_mesh::textured_mesh(const material_t& mat,const float *vertex, std::siz
 	// object should exist until vao is unbind
 	gl::s_buffer vio;
 	if( elemens_draw_) {
-		vio = gl::buffer::create( indexes, isize,
+		vio = gl::buffer::create( data.index(),
 							   gl::buffer_type::ELEMENT_ARRAY_BUFFER,
 							   gl::buffer_usage::STATIC_DRAW );
 		vio->bind();
@@ -265,20 +261,6 @@ textured_mesh::textured_mesh(const material_t& mat,const float *vertex, std::siz
 	light_helper_.bind_to_shader(program_);
 
 	diffise_tex_ul_ = program_->uniform_location(UNFM_DIFFUSE_TEXTURE);
-}
-
-textured_mesh::textured_mesh(const material_t& mat,const float *vertex, std::size_t vsize,const uint32_t* indexes,std::size_t isize,const s_image& timg):
-	textured_mesh(
-		mat,
-		vertex,
-		vsize,
-		indexes,
-		isize,
-		gl::texture::create_texture2d_from_image(
-				   timg,
-				   gl::texture_filter::LINEAR_MIPMAP_LINEAR)
-		)
-{
 }
 
 void textured_mesh::draw(const scene& scn) const
@@ -308,9 +290,9 @@ void textured_mesh::draw(const scene& scn) const
 	::glBindVertexArray(vao_);
 	// draw with index, if any
 	if( elemens_draw_ )
-		::glDrawElements(GL_TRIANGLES, isize_, GL_UNSIGNED_INT, nullptr );
+		::glDrawElements(GL_TRIANGLES, vertex_count_, GL_UNSIGNED_INT, nullptr );
 	else
-		::glDrawArrays(GL_TRIANGLES, 0, isize_);
+		::glDrawArrays(GL_TRIANGLES, 0, vertex_count_);
 	::glBindVertexArray(0);
 
 	texture_->unbind();
@@ -328,26 +310,22 @@ const char* normal_mapped_mesh::VERTEX_SHADER = "gpu/mesh/normal_mapped_mesh.ver
 
 const char* normal_mapped_mesh::FRAGMENT_SHADER = "gpu/mesh/normal_mapped_mesh.frag.glsl";
 
-normal_mapped_mesh::normal_mapped_mesh(const material_t& mat,
-				const float *vertex,
-				std::size_t vsize,
-				const uint32_t* indexes,
-				std::size_t isize,
+normal_mapped_mesh::normal_mapped_mesh(sufrace_data&& data,
 				const gl::s_texture& difftex,
 				const gl::s_texture& bump_text):
 	mesh(),
 	program_(),
 	vao_(0),
-	isize_(isize),
+	vertex_count_( data.vertex_count() ),
 	diffuse_tex_( difftex ),
 	bumpmap_tex_( bump_text ),
-	mat_helper_(mat),
+	mat_helper_( data.material() ),
 	light_helper_(),
 	mvp_ul_(-1),
 	mv_ul_(-1),
 	diffise_tex_ul_(-1),
 	bump_tex_ul_(-1),
-	elemens_draw_(nullptr != indexes)
+	elemens_draw_( data.index() )
 {
 	gl::shader vertex_sh = gl::shader::load_glsl(gl::shader_type::vertex,gl::shader_file(VERTEX_SHADER));
 	gl::shader fragment_sh =  gl::shader::load_glsl(gl::shader_type::fragment,gl::shader_file(FRAGMENT_SHADER) );
@@ -356,7 +334,7 @@ normal_mapped_mesh::normal_mapped_mesh(const material_t& mat,
 	::glGenVertexArrays(1, &vao_);
 	::glBindVertexArray(vao_);
 
-	gl::s_buffer vbo = gl::buffer::create( vertex, vsize,
+	gl::s_buffer vbo = gl::buffer::create( data.vertex(),
 							   gl::buffer_type::ARRAY_BUFFER,
 							   gl::buffer_usage::STATIC_DRAW
 							 );
@@ -365,7 +343,7 @@ normal_mapped_mesh::normal_mapped_mesh(const material_t& mat,
 	// object should exist until vao is unbind
 	gl::s_buffer vio;
 	if( elemens_draw_) {
-		vio = gl::buffer::create( indexes, isize,
+		vio = gl::buffer::create( data.index(),
 							   gl::buffer_type::ELEMENT_ARRAY_BUFFER,
 							   gl::buffer_usage::STATIC_DRAW );
 		vio->bind();
@@ -393,24 +371,6 @@ normal_mapped_mesh::normal_mapped_mesh(const material_t& mat,
 	diffise_tex_ul_ = program_->uniform_location(UNFM_DIFFUSE_TEXTURE);
 	bump_tex_ul_ = program_->uniform_location(UNFM_BUMPMAP_TEXTURE);
 
-}
-
-
-
-normal_mapped_mesh::normal_mapped_mesh(const material_t& mat,
-				const float *vertex,
-				std::size_t vsize,
-				const uint32_t* indexes,
-				std::size_t isize,
-				const s_image& difftex,const s_image& bump_tex):
-	normal_mapped_mesh(mat,
-						vertex, vsize,
-						indexes, isize,
-						gl::s_texture(),
-						gl::s_texture())
-{
-	diffuse_tex_ = gl::texture::create_texture2d_from_image(difftex, gl::texture_filter::LINEAR_MIPMAP_LINEAR);
-	bumpmap_tex_ = gl::texture::create_texture2d_from_image(bump_tex,gl::texture_filter::NEAREST);
 }
 
 void normal_mapped_mesh::draw(const scene& scn) const
@@ -446,9 +406,9 @@ void normal_mapped_mesh::draw(const scene& scn) const
 	::glBindVertexArray(vao_);
 	// draw with index, if any
 	if( elemens_draw_ )
-		::glDrawElements(GL_TRIANGLES, isize_, GL_UNSIGNED_INT, nullptr );
+		::glDrawElements(GL_TRIANGLES, vertex_count_, GL_UNSIGNED_INT, nullptr );
 	else
-		::glDrawArrays(GL_TRIANGLES, 0, isize_);
+		::glDrawArrays(GL_TRIANGLES, 0, vertex_count_);
 	::glBindVertexArray(0);
 
 	diffuse_tex_->unbind();

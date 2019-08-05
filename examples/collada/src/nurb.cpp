@@ -37,7 +37,7 @@ NURB::NURB(gl::s_program&& po,const material_t& mat,const float* points,std::siz
 	::glGenVertexArrays(1, &vao_);
 	::glBindVertexArray(vao_);
 
-	gl::s_buffer vbo = gl::buffer::create( points, points_size,
+	gl::s_buffer vbo = gl::buffer::create( util::array_view<float>(points, points_size),
 										   gl::buffer_type::ARRAY_BUFFER, gl::buffer_usage::STATIC_DRAW);
 
 	vbo->bind();

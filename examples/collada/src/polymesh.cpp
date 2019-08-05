@@ -39,8 +39,7 @@ poly_mesh::poly_mesh(gl::s_program&& po,const material_t& mat,float_array_view&&
 	::glGenVertexArrays(1, &vao_);
 	::glBindVertexArray(vao_);
 
-	gl::s_buffer vbo = gl::buffer::create( knots.get(), knots.size(),
-										   gl::buffer_type::ARRAY_BUFFER, gl::buffer_usage::STATIC_DRAW);
+	gl::s_buffer vbo = gl::buffer::create( knots, gl::buffer_type::ARRAY_BUFFER, gl::buffer_usage::STATIC_DRAW);
 
 	vbo->bind();
 	gl::shader_program_attribute layout[2] = { {VATTR_CRD,3},{VATTR_NRM,3} };
@@ -82,7 +81,7 @@ void poly_mesh::draw(const scene& scn) const
 	::glUniformMatrix4fv(nrm_ul_, 1, GL_FALSE, glm::value_ptr( normal_mat ) );
 
 	// transfer tesselation level
-	::glUniform1i(tess_level_ul_, 2);
+	::glUniform1i(tess_level_ul_, 4);
 
 	// transfer light
 	light_helper_.transfer_to_shader( scn.light() );

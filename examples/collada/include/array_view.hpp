@@ -12,13 +12,19 @@ class array_view
 			px_(array),
 			size_(size)
 		{}
+		constexpr array_view() noexcept:
+			array_view(nullptr, 0)
+		{}
+		explicit operator bool() const noexcept {
+			return nullptr != px_;
+		}
 		const T* get() const noexcept {
 			return px_;
 		}
-		const std::size_t size() noexcept {
+		const std::size_t size() const noexcept {
 			return size_;
 		}
-		const std::size_t bytes() noexcept {
+		const std::size_t bytes() const noexcept {
 			return sizeof(T) * size_;
 		}
 	protected:

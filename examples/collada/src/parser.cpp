@@ -61,7 +61,10 @@ static std::size_t parse_string_array(const io::const_string& val,float* const t
 
 /// Parses space separated list of unsigned integers
 template<typename T>
-static util::intrusive_array<T> parse_string_array(const io::const_string& val) noexcept
+static util::intrusive_array<T> parse_string_array(
+			const io::const_string& val,
+			typename std::enable_if<std::is_arithmetic<T>::value >::type* = nullptr
+		) noexcept
 {
 	constexpr const char* WHITESPACE = "\t\n\v\f\r ";
 	constexpr const char* DIGIGTS = "1234567890";
@@ -147,7 +150,7 @@ io::const_string parser::get_attr(const io::xml::start_element_event& sev, const
 		emsg.push_back(',');
 		emsg.append( std::to_string( xp_->col() ) );
 		emsg.append("] ");
-		emsg.append(sev.name().local_name().stdstr());
+		emsg.append(sev.name().local_name().data() );
 		emsg.push_back(' ');
 		emsg.append( name );
 		emsg.append(" attribute is mandatory");

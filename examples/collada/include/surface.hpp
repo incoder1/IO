@@ -3,11 +3,42 @@
 
 #include <object.hpp>
 
+#include "array_view.hpp"
 #include "renderer.hpp"
 #include "scene.hpp"
 #include "shader.hpp"
 
 namespace engine {
+
+struct sufrace_data {
+public:
+	constexpr sufrace_data(const material_t& mat,
+							std::size_t vtx_count,
+							util::array_view<float>&& vtx,
+							util::array_view<unsigned int>&& idx) noexcept:
+		material_(mat),
+		vertex_count_(vtx_count),
+		vertex_(std::forward<util::array_view<float> >(vtx)),
+		index_(std::forward<util::array_view<unsigned int> >(idx))
+	{}
+	material_t material() const noexcept {
+		return material_;
+	}
+	std::size_t vertex_count() const noexcept {
+		return vertex_count_;
+	}
+	util::array_view<float> vertex() const noexcept {
+		return vertex_;
+	}
+	util::array_view<unsigned int> index() const noexcept {
+		return index_;
+	}
+private:
+	material_t material_;
+	std::size_t vertex_count_;
+	util::array_view<float> vertex_;
+	util::array_view<unsigned int> index_;
+};
 
 /// Basic 3D primitive type, i.e. base for mesh, polymesh, NURB etc
 class surface: public io::object

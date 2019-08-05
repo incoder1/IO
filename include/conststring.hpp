@@ -25,6 +25,10 @@
 #include <ostream>
 #include <string>
 
+#if defined(__HAS_CPP_17)
+#	include <string_view>
+#endif
+
 namespace io {
 
 
@@ -196,9 +200,18 @@ public:
 		return empty() ? "" : sso() ? detail::short_str(data_) : detail::long_str(data_);
 	}
 
+	/// Returns mutable std::string by deep copying underlying character array
 	inline std::string stdstr() const {
 		return std::string( data(), size() );
 	}
+
+#ifdef __HAS_CPP_17
+	inline std::string_view to_view() const  {
+		return std::string_view( data(), size() );
+	}
+#endif // __HAS_CPP_17
+
+
 
 	/// Converts this string to system UCS-2 ( UTF-16 LE or BE)
 	inline std::u16string convert_to_u16() const {
