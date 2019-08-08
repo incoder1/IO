@@ -151,22 +151,28 @@ static bool is_xml_name_start_char_lo(char32_t ch) noexcept
 	return UNDERSCORE == ch || COLON  == ch || io_isalpha(ch);
 }
 
+template<unsigned int S, unsigned int E>
+static constexpr bool between(char32_t ch) {
+	constexpr unsigned int length = E - S;
+	return (static_cast<unsigned int>(ch)-S) < length;
+}
+
 static bool is_xml_name_start_char(char32_t ch) noexcept
 {
 	// Compiler optimize it better then search array
 	return is_xml_name_start_char_lo(ch) ||
-		   between(0xC0,0xD6, ch)    ||
-		   between(0xD8,0xF6, ch)    ||
-		   between(0xF8,0x2FF,ch)    ||
-		   between(0x370,0x37D,ch)   ||
-		   between(0x37F,0x1FFF,ch)  ||
-		   between(0x200C,0x200D,ch) ||
-		   between(0x2070,0x218F,ch) ||
-		   between(0x2C00,0x2FEF,ch) ||
-		   between(0x3001,0xD7FF,ch) ||
-		   between(0xF900,0xFDCF,ch) ||
-		   between(0xFDF0,0xFFFD,ch) ||
-		   between(0x10000,0xEFFFF,ch);
+		   between<0xC0,0xD6>(ch)     ||
+		   between<0xD8,0xF6>(ch)     ||
+		   between<0xF8,0x2FF>(ch)    ||
+		   between<0x370,0x37D>(ch)   ||
+		   between<0x37F,0x1FFF>(ch)  ||
+		   between<0x200C,0x200D>(ch) ||
+		   between<0x2070,0x218F>(ch) ||
+		   between<0x2C00,0x2FEF>(ch) ||
+		   between<0x3001,0xD7FF>(ch) ||
+		   between<0xF900,0xFDCF>(ch) ||
+		   between<0xFDF0,0xFFFD>(ch)  ||
+		   between<0x10000,0xEFFFF>(ch);
 }
 
 static bool is_xml_name_char(uint32_t ch) noexcept
@@ -175,8 +181,8 @@ static bool is_xml_name_char(uint32_t ch) noexcept
 		   // - | . | U+00B7
 		   is_one_of(ch,0x2D,0x2E,0xB7) ||
 		   is_xml_name_start_char(ch) ||
-		   between(0x0300,0x036F,ch)  ||
-		   between(0x203F,0x2040,ch);
+		   between<0x0300,0x036F>(ch)  ||
+		   between<0x203F,0x2040>(ch);
 }
 
 #endif // __GNUG__
