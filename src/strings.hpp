@@ -83,11 +83,6 @@ inline const char* find_delimiter(const char* where, const char* delimitters) no
 	return io_strpbrk( where, delimitters);
 }
 
-// [A-Z] or [a-z] or [0-9] etc
-//constexpr bool between(uint32_t first, uint32_t last, uint32_t ch) noexcept
-//{
-//	return ( ch >= first ) && ( ch <= last  );
-//}
 
 static constexpr const unsigned int BITS = sizeof(unsigned int) * CHAR_BIT;
 static constexpr const unsigned int ALBT_SIZE = 26;
@@ -96,34 +91,40 @@ static constexpr const unsigned int LAT_A_C = static_cast<unsigned int>('A');
 static constexpr const unsigned int ZERRO = static_cast<unsigned int>('0');
 static constexpr const char UPPER_LOWER_MASK = 0x5F;
 
-constexpr bool is_alpha(const char ch) noexcept
+template<typename char_t>
+constexpr bool is_alpha(const char_t ch) noexcept
 {
 	return ( (static_cast<unsigned int>(ch) | BITS ) - LAT_A) < ALBT_SIZE;
 }
 
-constexpr bool is_digit(const char ch) noexcept {
+template<typename char_t>
+constexpr bool is_digit(const char_t ch) noexcept {
 	return (static_cast<unsigned int>(ch)-ZERRO) < 10;
 }
 
-constexpr bool is_alnum(const char ch) noexcept
+template<typename char_t>
+constexpr bool is_alnum(const char_t ch) noexcept
 {
 	return is_alpha(ch) || is_digit(ch);
 }
 
 // capital  unicode-ASCII-latin1 [A-Z]
-static constexpr bool is_uppercase_latin1(const char ch) noexcept
+template<typename char_t>
+static constexpr bool is_uppercase_latin1(const char_t ch) noexcept
 {
 	return  (static_cast<unsigned int>(ch)-LAT_A_C) < ALBT_SIZE;
 }
 
 // unicode-ASCII-latin1 [a-z]
-static constexpr bool is_lowercase_latin1(const char ch) noexcept
+template<typename char_t>
+static constexpr bool is_lowercase_latin1(const char_t ch) noexcept
 {
 	return (static_cast<unsigned int>(ch)-LAT_A) < ALBT_SIZE;
 }
 
 // [A-Z,a-z]
-static constexpr bool is_latin1(const char ch) noexcept
+template<typename char_t>
+static constexpr bool is_latin1(const char_t ch) noexcept
 {
 	return is_lowercase_latin1( ch ) || is_uppercase_latin1( ch );
 }

@@ -144,20 +144,18 @@ static bool is_xml_name_char(uint32_t ch) noexcept
 
 #else
 
-static bool is_xml_name_start_char_lo(char32_t ch) noexcept
+static constexpr bool is_xml_name_start_char_lo(char32_t ch) noexcept
 {
 	// _ | :
-	constexpr int UNDERSCORE = 0x5F;
-	return UNDERSCORE == ch || COLON  == ch || io_isalpha(ch);
+	return is_one_of(ch, U"_", U":") || is_alpha( ch );
 }
 
-template<unsigned int S, unsigned int E>
+template<unsigned int S, unsigned int E, unsigned int L = (E - S)>
 static constexpr bool between(char32_t ch) {
-	constexpr unsigned int length = E - S;
-	return (static_cast<unsigned int>(ch)-S) < length;
+	return (static_cast<unsigned int>(ch)-S) < L;
 }
 
-static bool is_xml_name_start_char(char32_t ch) noexcept
+static constexpr bool is_xml_name_start_char(char32_t ch) noexcept
 {
 	// Compiler optimize it better then search array
 	return is_xml_name_start_char_lo(ch) ||
@@ -175,9 +173,9 @@ static bool is_xml_name_start_char(char32_t ch) noexcept
 		   between<0x10000,0xEFFFF>(ch);
 }
 
-static bool is_xml_name_char(uint32_t ch) noexcept
+static constexpr bool is_xml_name_char(char32_t ch) noexcept
 {
-	return io_isdigit(ch) ||
+	return is_digit(ch) ||
 		   // - | . | U+00B7
 		   is_one_of(ch,0x2D,0x2E,0xB7) ||
 		   is_xml_name_start_char(ch) ||
