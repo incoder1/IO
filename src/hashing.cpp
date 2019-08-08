@@ -358,6 +358,7 @@ static uint64_t hash(const uint8_t* s, std::size_t count) noexcept
 
 #ifndef IO_CPU_BITS_64
 
+// TODO: Use City32
 std::size_t IO_PUBLIC_SYMBOL hash_bytes(const uint8_t* bytes, std::size_t count) noexcept
 {
 	if( io_unlikely(nullptr == bytes || 0 == count ) )

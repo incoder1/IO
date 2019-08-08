@@ -78,7 +78,7 @@ void file::posix_to_windows(std::wstring& path) noexcept
     if('\\' == path[0] ) {
     	// set drive latter, if exist
 		wchar_t drive = std::towupper( path[1] );
-		if( drive >= L'A' && drive <= L'Z' ) {
+		if( std::iswalpha(drive) ) {
 			path[0] = drive;
 			path[1] = L':';
 		}
@@ -113,8 +113,9 @@ file::file(const std::wstring& name):
 				name_.append(full_path, 0, path_size);
 			name_.shrink_to_fit();
 		}
+		// Close file handle
 		::CloseHandle(hnd);
-		// delete if it was not exist
+		// delete the file if it wasn't exist before
 		if(!existen_file)
 			::DeleteFileW( full_path );
     }

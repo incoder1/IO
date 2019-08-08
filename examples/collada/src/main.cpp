@@ -108,22 +108,14 @@ int main(int argc, const char** argv)
 
 			engine::s_model mdl( new engine::model() );
 
-			const uint8_t poly[6] = {4,4,4,4,4,4};
-			engine::s_surface cube = engine::poly_mesh::create(
-								engine::DEFAULT_MATERIAL,
-								engine::float_array_view(CUBE, 144),
-								engine::byte_array( poly, 6 )
-						);
-			mdl->add_surface( std::move(cube) );
-
 			//engine::s_surface nurb = engine::NURB::create(engine::DEFAULT_MATERIAL,quad, 48, 16, 4);
 			//mdl->add_surface( std::move(nurb) );
 
-//#ifdef __IO_WINDOWS_BACKEND__
-//			load_collada_model(mdl, open_file_dialog() );
-//#else
-//			load_collada_model(mdl, io::file(argv[1]) );
-//#endif
+#ifdef __IO_WINDOWS_BACKEND__
+			load_collada_model(mdl, open_file_dialog() );
+#else
+			load_collada_model(mdl, io::file(argv[1]) );
+#endif
 			view.show( mdl );
 			return 0;
 		}

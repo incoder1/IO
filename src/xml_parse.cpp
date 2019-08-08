@@ -153,6 +153,7 @@ static bool is_xml_name_start_char_lo(char32_t ch) noexcept
 
 static bool is_xml_name_start_char(char32_t ch) noexcept
 {
+	// Compiler optimize it better then search array
 	return is_xml_name_start_char_lo(ch) ||
 		   between(0xC0,0xD6, ch)    ||
 		   between(0xD8,0xF6, ch)    ||
@@ -184,29 +185,28 @@ static bool is_xml_name_char(uint32_t ch) noexcept
 // Check XML name is correct according XML syntax
 static error check_xml_name(const char* tn) noexcept
 {
-	const char* c = tn;
 	// name can not start from digit
-	if( io_unlikely( ('\0' == *c) || io_isdigit(*c) ) )
+	if( io_unlikely( ('\0' == *tn) || io_isdigit(*tn) ) )
 		return error::illegal_name;
 	uint32_t utf32c;
-	while( '\0' != *c ) {
+	while( '\0' != *tn ) {
 		// decode UTF-8 symbol to UTF-32 to check name
-		switch( utf8::mblen(c) ) {
+		switch( utf8::mblen(tn) ) {
 		case io_likely(1):
-			utf32c = static_cast<uint32_t>( char8_traits::to_int_type(*c) );
-			++c;
+			utf32c = static_cast<uint32_t>( char8_traits::to_int_type(*tn) );
+			++tn;
 			break;
 		case 2:
-			utf32c = utf8::decode2( c );
-			c += 2;
+			utf32c = utf8::decode2( tn );
+			tn += 2;
 			break;
 		case 3:
-			utf32c = utf8::decode3( c );
-			c += 3;
+			utf32c = utf8::decode3( tn );
+			tn += 3;
 			break;
 		case 4:
-			utf32c = utf8::decode4( c );
-			c += 4;
+			utf32c = utf8::decode4( tn );
+			tn += 4;
 			break;
 		default:
 			return error::illegal_name;
@@ -749,16 +749,16 @@ attribute event_stream_parser::extract_attribute(const char* from, std::size_t& 
 		assign_error(error::out_of_memory);
 		return attribute();
 	}
-	char *v = const_cast<char*>( value.data() );
 	// normalize attribute value
 	// replace any white space characters to space character
 	// according to W3C XML spec
+	char *v = const_cast<char*>( value.data() );
+	constexpr const char* NOT_SPACE_WS = "\t\n\v\f\r";
 	do {
-		if( between('\t','\r',*v) )
-			*v = ' ';
-	}
-	while('\0' != *v++);
-
+	 	v += io_strcspn(v,NOT_SPACE_WS);
+	 	if('\0' != *v)
+        	*v = ' ';
+	} while( '\0' != *v );
 	len = str_size(from, ++i);
 	return attribute( qname( std::move(np), std::move(ln) ), std::move(value) );
 }
