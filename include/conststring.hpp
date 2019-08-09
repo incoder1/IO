@@ -50,6 +50,7 @@ struct long_char_buf_t {
 	utf8char* char_buf;
 };
 
+// two bytes reserver to SSO flag and size
 static constexpr std::size_t SSO_MAX = sizeof(long_char_buf_t) - 2;
 
 struct short_char_buf_t {
@@ -86,7 +87,7 @@ constexpr const char* short_str(const sso_variant_t& v) noexcept
 
 inline const char* long_str(const sso_variant_t& v) noexcept
 {
-	return reinterpret_cast<char*>( v.long_buf.char_buf + sizeof(std::size_t) );
+	return reinterpret_cast<char*>(v.long_buf.char_buf) + sizeof(std::size_t);
 }
 
 
@@ -206,11 +207,10 @@ public:
 	}
 
 #ifdef __HAS_CPP_17
-	inline std::string_view to_view() const  {
+	inline std::string_view get_view() const  {
 		return std::string_view( data(), size() );
 	}
 #endif // __HAS_CPP_17
-
 
 
 	/// Converts this string to system UCS-2 ( UTF-16 LE or BE)
@@ -262,7 +262,6 @@ public:
 		return compare( rhs ) > 0;
 	}
 
-
 	inline bool equal(const char* rhs) const noexcept {
 		return equal( rhs, nullptr != rhs ? traits_type::length(rhs) : 0 );
 	}
@@ -278,15 +277,12 @@ public:
 
 private:
 
+	inline bool ptr_equal(const const_string& rhs) const noexcept {
+		return (this == std::addressof(rhs) ) || ( !sso() && !rhs.sso() && data_.long_buf.char_buf == rhs.data_.long_buf.char_buf);
+	}
+
 	int compare(const const_string& rhs) const noexcept {
-		if( this == std::addressof(rhs) ||
-			( !sso() && !rhs.sso()
-			   &&
-			   data_.long_buf.char_buf == rhs.data_.long_buf.char_buf
-			)
-		)
-			return 0;
-		else if( empty() && rhs.empty() )
+		if( ( empty() && rhs.empty() ) || ptr_equal(rhs) )
 			return 0;
 		else if( size() == rhs.size() )
 			return traits_type::compare( data(), rhs.data(), size() );

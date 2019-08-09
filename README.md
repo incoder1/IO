@@ -206,9 +206,9 @@ Build result can be found at _target/release-unix-gcc-so-x86_64_ subfolder.
 ### EXAMPLES
 Code examples can be found examples sub-folder. 
 Where:
-    - xmlparse – XML parsing with event API, prints into console XML or any type
-    - xml_parse_to_structures - reads XML of known sturcture into C++ structures with cursor API
-    - write_structures_to_xml – compile time reflection plain C object XML marshalling and XSD generation example	
-    - chconv – converting characters between different code pages example 
-    - iostreams – writes UNICODE strings into file and console with reconverting characters between multiple UNICODE representation, using C++ iostreams build on top of IO channels.
-    - collada - limited set of [COLLADA](https://www.khronos.org/collada/) 3D model OpenGL 4+ based viewer. Contans even based collada parser and simple 3D graphical engine. 
+* xmlparse – XML parsing with event API, prints into console XML or any type
+* xml_parse_to_structures - reads XML of known sturcture into C++ structures with cursor API
+* write_structures_to_xml – compile time reflection plain C object XML marshalling and XSD generation example	
+* chconv – converting characters between different code pages example 
+* iostreams – writes UNICODE strings into file and console with reconverting characters between multiple UNICODE representation, using C++ iostreams build on top of IO channels.
+* collada - limited set of [COLLADA](https://www.khronos.org/collada/) 3D model OpenGL 4+ based viewer. Contans even based collada parser and simple 3D graphical engine. 

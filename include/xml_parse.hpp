@@ -62,11 +62,11 @@ DECLARE_IPTR(event_stream_parser);
 class IO_PUBLIC_SYMBOL event_stream_parser:public object {
 private:
 
-	/// \brief XML parser state
+	// XML parser state
 	struct state {
-		/// Current XML parsing error code
+		// Current XML parsing error code
 		error ec;
-		/// Current XML parsing state
+		// Current XML parsing state
 		state_type current;
 		constexpr state(error errcd, state_type state) noexcept:
 			ec(errcd),

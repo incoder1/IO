@@ -117,6 +117,25 @@ end_element_event reader::next_tag_end(std::error_code& ec) noexcept
 }
 
 
+start_element_event reader::next_expected_tag_begin(std::error_code& ec, const char* nmp, const char* local_name) noexcept
+{
+	start_element_event ret = next_tag_begin(ec);
+	if(!ec && !is_element(ret, nmp, local_name) ) {
+		ec = std::make_error_code(error::invalid_state);
+	}
+	return ret;
+}
+
+end_element_event reader::next_expected_tag_end(std::error_code& ec, const char* nmp, const char* local_name) noexcept
+{
+	end_element_event ret = next_tag_end(ec);
+	if(!ec && !is_element(ret, nmp, local_name) ) {
+		ec = std::make_error_code(error::invalid_state);
+	}
+	return ret;
+}
+
+
 const_string reader::next_characters(std::error_code& ec) noexcept
 {
 	if(state_type::characters != state_ && state_type::cdata != state_) {
