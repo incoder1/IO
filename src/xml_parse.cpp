@@ -147,7 +147,7 @@ static bool is_xml_name_char(uint32_t ch) noexcept
 static constexpr bool is_xml_name_start_char_lo(char32_t ch) noexcept
 {
 	// _ | :
-	return is_one_of(ch, U"_", U":") || is_alpha( ch );
+	return is_one_of(ch, U'_', U':') || is_alpha( ch );
 }
 
 template<unsigned int S, unsigned int E, unsigned int L = (E - S)>
