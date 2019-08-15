@@ -89,6 +89,10 @@ static constexpr const unsigned int ALBT_SIZE = 26;
 static constexpr const unsigned int LAT_A = static_cast<unsigned int>('a');
 static constexpr const unsigned int LAT_A_C = static_cast<unsigned int>('A');
 static constexpr const unsigned int ZERRO = static_cast<unsigned int>('0');
+static constexpr const unsigned int SPACE = static_cast<unsigned int>(' ');
+static constexpr const unsigned int TAB = static_cast<unsigned int>('\t');
+static constexpr const unsigned int WHITE_SPACES_COUNT = 5;
+
 static constexpr const char UPPER_LOWER_MASK = 0x5F;
 
 template<typename char_t>
@@ -106,6 +110,11 @@ template<typename char_t>
 constexpr bool is_alnum(const char_t ch) noexcept
 {
 	return is_alpha(ch) || is_digit(ch);
+}
+
+template<typename char_t>
+constexpr bool is_space(const char_t ch) noexcept {
+	return SPACE == static_cast<unsigned int>(ch) || (static_cast<unsigned int>(ch) - TAB) < WHITE_SPACES_COUNT;
 }
 
 // capital  unicode-ASCII-latin1 [A-Z]

@@ -41,7 +41,7 @@ static constexpr const int QM = 63; // '?'
 
 static inline bool is_prologue(const char *s) noexcept
 {
-	return start_with(s, PROLOGUE, 3) && io_isspace( s[3] );
+	return start_with(s, PROLOGUE, 3) && is_space( s[3] );
 }
 
 static inline bool is_comment(const char *s) noexcept
@@ -272,7 +272,7 @@ event_stream_parser::event_stream_parser(s_source&& src, s_string_pool&& pool) n
 	do {
 		c = next();
 	}
-	while( io_isspace(c) && error_state_ok() );
+	while( is_space(c) && error_state_ok() );
 
 	if( io_unlikely( !cheq(c,LEFTB) ) ) {
 		assign_error(error::illegal_markup);
@@ -572,8 +572,7 @@ void event_stream_parser::skip_comment() noexcept
 	if(state_type::comment != state_.current) {
 		assign_error(error::invalid_state);
 		return;
-	}
-	if( scan_failed() ) {
+	} else if( scan_failed() ) {
 		assign_error(error::illegal_commentary);
 		return;
 	}
@@ -583,7 +582,7 @@ void event_stream_parser::skip_comment() noexcept
 	char c;
 	do {
 		c = next();
-		hw = pack_word(hw, c );
+		hw = pack_word(hw, c);
 	}
 	while( double_hyphen != hw && io_likely( !is_eof(c) && error_state_ok() ) );
 	if( !cheq(RIGHTB, next() ) )
@@ -641,7 +640,7 @@ const_string event_stream_parser::read_chars() noexcept
 	}
 	// just "\s<" in scan stack
 	//const char *i = io_strchr(scan_buf_+1, RIGHTB);
-	if( io_isspace(scan_buf_[0]) && cheq(scan_buf_[1],RIGHTB) ) {
+	if( is_space(scan_buf_[0]) && cheq(scan_buf_[1],RIGHTB) ) {
 		io_memmove(scan_buf_, "<", 2);
 		return const_string(scan_buf_, 1);
 	}
@@ -829,7 +828,7 @@ start_element_event event_stream_parser::parse_start_element() noexcept
 	start_element_event result( std::move(name), empty_element );
 	// extract attributes if any
 	const char *left =  buff.position().cdata() + len;
-	if( io_isspace(*left) && error_state_ok() ) {
+	if( is_space(*left) && error_state_ok() ) {
 		std::size_t offset;
 		attribute attr = extract_attribute(left,offset);
 		while( (0 < offset) && error_state_ok() ) {
@@ -923,7 +922,6 @@ void event_stream_parser::s_comment_cdata_or_dtd() noexcept
 	}
 }
 
-
 void event_stream_parser::s_entity() noexcept
 {
 	scan_buf_[1] = next();
@@ -940,7 +938,7 @@ void event_stream_parser::s_entity() noexcept
 		s_instruction_or_prologue();
 		break;
 	default:
-		if( io_likely( !io_isspace(second) ) ) {
+		if( io_likely( !is_space(second) ) ) {
 			state_.current = state_type::event;
 			current_ = event_type::start_element;
 		}

@@ -209,8 +209,7 @@ char source::next() noexcept
 	}
 
 	unsigned int len = utf8::mblen( pos_ );
-	char ret = *pos_;
-	++pos_;
+	char ret = *pos_++;
 	switch( len ) {
 	case io_likely(1):
 		ret = normalize_line_endings( ret );
