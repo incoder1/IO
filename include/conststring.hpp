@@ -22,7 +22,7 @@
 #include <cstring>
 #include <cctype>
 #include <functional>
-#include <ostream>
+#include <iosfwd>
 #include <string>
 
 #if defined(__HAS_CPP_17)
@@ -45,7 +45,7 @@ struct long_char_buf_t {
 	// since most systems have much less memory then CPU can address
 	// so use signbit as align for sso boolean
 	std::size_t sso: 1;
-	std::size_t size: (sizeof(std::size_t)*CHAR_BIT - 1);
+	std::size_t size: (sizeof(std::size_t)*CHAR_BIT) - 1;
 	// layout for string is {reference_counter:size_t}{char_data}{'\0'}
 	utf8char* char_buf;
 };
@@ -63,8 +63,7 @@ struct short_char_buf_t {
 
 // Packs small strings into char array instead of allocating heap value
 // whenever possible
-// 16 bytes for most known compilers
-// tested with GCC, clang, intel and ms vc++ 17
+// 16 bytes for most known 64-bit or 8 bytes for 32-bit target architecture
 union sso_variant_t {
 	long_char_buf_t long_buf;
 	short_char_buf_t short_buf;
@@ -152,11 +151,7 @@ public:
 	/// \throw never throws, constructs empty string if no free memory left
 	const_string(const char* str, std::size_t length) noexcept;
 
-	~const_string() noexcept
-	{
-		if( !empty() && !sso() )
-			long_buf_release(data_);
-	}
+	~const_string() noexcept;
 
 	/// Deep copy a continues memory block (character array)
 	/// \param first pointer on memory block begin
@@ -202,8 +197,8 @@ public:
 	}
 
 	/// Returns mutable std::string by deep copying underlying character array
-	inline std::string stdstr() const {
-		return std::string( data(), size() );
+	inline std::string get_mutable() const {
+		return empty() ? std::string() : std::string( data(), size() );
 	}
 
 #ifdef __HAS_CPP_17

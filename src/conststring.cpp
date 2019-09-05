@@ -62,5 +62,10 @@ const_string::const_string(const char* str, std::size_t length) noexcept:
 		init_long(data_, new_size, str, length);
 }
 
+const_string::~const_string() noexcept
+{
+	if( !empty() && !sso() )
+		long_buf_release(data_);
+}
 
 } // namespace io

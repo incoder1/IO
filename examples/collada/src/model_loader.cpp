@@ -233,14 +233,12 @@ gl::s_texture model_loader::get_texture_by_name(const io::const_string& name)
 	if( textures_.end() != it)
 		return it->second;
 	// load texture and put int into pool
-	// TODO: Add path from base directory
-	std::string path = src_.path();
-	constexpr char PATH_SEP = io::file::separator();
-	std::string base_dir = path.substr(0, path.rfind( PATH_SEP ) + 1 );
-	io::file image_file( base_dir + name.stdstr() );
+	const std::string path = src_.path();
+	std::string base_dir = path.substr(0, path.rfind( io::file::separator() ) + 1 );
+	io::file image_file( base_dir.append( name.data() ) );
 
 	if( !image_file.exist() )
-		throw std::runtime_error( name.stdstr().append(" file is not found") );
+		throw std::runtime_error( name.get_mutable().append(" file is not found") );
 
 	// TODO: Load different types of images according file extension
 	s_image timg = engine::load_png_rgba(image_file, true);
