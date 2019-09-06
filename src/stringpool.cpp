@@ -1,6 +1,6 @@
 /*
  *
- * Copyright (c) 2016
+ * Copyright (c) 2016-2019
  * Viktor Gubin
  *
  * Use, modification and distribution are subject to the
@@ -13,95 +13,61 @@
 
 namespace io {
 
-// cached_string
-
-cached_string::cached_string(const cached_string& other) noexcept:
-    data_( other.data_ )
-{
-    if(nullptr != data_)
-        // increase reference count
-        intrusive_add_ref(data_);
-}
-
-
-cached_string::cached_string(const char* str, std::size_t length) noexcept:
-    data_(nullptr)
-{
-    assert(nullptr != str && length > 0);
-    data_ = memory_traits::malloc_array<uint8_t>( sizeof(std::size_t) + length + 1 );
-    if(nullptr != data_) {
-        // set initial intrusive atomic reference count
-        std::size_t *rc = reinterpret_cast<std::size_t*>(data_);
-        *rc = 1;
-        // copy string data
-        char *b = reinterpret_cast<char*>( data_ + sizeof(std::size_t) );
-        traits_type::copy(b, str, length);
-    }
-}
-
-cached_string::~cached_string() noexcept
-{
-    if(nullptr != data_ && intrusive_release(data_) )
-        memory_traits::free(data_);
-}
-
-bool cached_string::blank() const noexcept
-{
-    if( nullptr != data_ ) {
-        char *c;
-        for(c = const_cast<char*>( data() ); io_isspace(*c); c++);
-        return '\0' == *c;
-    }
-    return true;
-}
-
 
 // string_pool
 s_string_pool string_pool::create(std::error_code& ec) noexcept
 {
-    string_pool* result = new (std::nothrow) string_pool();
-    return nullptr != result ? s_string_pool(result) : s_string_pool();
+	string_pool* result = new (std::nothrow) string_pool();
+	return nullptr != result ? s_string_pool(result) : s_string_pool();
 }
 
 string_pool::string_pool() noexcept:
-    object(),
-    pool_()
-{}
+	object(),
+	pool_()
+{
+}
 
 string_pool::~string_pool() noexcept
-{}
+{
+}
 
 const cached_string string_pool::get(const char* s, std::size_t count) noexcept
 {
-    if( io_unlikely( (nullptr == s || '\0' == *s || count == 0 ) ) )
-        return cached_string();
+	typedef pool_type::value_type pair_type;
 
-    const std::size_t str_hash = io::hash_bytes(s,count);
-    pool_type::const_iterator it = pool_.find( str_hash );
-    if( it != pool_.end() ) {
-        std::size_t i = pool_.count( str_hash );
-        if( io_unlikely(i > 1) ) {
-            do {
-                if( it->second.equal(s, count) )
-                    break;
-                ++it;
-            }
-            while( --i > 0 );
-        }
-        return it->second;
-    }
+	if( io_unlikely( (nullptr == s || '\0' == *s || count == 0 ) ) )
+		return cached_string();
+	if( count > detail::SSO_MAX ) {
+		const std::size_t str_hash = io::hash_bytes(s,count);
+		pool_type::iterator it = pool_.find( str_hash );
+		if( it != pool_.end() ) {
+			// handle hash-miss collision
+			// more likely never happens, since City Hash
+			if( io_unlikely( pool_.count( str_hash ) > 1 ) ) {
+				auto its = pool_.equal_range( str_hash );
+				it = std::find_if(its.first, its.second, [s,count] (const pair_type& entry) {
+					return entry.second.equal(s, count);
+				} );
+			}
+			return it->second;
+		}
 #ifndef IO_NO_EXCEPTIONS
-    try {
-        std::pair<pool_type::iterator,bool> ret = pool_.emplace( str_hash, cached_string(s, count) );
-        return ret.second ? ret.first->second : cached_string(s, count);
-    }
-    catch(...) {
-        return cached_string(s, count);
-    }
-#else
-    std::pair<pool_type::iterator,bool> ret = pool_.emplace( str_hash, cached_string(s, count) );
-    return ret.second ? ret.first->second : cached_string(s, count);
+		try {
 #endif // IO_NO_EXCEPTIONS
+			std::pair<pool_type::iterator,bool> ret = pool_.emplace( str_hash, cached_string(s, count) );
+			if( io_likely( ret.second ) )
+				return ret.first->second;
+#ifndef IO_NO_EXCEPTIONS
+		}
+		catch(std::exception&) {
+			// skip out of memory, and return string as it is
+			// i.e. empty string
+		}
+#endif // IO_NO_EXCEPTIONS
+	}
+	// no problem on SSO string, it should not be pulled since
+	// all data stored inside string object it self
+	return cached_string(s, count);
 }
 
 

@@ -18,8 +18,9 @@
 #endif // HAS_PRAGMA_ONCE
 
 #include <cerrno>
-#include <text.hpp>
 #include <string>
+
+#include <text.hpp>
 
 #ifdef __LP64__
 
@@ -27,7 +28,7 @@ extern "C" __off64_t lseek64 (int __fd, __off64_t __offset, int __whence) __THRO
 
 typedef ::__off64_t file_offset_t;
 
-static inline file_offset_t lseek_syscall(int __fd, __off64_t __offset, int __whence) {
+static inline file_offset_t lseek_syscall(int __fd, __off64_t __offset, int __whence) noexcept {
 	return ::lseek64(__fd, __offset, __whence );
 }
 
@@ -36,7 +37,7 @@ static inline file_offset_t lseek_syscall(int __fd, __off64_t __offset, int __wh
 extern "C" off_t lseek(int fd, __off_t offset, int whence);
 typedef ::__off_t file_offset_t;
 
-static inline file_offset_t lseek_syscall(int __fd, __off_t __offset, int __whence) {
+static inline file_offset_t lseek_syscall(int __fd, __off_t __offset, int __whence) noexcept {
 	return ::lseek(__fd, __offset, __whence );
 }
 
@@ -92,12 +93,25 @@ enum class write_open_mode
 /// \brief File system file operations interface, POSIX implementation
 class IO_PUBLIC_SYMBOL file
 {
-
 public:
 
-	explicit file(const char* name) noexcept;
+	static constexpr char separator() noexcept {
+		return '/';
+	}
 
-	explicit file(const wchar_t* name) noexcept;
+	explicit file(const std::string& name);
+
+	explicit file(const std::wstring& name);
+
+	file(const file& c):
+		 name_( c.name_ )
+	{}
+
+	file& operator=(const file& rhs)
+	{
+		file( rhs ).swap( *this );
+		return *this;
+	}
 
     file(file&& oth) noexcept:
 		name_( std::move(oth.name_) )
@@ -105,12 +119,15 @@ public:
 
 	file& operator=(file&& rhs) noexcept
 	{
-		file tmp( std::forward<file>(rhs) );
-		std::swap(name_, tmp.name_);
+		file( std::forward<file>(rhs) ).swap( *this );
 		return *this;
 	}
 
 	~file() noexcept = default;
+
+    inline void swap(file& oth) noexcept {
+		name_.swap( oth.name_ );
+	}
 
 	/// Returns true when file with this path exist
 	/// \return whether file exist
@@ -125,21 +142,20 @@ public:
 	std::size_t size() const noexcept;
 
 	/// Returns UCS-4 encoded file path
-	inline std::wstring wpath()  {
-        return transcode_to_ucs( name_.get(), std::strlen( name_.get() ) );
+	inline std::wstring wpath() const {
+		std::string p = path();
+        return transcode_to_ucs( p.data(), p.length() );
 	}
 
 	/// Returns UTF-8 encoded file path
-	inline std::string path() {
-		return std::string(name_.get());
-	}
+	std::string path() const;
 
 	/// Opens blocking read channel from this file
 	/// \param ec
 	///    operation error code, contains error when file is not exist or can not be opened
 	///    or out of memory state
 	/// \throw never throws
-	s_read_channel open_for_read(std::error_code& ec) noexcept;
+	s_read_channel open_for_read(std::error_code& ec) const noexcept;
 
 	/// Opens blocking write channel from this file
 	/// \param ec
@@ -148,7 +164,7 @@ public:
 	/// \param mode
 	///    writing mode \see write_open_mode
 	/// \throw never throws
-	s_write_channel open_for_write(std::error_code& ec, write_open_mode mode) noexcept;
+	s_write_channel open_for_write(std::error_code& ec, write_open_mode mode) const noexcept;
 
 	/// Opens blocking read/write and random access channel from this file
 	/// \param ec
@@ -157,9 +173,9 @@ public:
 	/// \param mode
 	///    writing mode \see write_open_mode
 	/// \throw never throws
-	s_random_access_channel open_for_random_access(std::error_code& ec, write_open_mode mode) noexcept;
+	s_random_access_channel open_for_random_access(std::error_code& ec, write_open_mode mode) const noexcept;
 private:
-	scoped_arr<char> name_;
+	std::string name_;
 };
 
 } // namespace io

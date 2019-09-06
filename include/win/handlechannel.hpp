@@ -39,7 +39,7 @@ class handle_channel {
 	handle_channel& operator=(handle_channel&) = delete;
 public:
 
-	constexpr handle_channel(::HANDLE hnd) noexcept:
+	constexpr explicit handle_channel(::HANDLE hnd) noexcept:
 		hnd_(hnd)
 	{}
 
@@ -51,54 +51,41 @@ public:
 	inline std::size_t read(std::error_code& err, uint8_t* const buff, std::size_t bytes) const noexcept
 	{
 		::DWORD result;
-		if( ! ::ReadFile(hnd_, void_cast(buff), bytes, &result, nullptr) )
+		if( ! ::ReadFile(hnd_, void_cast(buff), static_cast<DWORD>(bytes), &result, nullptr) )
 			err.assign(::GetLastError(), std::system_category() );
 		return result;
-	}
-
-	inline void asynch_read(::LPOVERLAPPED const ovrlp, uint8_t* const to, std::size_t bytes) const noexcept
-	{
-		 std::error_code ec;
-		::BOOL errorCode = ::ReadFile(
-								hnd_,
-								void_cast( to ),
-								bytes,
-								NULL, ovrlp);
-		::DWORD lastError = ::GetLastError();
-		if( !errorCode && ERROR_IO_PENDING != lastError )
-			ec.assign( lastError, std::system_category() );
 	}
 
 	inline std::size_t write(std::error_code& err, const uint8_t* buff,std::size_t size) const noexcept
 	{
 		::DWORD result;
-		if ( ! ::WriteFile(hnd_, void_cast(buff), size, &result, nullptr) )
+		if ( ! ::WriteFile(hnd_, void_cast(buff), static_cast<::DWORD>(size), &result, nullptr) )
 			err.assign(::GetLastError(), std::system_category() );
 		return result;
 	}
 
-	inline void asynch_write(::LPOVERLAPPED const ovrlp,const uint8_t* what, std::size_t len) const noexcept
-	{
-		 std::error_code ec;
-		::BOOL errorCode = ::WriteFile(
-								hnd_,
-								void_cast( what ),
-								len,
-								NULL, ovrlp);
-		::DWORD lastError = ::GetLastError();
-		if( !errorCode && ERROR_IO_PENDING != lastError )
-			ec.assign( lastError, std::system_category() );
-	}
 
-
-	inline uint64_t seek(std::error_code err,whence_type whence,int64_t offset)
+#ifdef IO_CPU_BITS_64
+	int64_t seek(std::error_code& err, whence_type whence, int64_t dist) noexcept
 	{
 		::LARGE_INTEGER li;
-		li.QuadPart = offset;
-		if( !::SetFilePointerEx(hnd_, li, &li, static_cast<::DWORD>(whence) ) )
+		li.QuadPart = dist;
+		if( !::SetFilePointerEx(hnd_, li, &li, static_cast<::DWORD>(whence) ) ) {
 			err.assign(::GetLastError(), std::system_category() );
+		}
 		return li.QuadPart;
 	}
+#else
+	long seek(std::error_code& err, whence_type whence, long dist) noexcept
+	{
+		::LARGE_INTEGER li;
+		li.QuadPart = dist;
+		if( !::SetFilePointerEx(hnd_, li, &li, static_cast<::DWORD>(whence) ) ) {
+			err.assign(::GetLastError(), std::system_category() );
+		}
+		return li.QuadPart;
+	}
+#endif // IO_CPU_BITS_64
 
 	operator HANDLE () const noexcept
 	{

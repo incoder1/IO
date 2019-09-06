@@ -12,12 +12,12 @@ LIB_NAME=libio
 
 LIBS?=-liconv.dll -lgnutls.dll -lWs2_32
 INCLUEDS?=-Iinclude -Iinclude/win -Iinclude/net -Isrc
-MMX_AND_SSE?= -mmmx -msse -msse2 -mssse3 -msse3 -msse4 -mavx
-OPTIMIZE?=-mtune=generic -O3 -fno-exceptions -fno-rtti -minline-stringops-dynamically -fdeclone-ctor-dtor -fdevirtualize-at-ltrans -mmovbe $(MMX_AND_SSE)
+PLATFORM_OPT_OPTIONS?=-minline-stringops-dynamically -mavx -mavx2 -mlzcnt -mmovbe
+OPTIMIZE?=-mtune=generic -O3 -fno-exceptions -fno-rtti -fdeclone-ctor-dtor -fdevirtualize-at-ltrans $(PLATFORM_OPT_OPTIONS)
 SHARED-DEFINES?=-DIO_BUILD
 DEFINES ?= -DNDEBUG $(SHARED-DEFINES)
 CPPFLAGS?= -std=gnu++14 -fno-exceptions -fno-rtti -Winline -pedantic $(OPTIMIZE) $(INCLUEDS)
-LDFLAGS?= $(LIBS)
+LDFLAGS?=$(LIBS)
 
 
 MODULES=. win net

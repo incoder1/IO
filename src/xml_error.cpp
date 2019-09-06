@@ -1,6 +1,6 @@
 /*
  *
- * Copyright (c) 2016
+ * Copyright (c) 2016-2019
  * Viktor Gubin
  *
  * Use, modification and distribution are subject to the
@@ -31,39 +31,58 @@ bool error_category::equivalent (const std::error_code& code, int condition) con
 }
 
 
+#define DECLARE_ERROR_MSG(ID,msg)\
+static const char *ID = #msg
+
+DECLARE_ERROR_MSG(IO_ERR,"System input/output error");
+DECLARE_ERROR_MSG(OFM_ERR,"Not enough memory");
+DECLARE_ERROR_MSG(ILG_ATTR_ERR,"Tag have several attributes with the same name");
+DECLARE_ERROR_MSG(ILG_PRL_ERR, "Illegal XML prologue declaration");
+DECLARE_ERROR_MSG(ILG_CHARS_ERR, "Illegal UNICODE character");
+DECLARE_ERROR_MSG(ILG_NAME_ERR,"Tag or attribute name is illegal");
+DECLARE_ERROR_MSG(ILG_MARKUP_ERR,"XML node markup is incorrect");
+DECLARE_ERROR_MSG(ILG_DTD_ERR,"Illegal DTD declaration");
+DECLARE_ERROR_MSG(ILG_COMENT_ERR,"Illegal commentary");
+DECLARE_ERROR_MSG(ILG_CDATA_ERR,"Illegal <!CDATA[]]> section");
+DECLARE_ERROR_MSG(UNBL_ERR,"Root element is unbalanced");
+DECLARE_ERROR_MSG(STATE_ERR, "Can not perform requested operation in current state");
+DECLARE_ERROR_MSG(OK_MSG, "No errors");
+
+
+#undef DECLARE_ERROR_MSG
 
 const char* error_category::cstr_message(int err_code) const noexcept
 {
 	switch( static_cast<error>(err_code) ) {
 	case error::io_error:
-		return "System input/output error";
+		return IO_ERR;
 	case error::out_of_memory:
-		return "Not enough memory";
+		return OFM_ERR;
 	case error::illegal_attribute:
-		return "Tag have several attributes with the same name";
+		return ILG_ATTR_ERR;
 	case error::illegal_prologue:
-		return "Illegal XML prologue declaration";
+		return ILG_PRL_ERR;
 	case error::illegal_chars:
-		return "Illegal UNICODE character";
+		return ILG_CHARS_ERR;
 	case error::illegal_name:
-		return "Tag or attribute name is illegal";
+		return ILG_NAME_ERR;
 	case error::illegal_markup:
-		return "XML node markup is incorrect";
+		return ILG_MARKUP_ERR;
 	case error::illegal_dtd:
-		return "Illegal DTD declaration";
+		return ILG_DTD_ERR;
 	case error::illegal_commentary:
-		return "Illegal commentary";
+		return ILG_COMENT_ERR;
 	case error::illegal_cdata_section:
-		return "Illegal <!CDATA[]]> section";
+		return ILG_CDATA_ERR;
 	case error::root_element_is_unbalanced:
-		return "Root element is unbalanced";
+		return UNBL_ERR;
 	case error::invalid_state:
-		return "Can not perform requested operation in current state";
+		return STATE_ERR;
 	case error::ok:
-		return "No errors";
+		return OK_MSG;
 	default:
 		io_unreachable
-		return "No errors";
+		return OK_MSG;
 	}
 }
 

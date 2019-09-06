@@ -1,6 +1,6 @@
 /*
  *
- * Copyright (c) 2016
+ * Copyright (c) 2016-2019
  * Viktor Gubin
  *
  * Use, modification and distribution are subject to the
@@ -28,18 +28,15 @@ public:
 	charset(charset&& rhs) noexcept = default;
 	charset& operator=(charset&& rhs) noexcept = default;
 
-	constexpr charset() noexcept:
-		unicode_(false),
-		char_max_(0),
-		code_(0),
-		name_(nullptr)
+	explicit constexpr charset(uint16_t code, const char* name, uint8_t char_max, bool unicode) noexcept:
+		name_(name),
+		code_(code),
+		char_max_(char_max),
+		unicode_(unicode)
 	{}
 
-	explicit constexpr charset(uint16_t code, const char* name, uint8_t char_max, bool unicode) noexcept:
-		unicode_(unicode),
-		char_max_(char_max),
-		code_(code),
-		name_(name)
+	constexpr charset() noexcept:
+		charset(0,nullptr,0,false)
 	{}
 
 	/// Checks this charset points to a known code page
@@ -54,7 +51,7 @@ public:
 	}
 
 	/// Returns string identifier of this character set, names are the same as used by
-	/// POSIX libiconv
+	/// POSIX iconv
 	/// \return string identifier of this character set
 	constexpr inline const char* name() const {
 		return name_;
@@ -66,18 +63,18 @@ public:
 		return char_max_;
 	}
 
-	/// Returns whether this charset is point on an UNICODE representation code page
-	/// \return whether this charset is UNICODE representation
+	/// Returns whether this character set is point on an UNICODE representation code page
+	/// \return whether this character set is UNICODE representation
 	constexpr inline bool unicode() const {
 		return unicode_;
 	}
 
-	/// Checks charset equality
+	/// Checks character set equality
 	bool operator==(const charset& rhs) const noexcept {
 		return code_ == rhs.code_;
 	}
 
-	/// Checks charset equality
+	/// Checks character set equality
 	bool operator!=(const charset& rhs) const noexcept {
 		return code_ != rhs.code_;
 	}
@@ -90,15 +87,15 @@ private:
 		std::swap(name_, with.name_);
 	}
 private:
-	bool unicode_;
-	uint8_t char_max_;
-	uint16_t code_;
 	const char* name_;
+	uint16_t code_;
+	uint8_t char_max_;
+	bool unicode_;
 };
 
 #define DECLARE_CHARSET(ID) static const charset ID;
 
-/// Holds constants on supported character sets
+/// Enumeration of supported character sets constants
 class IO_PUBLIC_SYMBOL code_pages {
 	code_pages(const code_pages&) = delete;
 	code_pages& operator=(code_pages&) = delete;
@@ -145,16 +142,17 @@ public:
 	DECLARE_CHARSET(CP_1257)
 	DECLARE_CHARSET(CP_1258)
 
-	/// Returns a character set for a name
+	/// Returns a character set for a iconv name
 	static std::pair<bool, charset> for_name(const char* name) noexcept;
 
-	/// Returns character set wich is default for current operating system API
+	/// Returns character set which is default for current operating system API
 	/// I.e. UTF-16LE for Winfows or UTF-8 for Linux
-	/// \return operating system API default charset
+	/// \return operating system API default character set
 	static const charset& platform_default() noexcept;
-	/// Returns character set assigned for this process/aplication,
-	/// i.e. current user locale charset
-	/// \return current locale charset
+
+	/// Returns character set assigned for this process/application,
+	/// i.e. current locale character set
+	/// \return current locale charter set
 	static const charset& platform_current() noexcept;
 private:
 	constexpr code_pages() noexcept

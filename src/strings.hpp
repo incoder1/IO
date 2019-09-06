@@ -14,12 +14,6 @@
 #include "config.hpp"
 
 #include "charsetcvt.hpp"
-//
-#include <cstring>
-#include <climits>
-
-#include <initializer_list>
-#include <string>
 
 #ifdef HAS_PRAGMA_ONCE
 #pragma once
@@ -27,291 +21,173 @@
 
 namespace io {
 
-namespace {
 typedef std::char_traits<char> char8_traits;
-}
 
-/// Compares two characters
+/// Compares two character code points
 template<typename c_1, typename c_2>
-constexpr inline bool cheq(c_1 lsh, c_2 rhs)
+constexpr bool cheq(c_1 lhs, c_2 rhs) noexcept
 {
-	typedef std::char_traits<c_1> c1tr;
-	typedef std::char_traits<c_2> c2tr;
-	return uint32_t( c1tr::to_int_type(lsh) ) == uint32_t( c2tr::to_int_type(rhs) );
+	return static_cast<unsigned int>(lhs) == static_cast<unsigned int>(rhs);
 }
 
-static constexpr inline bool cheq(char lsh, char rhs)
+constexpr bool cheq(char lhs, char rhs) noexcept
 {
-	return lsh == rhs;
+	return lhs == rhs;
 }
 
 //  [<0>...<1>]
 template<typename _cht1, typename _cht2>
-constexpr inline bool is_one_of(_cht1 what, _cht2 c1, _cht2 c2)
+constexpr bool is_one_of(_cht1 what, _cht2 c1, _cht2 c2)
 {
 	return cheq(what,c1) || cheq(what, c2);
 }
 
 //  [<0>...<2>]
 template<typename _cht1, typename _cht2>
-constexpr inline bool is_one_of(_cht1 what, _cht2 c1, _cht2 c2, _cht2 c3)
+constexpr bool is_one_of(_cht1 what, _cht2 c1, _cht2 c2, _cht2 c3)
 {
 	return is_one_of(what,c1,c2) || cheq(what, c3);
 }
 
 template<typename _cht1, typename _cht2>
-constexpr inline bool is_one_of(_cht1 what, _cht2 c1, _cht2 c2, _cht2 c3, _cht2 c4)
+constexpr bool is_one_of(_cht1 what, _cht2 c1, _cht2 c2, _cht2 c3, _cht2 c4)
 {
 	return is_one_of(what,c1,c2,c3) || cheq(what, c4);
 }
 
 template<typename _cht1, typename _cht2>
-constexpr inline bool is_one_of(_cht1 what, _cht2 c1, _cht2 c2, _cht2 c3, _cht2 c4, _cht2 c5)
+constexpr bool is_one_of(_cht1 what, _cht2 c1, _cht2 c2, _cht2 c3, _cht2 c4, _cht2 c5)
 {
 	return is_one_of(what,c1,c2,c3,c4) || cheq(what, c5);
 }
 
 template<typename _cht1, typename _cht2>
-constexpr inline bool is_one_of(_cht1 what, _cht2 c1, _cht2 c2, _cht2 c3, _cht2 c4, _cht2 c5, _cht2 c6)
+constexpr bool is_one_of(_cht1 what, _cht2 c1, _cht2 c2, _cht2 c3, _cht2 c4, _cht2 c5, _cht2 c6)
 {
 	return is_one_of(what,c1,c2,c3,c4,c5) || cheq(what, c6);
 }
 
 template<typename _cht1, typename _cht2>
-constexpr inline bool is_one_of(_cht1 what, _cht2 c1, _cht2 c2, _cht2 c3, _cht2 c4, _cht2 c5, _cht2 c6, _cht2 c7)
+constexpr bool is_one_of(_cht1 what, _cht2 c1, _cht2 c2, _cht2 c3, _cht2 c4, _cht2 c5, _cht2 c6, _cht2 c7)
 {
 	return is_one_of(what,c1,c2,c3,c4,c5,c6) || cheq(what, c7);
 }
 
 template<typename _cht1, typename _cht2>
-constexpr inline bool is_one_of(_cht1 what, _cht2 c1, _cht2 c2, _cht2 c3, _cht2 c4, _cht2 c5, _cht2 c6, _cht2 c7, _cht2 c8)
+constexpr bool is_one_of(_cht1 what, _cht2 c1, _cht2 c2, _cht2 c3, _cht2 c4, _cht2 c5, _cht2 c6, _cht2 c7, _cht2 c8)
 {
 	return is_one_of(what,c1,c2,c3,c4,c5,c6,c7) || cheq(what, c8);
 }
 
-inline const char* find_delimiter(const char* where, const char* delimitters)
-{
-#ifdef  io_strpbrk
+inline const char* find_delimiter(const char* where, const char* delimitters) noexcept {
 	return io_strpbrk( where, delimitters);
-#else
-	return std::strpbrk( where, delimitters);
-#endif // io_strcspn
 }
 
-// [A-Z] or [a-z] or [0-9] etc
-inline constexpr bool between(uint32_t first, uint32_t last, uint32_t ch)
+
+static constexpr const unsigned int BITS = sizeof(unsigned int) * CHAR_BIT;
+static constexpr const unsigned int ALBT_SIZE = 26;
+static constexpr const unsigned int LAT_A = static_cast<unsigned int>('a');
+static constexpr const unsigned int LAT_A_C = static_cast<unsigned int>('A');
+static constexpr const unsigned int ZERRO = static_cast<unsigned int>('0');
+static constexpr const unsigned int SPACE = static_cast<unsigned int>(' ');
+static constexpr const unsigned int TAB = static_cast<unsigned int>('\t');
+static constexpr const unsigned int WHITE_SPACES_COUNT = 5;
+
+static constexpr const char UPPER_LOWER_MASK = 0x5F;
+
+template<typename char_t>
+constexpr bool is_alpha(const char_t ch) noexcept
 {
-	return ( ch >= first ) && ( ch <= last  );
+	return ( (static_cast<unsigned int>(ch) | BITS ) - LAT_A) < ALBT_SIZE;
 }
 
-template<typename __char_t>
-inline constexpr bool is_alpha(__char_t ch)
-{
-	typedef std::char_traits<__char_t> chtr;
-#ifdef io_isalpha
-	return 0 != io_isalpha( chtr::to_int_type(ch) );
-#else
-	return between(
-			   char8_traits::to_int_type('a'),
-			   char8_traits::to_int_type('z'),
-			   chtr::to_int_type(ch) )
-		   ||
-		   between(
-			   char8_traits::to_int_type('A'),
-			   char8_traits::to_int_type('Z'),
-			   chtr::to_int_type(ch));
-#endif // io_isalpha
+template<typename char_t>
+constexpr bool is_digit(const char_t ch) noexcept {
+	return (static_cast<unsigned int>(ch)-ZERRO) < 10;
 }
 
-
-// \s [^ \t\r\n\v\f]
-template<typename __char_t>
-inline constexpr bool is_whitespace(__char_t ch)
-{
-	typedef std::char_traits<__char_t> tr;
-#ifdef io_isspace
-	return io_isspace( tr::to_int_type(ch) );
-#else
-	return char8_traits::to_int_type(' ') == tr::to_int_type(ch)
-		   || between(
-			   char8_traits::to_int_type('\t'),
-			   char8_traits::to_int_type('\r'),
-			   tr::to_int_type(ch)
-		   );
-#endif // io_isspace
-}
-
-
-// capital  unicode-ASCII-latin1
-template<typename _char_t>
-constexpr inline bool is_digit(_char_t ch)
-{
-	typedef std::char_traits<_char_t> tr;
-#ifdef io_isdigit
-	return io_isdigit( tr::to_int_type(ch) );
-#else
-	return between(
-			   char8_traits::to_int_type('0'),
-			   char8_traits::to_int_type('9'),
-			   tr::to_int_type(ch)
-		   );
-#endif // io_isdigit
-}
-
-template<typename __char_t>
-inline constexpr bool is_alnum(__char_t ch)
+template<typename char_t>
+constexpr bool is_alnum(const char_t ch) noexcept
 {
 	return is_alpha(ch) || is_digit(ch);
 }
 
+template<typename char_t>
+constexpr bool is_space(const char_t ch) noexcept {
+	return SPACE == static_cast<unsigned int>(ch) || (static_cast<unsigned int>(ch) - TAB) < WHITE_SPACES_COUNT;
+}
 
 // capital  unicode-ASCII-latin1 [A-Z]
-template<typename _char_t>
-static constexpr inline bool is_uppercase_latin1(_char_t ch)
+template<typename char_t>
+static constexpr bool is_uppercase_latin1(const char_t ch) noexcept
 {
-	typedef std::char_traits<_char_t> tr;
-// MinGW always calling to library function
-#ifndef io_isupper
-	return io_isupper( tr::to_int_type(ch) );
-#else
-	return between(
-			   char8_traits::to_int_type('A'),
-			   char8_traits::to_int_type('Z'),
-			   tr::to_int_type(ch)
-		   );
-#endif // io_isupper
+	return  (static_cast<unsigned int>(ch)-LAT_A_C) < ALBT_SIZE;
 }
 
 // unicode-ASCII-latin1 [a-z]
-template<typename _char_t>
-static constexpr inline bool is_lowercase_latin1(_char_t ch) noexcept
+template<typename char_t>
+static constexpr bool is_lowercase_latin1(const char_t ch) noexcept
 {
-// MinGW always calling to library function
-#ifndef io_islower
-	return io_islower( ch );
-#else
-	return between( 'a', 'z', ch );
-#endif // io_islower
+	return (static_cast<unsigned int>(ch)-LAT_A) < ALBT_SIZE;
 }
 
 // [A-Z,a-z]
-template<typename _char_t>
-static constexpr inline bool is_latin1(_char_t ch) noexcept
+template<typename char_t>
+static constexpr bool is_latin1(const char_t ch) noexcept
 {
-	return io_isupper(ch) || io_islower(ch);
+	return is_lowercase_latin1( ch ) || is_uppercase_latin1( ch );
 }
 
-inline char latin1_to_lower(const char ch) noexcept
+constexpr char latin1_to_lower(const char ch) noexcept
 {
-	return io_tolower(ch);
+	return is_uppercase_latin1( ch ) ? (ch & UPPER_LOWER_MASK) : ch;
 }
 
-inline char latin1_to_upper(const char ch) noexcept
+constexpr char latin1_to_upper(const char ch) noexcept
 {
-	return io_toupper(ch);
+	return is_uppercase_latin1( ch ) ? (ch & UPPER_LOWER_MASK) : ch;
 }
 
-inline bool start_with(const char* s,const char* pattern,std::size_t size) noexcept
+inline bool start_with(const char* s,const char* pattern,const std::size_t size) noexcept
 {
 	return 0 == io_memcmp( static_cast<const void*>(s), static_cast<const void*>(pattern), size);
 }
 
-
-template<typename _char_t>
-inline constexpr std::size_t str_size(const _char_t* b, const _char_t* e)
+inline std::size_t str_size(const char* b, const char* e) noexcept
 {
 	return memory_traits::distance(b, e);
 }
 
-static constexpr const size_t ALIGN = sizeof(size_t)-1;
-static constexpr const size_t ONES = size_t(~0) / uint8_t(~0);
-static constexpr size_t HIGHS = ( ONES * ( (uint8_t(~0)/2) + 1 ) );
-
-static constexpr inline bool no_zerro(const size_t x)
+inline char* strchrn(const char* s,const char c,const std::size_t max_len) noexcept
 {
-	return 0 == ( (x-ONES) & ~x & HIGHS);
+	return const_cast<char*>( char8_traits::find(s, max_len, c) );
 }
 
-#ifdef io_strchr
-
-inline char* tstrchr(const char* s,char c)
+inline bool is_one_of(char what, const char* chars,const std::size_t len) noexcept
 {
-	return io_strchr( const_cast<char*>(s), char8_traits::to_int_type(c) );
+	return nullptr != strchrn(chars, what, len);
 }
 
+inline char* find_first_symbol(const char* s) noexcept
+{
+	constexpr const char* sym = "\t\n\v\f\r ";
+	return const_cast<char*>(s) + io_strspn(s, sym);
+}
+
+inline size_t xmlname_strspn(const char *s) noexcept
+{
+	constexpr const char* sym = "\t\n\v\f\r />";
+	return io_strcspn(s, sym);
+}
+
+constexpr uint16_t pack_word(uint16_t w, char c) noexcept {
+#ifdef IO_IS_LITTLE_ENDIAN
+	return (w << CHAR_BIT) | static_cast<uint16_t>(c);
 #else
-
-static char* IO_NO_INLINE strchr_impl(const char* s,char c) noexcept
-{
-	const char *a = s;
-	const uint8_t uc = static_cast<uint8_t>(c);
-	if ( cheq('\0',c) )
-		return const_cast<char*>( s + io_strlen(s) );
-	while(reinterpret_cast<std::size_t>(s) % ALIGN) {
-		if( cheq('\0',*s) )
-			return nullptr;
-		else if ( cheq(*s,uc) )
-			return const_cast<char*>(s);
-		++s;
-	}
-	const std::size_t *w = reinterpret_cast<const std::size_t*>(s);
-	std::size_t k = ONES * uc;
-	while( no_zerro(*w) && no_zerro(*w^k) )
-		++w;
-	s = reinterpret_cast<const char*>(w);
-	while( !cheq(*s, uc) ) {
-		if( cheq('\0',*s) )
-			return nullptr;
-		++s;
-	}
-	return a != s ? const_cast<char*>(s) : nullptr;
+	return (w >> CHAR_BIT) | static_cast<uint16_t>(ch);
+#endif // IO_IS_LITTLE_ENDIAN
 }
-
-inline char* tstrchr(const char* s,char c)
-{
-	return strchr_impl(s,c);
-}
-
-#endif // io_strchr
-
-inline bool is_one_of(char what, const char* chars)
-{
-	return nullptr != tstrchr(chars, what);
-}
-
-
-inline char* tstrchrn(const char* s,char c,std::size_t max_len)
-{
-	return static_cast<char*>( const_cast<void*>( io_memchr( s, static_cast<int>(c), max_len) ) );
-}
-
-template<typename _char_t>
-inline std::size_t tstrchrn(const _char_t *str, _char_t character, std::size_t max_len)
-{
-	typedef std::char_traits<_char_t> traits_t;
-	return traits_t::find(str, max_len, character);
-}
-
-template<typename _char_t>
-inline std::size_t tstrchr(const _char_t *str, _char_t character)
-{
-	typedef std::char_traits<_char_t> traits_t;
-	return traits_t::find(str, traits_t::length(str), character);
-}
-
-
-__forceinline char* find_first_symbol(const char* s)
-{
-	return const_cast<char*>(s) + io_strspn(s, "\t\n\v\f\r ");
-}
-
-__forceinline size_t xmlname_strspn(const char *s)
-{
-	return io_strcspn( s, "\t\n\v\f\r />");
-}
-
 
 } // namespace io
-
 
 #endif // __IO_STRINGS_HPP_INCLUDED__

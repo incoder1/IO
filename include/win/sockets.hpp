@@ -74,7 +74,7 @@ class IO_PUBLIC_SYMBOL endpoint {
 private:
 	static void do_nothing(void const *p) noexcept
 	{}
-	endpoint(::addrinfo* const info) noexcept:
+	explicit endpoint(::addrinfo* const info) noexcept:
 		addr_info_(info, &endpoint::do_nothing )
 	{}
 public:
@@ -87,7 +87,7 @@ public:
 	endpoint next() const noexcept {
 		return has_next() ? endpoint( addr_info_->ai_next ) : endpoint();
 	}
-	endpoint(const std::shared_ptr<::addrinfo>& info) noexcept;
+	explicit endpoint(const std::shared_ptr<::addrinfo>& info) noexcept;
 	const_string ip_address() const noexcept;
 	uint16_t port() const noexcept;
 	void set_port(uint16_t port) noexcept;

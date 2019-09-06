@@ -1,6 +1,6 @@
 /*
  *
- * Copyright (c) 2016
+ * Copyright (c) 2016-2019
  * Viktor Gubin
  *
  * Use, modification and distribution are subject to the
@@ -15,6 +15,9 @@ namespace io {
 
 namespace xml {
 
+// attribute
+attribute::~attribute() noexcept
+{}
 
 //start_element_event
 start_element_event::start_element_event() noexcept:

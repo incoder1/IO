@@ -17,9 +17,16 @@
 					<Add option="-Winline" />
 					<Add option="-pedantic" />
 					<Add option="-std=c++11" />
+					<Add option="-std=c11" />
 					<Add option="-pg" />
+					<Add option="-Og" />
 					<Add option="-g" />
 					<Add option="-fexceptions" />
+					<Add option="-minline-stringops-dynamically" />
+					<Add option="-mavx" />
+					<Add option="-mavx2" />
+					<Add option="-mlzcnt" />
+					<Add option="-mmovbe" />
 					<Add option="-DIO_TLS_PROVIDER_GNUTLS" />
 					<Add directory="include" />
 					<Add directory="include/net" />
@@ -83,6 +90,10 @@
 					<Add option="-Og" />
 					<Add option="-g" />
 					<Add option="-fexceptions" />
+					<Add option="-mavx" />
+					<Add option="-mavx2" />
+					<Add option="-mlzcnt" />
+					<Add option="-mmovbe" />
 					<Add option="-DIO_SHARED_LIB" />
 					<Add option="-DIO_TLS_PROVIDER_GNUTSL" />
 					<Add directory="include" />
@@ -113,19 +124,14 @@
 					<Add option="-std=c++14" />
 					<Add option="-fno-exceptions" />
 					<Add option="-fno-rtti" />
-					<Add option="-minline-stringops-dynamically" />
 					<Add option="-fdeclone-ctor-dtor" />
 					<Add option="-fdevirtualize-at-ltrans" />
 					<Add option="-mtune=generic" />
-					<Add option="-mmovbe" />
-					<Add option="-mmmx" />
-					<Add option="-msse" />
-					<Add option="-msse2" />
-					<Add option="-msse3" />
-					<Add option="-mssse3" />
-					<Add option="-msse4" />
+					<Add option="-minline-stringops-dynamically" />
 					<Add option="-mavx" />
 					<Add option="-mavx2" />
+					<Add option="-mlzcnt" />
+					<Add option="-mmovbe" />
 					<Add option="-DNDEBUG" />
 					<Add option="-DIO_TLS_PROVIDER_GNUTSL" />
 					<Add directory="include" />
@@ -156,12 +162,13 @@
 					<Add option="-Weffc++" />
 					<Add option="-pedantic" />
 					<Add option="-Wall" />
-					<Add option="-std=c++14" />
+					<Add option="-std=gnu++17" />
+					<Add option="-fchar8_t" />
 					<Add option="-fno-exceptions" />
 					<Add option="-fno-rtti" />
 					<Add option="-DNDEBUG" />
 					<Add option="-DIO_SHARED_LIB" />
-					<Add option="-DIO_TLS_PROVIDER_GNUTSL" />
+					<Add option="-DIO_TLS_PROVIDER_GNUTLS" />
 					<Add directory="include" />
 					<Add directory="include/net" />
 					<Add directory="include/win" />
@@ -172,20 +179,16 @@
 					<Add option="-O3" />
 					<Add option="-flto" />
 					<Add option="-s" />
+					<Add option="-fwhole-program" />
 					<Add option="-fdeclone-ctor-dtor" />
 					<Add option="-fdevirtualize-at-ltrans" />
 					<Add option="-Wl,-allow-multiple-definition" />
 					<Add option="-mtune=generic" />
 					<Add option="-minline-stringops-dynamically" />
-					<Add option="-mmovbe" />
-					<Add option="-mmmx" />
-					<Add option="-msse" />
-					<Add option="-msse2" />
-					<Add option="-msse3" />
-					<Add option="-mssse3" />
-					<Add option="-msse4" />
 					<Add option="-mavx" />
 					<Add option="-mavx2" />
+					<Add option="-mlzcnt" />
+					<Add option="-mmovbe" />
 					<Add library="iconv.dll" />
 					<Add library="Ws2_32" />
 					<Add library="gnutls.dll" />
@@ -386,12 +389,12 @@
 		<Unit filename="include/xml_reader.hpp" />
 		<Unit filename="include/xml_source.hpp" />
 		<Unit filename="include/xml_types.hpp" />
-		<Unit filename="include/xml_validator.hpp" />
 		<Unit filename="src/buffer.cpp" />
 		<Unit filename="src/channels.cpp" />
 		<Unit filename="src/charsetcvt.cpp" />
 		<Unit filename="src/charsetdetector.cpp" />
 		<Unit filename="src/charsets.cpp" />
+		<Unit filename="src/conststring.cpp" />
 		<Unit filename="src/hashing.cpp" />
 		<Unit filename="src/memory_channel.cpp" />
 		<Unit filename="src/net/http_client.cpp" />
@@ -484,7 +487,6 @@
 		<Unit filename="src/xml_parse.cpp" />
 		<Unit filename="src/xml_reader.cpp" />
 		<Unit filename="src/xml_source.cpp" />
-		<Unit filename="src/xml_validator.cpp" />
 		<Extensions>
 			<code_completion />
 			<envvars />

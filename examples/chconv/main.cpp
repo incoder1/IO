@@ -15,9 +15,7 @@ int main()
 	using namespace io;
 	std::error_code ec;
 
-	std::string file_name = io::transcode(L"test-utf16le.txt");
-
-	file sf( file_name.data() );
+	file sf( "test-utf16le.txt" );
 	if(!sf.exist()) {
 		std::cerr << " test file " << sf.path()
 		<< "is not exist or can not be found"
@@ -25,6 +23,9 @@ int main()
 		return -1;
 	}
 	file to("conv-res-utf8.txt");
+	if( !to.exist() )
+		to.create();
+
 	std::cout << "Converting " << sf.path()
 			  << " to "  << to.path()
 			  << std::endl;
@@ -48,8 +49,8 @@ int main()
 	check_error_code(ec);
 
 	std::cout<< "Transcoded " << transcoded <<
-		" bytes from "<< sf.path()
-		<< " to " << to.path()
+		" bytes from "<< sf.name()
+		<< " to " << to.name()
 		<< std::endl;
 
     return 0;

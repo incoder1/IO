@@ -65,18 +65,20 @@ typedef io::xml::lexical_cast_traits<bool> bool_cast;
 static configuration read_config(io::unsafe<io::xml::reader>& rd)
 {
 	configuration ret;
-	io::xml::start_element_event bev = rd.next_tag_begin();
-	// read id from attribute
-	io::const_string tmp = bev.get_attribute("","id").first;
+	// taking next start element event and check whether it <configuration>
+	io::xml::start_element_event sev = rd.next_expected_tag_begin("","configuration");
+	// obtain id="123" attribute value
+	io::const_string tmp = sev.get_attribute("","id").first;
 	ret.id = size_t_cast::from_string( tmp.data() );
-	tmp = bev.get_attribute("","enabled").first;
+	// obtain enabled="true|false" attribute value
+	tmp = sev.get_attribute("","enabled").first;
 	ret.enabled = bool_cast::from_string( tmp.data() );
-	// read name value from tag
-	rd.next_tag_begin();
+	// read nesting <name>name</name> tag value
+	rd.next_expected_tag_begin("","name");
 		ret.name = std::string( rd.next_characters().data() );
-	rd.next_tag_end();
-	// read </configuration>
-	rd.next_tag_end();
+	rd.next_expected_tag_end("","name");
+	// check next is </configuration> tag end
+	rd.next_expected_tag_end("","configuration");
 	return ret;
 }
 
@@ -94,26 +96,36 @@ int main(int argc, const char** argv)
 
 	std::cout<< "Configurations read from XML\n" << std::endl;
 
-	io::unsafe<io::xml::reader> rd( std::move(psr) );
-	// goto <configurations>
-	io::xml::start_element_event start_el = rd.next_tag_begin();
-	if( !start_el.name().equal("","configurations") ) {
-		std::cerr << "Unexpected element: " << start_el.name().local_name() << std::endl;
+#ifndef IO_NO_EXCEPTIONS
+	try {
+#endif // IO_NO_EXCEPTIONS
+		io::unsafe<io::xml::reader> rd( std::move(psr) );
+		// goto <configurations>
+		rd.next_expected_tag_begin("","configurations");
+
+		std::vector<configuration> configurations;
+
+		// De-serialize configurations
+		rd.to_next_state();
+		while( rd.is_tag_begin_next() ) {
+			configurations.emplace_back( read_config(rd) );
+			rd.to_next_state();
+		}
+		// check end element event
+		rd.next_expected_tag_end("","configurations");
+
+		// Display results
+		for(configuration cnf: configurations) {
+			std::cout << '\t' << cnf << std::endl;
+		}
+
+#ifndef IO_NO_EXCEPTIONS
+	}
+	catch(std::exception& exc) {
+		std::cerr << exc.what() << std::endl;
 		return -1;
 	}
-
-	std::vector<configuration> configurations;
-
-	// De-serialize configurations
-	rd.to_next_state();
-	while( rd.is_tag_begin_next() ) {
-		configurations.emplace_back( read_config(rd) );
-		rd.to_next_state();
-	}
-
-	// Display results
-	for(configuration cnf: configurations)
-		std::cout << '\t' << cnf << std::endl;
+#endif // IO_NO_EXCEPTIONS
 
 	return 0;
 }

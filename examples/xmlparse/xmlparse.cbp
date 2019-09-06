@@ -40,7 +40,7 @@
 					<Add option="-pedantic" />
 					<Add option="-Wextra" />
 					<Add option="-Wall" />
-					<Add option="-std=c++14" />
+					<Add option="-std=gnu++17" />
 					<Add option="-fno-exceptions" />
 					<Add option="-fno-rtti" />
 					<Add option="-DNDEBUG" />
@@ -50,8 +50,11 @@
 				<Linker>
 					<Add option="-O3" />
 					<Add option="-flto" />
-					<Add option="-fno-set-stack-executable" />
+					<Add option="-s" />
 					<Add option="-mtune=native" />
+					<Add option="-fwhole-program" />
+					<Add option="-minline-stringops-dynamically" />
+					<Add option="-fno-set-stack-executable" />
 					<Add library="iconv.dll" />
 					<Add directory="../../bin/release-win-gcc-dll-x64" />
 				</Linker>
@@ -62,7 +65,7 @@
 				<Option object_output="obj/debug-unix-gcc-x64/" />
 				<Option type="1" />
 				<Option compiler="gcc" />
-				<Option parameters="test.xml" />
+				<Option parameters="../collada/models/RubiksCube/rubik_cube.dae" />
 				<Compiler>
 					<Add option="-Weffc++" />
 					<Add option="-pedantic" />
@@ -91,6 +94,7 @@
 			<envvars />
 			<debugger />
 			<lib_finder disable_auto="1" />
+			<fortran_project />
 		</Extensions>
 	</Project>
 </CodeBlocks_project_file>

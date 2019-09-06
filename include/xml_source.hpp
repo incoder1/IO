@@ -1,6 +1,6 @@
 /*
  *
- * Copyright (c) 2016
+ * Copyright (c) 2016-2019
  * Viktor Gubin
  *
  * Use, modification and distribution are subject to the
@@ -56,6 +56,17 @@ public:
     /// Returns next character or character component byte
     char next() noexcept;
 
+    /// Reads characters into buffer until a legal or illegal characters in the stream, or EOF
+    /// \param to byte buffer to read into
+    /// \param ch stop character
+    /// \param illegal an illegal character in the may occur in the stream
+    void read_until_char(byte_buffer& to,const char ch,const char illegal) noexcept;
+
+	/// Reads characters into buffer until a double characters in the stream, or EOF
+    /// \param to byte buffer to read into
+    /// \param ch double characters to lookup, i.e. -- or ]]
+    void read_until_double_char(byte_buffer& to, const char ch) noexcept;
+
     /// Checks current state is end of stream
     /// \return whether end of stream
     inline bool eof() const noexcept {
@@ -69,7 +80,6 @@ public:
 
     /// Current XML source character column
     inline std::size_t col() const noexcept {
-
         return col_;
     }
 
@@ -86,15 +96,17 @@ private:
     source(s_read_channel&& src, byte_buffer&& rb) noexcept;
     error read_more() noexcept;
     error charge() noexcept;
+    inline bool fetch() noexcept;
     inline char normalize_line_endings(const char ch);
 private:
     error last_;
-    char *pos_;
-    char *end_;
+    const char *pos_;
+    const char *end_;
     std::size_t row_;
     std::size_t col_;
     s_read_channel src_;
     byte_buffer rb_;
+    uint8_t mb_state_;
 };
 
 } // namespace xml

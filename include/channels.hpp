@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016
+ * Copyright (c) 2016-2019
  * Viktor Gubin
  *
  * Use, modification and distribution are subject to the
@@ -68,11 +68,11 @@ DECLARE_IPTR(read_channel);
 template <>
 class unsafe<read_channel> {
 public:
-	unsafe(s_read_channel&& ch) noexcept:
+	explicit unsafe(s_read_channel&& ch) noexcept:
 		ec_(),
 		ch_( std::forward<s_read_channel>(ch) )
 	{}
-	unsafe(const s_read_channel& ch) noexcept:
+	explicit unsafe(const s_read_channel& ch) noexcept:
 		ec_(),
 		ch_(ch)
 	{}
@@ -112,11 +112,11 @@ DECLARE_IPTR(write_channel);
 template <>
 class unsafe<write_channel> {
 public:
-	unsafe(s_write_channel&& ch) noexcept:
+	explicit unsafe(s_write_channel&& ch) noexcept:
 		ec_(),
 		ch_( std::forward<s_write_channel>(ch) )
 	{}
-	unsafe(const s_write_channel& ch) noexcept:
+	explicit unsafe(const s_write_channel& ch) noexcept:
 		ec_(),
 		ch_(ch)
 	{}
@@ -150,11 +150,11 @@ DECLARE_IPTR(read_write_channel);
 template <>
 class unsafe<read_write_channel> {
 public:
-	unsafe(s_read_write_channel&& ch) noexcept:
+	explicit unsafe(s_read_write_channel&& ch) noexcept:
 		ec_(),
 		ch_( std::forward<s_read_write_channel>(ch) )
 	{}
-	unsafe(const s_read_write_channel& ch) noexcept:
+	explicit unsafe(const s_read_write_channel& ch) noexcept:
 		ec_(),
 		ch_(ch)
 	{}
@@ -219,11 +219,11 @@ DECLARE_IPTR(random_access_channel);
 template <>
 class unsafe<random_access_channel> {
 public:
-	unsafe(s_random_access_channel&& ch) noexcept:
+	explicit unsafe(s_random_access_channel&& ch) noexcept:
 		ec_(),
 		ch_( std::forward<s_random_access_channel>(ch) )
 	{}
-	unsafe(const s_random_access_channel& ch) noexcept:
+	explicit unsafe(const s_random_access_channel& ch) noexcept:
 		ec_(),
 		ch_( ch )
 	{}
@@ -347,10 +347,10 @@ std::size_t IO_PUBLIC_SYMBOL transmit_buffer(
 ///				when io error or not enough memory for allocating buffer
 /// \param src source read channel
 /// \param dst destination write channel
-/// \param buff memory buffer size, will be aligned up to 4 bytes
+/// \param buff memory buffer size, OS page size will be used if 0
 /// \return count of bytes transfered
 /// \throw never throws
-std::size_t IO_PUBLIC_SYMBOL transmit(std::error_code& ec,const s_read_channel& src, const s_write_channel& dst, uint16_t buff) noexcept;
+std::size_t IO_PUBLIC_SYMBOL transmit(std::error_code& ec,const s_read_channel& src, const s_write_channel& dst, unsigned long buff_size) noexcept;
 
 
 } // namespace io

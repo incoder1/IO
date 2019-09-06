@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016
+ * Copyright (c) 2016-2019
  * Viktor Gubin
  *
  * Use, modification and distribution are subject to the
@@ -30,7 +30,6 @@
 #	define _u(quote) quote
 #	define IO_SYS_UNICODE io::code_pages::UTF_16LE
 typedef wchar_t unicode_char;
-#define IO_UCONV_RATE  io::charset_conv_rate::twice_larger
 #endif // __IO_WINDOWS_BACKEND__
 
 #ifdef __IO_POSIX_BACKEND__
@@ -42,7 +41,6 @@ typedef wchar_t unicode_char;
 #		define IO_SYS_UNICODE io::code_pages::UTF_32BE
 #	endif // IO_IS_LITTLE_ENDIAN
 typedef char32_t unicode_char;
-#define IO_UCONV_RATE io::charset_conv_rate::same
 #endif // __IO_WINDOWS_BACKEND__
 
 namespace io {

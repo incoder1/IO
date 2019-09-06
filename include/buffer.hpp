@@ -1,6 +1,6 @@
 ﻿/*
  *
- * Copyright (c) 2016
+ * Copyright (c) 2016-2019
  * Viktor Gubin
  *
  * Use, modification and distribution are subject to the
@@ -28,23 +28,18 @@ class byte_buffer;
 
 namespace detail {
 
-class mem_block {
+class IO_PUBLIC_SYMBOL mem_block {
 	mem_block(const mem_block&) = delete;
 	mem_block& operator=(const mem_block&) = delete;
+
 public:
 
 	constexpr explicit mem_block(uint8_t* const px) noexcept:
 		px_(px)
 	{}
-
 	constexpr mem_block() noexcept:
 		mem_block(nullptr)
 	{}
-
-	~mem_block() noexcept {
-		if(nullptr != px_)
-			memory_traits::free( px_ );
-	}
 
 	mem_block(mem_block&& other) noexcept:
 		px_( other.px_ )
@@ -52,40 +47,30 @@ public:
 		other.px_ = nullptr;
 	}
 
+	~mem_block() noexcept
+	{
+		if(nullptr != px_)
+			memory_traits::free( px_ );
+	}
+
 	mem_block& operator=(mem_block&& rhs) noexcept {
 		mem_block( static_cast<mem_block&&>(rhs) ).swap( *this );
 		return *this;
 	}
 
-	explicit operator bool() const noexcept {
-		return nullptr != px_;
-	}
-
-	__forceinline uint8_t* get() const noexcept {
+	uint8_t* get() const noexcept {
 		return px_;
 	}
 
-	static inline mem_block allocate(const std::size_t size) noexcept {
-		uint8_t *ptr = memory_traits::malloc_array<uint8_t>(size);
-		return (nullptr != ptr) ? mem_block( ptr ) : mem_block();
-	}
+	static mem_block allocate(const std::size_t size) noexcept;
 
-	static inline mem_block wrap(const uint8_t* arr,const std::size_t size) noexcept {
-		uint8_t *ptr = memory_traits::malloc_array<uint8_t>(size);
-		if(nullptr != ptr)
-			std::memcpy( ptr, arr, size);
-		return mem_block( ptr );
-	}
+	static mem_block wrap(const uint8_t* arr,const std::size_t size) noexcept;
 
 	inline void swap(mem_block& with) noexcept {
 		std::swap( px_, with.px_);
 	}
 
-	uint8_t* reset_ownership() noexcept {
-		uint8_t* ret = px_;
-		px_ = nullptr;
-		return ret;
-	}
+	inline uint8_t* reset_ownership() noexcept;
 
 private:
 	uint8_t *px_;
@@ -95,9 +80,28 @@ private:
 } // namespace detail
 
 
+
 /// \brief The buffer iterator
 /// \details Bidirectional dynamic array iterator, STL compatible
-class byte_buffer_iterator: public std::iterator<
+#ifdef __HAS_CPP_17
+class byte_buffer_iterator {
+public:
+	typedef uint8_t         value_type;
+	typedef const uint8_t*  pointer;
+    typedef uint8_t&        reference;
+    typedef std::ptrdiff_t  difference_type;
+    typedef std::bidirectional_iterator_tag iterator_category;
+
+	constexpr byte_buffer_iterator() noexcept:
+		position_(nullptr)
+	{}
+
+	constexpr byte_buffer_iterator(pointer position) noexcept:
+		position_(position)
+	{}
+
+#else // before C++ 17
+class byte_buffer_iterator : public std::iterator<
 	std::bidirectional_iterator_tag,
 	uint8_t,
 	std::ptrdiff_t,
@@ -124,23 +128,31 @@ public:
 		position_(nullptr)
 	{}
 
-	constexpr byte_buffer_iterator(uint8_t* const position) noexcept:
+	constexpr explicit byte_buffer_iterator(uint8_t* const position) noexcept:
 		base_type(),
 		position_(position)
 	{}
 
-	inline uint8_t operator*() const noexcept {
+#endif // C++ 17
+
+
+	inline value_type operator*() const noexcept {
 		return *position_;
 	}
 
-	inline const uint8_t* get() const noexcept {
+	inline pointer get() const noexcept {
 		return position_;
 	}
 
 	inline const char* cdata() const noexcept {
-		return reinterpret_cast<char*>(position_);
+		return reinterpret_cast<const char*>(position_);
 	}
 
+#if defined(__HAS_CPP_17) && defined(__cpp_char8_t)
+	inline const char8_t* u8data() const noexcept {
+		return reinterpret_cast<const char8_t*>(position_);
+	}
+#endif
 
 	inline byte_buffer_iterator& operator++() noexcept {
 		++position_;
@@ -148,9 +160,9 @@ public:
 	}
 
 	inline byte_buffer_iterator operator++(int) noexcept {
-		byte_buffer_iterator tmp( *this );
+		byte_buffer_iterator ret( *this );
 		++position_;
-		return tmp;
+		return ret;
 	}
 
 	inline byte_buffer_iterator& operator--() noexcept {
@@ -159,17 +171,17 @@ public:
 	}
 
 	inline byte_buffer_iterator operator--(int) noexcept {
-		byte_buffer_iterator tmp( *this );
+		byte_buffer_iterator ret( *this );
 		--position_;
-		return tmp;
+		return ret;
 	}
 
-	inline byte_buffer_iterator& operator+=(const std::size_t rhs) noexcept {
+	inline byte_buffer_iterator& operator+=(const difference_type rhs) noexcept {
 		position_ += rhs;
 		return *this;
 	}
 
-	inline byte_buffer_iterator& operator-=(const std::size_t rhs) noexcept {
+	inline byte_buffer_iterator& operator-=(const difference_type rhs) noexcept {
 		position_ -= rhs;
 		return *this;
 	}
@@ -219,7 +231,7 @@ public:
 		return  position_ > rhs.position_;
 	}
 private:
-	uint8_t* position_;
+	pointer position_;
 };
 
 /// \brief Movable only dynamic array container, with uint8_t* underlying memory array
@@ -248,6 +260,13 @@ public:
 	byte_buffer& operator=(byte_buffer&& rhs) noexcept {
 		byte_buffer( std::forward<byte_buffer>(rhs) ).swap( *this );
 		return *this;
+	}
+
+	/// Checks buffer have underground memory array
+	/// \return whether buffer have underground memory array
+	explicit operator bool() const noexcept
+	{
+		return 0 != capacity_;
 	}
 
 	/// Destroys this buffer and releases memory allocated by this buffer
@@ -321,7 +340,8 @@ public:
 		return false;
 	}
 
-	/// Puts single character into this buffer current position, and increses buffer position and last
+
+	/// Puts single character into this buffer current position, and increment buffer position and last
 	/// \param ch a byte to put
 	/// \return true whether byte was put and false if buffer was full before put attempt
 	inline bool put(char ch) noexcept {
@@ -413,7 +433,7 @@ public:
 #ifndef _MSC_VER
 	/// Puts a small value in its binary representation into current buffer
 	/// \param small a small value
-	inline bool put(int8_t small) {
+	inline bool put(int8_t small) noexcept {
 		return put( static_cast<uint8_t>(small) );
 	}
 #endif
@@ -424,91 +444,91 @@ public:
 
 	/// Puts an unsigned short value in its binary representation into current buffer
 	/// \param us an unsigned short value
-	inline bool put(uint16_t us) {
+	inline bool put(uint16_t us) noexcept {
 		return binary_put(us);
 	}
 
-	inline uint16_t get_uint16() {
+	inline uint16_t get_uint16() noexcept {
 		return binary_get<uint16_t>();
 	}
 
 	/// Puts a signed short value in its binary representation into current buffer
 	/// \param ss a short value
-	inline bool put(int16_t ss) {
+	inline bool put(int16_t ss) noexcept {
 		return binary_put(ss);
 	}
 
-	inline int16_t get_int16() {
+	inline int16_t get_int16() noexcept {
 		return binary_get<int16_t>();
 	}
 
 	/// Puts an unsigned integer value in its binary representation into current buffer
 	/// \param ui an unsigned integer value
-	inline bool put(uint32_t ui) {
+	inline bool put(uint32_t ui) noexcept {
 		return binary_put(ui);
 	}
 
-	inline uint32_t get_uint32() {
+	inline uint32_t get_uint32() noexcept {
 		return binary_get<uint32_t>();
 	}
 
 	/// Puts a signed integer value in its binary representation into current buffer
 	/// \param si a signed integer value
-	inline bool put(int32_t si) {
+	inline bool put(int32_t si) noexcept {
 		return binary_put(si);
 	}
 
-	inline int32_t get_int32() {
+	inline int32_t get_int32() noexcept {
 		return binary_get<int32_t>();
 	}
 
 	/// Puts an unsigned long integer value in its binary representation into current buffer
 	/// \param ull an unsigned long integer value
-	inline bool put(uint64_t ull) {
+	inline bool put(uint64_t ull) noexcept {
 		return binary_put(ull);
 	}
 
-	inline uint64_t get_uint64() {
-		return binary_get<int64_t>();
+	inline uint64_t get_uint64() noexcept {
+		return binary_get<uint64_t>();
 	}
 
 	/// Puts a signed long integer value in its binary representation into current buffer
 	/// \param sll a signed long integer value
-	inline bool put(int64_t sll) {
+	inline bool put(int64_t sll) noexcept {
 		return binary_put(sll);
 	}
 
-	inline int64_t get_int64() {
+	inline int64_t get_int64() noexcept {
 		return binary_get<int64_t>();
 	}
 
 	/// Puts a float value in its binary representation into current buffer
 	/// \param f a float value
-	inline bool put(float f) {
+	inline bool put(float f) noexcept {
 		return binary_put(f);
 	}
 
-	inline float get_float() {
+	inline float get_float() noexcept {
 		return binary_get<float>();
 	}
 
 	/// Puts a double value in its binary representation into current buffer
 	/// \param d a double value
-	inline bool put(double d) {
+	inline bool put(double d) noexcept {
 		return binary_put(d);
 	}
 
-	inline double get_double() {
-		return binary_get<long double>();
+	inline double get_double() noexcept {
+		return binary_get<double>();
 	}
 
 	/// Puts a long double value in its binary representation into current buffer
 	/// \param ld a long double value
-	inline bool put(long double ld) {
+	inline bool put(long double ld) noexcept {
 		return binary_put(ld);
 	}
 
-	inline long double get_long_double() {
+	inline long double get_long_double() noexcept {
 		return binary_get<long double>();
 	}
 
@@ -550,24 +570,50 @@ private:
 
 	byte_buffer(detail::mem_block&& arr, std::size_t capacity) noexcept;
 
-	template < typename T >
-	bool binary_put(const T& v) {
-		static_assert( std::is_arithmetic<T>::value && ! std::is_pointer<T>::value, "Must be an arithmetic type" );
+	template < typename T,
+		class = typename std::enable_if<
+				std::is_arithmetic<T>::value &&
+				!std::is_pointer<T>::value
+			>::type >
+	bool binary_put(const T& v) noexcept {
 		return 0 != put( reinterpret_cast<const uint8_t*> ( std::addressof( v ) ), sizeof(T) );
 	}
 
-	template< typename T >
-	inline T binary_get() {
-		static_assert( std::is_arithmetic<T>::value && ! std::is_pointer<T>::value, "Must be an arithmetic type" );
-		if( empty() )
-			return static_cast<T>( 0 );
+	template < typename T>
+	inline T binary_get(typename std::enable_if<
+				std::is_integral<T>::value &&
+				!std::is_pointer<T>::value
+			>::type* = nullptr) noexcept {
 		T ret;
-		io_memmove( &ret, position_, sizeof(T) );
-		shift( sizeof(T) );
+		if( empty() ) {
+			ret = static_cast<T>(0);
+		} else {
+			ret = * ( reinterpret_cast<T*>( position_ ) );
+			shift( sizeof(T) );
+		}
+		return ret;
+	}
+
+	template < typename T>
+	inline T binary_get(
+			typename std::enable_if<
+				std::is_floating_point<T>::value &&
+				!std::is_pointer<T>::value
+			>::type* = nullptr) noexcept {
+		T ret;
+		if( empty() ) {
+			ret = std::numeric_limits<T>::quiet_NaN();
+		} else {
+			ret = * ( reinterpret_cast<T*>( position_ ) );
+			shift( sizeof(T) );
+		}
 		return ret;
 	}
 
 	bool realloc(std::size_t size) noexcept;
+	uint8_t* new_empty_block(std::size_t size) noexcept;
+	uint8_t* reallocated_block(std::size_t size) noexcept;
+
 
 public:
 	/// Allocate a memory block for buffer from heap
@@ -585,13 +631,13 @@ public:
 	static inline byte_buffer wrap(std::error_code& ec, const T* arr, std::size_t size) noexcept {
 		static_assert( std::is_fundamental<T>::value || std::is_trivial<T>::value, "Must be an array of trivial or fundamental type" );
 		if(0 != size) {
-			const std::size_t capacity = size * sizeof(T);
-			detail::mem_block mb = detail::mem_block::wrap( arr, capacity );
-			if( mb ) {
-                byte_buffer ret( std::move(mb), capacity );
-				ret.move(capacity);
+			const std::size_t new_capacity = size * sizeof(T);
+			detail::mem_block mb = detail::mem_block::wrap( reinterpret_cast<const uint8_t*>(arr), new_capacity );
+			if( nullptr != mb.get() ) {
+                byte_buffer ret( std::move(mb), new_capacity );
+				ret.move(new_capacity);
 				ret.flip();
-				return std::move( ret );
+				return ret;
 			}
 			ec = std::make_error_code(std::errc::not_enough_memory);
 		}

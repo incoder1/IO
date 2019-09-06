@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016
+ * Copyright (c) 2016-2019
  * Viktor Gubin
  *
  * Use, modification and distribution are subject to the
@@ -101,9 +101,28 @@ public:
 		local_name_(n)
 	{}
 
-	explicit operator bool() const noexcept {
-		return !local_name_.empty();
+	qname(const qname& other) noexcept:
+		qname(other.prefix_, other.local_name_)
+	{}
+
+	qname& operator=(const qname& rhs) noexcept
+	{
+		qname( rhs ).swap( *this );
+		return *this;
 	}
+
+	qname(qname&& other) noexcept:
+		prefix_( std::move( other.prefix_) ),
+		local_name_( std::move( other.local_name_) )
+	{}
+
+	qname& operator=(qname&& rhs) noexcept
+	{
+		qname( std::forward<qname>(rhs) ).swap( *this );
+		return *this;
+	}
+
+	~qname() noexcept = default;
 
 	inline void swap(qname& other) noexcept {
 		prefix_.swap( other.prefix_ );
@@ -130,7 +149,7 @@ public:
 	}
 
 	inline bool operator==(const qname& rhs) const noexcept {
-		return prefix_.equal(rhs.prefix_.data()) && local_name_.equal(rhs.local_name_.data());
+		return prefix_ == rhs.prefix_ && local_name_ == rhs.local_name_;
 	}
 
 	inline bool operator<(const qname& rhs) const {
@@ -157,7 +176,7 @@ public:
 	attribute& operator=(const attribute&) noexcept = default;
 	attribute(attribute&&) noexcept = default;
 	attribute& operator=(attribute&&) noexcept = default;
-	~attribute() noexcept = default;
+	~attribute() noexcept;
 
 	constexpr attribute() noexcept:
 		name_(),
@@ -168,6 +187,7 @@ public:
 		name_( std::forward<qname>(name) ),
 		value_( std::forward<const_string>(value) )
 	{}
+
 
 	/// Returns attribute name
 	/// \return attribute name
@@ -189,6 +209,7 @@ public:
 	bool operator==(const attribute& rhs) const noexcept {
 		return name_ == rhs.name_;
 	}
+
 private:
 	qname name_;
 	const_string value_;
@@ -206,13 +227,14 @@ private:
 
       	typedef bool result_type;
 
-     	__forceinline result_type operator()(const first_argument_type& lsh, const second_argument_type& rhs) const noexcept
+     	inline result_type operator()(const first_argument_type& lsh, const second_argument_type& rhs) const noexcept
      	{
      		return lsh.name() < rhs.name();
      	}
 	};
 
 	typedef std::set<attribute, attr_less, h_allocator<attribute> > attrs_storage;
+
 public:
 	typedef attrs_storage::const_iterator iterator;
 
@@ -231,7 +253,7 @@ public:
 	}
 
 	explicit operator bool() const noexcept {
-		return static_cast<bool>(name_);
+		return !name_.local_name().empty();
 	}
 
 	bool add_attribute(attribute&& attr) noexcept;
@@ -258,7 +280,7 @@ public:
 		return attributes_.cend();
 	}
 
-	std::pair<const_string, bool> get_attribute(const char* prefix, const char* attr_name) const noexcept;
+	std::pair<const_string, bool> get_attribute(const char* prefix, const char* local_name) const noexcept;
 
 	inline void swap(start_element_event& other) noexcept {
 		name_.swap(other.name_);
@@ -297,7 +319,7 @@ public:
 	}
 
 	explicit operator bool() const noexcept {
-		return static_cast<bool>(name_);
+		return !name_.local_name().empty();
 	}
 
 	inline qname name() const noexcept {

@@ -24,29 +24,39 @@ static inline bool is_scheme_character(char c)
 	return is_alnum( c ) || is_one_of(c, '+', '-', '.');
 }
 
-static inline bool is_unreserved(char c)
+static constexpr inline bool is_unreserved(char c)
 {
 	return is_alnum(c) || is_one_of(c,'-','.','_','~');
 }
 
-static inline bool is_gen_delim(char c)
+#ifdef __GNUG__
+static constexpr bool is_one_of(char c, const char* span) {
+	return nullptr != io_strchr(span, c);
+}
+#else
+static constexpr bool is_one_of(char c, const char* span) {
+	return c == *span ? true : '\0' == *span ? false : is_one_of(c,++span);
+}
+#endif
+
+static constexpr bool is_gen_delim(char c)
 {
 	return is_one_of(c,":/?#[]@");
 }
 
-static bool is_sub_delim(char c)
+static constexpr bool is_sub_delim(char c)
 {
 	return  is_one_of(c, "!$&\'()*+,;=" );
 }
 
-static inline bool is_reserved(char c)
+static constexpr bool is_reserved(char c)
 {
 	return is_one_of(c,":/?#[]@;!$&\'()*+,;=");
 }
 
-static inline bool is_user_info_character(char c)
+static constexpr bool is_user_info_character(char c)
 {
-	return is_unreserved(c) || is_one_of(c,'%',':') || is_sub_delim(c);
+	return is_unreserved(c) || io::is_one_of(c,'%',':') || is_sub_delim(c);
 }
 
 static inline bool is_authorety_character(char c)
@@ -170,12 +180,10 @@ s_uri uri::parse(std::error_code& ec, const char* str) noexcept
 	const_string query;
 	const_string fragment;
 	const char *b = normalized;
-	const char *e = b;
-	while( !is_one_of(*e,':','/') ) {
-		if( cheq('\0',*e) )
+	const char *e;
+	for(e = b; '\0' != *e && nullptr == io_memchr(":/", *e, 2); ++e);
+	if( cheq('\0',*e) )
 			return return_error(ec, std::errc::invalid_argument);
-		++e;
-	}
 	// not relative URI need to extract scheme
 	if ( cheq(*e,':') ) {
 		const char* j = b;
@@ -195,7 +203,7 @@ s_uri uri::parse(std::error_code& ec, const char* str) noexcept
 	// parse the authorety portion
 	if( 0 == io_memcmp(b, "//", 2) ) {
 		b += 2;
-		for( e = b; !is_one_of(*e,'/','?','#','\0'); e++) {
+		for( e = b; !io::is_one_of(*e,'/','?','#','\0'); e++) {
 			if( ! is_authorety_character(*e) )
 				return return_error(ec, std::errc::invalid_argument);
 		}
@@ -204,7 +212,7 @@ s_uri uri::parse(std::error_code& ec, const char* str) noexcept
 		if(host_end != host_strt) {
 			// digits only
 			const char *j = host_end-1;
-			for( ; is_digit(*j) && j > b; j--);
+			for( ; io_isdigit(*j) && j > b; j--);
 			// has port
 			if( cheq( ':', *j ) ) {
 				host_end = j;
@@ -229,7 +237,7 @@ s_uri uri::parse(std::error_code& ec, const char* str) noexcept
 	if ( cheq(*b,'/') || is_path_character(*b) ) {
 		e = b;
 		// ? # or '\0'
-		while( !is_one_of(*e, '?','#','\0') ) {
+		while( !io::is_one_of(*e, '?','#','\0') ) {
 			if (!is_path_character(*e))
 				return return_error(ec, std::errc::invalid_argument );
 			++e;
@@ -246,7 +254,7 @@ s_uri uri::parse(std::error_code& ec, const char* str) noexcept
 	if ( cheq(*b, '?') ) {
 		e = ++b;
 		// '#' or '\0'
-		while( !is_one_of(*e,'#','\0') ) {
+		while( !io::is_one_of(*e,'#','\0') ) {
 			if (!is_query_character(*e))
 				return return_error(ec, std::errc::invalid_argument );
 			++e;

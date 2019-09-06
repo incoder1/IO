@@ -6,7 +6,7 @@
 // For non UTF-8 UNICODE encodings XML file should have byte order mark (BOM)
 
 // mini embedded version of winver.h
-// needed bu MinGW/64 headers which uses WinXP by
+// needed by MinGW/64 headers which uses WinXP by
 // default
 // We need Windows Vista +
 #ifdef _WIN32
@@ -24,11 +24,12 @@
 
 // C++ standard library
 #include <algorithm>
+#include <type_traits>
 
 // Unicode console, if not supported by runtime
 #if defined(__IO_WINDOWS_BACKEND__) && defined(UNICODE)
 #	include <console.hpp>
-#	define NEED_UNICODE_CONSOLE
+#	define NEED_UNICODE_CONSOLE 1
 # else
 #	include <iostream>
 #endif
@@ -85,10 +86,11 @@ static void print_start_element(std::ostream& stm, const xml::s_event_stream_par
 			stm<<"\tattributes:\n";
 			std::for_each(e.attr_begin(), e.attr_end(), [&stm] (const xml::attribute& attr) {
 				io::xml::qname attr_name = attr.name();
+				stm << "\t\t";
 				if( attr_name.has_prefix() )
-					stm << "\t\t prefix: " << attr_name.prefix() << " name: " << attr_name.local_name() << " value: " << attr.value() << '\n';
-				else
-					stm << "\t\tname: " << attr_name.local_name() << " value: " << attr.value() << '\n';
+					stm << "prefix: " << attr_name.prefix() << ' ';
+				stm << "name: " << attr_name.local_name();
+				stm << " value: " << attr.value() << '\n';
 			} );
 		}
 		// flush to console
@@ -135,10 +137,11 @@ static void print_event(std::ostream& stm,const xml::s_event_stream_parser& s)
 }
 
 // output a string into a stream
-
 static void log_chars(std::ostream& strm,const char* msg, const const_string& chars)
 {
-	strm << msg << '\n' << chars << std::endl;
+	strm << msg << '\n' << chars << '\n';
+	if(chars.size() > 80)
+		strm.flush();
 }
 
 /// print xml characters
@@ -146,10 +149,9 @@ static void print_xml_characters(std::ostream& strm,const xml::s_event_stream_pa
 {
 	const_string chars = s->read_chars();
 	// avoid login a between tag separators like spaces and line endings
-    // parser not allowed to ignore such chars according to W3C standard
-	if( !chars.blank() ) {
+	// parser not allowed to ignore such chars according to W3C standard
+	if( !s->is_error() && !chars.blank() )
 		log_chars(strm, "Characters: ", chars);
-	}
 }
 
 #ifdef IO_NO_EXCEPTIONS

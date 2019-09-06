@@ -1,6 +1,6 @@
 /*
  *
- * Copyright (c) 2016
+ * Copyright (c) 2016-2019
  * Viktor Gubin
  *
  * Use, modification and distribution are subject to the
@@ -144,6 +144,7 @@ const char* chconv_error_category::cstr_message(int err_code) const
 #endif
 	return "Character conversion error";
 }
+
 
 #ifdef __IO_WINDOWS_BACKEND__
 

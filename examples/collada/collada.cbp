@@ -1,0 +1,176 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes" ?>
+<CodeBlocks_project_file>
+	<FileVersion major="1" minor="6" />
+	<Project>
+		<Option title="collada" />
+		<Option compiler="gcc" />
+		<Option virtualFolders="src\;" />
+		<Build>
+			<Target title="debug-gcc-win64">
+				<Option platforms="Windows;" />
+				<Option output="bin/debug-gcc-win64/collada" prefix_auto="0" extension_auto="1" />
+				<Option working_dir="$(PROJECT_DIR)" />
+				<Option object_output="obj/debug-gcc-win64/" />
+				<Option type="1" />
+				<Option compiler="gcc" />
+				<Compiler>
+					<Add option="-pg" />
+					<Add option="-Og" />
+					<Add option="-g" />
+					<Add option="-mavx2" />
+					<Add option="-ffast-math" />
+					<Add option="-D_WIN32_WINNT=0x0600" />
+					<Add directory="include" />
+					<Add directory="include/loader" />
+					<Add directory="src" />
+				</Compiler>
+				<Linker>
+					<Add option="-pg -lgmon" />
+					<Add library="Comdlg32" />
+					<Add library="glfw3.dll" />
+					<Add library="glew32" />
+					<Add library="opengl32" />
+					<Add library="ole32" />
+					<Add library="shlwapi" />
+					<Add library="windowscodecs" />
+					<Add library="iconv.dll" />
+					<Add directory="../../bin/debug-win-gcc-static-x64" />
+				</Linker>
+			</Target>
+			<Target title="release-gcc-win64">
+				<Option platforms="Windows;" />
+				<Option output="bin/release-gcc-win64/collada" prefix_auto="1" extension_auto="1" />
+				<Option working_dir="$(PROJECT_DIR)" />
+				<Option object_output="obj/release-gcc-win64/" />
+				<Option type="0" />
+				<Option compiler="gcc" />
+				<Compiler>
+					<Add option="-flto" />
+					<Add option="-fopenmp" />
+					<Add option="-fno-rtti" />
+					<Add option="-D_WIN32_WINNT=0x0600" />
+					<Add option="-DIO_SHARED_LIB" />
+					<Add option="-DNDEBUG" />
+					<Add directory="include" />
+					<Add directory="include/loader" />
+					<Add directory="src" />
+				</Compiler>
+				<Linker>
+					<Add option="-O3" />
+					<Add option="-flto" />
+					<Add option="-s" />
+					<Add option="-fwhole-program" />
+					<Add option="-fdeclone-ctor-dtor" />
+					<Add option="-fdevirtualize-at-ltrans" />
+					<Add option="-Wl,-allow-multiple-definition" />
+					<Add option="-mtune=native" />
+					<Add option="-ffast-math" />
+					<Add option="-fopenmp" />
+					<Add library="glfw3.dll" />
+					<Add library="glew32" />
+					<Add library="opengl32" />
+					<Add library="ole32" />
+					<Add library="shlwapi" />
+					<Add library="windowscodecs" />
+					<Add library="Comdlg32" />
+					<Add directory="../../bin/release-win-gcc-dll-x64" />
+				</Linker>
+			</Target>
+			<Target title="debug-gcc-unx-x86_64">
+				<Option platforms="Unix;" />
+				<Option output="bin/debug-gcc-unx-x86_64/collada/collada" prefix_auto="1" extension_auto="1" />
+				<Option working_dir="$(PROJECT_DIR)" />
+				<Option object_output="bin/debug-gcc-unx-x86_64/collada" />
+				<Option type="1" />
+				<Option compiler="gcc" />
+				<Option use_console_runner="0" />
+				<Option parameters="models/RubiksCube/rubik_cube.dae" />
+				<Compiler>
+					<Add option="-pg" />
+					<Add option="-g" />
+					<Add option="`pkg-config glew --cflags`" />
+					<Add option="`pkg-config --cflags glfw3`" />
+					<Add option="-std=gnu++14" />
+					<Add option="-mavx2" />
+					<Add option="-ffast-math" />
+					<Add directory="include" />
+				</Compiler>
+				<Linker>
+					<Add option="-pg" />
+					<Add option="`pkg-config glew --libs`" />
+					<Add option="`pkg-config  --libs glfw3`" />
+					<Add library="png" />
+					<Add library="GL" />
+					<Add directory="../../bin/debug-unix-gcc-x86_64" />
+				</Linker>
+			</Target>
+		</Build>
+		<Compiler>
+			<Add option="-Wall" />
+			<Add option="-std=gnu++17" />
+			<Add directory="include" />
+			<Add directory="include/collada" />
+			<Add directory="../../include" />
+		</Compiler>
+		<Linker>
+			<Add library="io" />
+		</Linker>
+		<Unit filename="include/array_view.hpp" />
+		<Unit filename="include/collada.hpp" />
+		<Unit filename="include/image.hpp">
+			<Option virtualFolder="src/" />
+		</Unit>
+		<Unit filename="include/intrusive_array.hpp" />
+		<Unit filename="include/mesh.hpp" />
+		<Unit filename="include/model.hpp" />
+		<Unit filename="include/model_loader.hpp" />
+		<Unit filename="include/nurb.hpp" />
+		<Unit filename="include/openglload.hpp" />
+		<Unit filename="include/parser.hpp" />
+		<Unit filename="include/polymesh.hpp" />
+		<Unit filename="include/renderer.hpp" />
+		<Unit filename="include/scene.hpp" />
+		<Unit filename="include/shader.hpp" />
+		<Unit filename="include/surface.hpp" />
+		<Unit filename="include/texture.hpp" />
+		<Unit filename="include/vbo.hpp" />
+		<Unit filename="include/view.hpp" />
+		<Unit filename="src/collada.cpp" />
+		<Unit filename="src/directx_image_loader.cpp">
+			<Option target="release-gcc-win64" />
+			<Option target="debug-gcc-win64" />
+		</Unit>
+		<Unit filename="src/glad.c">
+			<Option compilerVar="CC" />
+			<Option target="debug-gcc-unx-x86_64" />
+		</Unit>
+		<Unit filename="src/gnulibs_image_loader.cpp">
+			<Option target="debug-gcc-unx-x86_64" />
+		</Unit>
+		<Unit filename="src/image.cpp" />
+		<Unit filename="src/main.cpp" />
+		<Unit filename="src/mesh.cpp" />
+		<Unit filename="src/model.cpp" />
+		<Unit filename="src/model_loader.cpp" />
+		<Unit filename="src/nurb.cpp" />
+		<Unit filename="src/parser.cpp" />
+		<Unit filename="src/polymesh.cpp" />
+		<Unit filename="src/scene.cpp" />
+		<Unit filename="src/shader.cpp" />
+		<Unit filename="src/stdafx.hpp">
+			<Option compile="1" />
+			<Option weight="0" />
+		</Unit>
+		<Unit filename="src/surface.cpp" />
+		<Unit filename="src/texture.cpp" />
+		<Unit filename="src/vbo.cpp" />
+		<Unit filename="src/view.cpp" />
+		<Extensions>
+			<code_completion />
+			<envvars />
+			<debugger />
+			<lib_finder disable_auto="1" />
+			<fortran_project />
+		</Extensions>
+	</Project>
+</CodeBlocks_project_file>

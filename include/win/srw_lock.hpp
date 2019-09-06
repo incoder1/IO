@@ -46,7 +46,7 @@ class read_lock
 	read_lock(const read_lock&)	= delete;
 	read_lock& operator=(const read_lock&) = delete;
 public:
-	read_lock(read_write_barrier& br) noexcept:
+	explicit read_lock(read_write_barrier& br) noexcept:
 		barrier_(br)
 	{
 		barrier_.read_lock();
@@ -64,7 +64,7 @@ class write_lock
 	write_lock(const read_lock&)	= delete;
 	write_lock& operator=(const write_lock&) = delete;
 public:
-	write_lock(read_write_barrier& br) noexcept:
+	explicit write_lock(read_write_barrier& br) noexcept:
 		barrier_(br)
 	{
 		barrier_.write_lock();

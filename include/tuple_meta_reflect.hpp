@@ -25,8 +25,6 @@ namespace io {
 
 namespace meta {
 
-namespace {
-
 typedef int index_t;
 
 // tuple for each util
@@ -68,8 +66,6 @@ static constexpr inline void for_each_helper(__functor&& f, index_tuple<__indexe
 {
 	for_each_impl( std::forward<__functor>(f), std::forward<__args>(std::get<__indexes>(tup))... );
 }
-
-} // namespace {
 
 template<typename __functor, typename ... __args>
 static constexpr inline void for_each( std::tuple<__args...>& tup, __functor&& f)

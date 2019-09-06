@@ -1,6 +1,6 @@
 /*
  *
- * Copyright (c) 2016
+ * Copyright (c) 2016-2019
  * Viktor Gubin
  *
  * Use, modification and distribution are subject to the
@@ -17,9 +17,10 @@
 #pragma once
 #endif // HAS_PRAGMA_ONCE
 
-#include <channels.hpp>
-#include <conststring.hpp>
+#include <algorithm>
 
+#include <channels.hpp>
+#include <text.hpp>
 #include "handlechannel.hpp"
 
 namespace io {
@@ -68,14 +69,35 @@ enum class write_open_mode: ::DWORD
 /// \brief File system file operations interface, windows implementation
 class IO_PUBLIC_SYMBOL file
 {
-	file(const file&) = delete;
-	file& operator=(const file&) = delete;
-	file() = delete;
+private:
+
+	static void posix_to_windows(std::wstring& path) noexcept;
+
 public:
 
-	explicit file(const char* name) noexcept;
+	static constexpr char separator() noexcept {
+		return '\\';
+	}
 
-	explicit file(const wchar_t* name) noexcept;
+	/// Obtains file descriptor by path the the file
+	/// name can be in DOS c:\my_file or POSIX /c/myfile format
+	/// \name path to the file
+	explicit file(const std::string& name);
+
+	/// Obtains file descriptor by path the the file
+	/// name can be in DOS c:\my_file or POSIX /c/myfile format
+	/// \name path to the file
+	explicit file(const std::wstring& name);
+
+	file(const file& c) noexcept:
+		 name_( c.name_ )
+	{}
+
+	file& operator=(const file& rhs)
+	{
+		file( rhs ).swap( *this );
+		return *this;
+	}
 
 	file(file&& oth) noexcept:
 		name_( std::move(oth.name_) )
@@ -101,40 +123,35 @@ public:
 	bool create() noexcept;
 
 	/// Returns UCS-2 encoded file path
-	inline std::wstring wpath() const  {
-        return std::wstring( name_.get() );
+	std::wstring wpath() const {
+		return name_;
+	}
+
+	/// Return UCS-2 encoded file name
+	std::wstring wname() const {
+		return name_.substr( name_.rfind( separator() ) + 1, name_.length()  );
+	}
+
+	/// Returns UTF-8 encoded file path
+	std::string path() const {
+		return name_.empty() ? "" : transcode( name_.data() );
+	}
+
+	/// Return UTF-8 encoded file name
+	std::string name() const {
+		return transcode( wname().data() );
 	}
 
 	/// Returns file size in byte
 	/// \return file size in bytes, 0 if file not exist
     std::size_t size() const noexcept;
 
-	/// Returns UTF-8 encoded file path
-	IO_NO_INLINE std::string path() const {
-		int asize = ::WideCharToMultiByte(
-							CP_UTF8, 0,
-							name_.get(), name_.len()-1,
-							nullptr, 0,
-							nullptr, nullptr);
-		if(asize) {
-            char* ret = static_cast<char*>( io_alloca(asize) );
-            io_zerro_mem(ret, asize);
-            ::WideCharToMultiByte(
-							CP_UTF8, 0,
-							name_.get(), name_.len()-1,
-							ret, asize,
-							nullptr, nullptr);
-			return std::string(ret, ret + asize);
-		}
-		return std::string();
-	}
-
 	/// Opens blocking read channel from this file
 	/// \param ec
 	///    operation error code, contains error when file is not exist or can not be opened
 	///    or out of memory state
 	/// \throw never throws
-	s_read_channel open_for_read(std::error_code& ec) noexcept;
+	s_read_channel open_for_read(std::error_code& ec) const noexcept;
 
 	/// Opens blocking write channel from this file
 	/// \param ec
@@ -143,7 +160,7 @@ public:
 	/// \param mode
 	///    writting mode \see write_open_mode
 	/// \throw never throws
-	s_write_channel open_for_write(std::error_code& ec, write_open_mode mode) noexcept;
+	s_write_channel open_for_write(std::error_code& ec, write_open_mode mode) const noexcept;
 
 	/// Opens blocking read/write and random access channel from this file
 	/// \param ec
@@ -152,9 +169,9 @@ public:
 	/// \param mode
 	///    writting mode \see write_open_mode
 	/// \throw never throws
-	s_random_access_channel open_for_random_access(std::error_code& ec, write_open_mode mode) noexcept;
+	s_random_access_channel open_for_random_access(std::error_code& ec, write_open_mode mode) const noexcept;
 private:
-	scoped_arr<wchar_t> name_;
+	std::wstring name_;
 };
 
 } // namespce io

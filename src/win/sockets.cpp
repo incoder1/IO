@@ -200,7 +200,7 @@ public:
         const ::addrinfo *ai = static_cast<const ::addrinfo *>(ep_.native());
         if(
             SOCKET_ERROR == ::WSAConnect(s,
-                                         ai->ai_addr, ai->ai_addrlen,
+                                         ai->ai_addr, static_cast<int>(ai->ai_addrlen),
                                          nullptr,nullptr,nullptr,nullptr
                                         )
         ) {

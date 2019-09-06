@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016-2017
+ * Copyright (c) 2016-2019
  * Viktor Gubin
  *
  * Use, modification and distribution are subject to the
@@ -130,7 +130,8 @@ enum class unicode_cp {
 };
 
 template<typename _char_type,class _trailts_type = std::char_traits<_char_type> >
-inline std::basic_ostream<_char_type,_trailts_type>& operator<<(std::basic_ostream<_char_type, _trailts_type>& os, unicode_cp bom) noexcept {
+inline std::basic_ostream<_char_type,_trailts_type>& operator<<(std::basic_ostream<_char_type, _trailts_type>& os, unicode_cp bom) noexcept
+{
 	const uint8_t *bomd;
 	std::size_t boml;
 	switch(bom) {
@@ -161,18 +162,19 @@ inline std::basic_ostream<_char_type,_trailts_type>& operator<<(std::basic_ostre
 	return os;
 }
 
-inline unicode_cp detect_by_bom(const uint8_t * bom)
+static inline unicode_cp detect_by_bom(const uint8_t * bom)
 {
 	if( utf8_bom::is(bom) )
 		return unicode_cp::utf8;
-	if( utf_16le_bom::is(bom) ) {
+	else if( utf_16le_bom::is(bom) ) {
 		if( utf_32le_bom::is(bom) )
 			return unicode_cp::utf_32le;
-		return unicode_cp::utf_16le;
+		else
+			return unicode_cp::utf_16le;
 	}
-	if( utf_16be_bom::is(bom) )
+	else if( utf_16be_bom::is(bom) )
 		return unicode_cp::utf_16be;
-	if( utf_32be_bom::is(bom) )
+	else if( utf_32be_bom::is(bom) )
 		return unicode_cp::utf_32be;
 	return unicode_cp::not_detected;
 }

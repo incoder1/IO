@@ -49,10 +49,9 @@ int main()
 	using namespace io::net;
 	std::error_code ec;
 	s_uri url = uri::parse(ec, "https://www.springframework.org/schema/beans/spring-beans-4.2.xsd");
-	//s_uri url = uri::parse(ec, "https://www.openssl.org");
+	//s_uri url = uri::parse(ec, "https://www.gnutls.org/");
 	io::check_error_code(ec);
 
-	io::check_error_code(ec);
 	std::printf("Connecting to: %s \n", url->host().data() );
 
     const socket_factory* sf = socket_factory::instance(ec);

@@ -1,6 +1,6 @@
 /*
  *
- * Copyright (c) 2016
+ * Copyright (c) 2016-2019
  * Viktor Gubin
  *
  * Use, modification and distribution are subject to the
@@ -25,8 +25,8 @@ static constexpr unsigned int ISO_LATIN1_CP_CODE = 28591;
 static constexpr unsigned int WINDOWS_LATIN1_CP_CODE = 1252;
 static constexpr unsigned int UTF8_CP_CODE = 65001;
 
-static const char NL = '\n';
-static const char CR = '\r';
+static constexpr char NL = '\n';
+static constexpr char CR = '\r';
 
 
 static bool is_utf16(const uint8_t* bom)
@@ -49,8 +49,6 @@ static s_read_channel open_convert_channel(std::error_code& ec,io::byte_buffer& 
 		pos += 4;
 
 	new_rb = byte_buffer::allocate( ec, rb.capacity() );
-	if(ec)
-		return s_read_channel();
 	s_code_cnvtr cnv = code_cnvtr::open(
 						   ec,
 						   ch,
@@ -126,10 +124,11 @@ source::source(s_read_channel&& src, byte_buffer&& rb) noexcept:
 	col_(1),
 	src_(src),
 	// 1page is minimum
-	rb_( std::move(rb) )
+	rb_( std::move(rb) ),
+	mb_state_( 0 )
 {
-	pos_ = const_cast<char*>(rb_.position().cdata());
-	end_ = const_cast<char*>(rb_.last().cdata());
+	pos_ = rb_.position().cdata();
+	end_ = rb_.last().cdata();
 }
 
 source::~source() noexcept
@@ -138,7 +137,7 @@ source::~source() noexcept
 error source::read_more() noexcept
 {
 	rb_.clear();
-	if(  !rb_.empty() && (rb_.capacity() < READ_BUFF_MAXIMAL_SIZE) ) {
+	if( rb_.capacity() < READ_BUFF_MAXIMAL_SIZE ) {
 		if( io_unlikely( !rb_.exp_grow() ) )
 			return error::out_of_memory;
 	}
@@ -155,8 +154,8 @@ error source::charge() noexcept
 {
 	error ec = read_more();
 	if( io_likely( ec == error::ok && !rb_.empty()) ) {
-		pos_ = const_cast<char*>(rb_.position().cdata());
-		end_ = const_cast<char*>(rb_.last().cdata());
+		pos_ = rb_.position().cdata();
+		end_ = rb_.last().cdata();
 	}
 	else
 		pos_ = end_;
@@ -169,6 +168,7 @@ inline char source::normalize_line_endings(const char ch)
 {
 	switch( ch ) {
 	case CR:
+		// according xml standard \r\n combination should be interpret as single \n
 		if( io_likely( NL == *pos_ ) ) {
 			++pos_;
 			++row_;
@@ -187,39 +187,92 @@ inline char source::normalize_line_endings(const char ch)
 	return ch;
 }
 
+inline bool source::fetch() noexcept
+{
+	if( end_ == (pos_+1) )
+		last_ = charge();
+	return pos_ != end_ || error::ok == last_;
+}
 
 char source::next() noexcept
 {
+	constexpr const char EOF_CH = char8_traits::to_char_type( char8_traits::eof() );
+	if( io_unlikely( !fetch() ) )
+		return EOF_CH;
 
-	if( io_unlikely( end_ == (pos_+1) ) ) {
-		last_ = charge();
-		if( pos_ == end_ || error::ok != last_ )
-			return char8_traits::to_char_type( char8_traits::eof() );
-	}
-	char ret = *pos_;
-	++pos_;
-	if( utf8::ismbtail(ret) )
+	// check for a multi-byte tail byte
+	if( io_unlikely(0 != mb_state_) ) {
+		char ret = *pos_;
+		--mb_state_;
+		++pos_;
 		return ret;
-	else
-		switch( utf8::char_size( ret ) ) {
-		case io_likely(1):
-			return normalize_line_endings( ret );
-#ifdef __GNUG__
+	}
 
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wpedantic"
-		case 2 ... 4:
-#pragma GCC diagnostic pop
+	unsigned int len = utf8::mblen( pos_ );
+	char ret = *pos_++;
+	switch( len ) {
+	case io_likely(1):
+		ret = normalize_line_endings( ret );
+		break;
+	case 2: case 3: case 4:
+		mb_state_ = static_cast<uint8_t>(len - 1);
+		++col_;
+		break;
+	default:
+		last_ = error::illegal_chars;
+		ret = EOF_CH;
+		break;
+	}
+	return ret;
+}
 
-#else
-		case 2: case 3: case 4:
-#endif // __GNUG__
-			++col_;
-			return ret;
-		default:
-			last_ = error::illegal_chars;
-			return char8_traits::to_char_type( char8_traits::eof() );
+void source::read_until_char(byte_buffer& to,const char lookup,const char illegal) noexcept
+{
+	char c;
+	char stops[3] = {lookup, illegal, EOF};
+	do {
+		c = next();
+		if( !to.put(c) ) {
+			if( io_likely( to.exp_grow() ) ) {
+				to.put(c);
+			}
+			else {
+				last_ = error::out_of_memory;
+				break;
+			}
 		}
+	}
+	while( nullptr == io_memchr(stops, static_cast<int>(c), 3) );
+	if( lookup != c ) {
+		if(EOF == c)
+			last_ = error::illegal_markup;
+		to.clear();
+	}
+}
+
+void source::read_until_double_char(byte_buffer& to, const char ch) noexcept
+{
+	const uint16_t pattern = pack_word(static_cast<uint16_t>(ch), ch);
+	char c;
+	uint16_t i = 0;
+	do {
+		c = next();
+		if( io_unlikely( cheq(c,EOF) ) )
+			break;
+		if( !to.put(c) ) {
+			if( io_likely( to.exp_grow() ) ) {
+				to.put(c);
+			}
+			else {
+				last_ = error::out_of_memory;
+				break;
+			}
+		}
+		i = pack_word(i,c);
+	}
+	while( i != pattern);
+	if( error::ok != last_ || cheq(c,EOF) )
+		to.clear();
 }
 
 } // namespace xml

@@ -1,6 +1,6 @@
 /*
  *
- * Copyright (c) 2016
+ * Copyright (c) 2016-2019
  * Viktor Gubin
  *
  * Use, modification and distribution are subject to the
@@ -14,7 +14,7 @@
 #include <cerrno>
 #include <functional>
 #include <system_error>
-#include <locale>
+#include <type_traits>
 
 #include "buffer.hpp"
 #include "charsets.hpp"
@@ -47,126 +47,97 @@ static constexpr const uint8_t B3_MASK    = 0x0F;
 static constexpr const uint8_t B4_MASK    = 0x07;
 
 #ifdef IO_IS_LITTLE_ENDIAN
-static constexpr const unsigned int MBSHIFT = (sizeof(unsigned int) << 3 ) - 8;
+constexpr bool LE = true;
+constexpr bool BE = false;
+static constexpr const unsigned int MBSHIFT = (sizeof(unsigned int) * CHAR_BIT ) - CHAR_BIT;
+#else
+constexpr bool LE = false;
+constexpr bool BE = true;
 #endif // IO_IS_LITTLE_ENDIAN
 
-inline constexpr char tail(const uint8_t tail) noexcept
-{
-	return tail & TAIL_MASK;
+constexpr uint8_t make_byte(const char c) noexcept {
+	return static_cast<uint8_t>(c);
 }
 
-inline constexpr const uint8_t* make_unsigned(const char* str) noexcept
-{
-	return reinterpret_cast<const uint8_t*>(str);
+template<typename T>
+constexpr unsigned int make_uint(T c) noexcept {
+	return static_cast<unsigned int>(c);
 }
 
-inline constexpr uint32_t decode2(const uint8_t* mb2) noexcept
-{
-	return static_cast<char32_t>( ( (mb2[0] & B2_MASK) << SH2) + tail(mb2[1]) );
+// invert byte ordering in case of big endian
+constexpr char32_t make_char32(uint32_t c) noexcept {
+	return LE ? static_cast<char32_t>(c) :  static_cast<char32_t>( io_bswap32(c) );
 }
 
-inline constexpr char32_t decode3(const uint8_t* mb3) noexcept
+constexpr uint32_t tail(const char tail) noexcept
 {
-	return static_cast<char32_t>( ( (mb3[0] & B3_MASK) << SH3)  +
-		   ( tail(mb3[1]) << SH2) +
-		   ( tail(mb3[2]) ) );
+	return uint32_t( make_byte(tail) & TAIL_MASK );
 }
 
-inline constexpr char32_t decode4(const uint8_t* mb4) noexcept
+constexpr uint32_t decode2(const char* mb2) noexcept
 {
-	return static_cast<char32_t>( ( (mb4[0] & B4_MASK) << SH4) +
+	return make_char32( ( uint32_t( make_byte(mb2[0]) & B2_MASK) << SH2) + tail(mb2[1]) );
+}
+
+inline constexpr char32_t decode3(const char* mb3) noexcept
+{
+	return make_char32( (uint32_t(make_byte(mb3[0]) & B3_MASK) << SH3)  +
+		   (tail(mb3[1]) << SH2) + tail(mb3[2]) );
+}
+
+constexpr char32_t decode4(const char* mb4) noexcept
+{
+	return make_char32( (uint32_t(make_byte(mb4[0] & B4_MASK)) << SH4) +
 		   ( tail(mb4[1]) << SH3) +
 		   ( tail(mb4[2]) << SH2) +
-		   tail(mb4[3]) );
+		   tail( mb4[3]) );
 }
 
-}
+constexpr uint8_t OBMAX = 0x80;
+constexpr uint8_t MASK  = 6; // 0000 0110
+constexpr uint8_t RS = CHAR_BIT - 3; //
+
+} // namespace detail
+
 
 /// Checks a byte is UTF-8 single byte character
-inline constexpr bool isonebyte(const char c)
+constexpr bool isonebyte(const char c)
 {
-	return static_cast<uint8_t>(c) < uint8_t(0x80U);
-}
-
-/// Checks a byte is UTF-8 character tail byte
-inline constexpr bool ismbtail(const char c) noexcept
-{
-	return 2 == ( uint8_t(c) >> 6);
+	return detail::make_byte(c) < detail::OBMAX;
 }
 
 /// Returns UTF-8 character size in bytes, based on first UTF-8 byte
-inline constexpr unsigned int char_size(const char ch)
+#ifdef __GNUG__
+constexpr unsigned int mblen(const char* mb) noexcept
+#else
+inline unsigned int mblen(const char* mb) noexcept
+#endif // __GNUG__
 {
-	return io_likely( isonebyte(ch) )
+	return isonebyte(*mb)
 	? 1
 	:
 	// bit scan forward on inverted value gives number of leading multibyte bits
 	// works much faster then mask check series on CPU which supports clz or bt instruction
 	// (most of CPU supporting it)
 #ifdef IO_IS_LITTLE_ENDIAN
-	static_cast<unsigned int>( io_clz( ~( static_cast<unsigned int>(ch) << detail::MBSHIFT  ) ) );
+	detail::make_uint( io_clz( ~( detail::make_uint(*mb) << detail::MBSHIFT  ) ) );
 #else
-	static_cast<unsigned int>( io_clz( ~ ( static_cast<unsigned int>(ch) ) ) );
+	detail::make_uint( io_clz( ~detail::make_uint(*mb) ) );
 #endif // IO_IS_LITTLE_ENDIAN
 }
-
-/// Returns whether symbol if first byte of UTF-8 multibyte character
-/// \return true when c points on UTF-8 mutibyte character first byte, otherwise false
-inline constexpr bool ismblead(const char c)
-{
-	return char_size(c) > 2;
-}
-
-#ifdef IO_IS_LITTLE_ENDIAN
 
 using detail::decode2;
 using detail::decode3;
 using detail::decode4;
-
-#else
-
-// invert byte ordering in case of big endian
-
-inline constexpr char32_t decode2(const uint8_t* mb2) noexcept
-{
-	return io_bswap32( detail::decode2(mb2) );
-}
-
-inline constexpr char32_t decode3(const uint8_t* mb3) noexcept
-{
-	return io_bswap32( detail::decode3(mb3) );
-}
-
-inline constexpr char32_t decode4(const uint8_t* mb4) noexcept
-{
-	return io_bswap32( detail::decode4(mb4) );
-}
-
-#endif // IO_IS_LITTLE_ENDIAN
-
-inline constexpr uint32_t decode2(const char* mb2) noexcept
-{
-	return decode2( detail::make_unsigned(mb2) );
-}
-
-inline constexpr char32_t decode3(const char* mb3) noexcept
-{
-	return decode3( detail::make_unsigned(mb3) );
-}
-
-inline constexpr char32_t decode4(const char* mb4) noexcept
-{
-	return decode3( detail::make_unsigned(mb4) );
-}
 
 /// Converts a UTF-8 single/multibyte character to full UNICODE UTF-32 value,
 /// endianes depends on current CPU
 /// \param dst destination UTF-32 character, or U'\0' when end of line reached or invalid source character value
 /// \param src pointer to the UTF-8 character value
 /// \return string position after src UTF-8 or nullptr when end of line reached or decoding failed
-inline const char* mbtochar32(char32_t& dst, const char* src)
+inline const char* mbtochar32(char32_t& dst, const char* src) noexcept
 {
-	switch( char_size(*src) ) {
+	switch( mblen(src) ) {
 	case 1:
 		dst = static_cast<char32_t>( *src );
 		return U'0' != dst ? src + 1: nullptr;
@@ -186,15 +157,21 @@ inline const char* mbtochar32(char32_t& dst, const char* src)
 	return nullptr;
 }
 
+
 /// Returns UTF-8 string length in logical UNICODE characters
 /// \param u8str source UTF-8 string
 /// \return length in characters
+#if defined(__GNUG__) && (__cplusplus > 201402)
+constexpr std::size_t strlength(const char* u8str) noexcept {
+#else
 inline std::size_t strlength(const char* u8str) noexcept {
+#endif
 	std::size_t ret = 0;
-	for(const char *c = u8str; '\0' != *c; c += char_size(*c) )
+	for(const char *c = u8str; '\0' != *c; c += mblen(c) )
 		++ret;
 	return ret;
 }
+
 
 } // namespace u8
 
@@ -213,7 +190,7 @@ enum converrc: int {
 	no_buffer_space = 3,
 
 	/// conversation between character's is not supported
-	not_supported,
+	not_supported = 4,
 
 	/// An unknown error
 	unknown = -1
@@ -239,7 +216,7 @@ private:
 public:
 
 	constexpr chconv_error_category() noexcept:
-		error_category()
+		std::error_category()
 	{}
 
 	virtual ~chconv_error_category() = default;
@@ -257,12 +234,12 @@ public:
 
 };
 
-#ifndef _MSC_VER
-	std::error_code IO_PUBLIC_SYMBOL make_error_code(io::converrc errc) noexcept;
-	std::error_condition  IO_PUBLIC_SYMBOL make_error_condition(io::converrc err) noexcept;
-#else
+#ifdef _MSC_VER
 	IO_PUBLIC_SYMBOL std::error_code make_error_code(io::converrc errc) noexcept;
 	IO_PUBLIC_SYMBOL std::error_condition make_error_condition(io::converrc err) noexcept;
+#else
+	std::error_code IO_PUBLIC_SYMBOL make_error_code(io::converrc errc) noexcept;
+	std::error_condition  IO_PUBLIC_SYMBOL make_error_condition(io::converrc err) noexcept;
 #endif
 
 enum class cnvrt_control

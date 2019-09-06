@@ -16,16 +16,15 @@ DEPS_LIBS=$(DEPS_ROOT)\lib\x64
 LIB_NAME=io
 SHARED_EXT=dll
 
-PLATFORM_SHARED_LINK_OPTIONS=
 
-LIBS=kernel32.lib user32.lib Ws2_32.lib iconv.dll.lib
+LIBS=/DEFAULTLIB:msvcrt.lib /DEFAULTLIB:vcruntime.lib kernel32.lib user32.lib Ws2_32.lib iconv.lib
 INCLUEDS=/Iinclude /Iinclude\win /Iinclude\net /Isrc /I$(DEPS_INCLUDES)
 
-OPTIMIZE= /GL /GF /O2 /Zc:wchar_t
-SHARED_DEFINES= /DIO_SHARED_LIB /DIO_BUILD
+OPTIMIZE= /GL /GF /O2 /Oi /Gw /Zc:wchar_t
+SHARED_DEFINES=/DIO_SHARED_LIB /DIO_BUILD
 DEFINES = $(SHARED_DEFINES) /DNDEBUG /DUNICODE
-CPPFLAGS = /c /nologo /utf-8 /std:c++latest /LD $(DEFINES) $(OPTIMIZE) $(INCLUEDS) 
-LDFLAGS = /DLL /LTCG /LIBPATH:$(DEPS_LIBS)
+CPPFLAGS = /c /nologo /utf-8 /std:c++latest /W4 /wd4251 /wd4275 /wd4589 /Zl $(DEFINES) $(OPTIMIZE) $(INCLUEDS) 
+LDFLAGS = /LTCG /DLL /LIBPATH:$(DEPS_LIBS)
 
 PCH = /Yustdafx.hpp /Fp$(OBJ)\stdafx.pch
 
@@ -35,6 +34,7 @@ OBJECTS = stdafx.pch\
 	buffer.obj\
 	hashing.obj\
 	channels.obj\
+	conststring.obj\
 	memory_channel.obj\
 	errorcheck.obj\
 	sockets.obj\
@@ -62,6 +62,7 @@ LINK_OBJECTS = $(OBJ)\stdafx.obj\
 	$(OBJ)\buffer.obj\
 	$(OBJ)\hashing.obj\
 	$(OBJ)\channels.obj\
+	$(OBJ)\conststring.obj\
 	$(OBJ)\memory_channel.obj\
 	$(OBJ)\errorcheck.obj\
 	$(OBJ)\sockets.obj\
@@ -106,6 +107,8 @@ buffer.obj:
 	$(CXX) $(CPPFLAGS) $(PCH) src\buffer.cpp /Fo$(OBJ)\buffer.obj
 channels.obj:
 	$(CXX) $(CPPFLAGS) $(PCH) src\channels.cpp /Fo$(OBJ)\channels.obj
+conststring.obj:
+	$(CXX) $(CPPFLAGS) $(PCH) src\conststring.cpp /Fo$(OBJ)\conststring.obj
 memory_channel.obj:
 	$(CXX) $(CPPFLAGS) $(PCH) src\memory_channel.cpp /Fo$(OBJ)\memory_channel.obj
 hashing.obj:

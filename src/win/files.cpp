@@ -11,6 +11,10 @@
 #include "stdafx.hpp"
 #include "files.hpp"
 
+#include <cwctype>
+
+#include <iostream>
+
 namespace io {
 
 namespace win {
@@ -58,7 +62,7 @@ std::size_t synch_file_channel::from_end(std::error_code& err, std::size_t size)
 
 std::size_t synch_file_channel::position(std::error_code& err) noexcept
 {
-    return hch_.seek(err, detail::whence_type::current, 0);
+	return hch_.seek(err, detail::whence_type::current, 0);
 }
 
 
@@ -66,36 +70,69 @@ std::size_t synch_file_channel::position(std::error_code& err) noexcept
 
 
 // file
-file::file(const char* name) noexcept:
-	name_()
+
+void file::posix_to_windows(std::wstring& path) noexcept
 {
-	typedef std::char_traits<char> c8tr;
-	assert(nullptr != name);
-	const int alen = c8tr::length(name);
-	assert( alen <= MAX_PATH );
-	if(alen != 0) {
-		int wlen = ::MultiByteToWideChar(CP_UTF8, 0, name, alen, nullptr, 0);
-		if(0 != wlen) {
-			scoped_arr<wchar_t> tmp( static_cast<std::size_t>(wlen+1) );
-			::MultiByteToWideChar(CP_UTF8, 0, name, alen, tmp.get(), wlen);
-			name_ = std::move(tmp);
+	std::replace( path.begin(), path.end(), L'/', L'\\');
+    // full name from root, i.e. /c/Program Files/foo
+    if('\\' == path[0] ) {
+    	// set drive latter, if exist
+		wchar_t drive = std::towupper( path[1] );
+		if( std::iswalpha(drive) ) {
+			path[0] = drive;
+			path[1] = L':';
 		}
-	}
+    }
 }
 
-file::file(const wchar_t* name) noexcept:
-		name_( std::char_traits<wchar_t>::length(name) + 1 )
+file::file(const std::wstring& name):
+	name_( name )
 {
-	if(name_)
-		std::char_traits<wchar_t>::copy(name_.get(), name, name_.len()-1 );
+	assert( !name_.empty() );
+	posix_to_windows( name_ );
+
+	// get absolute path name if needed
+    if( L':' != name_[1] ) {
+		std::wstring ret;
+		bool existen_file = exist();
+		// open or create a file, to obtain full_path
+		::HANDLE hnd = ::CreateFileW(
+					   name_.data(),
+					   existen_file ? GENERIC_READ : GENERIC_WRITE,
+					   existen_file ? FILE_SHARE_READ : 0,
+					   nullptr,
+					   existen_file ? OPEN_EXISTING : CREATE_NEW,
+					   FILE_ATTRIBUTE_NORMAL, nullptr);
+		wchar_t full_path[MAX_PATH+1] = { L'\0' };
+		std::size_t path_size = ::GetFinalPathNameByHandleW( hnd, full_path, MAX_PATH, FILE_NAME_NORMALIZED | VOLUME_NAME_DOS );
+		if(0 != path_size) {
+			name_.clear();
+			if( 0 == io_memcmp(full_path,L"\\\\?\\",8) )
+				name_.append(full_path, 4, path_size-4);
+			else
+				name_.append(full_path, 0, path_size);
+			name_.shrink_to_fit();
+		}
+		// Close file handle
+		::CloseHandle(hnd);
+		// delete the file if it wasn't exist before
+		if(!existen_file)
+			::DeleteFileW( full_path );
+    }
 }
 
-
-static inline win::synch_file_channel* new_channel(std::error_code& ec, ::HANDLE hnd) noexcept {
-    return nobadalloc<win::synch_file_channel>::construct( ec, hnd);
+file::file(const std::string& name):
+	file( transcode_to_ucs( name.data() ) )
+{
 }
 
-static inline win::synch_file_channel* create_file_channel(std::error_code& err, ::HANDLE hnd, write_open_mode mode) {
+static inline win::synch_file_channel* new_channel(std::error_code& ec, ::HANDLE hnd) noexcept
+{
+	return nobadalloc<win::synch_file_channel>::construct( ec, hnd);
+}
+
+static inline win::synch_file_channel* create_file_channel(std::error_code& err, ::HANDLE hnd, write_open_mode mode)
+{
 	win::synch_file_channel *result = new_channel(err, hnd);
 	if(nullptr != result) {
 		if(mode == write_open_mode::append) {
@@ -108,27 +145,27 @@ static inline win::synch_file_channel* create_file_channel(std::error_code& err,
 
 bool file::exist() const noexcept
 {
-	if( !name_ )
+	if( name_.empty() )
 		return false;
-   ::WIN32_FIND_DATAW fdata;
-   ::HANDLE handle = ::FindFirstFileW(name_.get(), &fdata);
-   bool result = handle != INVALID_HANDLE_VALUE;
-   if(result) {
-       ::FindClose(handle);
-   }
-   return result;
+	::WIN32_FIND_DATAW fdata;
+	::HANDLE handle = ::FindFirstFileW(name_.data(), &fdata);
+	bool result = handle != INVALID_HANDLE_VALUE;
+	if(result) {
+		::FindClose(handle);
+	}
+	return result;
 }
 
 bool file::create()  noexcept
 {
-	if(!name_)
+	if( exist() || name_.empty() )
 		return false;
 	::HANDLE hnd = ::CreateFileW(
-						name_.get(),
-						GENERIC_READ | GENERIC_WRITE, 0,
-						nullptr,
-						CREATE_NEW,
-						FILE_ATTRIBUTE_NORMAL, 0);
+					   name_.data(),
+					   GENERIC_READ | GENERIC_WRITE, 0,
+					   nullptr,
+					   CREATE_NEW,
+					   FILE_ATTRIBUTE_NORMAL, 0);
 	bool result = INVALID_HANDLE_VALUE != hnd;
 	if(result) {
 		::CloseHandle(hnd);
@@ -138,74 +175,75 @@ bool file::create()  noexcept
 
 std::size_t file::size() const noexcept
 {
-    if( exist() ) {
+	if( exist() ) {
 		::HANDLE hnd = ::CreateFileW(
-						name_.get(),
-						GENERIC_READ, 0,
-						nullptr,
-						OPEN_EXISTING,
-						FILE_ATTRIBUTE_NORMAL, 0);
+						   name_.data(),
+						   GENERIC_READ, 0,
+						   nullptr,
+						   OPEN_EXISTING,
+						   FILE_ATTRIBUTE_NORMAL, 0);
 		::LARGE_INTEGER ret;
 		::GetFileSizeEx(hnd, &ret);
 		::CloseHandle(hnd);
 		return static_cast<std::size_t>(ret.QuadPart);
-    }
-    return 0;
+	}
+	return 0;
 }
 
-s_read_channel file::open_for_read(std::error_code& ec) noexcept {
-	if( !name_ ) {
+s_read_channel file::open_for_read(std::error_code& ec) const noexcept
+{
+	if( name_.empty() ) {
 		ec = std::make_error_code(std::errc::no_such_file_or_directory);
 		return s_read_channel();
 	}
 	::HANDLE hnd = ::CreateFileW(
-						name_.get(),
-						GENERIC_READ, 0,
-						nullptr,
-						OPEN_EXISTING,
-						FILE_ATTRIBUTE_NORMAL, 0);
+					   name_.data(),
+					   GENERIC_READ, 0,
+					   nullptr,
+					   OPEN_EXISTING,
+					   FILE_ATTRIBUTE_NORMAL, 0);
 	if(INVALID_HANDLE_VALUE == hnd) {
-		ec.assign( ::GetLastError() , std::system_category() );
+		ec.assign( ::GetLastError(), std::system_category() );
 		return s_read_channel(nullptr);
 	}
 	win::synch_file_channel* ch = new_channel(ec,hnd);
 	return nullptr != ch ? s_read_channel( ch ) : s_read_channel();
 }
 
-s_write_channel file::open_for_write(std::error_code& ec,write_open_mode mode) noexcept
+s_write_channel file::open_for_write(std::error_code& ec,write_open_mode mode) const noexcept
 {
-	if( !name_ ) {
+	if( name_.empty() ) {
 		ec = std::make_error_code(std::errc::no_such_file_or_directory);
 		return s_write_channel();
 	}
 	::HANDLE hnd = ::CreateFileW(
-						name_.get(),
-						GENERIC_WRITE, 0,
-						nullptr,
-						static_cast<::DWORD>(mode),
-						FILE_ATTRIBUTE_NORMAL, 0);
+					   name_.data(),
+					   GENERIC_WRITE, FILE_SHARE_READ,
+					   nullptr,
+					   static_cast<::DWORD>(mode),
+					   FILE_ATTRIBUTE_NORMAL, 0);
 	if(INVALID_HANDLE_VALUE == hnd) {
-		ec.assign( ::GetLastError() , std::system_category() );
+		ec.assign( ::GetLastError(), std::system_category() );
 		return s_write_channel();
 	}
 	win::synch_file_channel* ch = create_file_channel(ec, hnd, mode);
 	return nullptr != ch ? s_write_channel( ch ) : s_write_channel();
 }
 
-s_random_access_channel file::open_for_random_access(std::error_code& ec,write_open_mode mode) noexcept
+s_random_access_channel file::open_for_random_access(std::error_code& ec,write_open_mode mode) const noexcept
 {
-	if(!name_) {
+	if( name_.empty() ) {
 		ec = std::make_error_code(std::errc::no_such_file_or_directory);
 		return s_random_access_channel();
 	}
 	::HANDLE hnd = ::CreateFileW(
-						name_.get(),
-						GENERIC_READ | GENERIC_WRITE, 0,
-						nullptr,
-						static_cast<::DWORD>(mode),
-						FILE_ATTRIBUTE_NORMAL, 0);
+					   name_.data(),
+					   GENERIC_READ | GENERIC_WRITE,  FILE_SHARE_READ,
+					   nullptr,
+					   static_cast<::DWORD>(mode),
+					   FILE_ATTRIBUTE_NORMAL, 0);
 	if(INVALID_HANDLE_VALUE == hnd) {
-		ec.assign( ::GetLastError() , std::system_category() );
+		ec.assign( ::GetLastError(), std::system_category() );
 		return s_random_access_channel();
 	}
 	win::synch_file_channel* ch = create_file_channel(ec, hnd, mode);

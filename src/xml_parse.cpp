@@ -1,6 +1,6 @@
 /*
  *
- * Copyright (c) 2016
+ * Copyright (c) 2016-2019
  * Viktor Gubin
  *
  * Use, modification and distribution are subject to the
@@ -20,9 +20,8 @@ static const char* COMMENT = "<!--";
 static const char* CDATA    = "<![CDATA[";
 static const char* DOCTYPE  = "<!DOCTYPE";
 
-static const std::size_t SMALL_BUFF_SIZE = 32;
-static const std::size_t MEDIUM_BUFF_SIZE = 64;
-static const std::size_t HUGE_BUFF_SIZE = 128;
+static constexpr const std::size_t MEDIUM_BUFF_SIZE = 128;
+static constexpr const std::size_t HUGE_BUFF_SIZE = 256;
 
 // unicode constants in digit forms, to handle endians
 static constexpr const int ENDL = 0;
@@ -40,21 +39,9 @@ static constexpr const int ES = 61 ; // '='
 static constexpr const int QM = 63; // '?'
 
 
-#ifdef UCHAR_MAX
-static constexpr const std::size_t MAX_DEPTH = UCHAR_MAX;
-#else
-
-#ifdef __GNUG__
-static constexpr const std::size_t MAX_DEPTH = __UINT8_MAX__;
-#else
-static constexpr const std::size_t MAX_DEPTH = 255;
-#endif // __GNUG__
-
-#endif // UCHAR_MAX
-
 static inline bool is_prologue(const char *s) noexcept
 {
-	return start_with(s, PROLOGUE, 3) && is_whitespace( s[3] );
+	return start_with(s, PROLOGUE, 3) && is_space( s[3] );
 }
 
 static inline bool is_comment(const char *s) noexcept
@@ -82,14 +69,9 @@ static std::size_t extract_prefix(std::size_t &start, const char* str) noexcept
 {
 	const char *s = str;
 	if( cheq(LEFTB,*s) ) {
-		if( cheq(SOLIDUS,*(s+1) ) ) {
-			start += 2;
-			s += 2;
-		}
-		else {
-			++start;
-			++s;
-		}
+		const std::size_t shift = cheq( SOLIDUS, *(s+1) ) ? 2 : 1;
+		s += shift;
+		start += shift;
 	}
 	s += prefix_delimit(s);
 	if( !cheq(COLON, *s) ) {
@@ -101,27 +83,27 @@ static std::size_t extract_prefix(std::size_t &start, const char* str) noexcept
 
 static std::size_t extract_local_name(std::size_t& start,const char* str) noexcept
 {
-	start = 0;
 	char *s = const_cast<char*>(str);
-	if( !is_one_of(*s, LEFTB,COLON,QM) )
-		return 0;
-	++start;
-	++s;
-	if(cheq(SOLIDUS,*s)) {
-		++s;
+	start = 0;
+	if( is_one_of(*s, LEFTB,COLON,QM) ) {
 		++start;
+		++s;
 	}
-	s +=  xmlname_strspn(s);
-	if( cheq(ENDL, *s) ) {
+	if( cheq(*s, SOLIDUS) ) {
+		++start;
+		++s;
+	}
+	s += xmlname_strspn(s);
+	std::size_t ret = 0;
+	if( io_unlikely( cheq(ENDL, *s) ) )
 		start = 0;
-		return 0;
-	}
-	return memory_traits::distance(str,s-1) - (start-1);
+	else
+		ret = memory_traits::distance(str,s-1) - (start-1);
+	return ret;
 }
 
 
-// Works only for UCS-4
-#ifdef __GNUG__
+#if defined(__GNUG__) || defined(__ICL) || defined(__clang__)
 
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wpedantic"
@@ -162,69 +144,75 @@ static bool is_xml_name_char(uint32_t ch) noexcept
 
 #else
 
-static bool is_xml_name_start_char_lo(char32_t ch) noexcept
+static constexpr bool is_xml_name_start_char_lo(char32_t ch) noexcept
 {
 	// _ | :
-	return is_one_of(ch,0x5F,0x3A) || is_latin1(ch);
+	return is_one_of(ch, U'_', U':') || is_alpha( ch );
 }
 
-static bool is_xml_name_start_char(char32_t ch) noexcept
+template<unsigned int S, unsigned int E, unsigned int L = (E - S)>
+static constexpr bool between(char32_t ch) {
+	return (static_cast<unsigned int>(ch)-S) < L;
+}
+
+static constexpr bool is_xml_name_start_char(char32_t ch) noexcept
 {
+	// Compiler optimize it better then search array
 	return is_xml_name_start_char_lo(ch) ||
-		   between(0xC0,0xD6, ch)    ||
-		   between(0xD8,0xF6, ch)    ||
-		   between(0xF8,0x2FF,ch)    ||
-		   between(0x370,0x37D,ch)   ||
-		   between(0x37F,0x1FFF,ch)  ||
-		   between(0x200C,0x200D,ch) ||
-		   between(0x2070,0x218F,ch) ||
-		   between(0x2C00,0x2FEF,ch) ||
-		   between(0x3001,0xD7FF,ch) ||
-		   between(0xF900,0xFDCF,ch) ||
-		   between(0xFDF0,0xFFFD,ch) ||
-		   between(0x10000,0xEFFFF,ch);
+		   between<0xC0,0xD6>(ch)     ||
+		   between<0xD8,0xF6>(ch)     ||
+		   between<0xF8,0x2FF>(ch)    ||
+		   between<0x370,0x37D>(ch)   ||
+		   between<0x37F,0x1FFF>(ch)  ||
+		   between<0x200C,0x200D>(ch) ||
+		   between<0x2070,0x218F>(ch) ||
+		   between<0x2C00,0x2FEF>(ch) ||
+		   between<0x3001,0xD7FF>(ch) ||
+		   between<0xF900,0xFDCF>(ch) ||
+		   between<0xFDF0,0xFFFD>(ch)  ||
+		   between<0x10000,0xEFFFF>(ch);
 }
 
-static bool is_xml_name_char(uint32_t ch) noexcept
+static constexpr bool is_xml_name_char(char32_t ch) noexcept
 {
 	return is_digit(ch) ||
 		   // - | . | U+00B7
 		   is_one_of(ch,0x2D,0x2E,0xB7) ||
 		   is_xml_name_start_char(ch) ||
-		   between(0x0300,0x036F,ch)  ||
-		   between(0x203F,0x2040,ch);
+		   between<0x0300,0x036F>(ch)  ||
+		   between<0x203F,0x2040>(ch);
 }
 
 #endif // __GNUG__
 
 
-
+// Check XML name is correct according XML syntax
 static error check_xml_name(const char* tn) noexcept
 {
-	const char* c = tn;
-	if( io_unlikely( ('\0' == *c) || is_digit(*c) ) )
+	// name can not start from digit
+	if( io_unlikely( ('\0' == *tn) || io_isdigit(*tn) ) )
 		return error::illegal_name;
 	uint32_t utf32c;
-	while( '\0' != *c ) {
-		switch( utf8::char_size(*c) ) {
+	while( '\0' != *tn ) {
+		// decode UTF-8 symbol to UTF-32 to check name
+		switch( utf8::mblen(tn) ) {
 		case io_likely(1):
-			utf32c = static_cast<uint32_t>( char8_traits::to_int_type(*c) );
-			++c;
+			utf32c = static_cast<uint32_t>( char8_traits::to_int_type(*tn) );
+			++tn;
 			break;
 		case 2:
-			utf32c = utf8::decode2( c );
-			c += 2;
+			utf32c = utf8::decode2( tn );
+			tn += 2;
 			break;
 		case 3:
-			utf32c = utf8::decode3( c );
-			c += 3;
+			utf32c = utf8::decode3( tn );
+			tn += 3;
 			break;
 		case 4:
-			utf32c = utf8::decode4( c );
-			c += 4;
+			utf32c = utf8::decode4( tn );
+			tn += 4;
 			break;
 		default:
-			io_unreachable
 			return error::illegal_name;
 		}
 		if( !is_xml_name_char(utf32c) )
@@ -259,7 +247,7 @@ s_event_stream_parser event_stream_parser::open(std::error_code& ec,s_source&& s
 	s_string_pool pool = string_pool::create(ec);
 	if(!pool)
 		return s_event_stream_parser();
-	return s_event_stream_parser( nobadalloc<event_stream_parser>::construct( ec, src, std::move(pool) ) );
+	return s_event_stream_parser( nobadalloc<event_stream_parser>::construct( ec, std::move(src), std::move(pool) ) );
 }
 
 s_event_stream_parser event_stream_parser::open(std::error_code& ec,s_read_channel&& src) noexcept
@@ -268,9 +256,9 @@ s_event_stream_parser event_stream_parser::open(std::error_code& ec,s_read_chann
 	return !ec ? open(ec, std::move(xmlsrc) ) : s_event_stream_parser();
 }
 
-event_stream_parser::event_stream_parser(const s_source& src, s_string_pool&& pool) noexcept:
+event_stream_parser::event_stream_parser(s_source&& src, s_string_pool&& pool) noexcept:
 	object(),
-	src_(src),
+	src_( std::forward<s_source>(src) ),
 	state_(),
 	current_(event_type::start_document),
 	pool_(std::forward<s_string_pool>(pool)),
@@ -278,14 +266,21 @@ event_stream_parser::event_stream_parser(const s_source& src, s_string_pool&& po
 	nesting_(0)
 {
 	validated_.reserve(64);
-	for(char c = next(); c != '<'; c = next()) {
-		if( io_unlikely(!is_whitespace(c)) ) {
-			assign_error(error::illegal_markup);
-			return;
-		}
+
+	// skip any leading spaces if any
+	char c;
+	do {
+		c = next();
 	}
-	sb_clear(scan_buf_);
-	scan_buf_[0] = '<';
+	while( is_space(c) && error_state_ok() );
+
+	if( io_unlikely( !cheq(c,LEFTB) ) ) {
+		assign_error(error::illegal_markup);
+	}
+	else {
+		sb_clear();
+		scan_buf_[0] = '<';
+	}
 }
 
 event_stream_parser::~event_stream_parser() noexcept
@@ -298,11 +293,17 @@ inline void event_stream_parser::assign_error(error ec) noexcept
 		state_.ec = ec;
 }
 
-__forceinline void event_stream_parser::putch(byte_buffer& buf, char ch) noexcept
+inline void event_stream_parser::putch(byte_buffer& buf, char ch) noexcept
 {
 	if( io_unlikely( !buf.put(ch) && ( !buf.ln_grow() || !buf.put(ch) ) ) )
-			assign_error(error::out_of_memory);
+		assign_error(error::out_of_memory);
 }
+
+cached_string event_stream_parser::precache(const char* str) noexcept
+{
+	return pool_->get(str);
+}
+
 
 // extract name and namespace prefix if any
 qname event_stream_parser::extract_qname(const char* from, std::size_t& len) noexcept
@@ -311,20 +312,21 @@ qname event_stream_parser::extract_qname(const char* from, std::size_t& len) noe
 	cached_string local_name;
 	len = 0;
 	std::size_t start = 0;
-	std::size_t count = extract_prefix(start, from );
+	std::size_t count = extract_prefix( start, from );
 	if( count > 0 )
-		prefix = pool_->get( from+start, count);
+		prefix = pool_->get( (from+start), count);
 	len += start+count;
 	const char* name = from+len;
 	count = extract_local_name(start,name);
-	if(count > 0)
-		local_name = pool_->get(name+start, count);
+	if(count > 0) {
+		local_name = pool_->get( (name+start), count);
+	}
 	else {
 		assign_error(error::illegal_name);
 		return qname();
 	}
 	len += start+count;
-	char* left = const_cast<char*>( from + len);
+	const char* left = from + len;
 	if( cheq(SOLIDUS,*left) ) {
 		++len;
 		++left;
@@ -343,28 +345,21 @@ state_type event_stream_parser::scan_next() noexcept
 
 byte_buffer event_stream_parser::read_entity() noexcept
 {
-	std::error_code ec;
-	byte_buffer ret = byte_buffer::allocate(ec, MEDIUM_BUFF_SIZE);
-	if(  io_unlikely(ec) ) {
+	byte_buffer ret;
+	ret.extend(MEDIUM_BUFF_SIZE);
+	if( !ret ) {
 		assign_error(error::out_of_memory);
 		return byte_buffer();
 	}
 	ret.put( scan_buf_ );
-	sb_clear( scan_buf_ );
-	for(char c = next(); !is_error(); c = next() ) {
-		putch(ret, c );
-		switch( char8_traits::to_int_type(c) ) {
-		case LEFTB:
-		case EOF:
-			assign_error(error::illegal_markup);
-			break;
-		case RIGHTB:
-			ret.flip();
-			return std::move(ret);
-		}
+	sb_clear();
+	src_->read_until_char( ret, static_cast<char>(RIGHTB), static_cast<char>(LEFTB) );
+	if( src_->eof() ) {
+		assign_error( src_->last_error() );
+		return byte_buffer();
 	}
-	// error state
-	return byte_buffer();
+	ret.flip();
+	return ret;
 }
 
 #define check_state( _STATE_TYPE, _EMPTY_RET_TYPE)\
@@ -413,9 +408,10 @@ document_event event_stream_parser::parse_start_doc() noexcept
 	if( !is_one_of(sep,QNM,APH) ) {
 		assign_error(error::illegal_prologue);
 		return document_event();
-	} else
+	}
+	else
 		++i;
-	char *stop = tstrchr(i, sep);
+	char *stop = io_strchr(i, sep);
 	if(nullptr == stop )  {
 		assign_error(error::illegal_prologue);
 		return document_event();
@@ -438,9 +434,10 @@ document_event event_stream_parser::parse_start_doc() noexcept
 		if( !is_one_of(sep,QNM,APH) ) {
 			assign_error(error::illegal_prologue);
 			return document_event();
-		} else
+		}
+		else
 			++i;
-		stop  = tstrchr( i, sep );
+		stop  = io_strchr( i, sep );
 		if(nullptr == stop ) {
 			assign_error(error::illegal_prologue);
 			return document_event();
@@ -461,9 +458,10 @@ document_event event_stream_parser::parse_start_doc() noexcept
 		if( !is_one_of(sep,QNM,APH) ) {
 			assign_error(error::illegal_prologue);
 			return document_event();
-		} else
+		}
+		else
 			++i;
-		stop  = tstrchr( i, sep );
+		stop  = io_strchr( i, sep );
 		if(nullptr == stop || (str_size(i,stop) > 3) ) {
 			assign_error(error::illegal_prologue);
 			return document_event();
@@ -544,9 +542,9 @@ const_string event_stream_parser::read_dtd() noexcept
 		return const_string();
 	}
 	dtd.put(scan_buf_);
-	sb_clear(scan_buf_);
+	sb_clear();
 	std::size_t brackets = 1;
-	int i;
+	char i;
 	do {
 		i = next();
 		switch( char8_traits::to_int_type(i) ) {
@@ -562,9 +560,9 @@ const_string event_stream_parser::read_dtd() noexcept
 		default:
 			break;
 		}
-		putch(dtd, static_cast<char>(i) );
+		putch(dtd, i );
 	}
-	while( brackets > 0 && !is_error() );
+	while( brackets > 0 && error_state_ok() );
 	dtd.flip();
 	return const_string( dtd.position().cdata(), dtd.last().cdata() );
 }
@@ -574,119 +572,102 @@ void event_stream_parser::skip_comment() noexcept
 	if(state_type::comment != state_.current) {
 		assign_error(error::invalid_state);
 		return;
-	}
-	if( !sb_check(scan_buf_) ) {
+	} else if( scan_failed() ) {
 		assign_error(error::illegal_commentary);
 		return;
 	}
-	sb_clear(scan_buf_);
-	static constexpr uint16_t _ptrn = (HYPHEN << 8) | HYPHEN;
-	uint16_t i = 0;
+	sb_clear();
+	constexpr const uint16_t double_hyphen = pack_word( static_cast<uint16_t>('-'), '-');
+	uint16_t hw = 0;
 	char c;
 	do {
 		c = next();
-		if( is_eof(c) )
-			break;
-		i = (i << 8) | c;
+		hw = pack_word(hw, c);
 	}
-	while( !is_error() && _ptrn != i );
-	c = next();
-	if( !cheq(RIGHTB,c) )
+	while( double_hyphen != hw && io_likely( !is_eof(c) && error_state_ok() ) );
+	if( !cheq(RIGHTB, next() ) )
 		assign_error(error::illegal_commentary);
 }
 
-byte_buffer event_stream_parser::read_until_double_separator(int separator,error ec) noexcept
+byte_buffer event_stream_parser::read_until_double_separator(const char separator,const error ec) noexcept
 {
-	if( !sb_check(scan_buf_) ) {
+	if( scan_failed() ) {
 		assign_error(ec);
 		return byte_buffer();
 	}
-	sb_clear(scan_buf_);
-	std::error_code errc;
-	byte_buffer ret = byte_buffer::allocate(errc, HUGE_BUFF_SIZE);
-	if( errc ) {
+
+	byte_buffer ret;
+	ret.extend( HUGE_BUFF_SIZE );
+	if( !ret ) {
 		assign_error(error::out_of_memory);
-		return byte_buffer();
+		return ret;
 	}
-	const uint16_t pattern = (separator << 8) | separator;
-	char c;
-	uint16_t i = 0;
-	do {
-		c = next();
-		if( io_unlikely( !ret.put(c) &&  (!ret.exp_grow() || !ret.put(c) ) ) ) {
+
+	sb_clear();
+
+	src_->read_until_double_char( ret, separator );
+
+	if( ret.empty() || !cheq(RIGHTB, next() ) ) {
+		if( error::out_of_memory == src_->last_error() )
 			assign_error(error::out_of_memory);
-			return byte_buffer();
-		}
-		i = (i << 8) | uint16_t(c);
-	}
-	while( (pattern != i || is_eof(i) ) && io_likely(!is_error()) );
-	ret.flip();
-	if( is_eof(c) || !cheq(RIGHTB, next() ) ) {
-		if(error::ok != state_.ec)
-			assign_error(ec);
+		else
+			assign_error( ec );
 		return byte_buffer();
 	}
-	return std::move(ret);
+	ret.flip();
+	return ret;
 }
 
 const_string event_stream_parser::read_comment() noexcept
 {
-    check_state(state_type::comment, const_string)
+	check_state(state_type::comment, const_string)
+	constexpr std::size_t END_LEXEM_LEN = 3; // --> len
 	byte_buffer tmp( read_until_double_separator(HYPHEN, error::illegal_commentary) );
 	if( tmp.empty() || 0 == io_strcmp("--", tmp.position().cdata() ) )
 		return  const_string();
 	else
-		return const_string( tmp.position().cdata(), tmp.last().cdata()-3 );
+		return const_string( tmp.position().cdata(), tmp.last().cdata()-END_LEXEM_LEN );
 }
 
 const_string event_stream_parser::read_chars() noexcept
 {
 	check_state(state_type::characters, const_string)
-	std::error_code ec;
-	byte_buffer ret = byte_buffer::allocate(ec,HUGE_BUFF_SIZE);
-	if( ec )
+	byte_buffer ret;
+	ret.extend( HUGE_BUFF_SIZE );
+	if( !ret ) {
+		assign_error(error::out_of_memory);
 		return const_string();
+	}
 	// just "\s<" in scan stack
-	if( 0 == io_memcmp( (scan_buf_+1),"<", 2)  ) {
-		char tmp[2] = { scan_buf_[0], '\0'};
-		sb_clear(scan_buf_);
-		scan_buf_[0] = '<';
-		return const_string(tmp);
+	//const char *i = io_strchr(scan_buf_+1, RIGHTB);
+	if( is_space(scan_buf_[0]) && cheq(scan_buf_[1],RIGHTB) ) {
+		io_memmove(scan_buf_, "<", 2);
+		return const_string(scan_buf_, 1);
 	}
-	char c;
-	bool reading = true;
-	do {
-		c = next();
-		switch( char8_traits::to_int_type(c) ) {
-		case LEFTB:
-			reading = false;
-			break;
-		case RIGHTB:
-		case EOF:
-			reading = false;
-			assign_error(error::root_element_is_unbalanced);
-			break;
-		default:
-			if( !ret.put(c) ) {
-				if( !ret.exp_grow() ) {
-					reading = false;
-					assign_error(error::out_of_memory);
-				}  else {
-					ret.put(c);
-				}
-				break;
-			}
-		}
-	}
-	while( reading );
-
-	if( is_error() )
+	// check for <tag></tag>
+	char c = next();
+	if( cheq(c,LEFTB) ) {
+		io_memmove(scan_buf_, "<", 2);
 		return const_string();
+	}
+	else
+		ret.put( c );
 
-	sb_clear( scan_buf_ );
-	scan_buf_[0] = '<';
-	ret.flip();
-	return !ret.empty() ?  const_string( ret.position().cdata(), ret.length() ) : const_string();
+	src_->read_until_char(ret, '<', '>');
+	error errc = src_->last_error();
+	if( io_unlikely( error::ok != errc  ) ) {
+		if(error::illegal_markup == errc)
+			assign_error(error::root_element_is_unbalanced);
+		else
+			assign_error( errc );
+	}
+	else if( !ret.empty() ) {
+		io_memmove(scan_buf_, "<", 2);
+		ret.flip();
+		// don't add last <
+		return const_string( ret.position().cdata(), ret.length()-1 );
+	}
+	return const_string();
 }
 
 void event_stream_parser::skip_chars() noexcept
@@ -695,18 +676,18 @@ void event_stream_parser::skip_chars() noexcept
 		assign_error(error::invalid_state);
 		return;
 	}
-	for(int i = char8_traits::to_int_type( next() ); !is_error() ; i = char8_traits::to_int_type( next() ) ) {
+	for(int i = char8_traits::to_int_type( next() ); error_state_ok() ; i = char8_traits::to_int_type( next() ) ) {
 		switch(i) {
 		case LEFTB:
-			sb_clear( scan_buf_ );
-			sb_append( scan_buf_, static_cast<char>(LEFTB) );
+			sb_clear();
+			sb_append( static_cast<char>(LEFTB) );
 			return;
 		case RIGHTB:
-			sb_clear( scan_buf_ );
+			sb_clear();
 			assign_error(error::illegal_chars);
 			return;
 		case io_unlikely(EOF):
-			sb_clear( scan_buf_ );
+			sb_clear();
 			assign_error(error::root_element_is_unbalanced);
 			return;
 		}
@@ -726,27 +707,30 @@ attribute event_stream_parser::extract_attribute(const char* from, std::size_t& 
 {
 	len = 0;
 	// skip lead spaces, don't copy them into name
-	char *i = find_first_symbol(from);
-	if( nullptr == i || is_one_of(*i, SOLIDUS,RIGHTB) )
+	const char *i = find_first_symbol(from);
+	if( nullptr == i || is_one_of(*i, SOLIDUS,RIGHTB,0) )
 		return attribute();
 
-	char* start = i;
-	i = tstrchr(start, ES);
-	int val_sep = char8_traits::to_int_type( *(++i) );
-	if( nullptr == i || !is_one_of( val_sep, QNM, APH) )
+	const char* start = i;
+	i = io_strchr(start, ES);
+	if( nullptr == i || !is_one_of( i[1], QNM, APH) ) {
+		assign_error(error::illegal_markup);
 		return attribute();
+	}
+
+	const char val_sep = *(++i);
 
 	cached_string np;
 	cached_string ln;
-	char *tmp = tstrchrn( start, COLON, str_size(start,i) );
+	// find prefix if any, ans split onto qualified name
+	char *tmp = strchrn( start, COLON, str_size(start,i) );
 	if(nullptr != tmp) {
-        np = pool_->get( start,  str_size(start, tmp) );
-        start = tmp + 1;
+		np = pool_->get( start,  str_size(start, tmp) );
+		start = tmp + 1;
 	}
 	ln = pool_->get(start, str_size(start, i-1) );
-
 	// extract attribute value
-	i += 1; // skip ( "|' )
+	++i; // skip ( "|' )
 	start = i;
 	// find closing value separator
 	i = io_strchr(i, val_sep );
@@ -754,52 +738,49 @@ attribute event_stream_parser::extract_attribute(const char* from, std::size_t& 
 		assign_error(error::illegal_attribute);
 		return attribute();
 	}
-	const std::size_t val_size = str_size(start,i);
-    const_string value;
-	if( val_size > 0) {
-		char* val = nullptr;
-        if( io_likely(val_size <= HUGE_BUFF_SIZE) ) {
-			val = static_cast<char*>( io_alloca(val_size+1) );
-			val[val_size] = '\0';
-		} else {
-            val = memory_traits::calloc_temporary<char>( val_size+1 );
-            if( io_unlikely(nullptr == val) ) {
-				assign_error(error::out_of_memory);
-				return attribute();
-            }
-		}
-		// normalize attribute value
-		char *v = val;
-		for(char *ch = start; ch != i; ch++) {
-			if( between('\t','\r',*ch) )
-				*v = ' ';
-			else
-				*v = *ch;
-			++v;
-		}
-		value = const_string(val, val_size);
-		if( io_unlikely(val_size > HUGE_BUFF_SIZE) )
-			memory_traits::free_temporary(val);
-		++i;
+	// check for empty attribute value
+	// not valid according W3C, but can be present
+	// in sort of generated xmls
+	const std::size_t val_size =  str_size(start,i);
+	// empty value attribute, return
+	if( io_unlikely( val_size < 1 ) ) {
+		len = str_size(from, i+1);
+		return attribute( qname( std::move(np), std::move(ln) ), io::const_string() );
 	}
-	len = str_size(from, i);
-
+	const_string value(start, val_size);
+	if( io_unlikely( value.empty() ) ) {
+		assign_error(error::out_of_memory);
+		return attribute();
+	}
+	// normalize attribute value
+	// replace any white space characters to space character
+	// according to W3C XML spec
+	char *v = const_cast<char*>( value.data() );
+	constexpr const char* NOT_SPACE_WS = "\t\n\v\f\r";
+	do {
+	 	v += io_strcspn(v,NOT_SPACE_WS);
+	 	if('\0' != *v)
+        	*v = ' ';
+	} while( '\0' != *v );
+	len = str_size(from, ++i);
 	return attribute( qname( std::move(np), std::move(ln) ), std::move(value) );
 }
 
 bool event_stream_parser::validate_xml_name(const cached_string& str, bool attr) noexcept
 {
-	if( validated_.end() == validated_.find( str.hash() ) ) {
+	std::size_t str_hash = str.hash();
+	if( validated_.end() == validated_.find( str_hash ) ) {
+		const char *s = str.data();
 		error err;
 		if(attr)
-			err = validate_attribute_name( str.data() );
+			err = validate_attribute_name( s );
 		else
-			err = validate_tag_name( str.data() );
+			err = validate_tag_name( s );
 		if(error::ok != err ) {
 			assign_error( err );
 			return false;
 		}
-		validated_.insert( str.hash() );
+		validated_.insert( str_hash );
 		return true;
 	}
 	return true;
@@ -810,6 +791,22 @@ inline char event_stream_parser::next() noexcept
 	return src_->next();
 }
 
+bool event_stream_parser::validate_attr_name(const qname& name) noexcept
+{
+	bool ret = validate_xml_name( name.local_name(), true );
+	if( ret && name.has_prefix() )
+		ret = validate_xml_name(name.prefix(), true);
+	return ret;
+}
+
+bool event_stream_parser::validate_element_name(const qname& name) noexcept
+{
+	bool ret = validate_xml_name( name.local_name(), false );
+	if( ret && name.has_prefix() )
+		ret = validate_xml_name(name.prefix(), false);
+	return ret;
+}
+
 start_element_event event_stream_parser::parse_start_element() noexcept
 {
 	check_event_parser_state(event_type::start_element, start_element_event);
@@ -817,85 +814,80 @@ start_element_event event_stream_parser::parse_start_element() noexcept
 	byte_buffer buff = read_entity();
 	if( is_error() )
 		return start_element_event();
-	bool empty_element = cheq(SOLIDUS, *(buff.last().cdata()-3));
+	constexpr std::size_t SELF_CLOSE_LEN = 3; // len of </ from last
+	bool empty_element = cheq(SOLIDUS, *(buff.last().cdata()-SELF_CLOSE_LEN) );
+	// nesting level for nodes balance
 	if( !empty_element )
 		++nesting_;
 	std::size_t len = 0;
 	qname name = extract_qname( buff.position().cdata(), len );
-	if(is_error())
-		return start_element_event();
 	// check name validity
-	if( name.has_prefix() && !validate_xml_name( name.prefix(), false ) )
+	if(is_error() || !validate_element_name(name) )
 		return start_element_event();
-	if( !validate_xml_name( name.local_name(), false ) )
-		return start_element_event();
+
 	start_element_event result( std::move(name), empty_element );
-	if( is_error() )
-		return result;
-	char *left = const_cast<char*>( buff.position().cdata() + len );
-	if( is_whitespace(*left) ) {
-		std::size_t offset = 0;
-		attribute attr( extract_attribute(left,offset) );
-		while(offset != 0) {
-			qname attr_name = attr.name();
-			if( ( attr_name.has_prefix() && !validate_xml_name(attr_name.prefix(), true) )
-				||
-				  !validate_xml_name( attr.name().local_name(), true )
-			  ) {
+	// extract attributes if any
+	const char *left =  buff.position().cdata() + len;
+	if( is_space(*left) && error_state_ok() ) {
+		std::size_t offset;
+		attribute attr = extract_attribute(left,offset);
+		while( (0 < offset) && error_state_ok() ) {
+			// validate attribute name and check for
+			// double attributes with the same name check
+			// according to W3C XML spec
+			if( !validate_attr_name( attr.name() ) || !result.add_attribute( std::move(attr) ) ) {
 				assign_error( error::illegal_attribute );
-				return start_element_event();
+			} else {
+				// extract next attribute if there were any
+				attr = extract_attribute( (left += offset) ,offset);
 			}
-			if( ! result.add_attribute( std::move(attr) ) ) {
-				assign_error( error::illegal_attribute );
-				return start_element_event();
-			}
-			left += offset;
-			attr = extract_attribute(left,offset);
 		}
 	}
-	return  result;
+	return error_state_ok() ?  std::move(result) : start_element_event();
 }
 
 end_element_event event_stream_parser::parse_end_element() noexcept
 {
 	check_event_parser_state(event_type::end_element, end_element_event )
+	qname name;
+	if( io_likely(nesting_ > 0) ) {
 
-	if(nesting_ == 0) {
+		if(0 == (--nesting_) )
+			state_.current =  state_type::eod;
+
+		byte_buffer buff = read_entity();
+		if( error_state_ok() ) {
+			std::size_t len = 0;
+			name = extract_qname( buff.position().cdata(), len );
+		}
+	} else {
 		assign_error(error::root_element_is_unbalanced);
-		return end_element_event();
 	}
-	--nesting_;
-	if(0 == nesting_)
-		state_.current =  state_type::eod;
-	byte_buffer buff = read_entity();
-	if( is_error() )
-		return end_element_event();
-	std::size_t len = 0;
-	qname name = extract_qname( buff.position().cdata(), len );
-	if( is_error() )
-		return end_element_event();
 	return end_element_event( std::move(name) );
 }
 
 void event_stream_parser::s_instruction_or_prologue() noexcept
 {
-	if(0 != nesting_) {
+	if( 0 != nesting_ ) {
 		assign_error(error::illegal_markup);
 		return;
 	}
-	for(uint8_t i=2; i < 7; i++)
+	constexpr std::size_t SCAN_START = 2;
+	constexpr std::size_t MAX_SCAN = 7;
+	for(std::size_t i=SCAN_START; i < MAX_SCAN; i++) {
 		scan_buf_[i] = next();
-	if( !sb_check(scan_buf_) ) {
-		assign_error(error::illegal_markup);
-		return;
 	}
-	else if( is_prologue(scan_buf_+2) ) {
-		if(state_type::initial != state_.current) {
-			assign_error(error::illegal_prologue);
-			return;
+	if( scan_failed() ) {
+		assign_error(error::illegal_markup);
+	}
+	else if( is_prologue(scan_buf_+SCAN_START) ) {
+		if( state_type::initial == state_.current ) {
+			current_ = event_type::start_document;
+			state_.current = state_type::event;
 		}
-		current_ = event_type::start_document;
-		state_.current = state_type::event;
+		else {
+			assign_error(error::illegal_prologue);
+		}
 	}
 	else {
 		current_ = event_type::processing_instruction;
@@ -907,52 +899,51 @@ void event_stream_parser::s_comment_cdata_or_dtd() noexcept
 {
 	scan_buf_[2] = next();
 	scan_buf_[3] = next();
-	if( !sb_check(scan_buf_)  ) {
+	if( scan_failed()  ) {
 		assign_error(error::root_element_is_unbalanced);
-		return;
 	}
-	if( is_comment(scan_buf_) ) {
+	else if( is_comment(scan_buf_) ) {
 		state_.current =  state_type::comment;
-		return;
 	}
-	for(uint8_t i=4; i < 9; i++)
-		scan_buf_[i] = next();
-
-	if( !sb_check(scan_buf_) ) {
-		assign_error(error::root_element_is_unbalanced);
-		return;
+	else {
+		constexpr std::size_t SCAN_START = 4;
+		constexpr std::size_t MAX_SCAN = 9;
+		for(std::size_t i = SCAN_START; i < MAX_SCAN; i++) {
+			scan_buf_[i] = next();
+		}
+		if( scan_failed() )
+			assign_error(error::root_element_is_unbalanced);
+		else if( is_cdata(scan_buf_) )
+			state_.current = state_type::cdata;
+		else if( is_doc_type(scan_buf_) )
+			state_.current = state_type::dtd;
+		else
+			assign_error(error::illegal_markup);
 	}
-
-	if( is_cdata(scan_buf_) )
-		state_.current = state_type::cdata;
-	else if( is_doc_type(scan_buf_) )
-		state_.current = state_type::dtd;
-	else
-		assign_error(error::illegal_markup);
 }
-
 
 void event_stream_parser::s_entity() noexcept
 {
 	scan_buf_[1] = next();
-	int second = char8_traits::to_int_type( scan_buf_[1] );
+	const int second = char8_traits::to_int_type( scan_buf_[1] );
 	switch( second ) {
-	case QM:
-		s_instruction_or_prologue();
-		break;
-	case EM:
-		s_comment_cdata_or_dtd();
-		break;
 	case SOLIDUS:
 		state_.current = state_type::event;
 		current_ = event_type::end_element;
 		break;
+	case EM:
+		s_comment_cdata_or_dtd();
+		break;
+	case QM:
+		s_instruction_or_prologue();
+		break;
 	default:
-		if( io_unlikely( is_whitespace(second) ) )
-			assign_error( error::illegal_markup );
-		else {
+		if( io_likely( !is_space(second) ) ) {
 			state_.current = state_type::event;
 			current_ = event_type::start_element;
+		}
+		else {
+			assign_error( error::illegal_markup );
 		}
 	}
 }

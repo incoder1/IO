@@ -55,7 +55,7 @@ public:
 	}
 private:
 	::DWORD prevCP_;
-	::DWORD prevAttr_;
+	::WORD prevAttr_;
 };
 
 static void print_error_message(int errcode,const char* message) noexcept
@@ -76,7 +76,8 @@ static void print_error_message(int errcode,const char* message) noexcept
 #endif
 	output_swap oswap;
 	::DWORD written;
-	if( ! ::WriteConsoleW( ::GetStdHandle(STD_ERROR_HANDLE), msg, len, &written, nullptr ) ) {
+	#include <cwchar>
+	if( ! ::WriteConsoleW( ::GetStdHandle(STD_ERROR_HANDLE), msg, static_cast<::DWORD>(len), &written, nullptr ) ) {
 		MessageBoxExW(NULL, msg, NULL, MB_OK | MB_ICONERROR, MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT) );
 	}
 }
@@ -100,6 +101,7 @@ void IO_PANIC_ATTR exit_with_current_error()
 						  256, NULL );
 
 		::DWORD written;
+		::AllocConsole();
 		if( !::WriteFile( ::GetStdHandle(STD_ERROR_HANDLE), msg, len, &written, nullptr ) ) {
 			MessageBoxExW(NULL, msg, NULL, MB_OK | MB_ICONERROR, MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT) );
 		}
@@ -124,8 +126,7 @@ namespace detail {
 
 void IO_PUBLIC_SYMBOL ios_check_error_code(const char* msg, std::error_code const &ec )
 {
-	if( io_likely( !ec ) )
-		return;
+	if( io_unlikely( ec ) ) {
 #ifdef IO_NO_EXCEPTIONS
 	std::string m = ec.message();
 	std::size_t size = io_strlen(msg) + m.length() + 1;
@@ -137,6 +138,7 @@ void IO_PUBLIC_SYMBOL ios_check_error_code(const char* msg, std::error_code cons
 #else
 	throw std::ios_base::failure( msg, ec );
 #endif
+	}
 }
 
 } // namespace detail

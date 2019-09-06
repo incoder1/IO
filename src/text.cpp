@@ -1,6 +1,6 @@
 /*
  *
- * Copyright (c) 2016
+ * Copyright (c) 2016-2019
  * Viktor Gubin
  *
  * Use, modification and distribution are subject to the
@@ -62,17 +62,18 @@ std::size_t conv_read_channel::read(std::error_code& ec,uint8_t* const buff, std
 	}
 	std::size_t left = length;
 	std::size_t read;
-	uint8_t** cvt_it = const_cast<uint8_t**>( &buff );
-	uint8_t* rb_it[1];
-	while( !ec && left != 0 ) {
+	uint8_t* cvt_it[1] = { buff };
+	uint8_t* rb_it[1]  = { nullptr };
+	do {
 		read = src_->read(ec, rdbuf, rdbuflen);
-		if(0 == read)
+		if( 0 != read && !ec) {
+			rb_it[0] = rdbuf;
+			do {
+				conv_->convert(ec, rb_it, read, cvt_it, left);
+			} while(read > 0 && !ec);
+		} else
 			break;
-		rb_it[0] = rdbuf;
-		while(!ec && read > 0) {
-			conv_->convert(ec, rb_it, read, cvt_it, left);
-		}
-	}
+	} while(left > 0);
 	if( rdbuflen > MAX_CONVB_STACK_SIZE)
 		memory_traits::free_temporary( rdbuf );
 	return bytes - left;
@@ -106,8 +107,10 @@ std::size_t conv_write_channel::convert_some(std::error_code& ec, const uint8_t 
 
 std::size_t conv_write_channel::write(std::error_code& ec, const uint8_t* buff,std::size_t bytes) const noexcept
 {
+	// considering worst scenario with up bytes conversion, i.e. something like UTF-8 to UTF-32
 	std::size_t cnvbuflen = bytes << 2;
 	uint8_t* cnvbuff;
+	// don't touch heap, until not needed
 	if( cnvbuflen <= MAX_CONVB_STACK_SIZE ) {
 		cnvbuff = static_cast<uint8_t*>( io_alloca( cnvbuflen ) );
 	} else {
@@ -120,19 +123,20 @@ std::size_t conv_write_channel::write(std::error_code& ec, const uint8_t* buff,s
 
     std::size_t unconv_left = bytes;
    	std::size_t to_write = convert_some(ec, buff, unconv_left, cnvbuff);
-	std::size_t ret = (bytes - unconv_left);
-   	if(ec)
-		return 0;
-
-	uint8_t *wpos = cnvbuff;
-	std::size_t written;
-	while(!ec && to_write > 0) {
-		written = dst_->write(ec, wpos, to_write);
-		if(ec)
+   	// check for the transcoding error
+	std::size_t ret = io_unlikely( ec ) ? 0 : (bytes - unconv_left);
+   	if( ret > 0 ) {
+		// write all converted bytes to the destination stream
+		uint8_t *wpos = cnvbuff;
+		std::size_t written;
+		do {
+			written = dst_->write(ec, wpos, to_write);
+			wpos += written;
+			to_write -= written;
+		} while( to_write > 0 && !ec );
+		if( ec )
 			ret = 0;
-		wpos += written;
-		to_write -= written;
-	}
+   	}
 
 	if(cnvbuflen > MAX_CONVB_STACK_SIZE)
 		memory_traits::free_temporary( cnvbuff );

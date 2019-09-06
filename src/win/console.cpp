@@ -31,7 +31,7 @@ console_channel::console_channel(::HANDLE hcons, ::WORD orig, ::WORD attr) noexc
 {
 }
 
-void console_channel::change_color(::DWORD attr) noexcept
+void console_channel::change_color(::WORD attr) noexcept
 {
 	attr_ = (orig_attr_ & 0xF0) | attr;
 }
@@ -45,7 +45,7 @@ std::size_t console_channel::read(std::error_code& err,uint8_t* const buff, std:
 	assert(bytes % sizeof(::WCHAR) == 0);
 	::DWORD result;
 	::SetConsoleTextAttribute(hcons_, attr_ );
-	if( ! ::ReadConsoleW(hcons_, static_cast<::LPVOID>(buff), bytes / sizeof(::WCHAR), &result, nullptr) )
+	if( ! ::ReadConsoleW(hcons_, static_cast<::LPVOID>(buff), ::DWORD(bytes / sizeof(::WCHAR)), &result, nullptr) )
 		err.assign( ::GetLastError(), std::system_category() );
 	::SetConsoleTextAttribute(hcons_, orig_attr_ );
 	return result * sizeof(::WCHAR);
@@ -55,7 +55,7 @@ std::size_t console_channel::write(std::error_code& err, const uint8_t* buff,std
 {
 	::DWORD result;
 	::SetConsoleTextAttribute(hcons_, attr_ );
-	if(! ::WriteConsoleW(hcons_, static_cast<const void*>(buff), size / sizeof(::WCHAR), &result, nullptr ) )
+	if(! ::WriteConsoleW(hcons_, static_cast<const void*>(buff), ::DWORD(size / sizeof(::WCHAR)), &result, nullptr ) )
 		err.assign( ::GetLastError(), std::system_category() );
 	::SetConsoleTextAttribute(hcons_, orig_attr_ );
 	return result * sizeof(::WCHAR);

@@ -16,15 +16,29 @@
 #	error "This library needs at least MS VC++ 15 with /std:c++latest compiller option"
 #endif // CPP11 detection
 
+#if _MSVC_LANG >= 201703L
+#define __HAS_CPP_17 1
+#endif // CPP17 detected
+
+#ifdef IO_BUILD
+#	define _CRT_SECURE_NO_WARNINGS 1
+#endif
+
 #define _STATIC_CPPLIB
 // disable warnings about defining _STATIC_CPPLIB
 #define _DISABLE_DEPRECATE_STATIC_CPPLIB  
 
 #include <intrin.h>
+#include <stddef.h>
 #include <stdint.h>
 #include <stdlib.h>
 #include <malloc.h>
 #include <string.h>
+
+// Intel compiler specific
+#ifdef __ICL
+#	include <immintrin.h>
+#endif
 
 #define HAS_PRAGMA_ONCE
 
@@ -53,7 +67,7 @@
 #define IO_IS_LITTLE_ENDIAN 1
 
 #if defined(_M_IX86) || defined(_M_AMD64)
-#	define IO_CPU_INTEL
+#	define IO_CPU_INTEL 1
 #endif
 
 #if defined(_M_X64) || defined(_M_AMD64) || defined(_M_ARM64) || defined(_WIN64)
@@ -127,87 +141,107 @@
 
 #endif // ignore unused parameters warning, for stub templates and plased new operators
 
-#define io_likely(__expr__) !!(__expr__)
-#define io_unlikely(__expr__) !!(__expr__)
+#ifdef __ICL
+#	define io_likely(__expr__) __builtin_expect(!!(__expr__), 1)
+#	define io_unlikely(__expr__) __builtin_expect(!!(__expr__), 0)
+#else 
+#	define io_likely(__expr__) !!(__expr__)
+#	define io_unlikely(__expr__) !!(__expr__)
+#endif
+
 #define io_unreachable __assume(0);
 
-#ifdef IO_CPU_INTEL
 
-#pragma intrinsic(__lzcnt, _bittest)
+// Intel intrinsic
+#ifdef __ICL
+#	define io_clz(__x) _lzcnt_u32((__x))
+#	ifdef  _M_AMD64
+#		define io_size_t_clz(__x) _lzcnt_u64((__x))
+#	else
+#		define io_size_t_clz(__x) _lzcnt_u32((__x))
+#	endif
+#elif defined(_M_AMD64) || ( defined(_M_IX86_FP) && (_M_IX86_FP >= 2) )
+#	pragma intrinsic(__lzcnt, _bittest)
+#	define io_clz(__x) __lzcnt((__x))
+#	ifdef IO_CPU_BITS_64
+#		pragma intrinsic(__lzcnt64)
+#		define io_size_t_clz(__x) __lzcnt64((__x))
+#	else
+#		define io_size_t_clz(__x) __lzcnt((__x))
+#	endif
+#else
+	#pragma intrinsic(_BitScanReverse)
+	__forceinline int io_clz(unsigned long x)  noexcept {
+		unsigned long ret = 0;
+		_BitScanReverse(&ret, x);
+		return  static_cast<int>(ret);
+	}
+#	ifdef _M_X64
+#		pragma intrinsic(_BitScanReverse64)
+		__forceinline  int io_size_t_clz(unsigned __int64 x) noexcept {
+			unsigned long ret = 0;
+			_BitScanReverse64(&ret, x);
+			return static_cast<int>(ret);
+		}
+	#else 
+		__forceinline int io_size_t_clz(unsigned long x) noexcept {
+			unsigned long ret = 0;
+			_BitScanReverse(&ret, x);
+			return  static_cast<int>(ret);
+		}
+#	endif 
+#endif
 
-#define io_clz(__x) __lzcnt((__x))
-
-#else // non intel impl
-	
-#pragma intrinsic(_BitScanReverse)
-
-__forceinline int io_clz(unsigned long x )
-{
-	unsigned long ret = 0;
-	_BitScanReverse(&ret, x);
-	return  static_cast<int>(ret);
-}
-
-#endif // Non intel impl
-
-#ifdef IO_CPU_BITS_64
-
-#	pragma intrinsic(_BitScanForward64)
-
-__forceinline int io_ctz(unsigned __int64 x)
-{
-	unsigned long ret = 0;
-	_BitScanForward64(&ret, x);
-	return  static_cast<int>(ret);
-}
-#else // 32 bit
-
-#	pragma intrinsic(__BitScanForward)
-
-__forceinline int io_ctz(unsigned long x )
-{
-	unsigned long long ret = 0;
-	_BitScanForward(&ret, x);
-	return  static_cast<int>(ret);
-}
-
-#endif // io_ctz
 
 namespace io {
 namespace detail {
+	
+#ifdef _M_X64
+// 64 bit instruction set
+#	ifdef _M_ARM64
+#		pragma intrinsic(_InterlockedIncrement64_nf)
+#		pragma intrinsic(_InterlockedDecrement64_rel)
+#		define io_atomic_inc( __x ) _InterlockedIncrement64_nf( (__x) )
+#		define io_atomic_dec( __x ) _InterlockedDecrement64_rel( (__x) )
+#	else
+#		pragma intrinsic(_InterlockedIncrement64)
+#		pragma intrinsic(_InterlockedDecrement64)
+#		define io_atomic_inc( __x ) _InterlockedIncrement64( (__x) )
+#		define io_atomic_dec( __x ) _InterlockedDecrement64( (__x) )
+#	endif
+#	define io_mword( __x ) reinterpret_cast<__int64 volatile*>( (__x) )
+#else
+// 32 bit instruction set
+#	ifdef _M_ARM
+#		pragma intrinsic(_InterlockedIncrement_nf)
+#		pragma intrinsic(_InterlockedDecrement_rel)
+#		define io_atomic_inc( __x ) _InterlockedIncrement_nf( (__x) )
+#		define io_atomic_dec( __x ) _InterlockedDecrement64_rel( (__x) )
+#	else
+#		pragma intrinsic(_InterlockedIncrement)
+#		pragma intrinsic(_InterlockedDecrement)
+#		define io_atomic_inc( __x ) _InterlockedIncrement( (__x) )
+#		define io_atomic_dec( __x ) _InterlockedDecrement( (__x) )
+#	endif
+#	define io_mword( __x ) reinterpret_cast<long volatile*>( (__x) )
+#endif
 
 // MS VC++ atomic Intrinsics
 namespace atomic_traits {
-#	ifdef _M_X64 // 64 bit instruction set
-	__forceinline size_t inc(size_t volatile *ptr) {
-		__int64 volatile *p = reinterpret_cast<__int64 volatile*>(ptr);
-#	ifdef _M_ARM
-		return static_cast<size_t>( _InterlockedIncrement64_nf(p) );
-#	else
-		// Intel/AMD x64
-		return static_cast<size_t>( _InterlockedIncrement64(p) );
-#	endif // _M_ARM
+	
+	__forceinline size_t inc(size_t volatile *ptr) noexcept {
+		return static_cast<size_t>( io_atomic_inc( io_mword(ptr) ) );
 	}
-	__forceinline size_t dec(size_t volatile *ptr) {
-		__int64 volatile *p = reinterpret_cast<__int64 volatile*>(ptr);
-		return static_cast<size_t>( _InterlockedDecrement64(p) );
+	
+	__forceinline size_t dec(size_t volatile *ptr) noexcept {
+		return static_cast<size_t>( io_atomic_dec( io_mword(ptr) ) );
 	}
-
-#	else // 32 bit instruction set
-	__forceinline size_t inc(size_t volatile *ptr) {
-	_long volatile *p = reinterpret_cast<long volatile*>(ptr);
-#	ifdef _M_ARM
-		return static_cast<size_t>( _InterlockedIncrement_nf(p) );
-#	else // Intel/AMD x32
-		return static_cast<size_t>( _InterlockedIncrement(p) );
-#	endif // _M_ARM
-	}
-	__forceinline size_t dec(size_t volatile *ptr) {
-		long volatile *p = reinterpret_cast<long volatile*>(ptr);
-		return static_cast<size_t>( _InterlockedDecrement(p) );
-	}
-#	endif // 32 bit instruction set
+	
 } // atomic_traits
+
+#undef io_atomic_inc
+#undef io_atomic_dec
+#undef io_mword
 
 } // namespace detail
 } // namespace io

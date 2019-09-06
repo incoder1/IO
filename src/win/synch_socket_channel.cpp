@@ -25,7 +25,7 @@ synch_socket_channel::~synch_socket_channel() noexcept
 	::closesocket(socket_);
 }
 
-static constexpr char* cstrcast_cast(const uint8_t* px) noexcept {
+static char* cstrcast_cast(const uint8_t* px) noexcept {
 	return const_cast<char*>(reinterpret_cast<const char*>(px));
 }
 

@@ -1,6 +1,6 @@
 /*
  *
- * Copyright (c) 2016
+ * Copyright (c) 2016-2019
  * Viktor Gubin
  *
  * Use, modification and distribution are subject to the
@@ -38,7 +38,7 @@ public:
 	virtual ~object() noexcept = default;
 
 
-#ifdef IO_SHARED_LIB
+#if defined(__IO_WINDOWS_BACKEND__) && defined(IO_SHARED_LIB)
 
 #ifdef IO_NO_EXCEPTIONS
 
@@ -76,7 +76,7 @@ public:
 	}
 
 
-#endif // IO_SHARED_LIB
+#endif // defined(__IO_WINDOWS_BACKEND__) && defined(IO_SHARED_LIB)
 
 private:
 	std::atomic_size_t ref_count_;
@@ -84,8 +84,8 @@ private:
     	obj->ref_count_.fetch_add(1, std::memory_order_relaxed);
     }
     inline friend void intrusive_ptr_release(object* const obj) noexcept {
-    	if(1 == obj->ref_count_.fetch_sub(1, std::memory_order_acquire) ) {
-			std::atomic_thread_fence( std::memory_order_release);
+    	if(1 == obj->ref_count_.fetch_sub(1, std::memory_order_release) ) {
+			std::atomic_thread_fence(  std::memory_order_acquire );
 			delete obj;
     	}
     }

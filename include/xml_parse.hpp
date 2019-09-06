@@ -1,6 +1,6 @@
 /*
  *
- * Copyright (c) 2016
+ * Copyright (c) 2016-2019
  * Viktor Gubin
  *
  * Use, modification and distribution are subject to the
@@ -62,11 +62,11 @@ DECLARE_IPTR(event_stream_parser);
 class IO_PUBLIC_SYMBOL event_stream_parser:public object {
 private:
 
-	/// \brief XML parser state
+	// XML parser state
 	struct state {
-		/// Current XML parsing error code
+		// Current XML parsing error code
 		error ec;
-		/// Current XML parsing state
+		// Current XML parsing state
 		state_type current;
 		constexpr state(error errcd, state_type state) noexcept:
 			ec(errcd),
@@ -77,7 +77,7 @@ private:
 		{}
 	};
 
-	// we need 9 bytes only, but will use 16 for better align
+	// we need 9 bytes only, but will use 16 for better alignment
 	static constexpr std::size_t MAX_SCAN_BUFF_SIZE = 16;
 
 	typedef std::unordered_set<
@@ -89,7 +89,7 @@ private:
 	friend class nobadalloc<event_stream_parser>;
 	event_stream_parser(const event_stream_parser&) = delete;
 	event_stream_parser& operator=(const event_stream_parser&) = delete;
-	event_stream_parser(const s_source& src, s_string_pool&& pool) noexcept;
+	event_stream_parser(s_source&& src, s_string_pool&& pool) noexcept;
 public:
 
 	/// Constructs new XML parser from an XML source
@@ -122,10 +122,12 @@ public:
 
 	/// Checks parser in error state
 	/// \return true if parser in error state, false otherwise
-	__forceinline bool is_error() const noexcept {
+	inline bool is_error() const noexcept {
 		return error::ok != state_.ec;
 	}
 
+	/// Constructs std::error_code from error code enumeration
+	/// \param ec reference on std::error_code to hold error value and string message
 	inline void get_last_error(std::error_code& ec) const noexcept {
 		ec = std::make_error_code( state_.ec );
 	}
@@ -147,6 +149,11 @@ public:
 	inline std::size_t col() const noexcept {
 		return src_->col();
 	}
+
+	/// Pre-cache a string like tag or attribute local name in the parser string pool
+	/// \param str a string to pre-cache in the parsing pool
+	/// \return new cached string object
+	cached_string precache(const char* str) noexcept;
 
 	/// Parse XML prologue declaration into document_event structure
 	/// \return extracted document_event
@@ -181,12 +188,13 @@ public:
 	/// Extracts normalized XML characters, i.e. tag body
 	const_string read_chars() noexcept;
 
-	/// Skip characters until next tag declaration e.g. '>  <next-tag>' or 'text <![CDATA[ some data]]>'
+	/// Skip characters until next tag declaration e.g. '>  <next-tag>' or ' lorem ipsum <![CDATA[ <some data> ]]>'
 	void skip_chars() noexcept;
 
 	/// Extract raw XML characters declared in <!CDATA[]]> section
 	/// \return CDATA section content
 	const_string read_cdata() noexcept;
+
 
 private:
 
@@ -196,49 +204,53 @@ private:
 	void s_characters_or_eod() noexcept;
 	void s_entity() noexcept;
 
+	// checks for error in previews operation
+	inline bool error_state_ok() const noexcept {
+		return error::ok == state_.ec;
+	}
+
 	// assign an error
 	inline void assign_error(xml::error ec) noexcept;
 
 	// put a byte into buffer
 	// extend when needed or assign error when no memory left
-	__forceinline void putch(byte_buffer& buf, char ch) noexcept;
+	inline void putch(byte_buffer& buf, char ch) noexcept;
 
 	//char skip_to_symbol(char symbol) noexcept;
 	byte_buffer read_entity() noexcept;
-	byte_buffer read_until_double_separator(int separator,error ec) noexcept;
+	byte_buffer read_until_double_separator(const char separator,const error ec) noexcept;
 
 	qname extract_qname(const char* from, std::size_t& len) noexcept;
 	attribute extract_attribute(const char* from, std::size_t& len) noexcept;
+	bool validate_attr_name(const qname& name) noexcept;
+	bool validate_element_name(const qname& name) noexcept;
 	bool validate_xml_name(const cached_string& str, bool attr) noexcept;
 
 	inline char next() noexcept;
 
-	static __forceinline bool is_eof(char ch) noexcept {
+	static inline bool is_eof(char ch) noexcept {
 		return !std::char_traits<char>::not_eof(ch);
 	}
 
-	static __forceinline bool sb_check(const char* sb) noexcept {
-		return nullptr == io_memchr(sb, EOF, MAX_SCAN_BUFF_SIZE);
+	inline bool scan_failed() noexcept {
+		return nullptr != io_strchr(scan_buf_, EOF);
 	}
 
-	static __forceinline void sb_clear(const char* sb) noexcept {
-		io_zerro_mem( const_cast<char*>(sb), MAX_SCAN_BUFF_SIZE);
+	inline void sb_clear() noexcept {
+		io_zerro_mem( const_cast<char*>(scan_buf_), MAX_SCAN_BUFF_SIZE);
 	}
 
-	static __forceinline std::size_t sb_len(const char *sb) noexcept {
-		return io_strlen(sb);
+	inline std::size_t sb_len() noexcept {
+		return io_strlen(scan_buf_);
 	}
 
-	static __forceinline bool sb_empty(const char *sb) noexcept {
-		return '\0' == *sb;
+	inline void sb_append(const char c) noexcept {
+		char appender[2] = {c,'\0'};
+		sb_append(appender);
 	}
 
-	static __forceinline void sb_append(const char* sb,const char c) noexcept {
-		const_cast<char*>(sb)[ sb_len(sb) ] = c;
-	}
-
-	static __forceinline void sb_append(const char* sb,const char* str) noexcept {
-		io_strcat( const_cast<char*>(sb), str);
+	inline void sb_append(const char* str) noexcept {
+		io_strcat( scan_buf_, str);
 	}
 
 private:

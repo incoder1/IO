@@ -11,7 +11,8 @@ struct strings {
 	io::cached_string s4;
 };
 
-strings init() {
+strings init()
+{
 	std::error_code ec;
 	io::s_string_pool pool = io::string_pool::create(ec);
 	if(!pool) {
@@ -30,7 +31,6 @@ strings init() {
 
 int main()
 {
-	try {
 	io::cached_string s1,s2,s3,s4;
 	{
 		strings s = init();
@@ -50,8 +50,5 @@ int main()
 	std::cout<<"S2: " << s2 << std::endl;
 	std::cout<<"S3: " << s3 << std::endl;
 	std::cout<<"S4: " << s4 << std::endl;
-	} catch(std::exception& exc) {
-		std::cerr<< exc.what() << std::endl;
-	}
-    return 0;
+	return 0;
 }

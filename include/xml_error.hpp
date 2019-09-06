@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016
+ * Copyright (c) 2016-2019
  * Viktor Gubin
  *
  * Use, modification and distribution are subject to the
@@ -20,23 +20,25 @@ namespace io {
 
 namespace xml {
 
+/// \brief XML parsing error codes enumeration
 enum class error
 {
-	ok,
-	io_error,
-	out_of_memory,
-	illegal_attribute,
-	illegal_prologue,
-	illegal_chars,
-	illegal_name,
-	illegal_markup,
-	illegal_dtd,
-	illegal_commentary,
-	illegal_cdata_section,
-	root_element_is_unbalanced,
-	invalid_state
+	ok, //!< No errors
+	io_error, //!< XML source input/output error (disk, socket etc)
+	out_of_memory, //!< Not enough memory to complete operation
+	illegal_attribute, //!< Element attribute is illegal
+	illegal_prologue, //!< XML prologue is illegal
+	illegal_chars, //!< Illegal characters for XML document
+	illegal_name, //!< XML element name is illegal i.e. <xmlnode> or <%134node> etc
+	illegal_markup, ///!< Illegal XML markup i.e. <node<node arttr="</> etc
+	illegal_dtd, //!< Illegal DTD declaration
+	illegal_commentary, //!Illegal XML commentary i.e. <!-- Lorem -- ipsum -->
+	illegal_cdata_section, //!Illegal <![CDATA[ <text> ]]> section
+	root_element_is_unbalanced, //! An element is unbalanced i.e. <tag_0> <tag_1> <tag_0/>
+	invalid_state //! Logical error indicating an attempt to parse XML node when it's not allowed
 };
 
+/// \brief Error category for XML specific std::error_code
 class IO_PUBLIC_SYMBOL error_category final: public std::error_category {
 private:
 
@@ -64,11 +66,15 @@ public:
 	}
 };
 
+/// Creates std::error_code for the error enumeration
+/// \param errc error enumeration value
 inline std::error_code make_error_code(io::xml::error errc) noexcept
 {
 	return std::error_code(static_cast<int>(errc), *io::xml::error_category::instance() );
 }
 
+/// Creates std::error_condition for the error enumeration
+/// \param errc error enumeration value
 inline std::error_condition make_error_condition(io::xml::error err)
 {
 	return io::xml::error_category::instance()->default_error_condition( static_cast<int>(err) );
@@ -84,14 +90,9 @@ template<>
 struct is_error_condition_enum<io::xml::error> : public true_type
 {};
 
-inline error_code make_error_code(io::xml::error errc) noexcept
-{
-	return io::xml::make_error_code(errc);
-}
-
-inline std::error_condition make_error_condition(io::xml::error err) {
-	return io::xml::make_error_condition(err);
-}
+// implementation to standard name space
+using io::xml::make_error_code;
+using io::xml::make_error_condition;
 
 } // namespace std
 

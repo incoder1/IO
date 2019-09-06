@@ -14,6 +14,7 @@ standalone='yes'?>
 		<!ATTLIST msg
 			attr0  CDATA    #REQUIRED
 			attr1  CDATA    #REQUIRED
+			attr2  CDATA    #IMPLIED
 		>
 		<!ELEMENT άλφα (#PCDATA)>
 		<!ELEMENT βήτα (#PCDATA|άλφα|msg)*>
@@ -32,7 +33,7 @@ standalone='yes'?>
 		<άλφα/>
 		AAA
 		<άλφα /><άλφα></άλφα>
-		<msg attr0='άλφα' attr1="βήτα">
+		<msg attr0='άλφα' attr1="βήτα" attr2="">
 			Latine scriptum
 			English inscription
 			Русская надпись
