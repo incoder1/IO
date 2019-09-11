@@ -30,6 +30,13 @@ constexpr bool cheq(c_1 lhs, c_2 rhs) noexcept
 	return static_cast<unsigned int>(lhs) == static_cast<unsigned int>(rhs);
 }
 
+#if defined(__GNUG__) && defined(__HAS_CPP_17)
+template bool cheq<>(char32_t,char);
+template bool cheq<>(char,char32_t);
+template bool cheq<>(int,char);
+template bool cheq<>(char,int);
+#endif
+
 constexpr bool cheq(char lhs, char rhs) noexcept
 {
 	return lhs == rhs;
@@ -145,7 +152,7 @@ constexpr char latin1_to_lower(const char ch) noexcept
 
 constexpr char latin1_to_upper(const char ch) noexcept
 {
-	return is_uppercase_latin1( ch ) ? (ch & UPPER_LOWER_MASK) : ch;
+	return is_lowercase_latin1( ch ) ? (ch & UPPER_LOWER_MASK) : ch;
 }
 
 inline bool start_with(const char* s,const char* pattern,const std::size_t size) noexcept
@@ -163,21 +170,18 @@ inline char* strchrn(const char* s,const char c,const std::size_t max_len) noexc
 	return const_cast<char*>( char8_traits::find(s, max_len, c) );
 }
 
-inline bool is_one_of(char what, const char* chars,const std::size_t len) noexcept
-{
-	return nullptr != strchrn(chars, what, len);
-}
-
 inline char* find_first_symbol(const char* s) noexcept
 {
 	constexpr const char* sym = "\t\n\v\f\r ";
 	return const_cast<char*>(s) + io_strspn(s, sym);
 }
 
-inline size_t xmlname_strspn(const char *s) noexcept
-{
-	constexpr const char* sym = "\t\n\v\f\r />";
-	return io_strcspn(s, sym);
+constexpr bool is_endl(const char ch) noexcept {
+	return '\0' == ch;
+}
+
+constexpr bool not_endl(const char ch) noexcept {
+	return '\0' != ch;
 }
 
 constexpr uint16_t pack_word(uint16_t w, char c) noexcept {

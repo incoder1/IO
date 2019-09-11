@@ -135,7 +135,8 @@ public:
 
 	/// Movement constructor, default movement semantic
 	const_string(const_string&& other) noexcept:
-		data_(other.data_) {
+		data_(other.data_)
+	{
 		other.data_ = {false,0,nullptr};
 	}
 
@@ -273,16 +274,21 @@ public:
 private:
 
 	inline bool ptr_equal(const const_string& rhs) const noexcept {
-		return (this == std::addressof(rhs) ) || ( !sso() && !rhs.sso() && data_.long_buf.char_buf == rhs.data_.long_buf.char_buf);
+		return (this == std::addressof(rhs)) ||
+			   (
+				!sso() && (data_.long_buf.char_buf == rhs.data_.long_buf.char_buf)
+			   );
 	}
 
 	int compare(const const_string& rhs) const noexcept {
-		if( ( empty() && rhs.empty() ) || ptr_equal(rhs) )
+		if( ( empty() && rhs.empty() ) || ptr_equal(rhs) ) {
 			return 0;
-		else if( size() == rhs.size() )
-			return traits_type::compare( data(), rhs.data(), size() );
-		else if( size() < rhs.size() )
-			return -1;
+		} else {
+			std::size_t byte_size = size();
+			if( byte_size < rhs.size() )
+				return -1;
+			return traits_type::compare( data(), rhs.data(), byte_size );
+		}
 		return 1;
 	}
 

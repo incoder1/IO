@@ -50,7 +50,6 @@ asynch_channel::~asynch_channel() noexcept
 {}
 
 // asynch_read_channel
-
 asynch_read_channel::asynch_read_channel(const asynch_callback& cb) noexcept:
 	asynch_channel(),
 	callback_(cb)
@@ -94,18 +93,19 @@ std::size_t IO_PUBLIC_SYMBOL transmit_buffer(std::error_code& ec,
 				const s_write_channel& ch,
 				const uint8_t* buffer, std::size_t size) noexcept
 {
-	if( io_unlikely( !ch || nullptr == buffer || size == 0) ) {
+	std::size_t ret = 0;
+	if( io_unlikely( !ch || nullptr == buffer || 0 == size) ) {
 		ec = std::make_error_code( std::errc::invalid_argument );
-		return 0;
+	} else {
+		const uint8_t *b = static_cast<const uint8_t*>(buffer);
+		const uint8_t *e = b + size;
+		std::size_t written;
+		do {
+			written = ch->write(ec, b, memory_traits::distance(b,e) );
+			ret += written;
+			b += written;
+		} while( (b < e) && !ec);
 	}
-	const uint8_t *b = static_cast<const uint8_t*>(buffer);
-	const uint8_t *e = b + size;
-	std::size_t ret = 0, written;
-	do {
-		written = ch->write(ec, b, memory_traits::distance(b,e) );
-		ret += written;
-		b += written;
-	} while(!ec && b < e);
 	return ret;
 }
 

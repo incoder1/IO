@@ -65,6 +65,12 @@ static std::size_t prefix_delimit(const char* src) noexcept
 	return io_strcspn(src, DELIMS);
 }
 
+static size_t xmlname_strspn(const char *s) noexcept
+{
+	constexpr const char* sym = "\t\n\v\f\r />";
+	return io_strcspn(s, sym);
+}
+
 static std::size_t extract_prefix(std::size_t &start, const char* str) noexcept
 {
 	const char *s = str;
@@ -190,10 +196,10 @@ static constexpr bool is_xml_name_char(char32_t ch) noexcept
 static error check_xml_name(const char* tn) noexcept
 {
 	// name can not start from digit
-	if( io_unlikely( ('\0' == *tn) || io_isdigit(*tn) ) )
+	if( io_unlikely( is_endl(*tn) || io_isdigit(*tn) ) )
 		return error::illegal_name;
 	uint32_t utf32c;
-	while( '\0' != *tn ) {
+	do {
 		// decode UTF-8 symbol to UTF-32 to check name
 		switch( utf8::mblen(tn) ) {
 		case io_likely(1):
@@ -217,7 +223,7 @@ static error check_xml_name(const char* tn) noexcept
 		}
 		if( !is_xml_name_char(utf32c) )
 			return error::illegal_name;
-	}
+	} while( not_endl(*tn) );
 	return error::ok;
 }
 
@@ -265,7 +271,8 @@ event_stream_parser::event_stream_parser(s_source&& src, s_string_pool&& pool) n
 	validated_(),
 	nesting_(0)
 {
-	validated_.reserve(64);
+	constexpr std::size_t VD_INITIAL = 64;
+	validated_.reserve( VD_INITIAL );
 
 	// skip any leading spaces if any
 	char c;
@@ -759,9 +766,9 @@ attribute event_stream_parser::extract_attribute(const char* from, std::size_t& 
 	constexpr const char* NOT_SPACE_WS = "\t\n\v\f\r";
 	do {
 	 	v += io_strcspn(v,NOT_SPACE_WS);
-	 	if('\0' != *v)
+	 	if( not_endl(*v) )
         	*v = ' ';
-	} while( '\0' != *v );
+	} while( not_endl(*v) );
 	len = str_size(from, ++i);
 	return attribute( qname( std::move(np), std::move(ln) ), std::move(value) );
 }
