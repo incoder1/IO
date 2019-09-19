@@ -341,7 +341,8 @@ private:
 	// and/or complier shows bad optimization results
 	static inline uint8_t divmod(int_type& n) noexcept {
 		uint8_t rem = n % 10;
-		n /= 10;
+		n >>= 3;
+		n >>= 1;
 		return rem;
 	}
 	static inline char_type* format_u(int_type value, char_type* to) noexcept {

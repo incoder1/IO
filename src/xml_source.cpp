@@ -196,32 +196,30 @@ inline bool source::fetch() noexcept
 
 char source::next() noexcept
 {
-	constexpr const char EOF_CH = char8_traits::to_char_type( char8_traits::eof() );
+	constexpr const char EOF_CH = std::char_traits<char>::to_char_type( std::char_traits<char>::eof() );
 	if( io_unlikely( !fetch() ) )
 		return EOF_CH;
-
+	char ret;
 	// check for a multi-byte tail byte
 	if( io_unlikely(0 != mb_state_) ) {
-		char ret = *pos_;
+		ret = *pos_++;
 		--mb_state_;
-		++pos_;
-		return ret;
-	}
-
-	unsigned int len = utf8::mblen( pos_ );
-	char ret = *pos_++;
-	switch( len ) {
-	case io_likely(1):
-		ret = normalize_line_endings( ret );
-		break;
-	case 2: case 3: case 4:
-		mb_state_ = static_cast<uint8_t>(len - 1);
-		++col_;
-		break;
-	default:
-		last_ = error::illegal_chars;
-		ret = EOF_CH;
-		break;
+	} else {
+		unsigned int len = utf8::mblen( pos_ );
+		ret = *pos_++;
+		switch( len ) {
+		case io_likely(1):
+			ret = normalize_line_endings( ret );
+			break;
+		case 2: case 3: case 4:
+			mb_state_ = static_cast<uint8_t>(len - 1);
+			++col_;
+			break;
+		default:
+			last_ = error::illegal_chars;
+			ret = EOF_CH;
+			break;
+		}
 	}
 	return ret;
 }

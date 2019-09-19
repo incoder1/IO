@@ -401,11 +401,11 @@ byte_buffer prober::filter_with_english_letters(std::error_code& ec, const uint8
 	const uint8_t *prev_ptr = buff, *cur_ptr = buff;
 	typedef std::char_traits<uint8_t> chtr;
 	for (; cur_ptr < end; ++cur_ptr) {
-		switch( chtr::to_int_type(*cur_ptr) ) {
-		case char8_traits::to_int_type('<'):
+		switch( static_cast<unsigned int>(*cur_ptr) ) {
+		case detail::unsign('<'):
 			is_in_tag = true;
 			break;
-		case char8_traits::to_int_type('>'):
+		case detail::unsign('>'):
 			is_in_tag = false;
 			break;
 		}

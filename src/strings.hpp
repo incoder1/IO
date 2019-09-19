@@ -21,13 +21,31 @@
 
 namespace io {
 
-typedef std::char_traits<char> char8_traits;
+namespace detail {
+
+template<typename char_t>
+constexpr unsigned int unsign(const char_t ch) noexcept {
+	return static_cast<unsigned int>( std::char_traits<char_t>::to_int_type(ch) );
+}
+
+constexpr unsigned int unsign(const int ch) noexcept {
+	return static_cast<unsigned int>( ch );
+}
+
+} // namespace detail
 
 /// Compares two character code points
-template<typename c_1, typename c_2>
-constexpr bool cheq(c_1 lhs, c_2 rhs) noexcept
+template<typename lhs_ch_t, typename rhs_ch_t>
+constexpr bool cheq(const lhs_ch_t lhs,const rhs_ch_t rhs) noexcept
 {
-	return static_cast<unsigned int>(lhs) == static_cast<unsigned int>(rhs);
+	return detail::unsign(lhs) == detail::unsign(rhs);
+}
+
+/// Compares two character code points
+template<typename lhs_ch_t, typename rhs_ch_t>
+constexpr bool chnoteq(const lhs_ch_t lhs,const rhs_ch_t rhs) noexcept
+{
+	return detail::unsign(lhs) != detail::unsign(rhs);
 }
 
 #if defined(__GNUG__) && defined(__HAS_CPP_17)
@@ -35,11 +53,20 @@ template bool cheq<>(char32_t,char);
 template bool cheq<>(char,char32_t);
 template bool cheq<>(int,char);
 template bool cheq<>(char,int);
+
+template bool chnoteq<>(char32_t,char);
+template bool chnoteq<>(char,char32_t);
+template bool chnoteq<>(int,char);
+template bool chnoteq<>(char,int);
 #endif
 
 constexpr bool cheq(char lhs, char rhs) noexcept
 {
 	return lhs == rhs;
+}
+
+constexpr bool chnoteq(char lhs, char rhs) noexcept {
+	return lhs != rhs;
 }
 
 //  [<0>...<1>]
@@ -167,7 +194,7 @@ inline std::size_t str_size(const char* b, const char* e) noexcept
 
 inline char* strchrn(const char* s,const char c,const std::size_t max_len) noexcept
 {
-	return const_cast<char*>( char8_traits::find(s, max_len, c) );
+	return const_cast<char*>( std::char_traits<char>::find(s, max_len, c) );
 }
 
 inline char* find_first_symbol(const char* s) noexcept

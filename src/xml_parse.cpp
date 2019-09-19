@@ -80,7 +80,7 @@ static std::size_t extract_prefix(std::size_t &start, const char* str) noexcept
 		start += shift;
 	}
 	s += prefix_delimit(s);
-	if( !cheq(COLON, *s) ) {
+	if( chnoteq(COLON, *s) ) {
 		start = 0;
 		return 0;
 	}
@@ -156,9 +156,9 @@ static constexpr bool is_xml_name_start_char_lo(char32_t ch) noexcept
 	return is_one_of(ch, U'_', U':') || is_alpha( ch );
 }
 
-template<unsigned int S, unsigned int E, unsigned int L = (E - S)>
-static constexpr bool between(char32_t ch) {
-	return (static_cast<unsigned int>(ch)-S) < L;
+template<unsigned int S, unsigned int E, unsigned int D = ((E - S) + 1) >
+static constexpr bool between(char32_t ch) noexcept {
+	return (static_cast<unsigned int>(ch)-S) < D;
 }
 
 static constexpr bool is_xml_name_start_char(char32_t ch) noexcept
@@ -203,7 +203,7 @@ static error check_xml_name(const char* tn) noexcept
 		// decode UTF-8 symbol to UTF-32 to check name
 		switch( utf8::mblen(tn) ) {
 		case io_likely(1):
-			utf32c = static_cast<uint32_t>( char8_traits::to_int_type(*tn) );
+			utf32c = static_cast<uint32_t>( *tn );
 			++tn;
 			break;
 		case 2:
@@ -281,7 +281,7 @@ event_stream_parser::event_stream_parser(s_source&& src, s_string_pool&& pool) n
 	}
 	while( is_space(c) && error_state_ok() );
 
-	if( io_unlikely( !cheq(c,LEFTB) ) ) {
+	if( io_unlikely( chnoteq(c,LEFTB) ) ) {
 		assign_error(error::illegal_markup);
 	}
 	else {
@@ -411,7 +411,7 @@ document_event event_stream_parser::parse_start_doc() noexcept
 		return document_event();
 	}
 	i += 8; // i + strlen(VERSION)
-	int sep = char8_traits::to_int_type( *i );
+	int sep = std::char_traits<char>::to_int_type( *i );
 	if( !is_one_of(sep,QNM,APH) ) {
 		assign_error(error::illegal_prologue);
 		return document_event();
@@ -437,7 +437,7 @@ document_event event_stream_parser::parse_start_doc() noexcept
 	const char* j = io_strstr(i, ENCODING);
 	if(nullptr != j) {
 		i = const_cast<char*>( j + 9 );
-		sep = char8_traits::to_int_type( *i );
+		sep = std::char_traits<char>::to_int_type( *i );
 		if( !is_one_of(sep,QNM,APH) ) {
 			assign_error(error::illegal_prologue);
 			return document_event();
@@ -461,7 +461,7 @@ document_event event_stream_parser::parse_start_doc() noexcept
 	if(nullptr != j) {
 		// j + strlen(STANDALONE)
 		i = const_cast<char*> ( j + 11 );
-		sep = char8_traits::to_int_type( *i );
+		sep = std::char_traits<char>::to_int_type( *i );
 		if( !is_one_of(sep,QNM,APH) ) {
 			assign_error(error::illegal_prologue);
 			return document_event();
@@ -522,7 +522,7 @@ void event_stream_parser::skip_dtd() noexcept
 	}
 	std::size_t brackets = 1;
 	do {
-		switch( char8_traits::to_int_type( next() ) ) {
+		switch( std::char_traits<char>::to_int_type( next() ) ) {
 		case EOF:
 			assign_error(error::illegal_dtd);
 			break;
@@ -554,7 +554,7 @@ const_string event_stream_parser::read_dtd() noexcept
 	char i;
 	do {
 		i = next();
-		switch( char8_traits::to_int_type(i) ) {
+		switch( std::char_traits<char>::to_int_type(i) ) {
 		case EOF:
 			assign_error(error::illegal_dtd);
 			return const_string();
@@ -592,7 +592,7 @@ void event_stream_parser::skip_comment() noexcept
 		hw = pack_word(hw, c);
 	}
 	while( double_hyphen != hw && io_likely( !is_eof(c) && error_state_ok() ) );
-	if( !cheq(RIGHTB, next() ) )
+	if( chnoteq(RIGHTB, next() ) )
 		assign_error(error::illegal_commentary);
 }
 
@@ -614,7 +614,7 @@ byte_buffer event_stream_parser::read_until_double_separator(const char separato
 
 	src_->read_until_double_char( ret, separator );
 
-	if( ret.empty() || !cheq(RIGHTB, next() ) ) {
+	if( ret.empty() || chnoteq(RIGHTB, next() ) ) {
 		if( error::out_of_memory == src_->last_error() )
 			assign_error(error::out_of_memory);
 		else
@@ -683,7 +683,7 @@ void event_stream_parser::skip_chars() noexcept
 		assign_error(error::invalid_state);
 		return;
 	}
-	for(int i = char8_traits::to_int_type( next() ); error_state_ok() ; i = char8_traits::to_int_type( next() ) ) {
+	for(int i = std::char_traits<char>::to_int_type( next() ); error_state_ok() ; i = std::char_traits<char>::to_int_type( next() ) ) {
 		switch(i) {
 		case LEFTB:
 			sb_clear();
@@ -918,6 +918,7 @@ void event_stream_parser::s_comment_cdata_or_dtd() noexcept
 		for(std::size_t i = SCAN_START; i < MAX_SCAN; i++) {
 			scan_buf_[i] = next();
 		}
+		// check for the EOF in the scan buffer
 		if( scan_failed() )
 			assign_error(error::root_element_is_unbalanced);
 		else if( is_cdata(scan_buf_) )
@@ -932,19 +933,24 @@ void event_stream_parser::s_comment_cdata_or_dtd() noexcept
 void event_stream_parser::s_entity() noexcept
 {
 	scan_buf_[1] = next();
-	const int second = char8_traits::to_int_type( scan_buf_[1] );
+	const int second = std::char_traits<char>::to_int_type( scan_buf_[1] );
+	// scan on exact entity type
 	switch( second ) {
 	case SOLIDUS:
+		// </foo
 		state_.current = state_type::event;
 		current_ = event_type::end_element;
 		break;
 	case EM:
+		// <!
 		s_comment_cdata_or_dtd();
 		break;
 	case QM:
+		// <?
 		s_instruction_or_prologue();
 		break;
 	default:
+		// <foo
 		if( io_likely( !is_space(second) ) ) {
 			state_.current = state_type::event;
 			current_ = event_type::start_element;
@@ -957,16 +963,22 @@ void event_stream_parser::s_entity() noexcept
 
 void event_stream_parser::scan() noexcept
 {
-	switch( char8_traits::to_int_type(*scan_buf_) ) {
+	switch( std::char_traits<char>::to_int_type(*scan_buf_) ) {
+	// this is entity (tag or instruction) begin
 	case LEFTB:
+		// jump to scan for exact entity type
 		s_entity();
 		break;
+	// this is end of document, no more data from source
 	case EOF:
 		state_.current = state_type::eod;
+		// no root tag in this xml
+		// i.e. something like <?xml version="1.0"?> <!-- <root>...</root> -->
 		if( 0 != nesting_)
 			assign_error(error::root_element_is_unbalanced);
 		break;
 	default:
+		// this is characters state, i.e. tag value or between tags spaces
 		state_.current = state_type::characters;
 	}
 }
