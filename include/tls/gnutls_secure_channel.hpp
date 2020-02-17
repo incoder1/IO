@@ -37,10 +37,15 @@
 #include <gnutls/gnutls.h>
 #include <gnutls/x509.h>
 
-#include <channels.hpp>
-#include <threading.hpp>
+#include "channels.hpp"
+#include "threading.hpp"
+#include "network.hpp"
+
+#include "net/uri.hpp"
 
 namespace io {
+
+namespace net {
 
 namespace secure {
 
@@ -87,25 +92,19 @@ private:
 };
 
 
+class session;
+DECLARE_IPTR(session);
 
-class session {
+class session final:public object {
 
     session(const session&) = delete;
     session& operator=(const session&) = delete;
 
 public:
 
-    static session client_session(std::error_code &ec, ::gnutls_certificate_credentials_t crd,  s_read_write_channel&& socket) noexcept;
+    static s_session client_session(std::error_code &ec, ::gnutls_certificate_credentials_t crd, net::s_socket&& socket) noexcept;
 
     ~session() noexcept;
-
-    session(session&& other) noexcept;
-
-    session& operator=(session&& rhs) noexcept
-    {
-        session( std::forward<session>(rhs) ).swap( *this );
-        return *this;
-    }
 
     inline void swap(session& other) noexcept
     {
@@ -119,20 +118,27 @@ public:
 
 private:
 
+	session(gnutls_session_t peer, s_socket&& socket, s_read_write_channel&& connection) noexcept;
 
-    explicit session(s_read_write_channel&& socket) noexcept;
+	ssize_t raw_read(uint8_t* dst,std::size_t len) noexcept;
+
+	ssize_t raw_write(const uint8_t* src,std::size_t len) noexcept;
 
     static int client_handshake(::gnutls_session_t peer) noexcept;
 
-    static ssize_t push(::gnutls_transport_ptr_t trpt, const void *data, std::size_t size) noexcept;
+    friend int session_timeout(::gnutls_transport_ptr_t, unsigned int ms) noexcept;
 
-    static ssize_t pull(::gnutls_transport_ptr_t trpt, void * data, std::size_t max_size) noexcept;
+    friend int get_session_error_no(::gnutls_transport_ptr_t) noexcept;
 
-    static int timeout(::gnutls_transport_ptr_t, unsigned int ms) noexcept;
+ 	friend ssize_t session_push(::gnutls_transport_ptr_t tr, const ::giovec_t* buffers, int bcount) noexcept;
+
+    friend ssize_t session_pull(::gnutls_transport_ptr_t tr, void * data, std::size_t max_size) noexcept;
 
 private:
     ::gnutls_session_t peer_;
-    s_read_write_channel socket_;
+    net::s_socket socket_;
+    s_read_write_channel connection_;
+    std::error_code ec_;
 };
 
 class IO_PUBLIC_SYMBOL tls_channel final: public read_write_channel
@@ -143,9 +149,9 @@ public:
 	virtual std::size_t write(std::error_code& ec, const uint8_t* buff,std::size_t size) const noexcept override;
 private:
     friend class nobadalloc<tls_channel>;
-    tls_channel(session&& session) noexcept;
+    tls_channel(s_session&& session) noexcept;
 private:
-    session session_;
+    s_session session_;
 };
 
 
@@ -156,8 +162,14 @@ public:
     static const service* instance(std::error_code& ec) noexcept;
     ~service() noexcept;
 
-    s_read_write_channel new_client_connection(std::error_code& ec, s_read_write_channel&& socket) const noexcept;
+    s_read_write_channel new_client_blocking_connection(std::error_code& ec, const char* host,const uint16_t port) const noexcept;
+
+    inline s_read_write_channel new_client_blocking_connection(std::error_code& ec, const s_uri& uri) const noexcept {
+        return new_client_blocking_connection(ec, uri->host().data(), uri->port());
+    }
+
 private:
+
     static void destroy_gnu_tls_atexit() noexcept;
     service(credentials&& creds) noexcept:
     	creds_( std::forward<credentials>(creds) )
@@ -170,6 +182,8 @@ private:
 
 
 } // namespace secure
+
+} // namespace net
 
 } // namespace io
 

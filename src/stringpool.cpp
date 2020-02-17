@@ -70,5 +70,4 @@ const cached_string string_pool::get(const char* s, std::size_t count) noexcept
 	return cached_string(s, count);
 }
 
-
 } // namespace io

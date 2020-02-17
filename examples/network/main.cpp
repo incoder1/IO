@@ -26,7 +26,7 @@
 
 #ifdef __IO_WINDOWS_BACKEND__
 
-static void log(const char* data,const std::size_t bytes)
+static void log(const uint8_t* data,const std::size_t bytes)
 {
 	static ::HANDLE hcout = ::GetStdHandle(STD_OUTPUT_HANDLE);
 	::DWORD written;
@@ -35,7 +35,7 @@ static void log(const char* data,const std::size_t bytes)
 
 #else
 
-static void log(const char* data,const std::size_t bytes)
+static void log(const uint8_t* data,const std::size_t bytes)
 {
 	::write(stdout, data, bytes);
 }
@@ -48,39 +48,37 @@ int main()
 
 	using namespace io::net;
 	std::error_code ec;
-	s_uri url = uri::parse(ec, "https://www.springframework.org/schema/beans/spring-beans-4.2.xsd");
-	//s_uri url = uri::parse(ec, "https://www.gnutls.org/");
+	s_uri url = uri::parse(ec, "https://www.springframework.org/schema/beans/spring-beans.xsd");
 	io::check_error_code(ec);
 
 	std::printf("Connecting to: %s \n", url->host().data() );
 
-    const socket_factory* sf = socket_factory::instance(ec);
-	s_socket tpc_socket = sf->client_tcp_socket(ec, url->host().data(),url->port() );
-	io::check_error_code(ec);
-
-
-	const io::secure::service *sec_service = io::secure::service::instance(ec);
+	const io::net::secure::service *cfactory = io::net::secure::service::instance(ec);
     io::check_error_code( ec );
-    io::s_read_write_channel raw_ch = tpc_socket->connect(ec);
-    io::check_error_code( ec );
-    io::s_read_write_channel sch = sec_service->new_client_connection(ec, std::move(raw_ch) );
+
+    io::s_read_write_channel sch = cfactory->new_client_blocking_connection(ec, url);
     io::check_error_code(ec);
 
-	http::s_request rq = http::new_request( ec, http::method::get, url );
-
+	http::s_request rq = http::new_get_request( ec, url );
 	io::check_error_code( ec );
 	rq->send( ec, sch );
 	io::check_error_code( ec );
 
 	// 2k
-	uint8_t tmp[2048];
+	const std::size_t page_size = io::memory_traits::page_size();
+	io::scoped_arr<uint8_t> buff(page_size);
 	std::size_t read;
 	do {
-		read = sch->read(ec, tmp, 2048);
+		io_zerro_mem( buff.get(), page_size );
+		read = sch->read(ec, buff.get(), page_size - 2 );
 		if(read == 0)
 			break;
-		log( reinterpret_cast<char*>(tmp), read);
+		log( buff.get() , read);
 	} while(!ec);
-
-    return 0;
+	int ret = 0;
+	if(ec) {
+		std::cerr<< "Network error no: " << ec.value() << " " << ec.message() << std::endl;
+		ret = ec.value();
+	}
+    return ret;
 }

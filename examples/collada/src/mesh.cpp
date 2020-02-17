@@ -158,9 +158,10 @@ colored_geometry_mesh::colored_geometry_mesh(sufrace_data&& data):
 							   gl::buffer_usage::STATIC_DRAW );
 
 	gl::shader_program_attribute layout[3] = {
-		{VATTR_CRD,3},
-		{VATTR_CRL,3},
-		{VATTR_NRM,3} };
+			{VATTR_CRD,3},
+			{VATTR_CRL,3},
+			{VATTR_NRM,3}
+		};
 
 	program_->pass_vertex_attrib_array(vbo, false, layout, 3);
 

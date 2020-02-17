@@ -30,14 +30,13 @@ static constexpr inline bool is_unreserved(char c)
 }
 
 #ifdef __GNUG__
-static constexpr bool is_one_of(char c, const char* span) {
+static constexpr bool is_one_of(char c, const char* span) noexcept
+#else
+static inline bool is_one_of(char c, const char* span) noexcept
+#endif // __GNUG__
+{
 	return nullptr != io_strchr(span, c);
 }
-#else
-static constexpr bool is_one_of(char c, const char* span) {
-	return c == *span ? true : '\0' == *span ? false : is_one_of(c,++span);
-}
-#endif
 
 static constexpr bool is_gen_delim(char c)
 {

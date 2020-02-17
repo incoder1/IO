@@ -51,8 +51,8 @@ public:
 	/// \param local_name XML element local name
 	/// \return whether start element event points to the specific element name
 	bool is_element(const start_element_event& sev, const cached_string& nmp, const cached_string& local_name) noexcept {
-		qname name( sev.name() );
-		return nmp == name.prefix() &&  local_name == name.local_name();
+		qname rhs( nmp, local_name );
+		return rhs == sev.name();
 	}
 
 	/// Checks that start element event points to the specific element name
@@ -61,8 +61,8 @@ public:
 	/// \param local_name XML element local name
 	/// \return whether start element event points to the specific element name
 	bool is_element(const end_element_event& eev, const cached_string& nmp, const cached_string& local_name) noexcept {
-		qname name( eev.name() );
-		return nmp == name.prefix() &&  local_name == name.local_name();
+		qname rhs( nmp, local_name );
+		return rhs == eev.name();
 	}
 
 	/// Checks that start element event points to the specific element name

@@ -146,7 +146,7 @@ static ::SOCKET new_scoket(std::error_code& ec, ip_family af, transport prot) no
                        static_cast<int>(prot),
                        nullptr, 0, 0 );
     if(ret == INVALID_SOCKET)
-        ec = std::make_error_code( win::wsa_last_error_to_errc() );
+        ec = make_wsa_last_error_code();
     if(ip_family::ip_v6 == af) {
         int off = 0;
         ::setsockopt(
@@ -204,7 +204,7 @@ public:
                                          nullptr,nullptr,nullptr,nullptr
                                         )
         ) {
-            ec = std::make_error_code( win::wsa_last_error_to_errc() );
+            ec = make_wsa_last_error_code();
             connected_.store(false, std::memory_order_release );
             return s_read_write_channel();
         }
@@ -226,7 +226,7 @@ static void initialize_winsocks2(std::error_code& ec) noexcept
     ::WSADATA wsadata;
     ::DWORD err = ::WSAStartup( MAKEWORD(2,2), &wsadata );
     if (ERROR_SUCCESS != err) {
-        ec = std::make_error_code( win::wsa_last_error_to_errc() );
+        ec = make_wsa_last_error_code();
         ::WSACleanup();
     }
 }

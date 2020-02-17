@@ -11,6 +11,8 @@
 #include "stdafx.hpp"
 #include "http_client.hpp"
 
+#include <sstream>
+
 namespace io {
 
 namespace net {
@@ -22,79 +24,42 @@ inline const uint8_t* str_bytes(const char* str) noexcept {
 }
 
 // request
-request::request(s_uri&& uri, headers&& hdrs) noexcept:
-	uri_( std::forward<s_uri>(uri)),
-	hdrs_( std::forward<headers>(hdrs) )
+request::request(request_method method, const s_uri& uri) noexcept:
+	method_(method),
+	uri_( uri ),
+	hdrs_()
 {}
 
-void request::join(std::error_code& ec, const s_write_channel& to) const noexcept
+void request::send(std::error_code& ec, const s_write_channel& to) const
 {
-	static constexpr const char* PROTO = " HTTP/1.1\r\nHost: ";
-	static const std::size_t PROTO_LEN = io_strlen(PROTO);
-	static constexpr const char* DELIM = "\r\n";
-	static const std::size_t DELIM_LEN = io_strlen(DELIM);
-	const_string path  = uri_->path();
-	to->write(ec, str_bytes(path.data()), path.size() );
-	to->write(ec, str_bytes(PROTO), PROTO_LEN );
-	const_string host = uri_->host();
-	to->write(ec, str_bytes(host.data()), host.size() );
-	to->write(ec, str_bytes(DELIM), DELIM_LEN);
-	for(auto it = hdrs_.cbegin(); it != hdrs_.cend(); ++it) {
-		const_string name = it->name();
-		to->write(ec, str_bytes(name.data()), name.size() );
-		to->write(ec, str_bytes(":"), 1);
-		const_string value = it->value();
-		to->write(ec, str_bytes(value.data()), value.size() );
-		to->write(ec, str_bytes(DELIM), DELIM_LEN);
-	}
-	to->write(ec, str_bytes(DELIM), DELIM_LEN);
-}
-
-
-//get_request
-class get_request final:public request {
-private:
-	static constexpr std::size_t INITIAL_BUFF_SIZE = 1024;
-public:
-	friend class nobadalloc<get_request>;
-
-	static s_request create(std::error_code& ec, const s_uri& resource, std::vector<header>&& hdrs) noexcept {
-		get_request *ret = nobadalloc<get_request>::construct(ec, resource, std::forward< std::vector<header> >(hdrs) );
-		return (nullptr != ret) ? s_request(ret) : s_request();
-	}
-
-	get_request(const s_uri& uri, headers&& hdrs) noexcept:
-		request( s_uri(uri), std::forward<headers>(hdrs) )
-	{}
-
-	virtual ~get_request() noexcept override
-	{}
-
-	virtual void send(std::error_code& ec, const s_write_channel& ch) const noexcept override {
-        static constexpr const char* TYPE = "GET ";
-        static const std::size_t TYPE_LEN = io_strlen("GET ");
-        ch->write(ec, str_bytes(TYPE), TYPE_LEN);
-        this->join(ec, ch);
-	}
-
-};
-
-/*
-class post_request final:public request {
-};
-*/
-
-// FIXME: refactor to factory
-s_request IO_PUBLIC_SYMBOL new_request(std::error_code& ec,method m, const s_uri& resource, std::vector<header>&& hdrs) noexcept
-{
-	switch(m) {
-		case method::get:
-			return get_request::create(ec, resource, std::forward< std::vector<header> >(hdrs) );
+	std::stringstream buff;
+	switch(method_) {
+		case request_method::get:
 		default:
+			buff << "GET ";
 			break;
 	}
-	ec = std::make_error_code(std::errc::not_supported);
-	return s_request();
+	buff << uri_->path();
+	buff << " HTTP/1.1\r\n";
+	buff << "Host: " << uri_->host() << "\r\n";
+	for(auto hdr: hdrs_) {
+		buff << hdr.name() << ": ";
+		buff << hdr.value() << "\r\n";
+	}
+	buff << "\r\n";
+	std::string tmp = buff.str();
+	to->write(ec, str_bytes( tmp.data() ), tmp.size() );
+}
+
+// FIXME: refactor to factory
+s_request IO_PUBLIC_SYMBOL new_request(std::error_code& ec,request_method m, const s_uri& resource) noexcept
+{
+	request *ret = new (std::nothrow) request(m, resource);
+	if(nullptr == ret) {
+		ec = std::make_error_code(std::errc::not_enough_memory);
+		return s_request();
+	}
+	return s_request( ret );
 }
 
 } // namespace http

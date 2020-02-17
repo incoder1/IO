@@ -141,9 +141,9 @@ read_stream::~read_stream() noexcept
 ::ULONG __stdcall read_stream::Release() noexcept
 {
 	::ULONG ret = ref_count_.fetch_sub(1, std::memory_order_acq_rel);
-	if(1 == ret)
+	if(0 == --ret)
 		delete this;
-	return --ret;
+	return ret;
 }
 
 

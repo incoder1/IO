@@ -71,6 +71,7 @@ public:
 	inline std::size_t size() const noexcept {
 		return pool_.size();
 	}
+
 private:
 	friend class nobadalloc<string_pool>;
 #ifdef __IO_WINDOWS_BACKEND__
@@ -88,6 +89,7 @@ private:
 		> pool_type;
 
 	pool_type pool_;
+
 };
 
 } // namespace io

@@ -11,6 +11,9 @@
 #include "stdafx.hpp"
 #include "synch_socket_channel.hpp"
 
+#undef send
+#undef recv
+
 namespace io {
 
 namespace net {
@@ -31,10 +34,12 @@ static char* cstrcast_cast(const uint8_t* px) noexcept {
 
 std::size_t synch_socket_channel::read(std::error_code& ec,uint8_t* const buff, std::size_t bytes) const noexcept
 {
-	::WSABUF wsab = { static_cast<::u_long>(bytes), cstrcast_cast(buff) };
-	::DWORD ret, flags = 0;
+	::WSABUF wsab;
+	wsab.len = static_cast<::u_long>(bytes);
+	wsab.buf = cstrcast_cast(buff);
+	::DWORD ret = 0, flags = 0;
 	if(SOCKET_ERROR == ::WSARecv(socket_, &wsab, 1, &ret, &flags, nullptr, nullptr) ) {
-		ec = std::make_error_code( win::wsa_last_error_to_errc() );
+		ec = make_wsa_last_error_code();
 		return 0;
 	}
 	return static_cast<::std::size_t>(ret);
@@ -42,10 +47,12 @@ std::size_t synch_socket_channel::read(std::error_code& ec,uint8_t* const buff, 
 
 std::size_t synch_socket_channel::write(std::error_code& ec, const uint8_t* buff,std::size_t size) const noexcept
 {
-	::WSABUF wsab = {static_cast<::u_long>(size), cstrcast_cast(buff) };
-	::DWORD ret;
+	::WSABUF wsab;
+	wsab.len = static_cast<::u_long>(size);
+	wsab.buf = cstrcast_cast(buff);
+	::DWORD ret = 0;
 	if(SOCKET_ERROR == ::WSASend(socket_, &wsab, 1, &ret, 0, nullptr, nullptr) ) {
-		ec = std::make_error_code( win::wsa_last_error_to_errc() );
+		ec = make_wsa_last_error_code();
 		return 0;
 	}
 	return static_cast<::std::size_t>(ret);

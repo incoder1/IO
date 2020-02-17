@@ -67,7 +67,6 @@ poly_mesh::poly_mesh(gl::s_program&& po,const material_t& mat,float_array_view&&
 	mat_helper_.bind_to_shader(program_);
 	light_helper_.bind_to_shader(program_);
 
-
 	// unbind vao
 	::glBindVertexArray(0);
 }

@@ -43,8 +43,7 @@ class header {
        const_string value_;
 };
 
-// FIXME: remove this enumeration
-enum class method
+enum class request_method
 {
 	get,
 	post
@@ -53,14 +52,17 @@ enum class method
 
 typedef std::vector<header> headers;
 
-class IO_PUBLIC_SYMBOL request:public virtual object
+
+class IO_PUBLIC_SYMBOL request:public object
 {
-protected:
-	request(s_uri&& uri, headers&& hdrs) noexcept;
-	void join(std::error_code& ec, const s_write_channel& ch) const noexcept;
 public:
-	virtual void send(std::error_code& ec, const s_write_channel& ch) const noexcept = 0;
+	request(request_method method,const s_uri& uri) noexcept;
+	void send(std::error_code& ec, const s_write_channel& ch) const;
+	void add_header(const char* name, const char* value) {
+		hdrs_.emplace_back( io::const_string(name), io::const_string(value) );
+	}
 private:
+	request_method method_;
 	s_uri uri_;
 	headers hdrs_;
 };
@@ -68,17 +70,20 @@ private:
 DECLARE_IPTR(request);
 
 // FIXME: refactor to factory
-s_request IO_PUBLIC_SYMBOL new_request(std::error_code& ec,method m, const s_uri& resource, std::vector<header>&& hdrs) noexcept;
+s_request IO_PUBLIC_SYMBOL new_request(std::error_code& ec,request_method m, const s_uri& resource) noexcept;
 
-inline s_request new_request(std::error_code& ec,method m, const s_uri& resource) noexcept
+inline s_request new_get_request(std::error_code& ec, const s_uri& resource) noexcept
 {
-    return new_request(ec, m, resource,
-            {
-				{"Accept","text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8"},
-				{"User-Agent", "io library"},
-				{"Accept-Charset","ISO-8859-1,utf-8;q=0.7,*;q=0.7"},
-				{"Connection","close"}
-			} );
+    s_request ret = new_request(ec, request_method::get, resource);
+    if(!ec) {
+		ret->add_header("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:72.0) Gecko/20100101 Firefox/72.0");
+		ret->add_header("Accept","text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8");
+		ret->add_header("Accept-Language","en-US,en;q=0.5");
+		ret->add_header("Connection","close");
+		ret->add_header("Pragma", "no-cache");
+		ret->add_header("Cache-Control", "no-cache");
+    }
+	return ret;
 }
 
 

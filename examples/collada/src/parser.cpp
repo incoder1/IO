@@ -173,22 +173,23 @@ io::const_string parser::get_attr(const io::xml::start_element_event& sev, const
 
 io::xml::state_type parser::to_next_state() noexcept
 {
-	io::xml::state_type ret = io::xml::state_type::initial;
+	io::xml::state_type ret;
+	bool parsing = true;
 	// Scan for next XML state
-	for(;;) {
+	do {
 		ret = xp_->scan_next();
 		switch(ret) {
 		case io::xml::state_type::dtd:
 			xp_->skip_dtd();
-			continue;
+			break;
 		case io::xml::state_type::comment:
 			xp_->skip_comment();
-			continue;
+			break;
 		default:
+			parsing = false;
 			break;
 		}
-		break;
-	}
+	} while(parsing);
 	return ret;
 }
 
@@ -254,7 +255,7 @@ io::xml::event_type parser::to_next_tag_event(io::xml::state_type& state)
 	bool parsing = true;
 	do {
 		ret = to_next_event(state);
-		if(io::xml::state_type::eod == state)
+		if( io::xml::state_type::eod == state )
 			break;
 		// got event
 		ret = xp_->current_event();
@@ -268,6 +269,7 @@ io::xml::event_type parser::to_next_tag_event(io::xml::state_type& state)
 			break;
 		default:
 			parsing = false;
+			break;
 		}
 	}
 	while( parsing );
@@ -419,10 +421,12 @@ void parser::parse_effect(io::const_string&& id, s_effect_library& efl)
 static surface_type sampler_by_name(const io::const_string& type) noexcept
 {
 	const char* val = type.data();
-	if( val[1] == 'D' && ('0' < val[0]) && ('4' > val[0] ) )
-		return static_cast<surface_type>( uint8_t(val[0] - '0') );
 	surface_type ret = surface_type::untyped;
 	switch( val[0] ) {
+	case '1': case '2': case '3':
+		if('D' == val[1])
+			ret = static_cast<surface_type>( uint8_t(val[0] - '0') );
+		break;
 	case 'C':
 		if( type.equal("CUBE") ) {
 			ret = surface_type::cube;

@@ -14,6 +14,8 @@
 
 namespace io {
 
+namespace net {
+
 namespace secure {
 
 // credentials
@@ -28,117 +30,130 @@ credentials credentials::system_trust_creds(std::error_code& ec) noexcept
 	return ret;
 }
 
+
 // session
-session::session(session&& other) noexcept:
-	peer_( other.peer_ ),
-	socket_( std::move( other.socket_ ) )
+
+// friend transport functions
+int session_timeout(::gnutls_transport_ptr_t tr, unsigned int ms) noexcept
 {
-	other.peer_ = nullptr;
+	return static_cast<int>( ms);
 }
+
+int get_session_error_no(::gnutls_transport_ptr_t tr) noexcept
+{
+	session* s = static_cast<session*>( tr );
+	return s->ec_.value();
+}
+
+ssize_t session_push(::gnutls_transport_ptr_t tr,const ::giovec_t* buffers, int bcount) noexcept
+{
+	session* s = static_cast<session*>( tr );
+	ssize_t ret = 0;
+	for(unsigned i=0; i < static_cast<unsigned>(bcount); i++) {
+		const giovec_t* buff = buffers + i;
+		ret += s->raw_write(static_cast<const uint8_t*>(buff->iov_base), buff->iov_len);
+		if(s->ec_)
+			break;
+	}
+	return ret;
+}
+
+ssize_t session_pull(::gnutls_transport_ptr_t tr, void * data, std::size_t max_size) noexcept
+{
+	session* s = static_cast<session*>( tr );
+	return s->raw_read(static_cast<uint8_t*>(data), max_size);
+}
+
+session::session(gnutls_session_t peer,s_socket&& socket, s_read_write_channel&& connection) noexcept:
+	peer_( peer ),
+	socket_( std::forward<s_socket>(socket) ),
+	connection_( std::forward<s_read_write_channel>(connection) ),
+	ec_()
+{}
 
 session::~session() noexcept
 {
-	if(nullptr != peer_) {
-		::gnutls_bye(peer_, GNUTLS_SHUT_RDWR);
-		::gnutls_deinit( peer_ );
-	}
-}
-
-ssize_t session::push(::gnutls_transport_ptr_t tr, const void * data, std::size_t size) noexcept
-{
-	session* s = static_cast<session*>( tr );
-	std::error_code ec;
-	ssize_t ret = s->socket_->write(ec, static_cast<const uint8_t*>(data), size);
-	if( ec ) {
-		::gnutls_transport_set_errno( s->peer_, ec.value() );
-		return EOF;
-	}
-	return ret;
-}
-
-ssize_t session::pull(::gnutls_transport_ptr_t tr, void * data, std::size_t max_size) noexcept
-{
-	session* s = static_cast<session*>( tr );
-	std::error_code ec;
-	ssize_t ret = s->socket_->read(ec, static_cast<uint8_t*>(data), max_size);
-	if( ec ) {
-		::gnutls_transport_set_errno( s->peer_, ec.value() );
-		return EOF;
-	}
-	return ret;
-}
-
-int session::timeout(::gnutls_transport_ptr_t tr, unsigned int ms) noexcept
-{
-	int ret = ::gnutls_system_recv_timeout(tr,ms);
-	return ret;
+	::gnutls_bye(peer_, GNUTLS_SHUT_RDWR);
+	::gnutls_deinit( peer_ );
 }
 
 int session::client_handshake(::gnutls_session_t const peer) noexcept
 {
-//	::gnutls_handshake_set_timeout(peer,
-//                                     GNUTLS_DEFAULT_HANDSHAKE_TIMEOUT);
-//	::gnutls_session_set_verify_cert(peer, nullptr, GNUTLS_VERIFY_ALLOW_X509_V1_CA_CRT);
-	int ret = 0;
-	bool handshaked = false;
+//	::gnutls_handshake_set_timeout(peer, GNUTLS_DEFAULT_HANDSHAKE_TIMEOUT);
+	int ret = GNUTLS_E_SUCCESS;
 	do {
-		::gnutls_transport_set_errno( peer, 0 );
 		ret = ::gnutls_handshake( peer );
-		handshaked = ret == GNUTLS_E_SUCCESS;
-		handshaked = handshaked || 0 != ::gnutls_error_is_fatal(ret);
-	}
-	while( !handshaked );
+	} while( ret != GNUTLS_E_SUCCESS && 0 == gnutls_error_is_fatal(ret) );
 	return ret;
 }
 
-
-
-session session::client_session(std::error_code &ec, ::gnutls_certificate_credentials_t crd,s_read_write_channel&& socket) noexcept
+s_session session::client_session(std::error_code &ec, ::gnutls_certificate_credentials_t crd,s_socket&& socket) noexcept
 {
-	session ret( std::forward<s_read_write_channel>(socket) );
-	int err = ::gnutls_init( &ret.peer_, GNUTLS_CLIENT | GNUTLS_NO_EXTENSIONS);
-	if(GNUTLS_E_SUCCESS != err)
+	::gnutls_session_t peer = nullptr;
+	int err = ::gnutls_init(&peer, GNUTLS_CLIENT);
+	if(GNUTLS_E_SUCCESS != err) {
 		ec = std::make_error_code( std::errc::connection_refused );
-	else {
-		/* Use default priorities */
-		err = ::gnutls_set_default_priority(ret.peer_);
-		if(GNUTLS_E_SUCCESS != err) {
-			ec = std::make_error_code( std::errc::connection_refused );
-		} else {
-		 	::gnutls_session_enable_compatibility_mode(ret.peer_);
-			err = ::gnutls_credentials_set(ret.peer_, GNUTLS_CRD_CERTIFICATE, crd);
-			if(GNUTLS_E_SUCCESS != err)
-				ec = std::make_error_code( std::errc::connection_refused );
-			else {
-				::gnutls_transport_ptr_t transport = static_cast<::gnutls_transport_ptr_t>( std::addressof(ret) );
-				::gnutls_transport_set_ptr( ret.peer_, transport );
-
-				//::gnutls_handshake_set_private_extensions(ret.peer_, 1 );
-				::gnutls_transport_set_push_function( ret.peer_, &session::push );
-				::gnutls_transport_set_pull_function( ret.peer_, &session::pull );
-				::gnutls_transport_set_pull_timeout_function(ret.peer_, &session::timeout);
-
-				::gnutls_transport_set_errno( ret.peer_, 0 );
-				err = client_handshake( ret.peer_ );
-				if(GNUTLS_E_SUCCESS != err)
-					ec = std::make_error_code( std::errc::connection_aborted );
-			}
-		}
+		return s_session();
 	}
-	return ret;
+	/* Use default priorities */
+	::gnutls_session_enable_compatibility_mode(peer);
+	err = ::gnutls_set_default_priority(peer);
+	if(GNUTLS_E_SUCCESS != err) {
+		ec = std::make_error_code( std::errc::connection_refused );
+		return s_session();
+	}
+	err = ::gnutls_credentials_set(peer, GNUTLS_CRD_CERTIFICATE, crd);
+	if(GNUTLS_E_SUCCESS != err) {
+		ec = std::make_error_code( std::errc::connection_refused );
+		return s_session();
+	}
+	s_read_write_channel connection = socket->connect(ec);
+	if(ec)
+		return s_session();
+	session *ret = new (std::nothrow) session(peer, std::move(socket), std::move(connection) );
+	if( nullptr == ret ) {
+		ec = std::make_error_code(std::errc::not_enough_memory);
+		return s_session();
+	}
+	::gnutls_transport_set_ptr(peer, static_cast<::gnutls_transport_ptr_t>( ret ) );
+	::gnutls_transport_set_vec_push_function(peer, session_push );
+	::gnutls_transport_set_pull_function(peer, session_pull );
+
+	::gnutls_transport_set_pull_timeout_function(peer, ::gnutls_system_recv_timeout);
+	::gnutls_transport_set_errno_function(peer,get_session_error_no);
+
+	err = client_handshake( peer );
+	switch(err) {
+	case GNUTLS_E_SUCCESS:
+		break;
+	case GNUTLS_E_CERTIFICATE_VERIFICATION_ERROR:
+		ec = std::make_error_code( std::errc::operation_canceled );
+		return s_session();
+	default:
+		ec = ret->ec_;
+		return s_session();
+	}
+	return s_session(ret);
 }
 
+ssize_t session::raw_read(uint8_t* dst,std::size_t len) noexcept
+{
+	size_t ret = connection_->read(ec_, dst, len);
+	return ec_ ? -1 : ret;
+}
 
-session::session(s_read_write_channel&& socket) noexcept:
-	peer_(nullptr),
-	socket_( std::forward<s_read_write_channel>( socket ) )
-{}
+ssize_t session::raw_write(const uint8_t* src,std::size_t len) noexcept
+{
+	size_t ret = connection_->write(ec_, src, len);
+	return ec_ ? -1 : ret;
+}
+
 
 std::size_t session::read(std::error_code& ec, uint8_t * const data, std::size_t max_size) const noexcept
 {
 	ssize_t ret = ::gnutls_record_recv(peer_, static_cast<void*>(data), max_size);
-	if( ret < 0 ) {
-		ec  = std::make_error_code(std::errc::broken_pipe);
+	if( ret < 0 && 0 != ::gnutls_error_is_fatal(ret) ) {
+        ec = ec_;
 		return 0;
 	}
 	return static_cast<std::size_t>( ret );
@@ -147,8 +162,8 @@ std::size_t session::read(std::error_code& ec, uint8_t * const data, std::size_t
 std::size_t session::write(std::error_code& ec, const uint8_t *data, std::size_t data_size) const noexcept
 {
 	ssize_t ret = ::gnutls_record_send(peer_, static_cast<const void*>(data), data_size);
-	if( ret < 0 ) {
-		ec  = std::make_error_code(std::errc::broken_pipe);
+	if( ret < 0 && 0 != ::gnutls_error_is_fatal(ret) ) {
+		ec = ec_;
 		return 0;
 	}
 	return static_cast<std::size_t>( ret );
@@ -157,9 +172,9 @@ std::size_t session::write(std::error_code& ec, const uint8_t *data, std::size_t
 
 //tls_channel
 
-tls_channel::tls_channel(session&& s) noexcept:
+tls_channel::tls_channel(s_session&& s) noexcept:
 	read_write_channel(),
-	session_( std::forward<session>(s) )
+	session_( std::forward<s_session>(s) )
 {}
 
 tls_channel::~tls_channel() noexcept
@@ -167,12 +182,12 @@ tls_channel::~tls_channel() noexcept
 
 std::size_t tls_channel::read(std::error_code& ec,uint8_t* const buff, std::size_t bytes) const noexcept
 {
-	return session_.read(ec, buff, bytes);
+	return session_->read(ec, buff, bytes);
 }
 
 std::size_t tls_channel::write(std::error_code& ec, const uint8_t* buff,std::size_t size) const noexcept
 {
-	return session_.write(ec, buff, size);
+	return session_->write(ec, buff, size);
 }
 
 // service
@@ -197,10 +212,10 @@ const service* service::instance(std::error_code& ec) noexcept
 		if(nullptr == ret) {
 			if( GNUTLS_E_SUCCESS == ::gnutls_global_init() ) {
 
-				::gnutls_global_set_log_level(9);
-				::gnutls_global_set_log_function([] (int e, const char *msg) {
-					std::fprintf(stderr, "%i %s", e, msg);
-				});
+//				gnutls_global_set_log_level(2);
+//				::gnutls_global_set_log_function([] (int e, const char *msg) {
+//					std::fprintf(stderr, "%i %s", e, msg);
+//				});
 
 				credentials xcred = credentials::system_trust_creds(ec);
 				if(!ec) {
@@ -221,10 +236,16 @@ const service* service::instance(std::error_code& ec) noexcept
 service::~service() noexcept
 {}
 
-s_read_write_channel service::new_client_connection(std::error_code& ec, s_read_write_channel&& socket) const noexcept
+s_read_write_channel service::new_client_blocking_connection(std::error_code& ec,const char* host,const uint16_t port) const noexcept
 {
+	const socket_factory* sf = socket_factory::instance(ec);
+	if(ec)
+		return s_read_write_channel();
+	s_socket socket = sf->client_tcp_socket(ec, host, port);
+	if(ec)
+		return s_read_write_channel();
 
-	session s = session::client_session(ec, creds_.get(),  std::forward<s_read_write_channel>(socket) );
+	s_session s = session::client_session(ec, creds_.get(),  std::forward<s_socket>(socket) );
 	if( ec )
 		return s_read_write_channel();
 	tls_channel* ch = nobadalloc< tls_channel >::construct(ec, std::move(s) );
@@ -233,5 +254,7 @@ s_read_write_channel service::new_client_connection(std::error_code& ec, s_read_
 
 
 } // namespace secure
+
+} // namespace net
 
 } // namespace io

@@ -14,13 +14,10 @@
 				<Option compiler="gcc" />
 				<Compiler>
 					<Add option="-std=c++11" />
-					<Add option="-pg" />
-					<Add option="-Og" />
 					<Add option="-g" />
 					<Add option="-DIO_TLS_PROVIDER_GNUTLS" />
 				</Compiler>
 				<Linker>
-					<Add option="-pg -lgmon" />
 					<Add library="iconv.dll" />
 					<Add library="Ws2_32" />
 					<Add library="gnutls.dll" />
@@ -57,7 +54,7 @@
 					<Add option="-mtune=native" />
 					<Add option="-DNDEBUG" />
 					<Add option="-DIO_SHARED_LIB" />
-					<Add option="-DIO_TLS_PROVIDER_GNUTSL" />
+					<Add option="-DIO_TLS_PROVIDER_GNUTLS" />
 				</Compiler>
 				<Linker>
 					<Add option="-s" />
