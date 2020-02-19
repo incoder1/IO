@@ -203,6 +203,7 @@ public:
 		rd_.to_next_state(ec_);
 		check_error_code(ec_);
 	}
+
 	bool is_tag_begin_next() noexcept {
 		return rd_.is_tag_begin_next();
 	}

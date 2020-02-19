@@ -31,25 +31,22 @@ bool error_category::equivalent (const std::error_code& code, int condition) con
 }
 
 
-#define DECLARE_ERROR_MSG(ID,msg)\
+#define ERRMSG_DECL(ID,msg)\
 static const char *ID = #msg
-
-DECLARE_ERROR_MSG(IO_ERR,"System input/output error");
-DECLARE_ERROR_MSG(OFM_ERR,"Not enough memory");
-DECLARE_ERROR_MSG(ILG_ATTR_ERR,"Tag have several attributes with the same name");
-DECLARE_ERROR_MSG(ILG_PRL_ERR, "Illegal XML prologue declaration");
-DECLARE_ERROR_MSG(ILG_CHARS_ERR, "Illegal UNICODE character");
-DECLARE_ERROR_MSG(ILG_NAME_ERR,"Tag or attribute name is illegal");
-DECLARE_ERROR_MSG(ILG_MARKUP_ERR,"XML node markup is incorrect");
-DECLARE_ERROR_MSG(ILG_DTD_ERR,"Illegal DTD declaration");
-DECLARE_ERROR_MSG(ILG_COMENT_ERR,"Illegal commentary");
-DECLARE_ERROR_MSG(ILG_CDATA_ERR,"Illegal <!CDATA[]]> section");
-DECLARE_ERROR_MSG(UNBL_ERR,"Root element is unbalanced");
-DECLARE_ERROR_MSG(STATE_ERR, "Can not perform requested operation in current state");
-DECLARE_ERROR_MSG(OK_MSG, "No errors");
-
-
-#undef DECLARE_ERROR_MSG
+ERRMSG_DECL(IO_ERR,"System input/output error");
+ERRMSG_DECL(OFM_ERR,"Not enough memory");
+ERRMSG_DECL(ILG_ATTR_ERR,"Tag have several attributes with the same name");
+ERRMSG_DECL(ILG_PRL_ERR, "Illegal XML prologue declaration");
+ERRMSG_DECL(ILG_CHARS_ERR, "Illegal UNICODE character");
+ERRMSG_DECL(ILG_NAME_ERR,"Tag or attribute name is illegal");
+ERRMSG_DECL(ILG_MARKUP_ERR,"XML node markup is incorrect");
+ERRMSG_DECL(ILG_DTD_ERR,"Illegal DTD declaration");
+ERRMSG_DECL(ILG_COMENT_ERR,"Illegal commentary");
+ERRMSG_DECL(ILG_CDATA_ERR,"Illegal <!CDATA[]]> section");
+ERRMSG_DECL(UNBL_ERR,"Root element is unbalanced");
+ERRMSG_DECL(STATE_ERR, "Can not perform requested operation in current state");
+ERRMSG_DECL(OK_MSG, "No errors");
+#undef ERRMSG_DECL
 
 const char* error_category::cstr_message(int err_code) const noexcept
 {

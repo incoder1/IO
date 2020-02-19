@@ -145,7 +145,6 @@ static bool is_xml_name_char(uint32_t ch) noexcept
 	}
 }
 
-
 #pragma GCC diagnostic pop
 
 #else
@@ -156,9 +155,12 @@ static constexpr bool is_xml_name_start_char_lo(char32_t ch) noexcept
 	return is_one_of(ch, U'_', U':') || is_alpha( ch );
 }
 
-template<unsigned int S, unsigned int E, unsigned int D = ((E - S) + 1) >
+template<
+ std::make_unsigned<char32_t>::type S,
+ std::make_unsigned<char32_t>::type E,
+ std::make_unsigned<char32_t>::type D = ((E - S) + 1) >
 static constexpr bool between(char32_t ch) noexcept {
-	return (static_cast<unsigned int>(ch)-S) < D;
+	return (static_cast< std::make_unsigned<char32_t>::type >(ch)-S) < D;
 }
 
 static constexpr bool is_xml_name_start_char(char32_t ch) noexcept

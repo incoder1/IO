@@ -11,6 +11,8 @@
 
 #include "stubs.hpp"
 
+#include <xml_event_writer.hpp>
+
 static const char* PROLOGUE = "<?xml version=\"1.0\" encoding=\"UTF-8\" ?>";
 
 
@@ -57,39 +59,49 @@ void generate_xsd(app_settings& root, std::ostream& cout) {
 int main()
 {
 	io::console::reset_err_color( io::text_color::light_red);
-	std::ostream& cout = io::console::out_stream();
 
-	app_settings root( primary_conf(1) );
+	std::error_code ec;
+ 	io::xml::s_event_writer xew = io::xml::event_writer::open( ec, create_file_channel("app-config.xml") );
 
-	auto now = std::chrono::system_clock::now();
+ 	xew->add_coment(ec, "Test event writer");
+ 	io::xml::start_element_event sev( io::xml::qname("tst","test"), false );
+ 	sev.add_attribute( io::xml::attribute( io::xml::qname("xmlns","xsi"), "http://www.w3.org/2001/XMLSchema-instance") );
+ 	xew->add( ec, sev );
+ 	xew->add_cdata(ec, "<Test CDATA >");
+ 	xew->add_chars(ec, "Test characters");
+ 	xew->add( ec, io::xml::end_element_event(io::xml::qname("tst","test")) );
 
-	root.add_conf( config(1, true,  std::move(now), "First configuration") );
-	root.add_conf( config(2, false, std::move(now), "Second configuration") );
+//	std::ostream& cout = io::console::out_stream();
 
-	app_settings::xml_type xt = root.to_xml_type();
-
-	io::channel_ostream<char> xml( create_file_channel("app-config.xml"));
-	xml << io::unicode_cp::utf8;
-	xml << PROLOGUE;
-	xt.marshal(xml,0);
-	xml.flush();
-
-#if IO_XML_HAS_TO_XSD
-	generate_xsd(root,cout);
-#endif // IO_XML_HAS_TO_XSD
-
-	// unmarshal back from memory
-	//io::xml::unmarshaller<app_settings::xml_type> unmarshaller;
-	app_settings setings2 = app_settings::from_xml_type(xt);
-	app_settings::xml_type xt2 = root.to_xml_type();
-
-	io::console::reset_out_color( io::text_color::white);
-	cout<<"Resulting XML available in app-conf.xml:"<<std::endl;
-	io::console::reset_out_color( io::text_color::light_green);
-	cout<<PROLOGUE<<std::endl;
-	xt.marshal(cout, 1);
-	cout.flush();
-
+//	app_settings root( primary_conf(1) );
+//	auto now = std::chrono::system_clock::now();
+//
+//	root.add_conf( config(1, true,  std::move(now), "First configuration") );
+//	root.add_conf( config(2, false, std::move(now), "Second configuration") );
+//
+//	app_settings::xml_type xt = root.to_xml_type();
+//
+//	io::channel_ostream<char> xml( create_file_channel("app-config.xml"));
+//	xml << io::unicode_cp::utf8;
+//	xml << PROLOGUE;
+//	xt.marshal(xml,0);
+//	xml.flush();
+//
+//#if IO_XML_HAS_TO_XSD
+//	generate_xsd(root,cout);
+//#endif // IO_XML_HAS_TO_XSD
+//
+//	// unmarshal back from memory
+//	//io::xml::unmarshaller<app_settings::xml_type> unmarshaller;
+//	app_settings setings2 = app_settings::from_xml_type(xt);
+//	app_settings::xml_type xt2 = root.to_xml_type();
+//
+//	io::console::reset_out_color( io::text_color::white);
+//	cout<<"Resulting XML available in app-conf.xml:"<<std::endl;
+//	io::console::reset_out_color( io::text_color::light_green);
+//	cout<<PROLOGUE<<std::endl;
+//	xt.marshal(cout, 1);
+//	cout.flush();
 
 	return 0;
 }

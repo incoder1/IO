@@ -156,6 +156,11 @@
 #define io_unlikely(__expr__) __builtin_expect(!!(__expr__), 0)
 #define io_unreachable __builtin_unreachable();
 
+
+#if (__cplusplus >= 201703L) && defined(__cpp_char8_t)
+#  define IO_HAS_CHAR8_T 1
+#endif
+
 namespace io {
 namespace detail {
 

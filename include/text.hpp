@@ -26,15 +26,11 @@
 #include <string>
 
 #ifdef __IO_WINDOWS_BACKEND__
-#	define _U(quote) L##quote
-#	define _u(quote) quote
 #	define IO_SYS_UNICODE io::code_pages::UTF_16LE
 typedef wchar_t unicode_char;
 #endif // __IO_WINDOWS_BACKEND__
 
 #ifdef __IO_POSIX_BACKEND__
-#	define _U(S) U##S
-#	define _u(quote) u8##quote
 #	ifdef IO_IS_LITTLE_ENDIAN
 #		define IO_SYS_UNICODE io::code_pages::UTF_32LE
 #	else
@@ -44,7 +40,6 @@ typedef char32_t unicode_char;
 #endif // __IO_WINDOWS_BACKEND__
 
 namespace io {
-
 
 /// \brief On-fly character conversation synchronous read channel implementation.
 /*!
@@ -120,7 +115,7 @@ private:
 namespace detail {
 
 template<typename T>
-static constexpr uint8_t* address_of(const T* p) noexcept
+static constexpr uint8_t* byte_cast(const T* p) noexcept
 {
 	return const_cast<uint8_t*>( reinterpret_cast<const uint8_t*>(p) );
 }
@@ -223,7 +218,7 @@ static std::string transcode_big(const wchar_t* ucs_str, std::size_t len)
 #endif // __IO_WINDOWS_BACKEND__
 	scoped_arr<char> arr( detail::utf8_buff_size(ucs, len) );
 	std::error_code ec;
-	std::size_t conv = transcode(ec, ucs, len, detail::address_of(arr.get()), arr.len() );
+	std::size_t conv = transcode(ec, ucs, len, detail::byte_cast(arr.get()), arr.len() );
 	check_error_code(ec);
 	return std::string(arr.get(), conv);
 }
@@ -255,7 +250,7 @@ inline std::u16string transcode_to_u16(const char* u8_str, std::size_t bytes)
 {
 	scoped_arr<char16_t> arr( detail::utf16_buff_size(u8_str, bytes) + 1 );
 	std::error_code ec;
-	std::size_t conv = transcode(ec, detail::address_of(u8_str), bytes, arr.get(), arr.len() );
+	std::size_t conv = transcode(ec, detail::byte_cast(u8_str), bytes, arr.get(), arr.len() );
 	check_error_code(ec);
 	return std::u16string(arr.get(), conv);
 }
@@ -269,7 +264,7 @@ inline std::u32string transcode_to_u32(const char* u8_str, std::size_t bytes)
 {
 	scoped_arr<char32_t> arr( detail::utf32_buff_size(u8_str,bytes) + 1);
 	std::error_code ec;
-	std::size_t conv = transcode(ec, detail::address_of(u8_str), bytes, arr.get(), arr.len() );
+	std::size_t conv = transcode(ec, detail::byte_cast(u8_str), bytes, arr.get(), arr.len() );
 	check_error_code(ec);
 	return std::u32string(arr.get(), conv);
 }
@@ -291,7 +286,7 @@ inline std::string transcode(const char16_t* u16_str, std::size_t len)
 {
 	scoped_arr<char> arr( detail::utf8_buff_size(u16_str, len)  );
 	std::error_code ec;
-	std::size_t conv = transcode(ec, u16_str, len, detail::address_of(arr.get()), arr.len() );
+	std::size_t conv = transcode(ec, u16_str, len, detail::byte_cast(arr.get()), arr.len() );
 	check_error_code(ec);
 	return std::string(arr.get(), conv);
 }
@@ -301,7 +296,7 @@ inline std::string transcode(const char32_t* u32_str, std::size_t len)
 {
 	scoped_arr<char> arr( detail::utf8_buff_size(u32_str, len) );
 	std::error_code ec;
-	std::size_t conv = transcode(ec, u32_str, len,detail::address_of(arr.get()), arr.len() );
+	std::size_t conv = transcode(ec, u32_str, len,detail::byte_cast(arr.get()), arr.len() );
 	check_error_code(ec);
 	return std::string(arr.get(), conv);
 }
@@ -326,7 +321,7 @@ inline std::wstring transcode_to_ucs(const char* u8_str, std::size_t bytes)
 	scoped_arr<char32_t> arr( detail::utf32_buff_size(u8_str,bytes) + 1);
 #endif // __IO_WINDOWS_BACKEND__
 	std::error_code ec;
-	std::size_t conv = transcode(ec, detail::address_of(u8_str), bytes, arr.get(), arr.len() );
+	std::size_t conv = transcode(ec, detail::byte_cast(u8_str), bytes, arr.get(), arr.len() );
 	check_error_code(ec);
 	return std::wstring(reinterpret_cast<const wchar_t*>(arr.get()), conv );
 }
@@ -348,6 +343,63 @@ inline std::string transcode(const wchar_t* ucs_str)
 	return transcode(ucs_str, std::char_traits<wchar_t>::length(ucs_str) );
 }
 
+
+template<typename> struct __is_char_type_helper : public std::false_type {};
+template<> struct __is_char_type_helper<char> : public std::true_type {};
+template<> struct __is_char_type_helper<wchar_t> : public std::true_type {};
+template<> struct __is_char_type_helper<char16_t> : public std::true_type {};
+template<> struct __is_char_type_helper<char32_t> : public std::true_type {};
+#ifdef IO_HAS_CHAR8_T
+template<> struct __is_char_type_helper<char8_t> : public std::true_type {};
+#endif
+
+template<typename _Tp>
+struct is_char_type : public __is_char_type_helper<typename std::remove_cv<_Tp>::type>::type
+{};
+
+template<typename C, class ___type_restriction = void>
+class reader;
+
+template<typename C>
+class reader<C, typename std::enable_if< is_char_type< C >::value >::type >
+{
+public:
+	explicit reader(const s_read_channel& src) noexcept:
+		src_( src )
+	{}
+	inline std::size_t read(std::error_code& ec, C* to, std::size_t chars) const noexcept {
+		return sizeof(C) * src_->read(ec, reinterpret_cast<uint8_t*>(to), (chars * sizeof(C) ) );
+	}
+private:
+	s_read_channel src_;
+};
+
+template<typename C, class ___type_restriction = void>
+class writer;
+
+template<typename C>
+class writer<C, typename std::enable_if< is_char_type< C >::value >::type >
+{
+private:
+	static inline std::size_t cstr_len(const C* str) noexcept {
+        return std::char_traits<C>::length( str );
+	}
+public:
+	explicit writer(const s_write_channel& dst) noexcept:
+		dst_( dst )
+	{}
+	inline std::size_t write(std::error_code& ec,const C* str, std::size_t len) const noexcept {
+		return dst_->write(ec,  detail::byte_cast(str), (len*sizeof(C)) ) / sizeof(C);
+	}
+	inline std::size_t write(std::error_code& ec, const C* str) const noexcept {
+		return write(ec, str, cstr_len(str) );
+	}
+	inline std::size_t write(std::error_code& ec, const std::basic_string<C>& str ) const noexcept {
+		return write( ec , str.data(), str.size() );
+	}
+private:
+	s_write_channel dst_;
+};
 
 } // namespace io
 

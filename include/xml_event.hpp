@@ -27,6 +27,7 @@ namespace io {
 
 namespace xml {
 
+/// \brief XML event masking type
 enum class event_type {
 	start_document,
 	start_element,
@@ -34,6 +35,7 @@ enum class event_type {
 	processing_instruction
 };
 
+/// \brief Start document event
 class IO_PUBLIC_SYMBOL document_event final {
 public:
 	constexpr document_event() noexcept:
@@ -41,17 +43,28 @@ public:
 		encoding_(),
 		standalone_(false)
 	{}
+
 	document_event(const_string&& version,const_string&& enc, bool standalone) noexcept:
 		version_( std::forward<const_string>(version) ),
 		encoding_( std::forward<const_string>(enc) ),
 		standalone_(standalone)
 	{}
+
+	/// Returns the version of XML of this XML stream
+	/// \return this XML stream version
 	inline const_string version() const noexcept {
 		return version_;
 	}
+
+	/// Returns the encoding style of the XML data
+	/// \see io::code_pages::for_name
+	/// \return encoding style
 	inline const_string encoding() const noexcept {
 		return encoding_;
 	}
+
+    /// Returns if this XML is standalone
+    /// \return whether XML is standalone
 	inline bool standalone() const noexcept {
 		return standalone_;
 	}
