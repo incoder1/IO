@@ -396,35 +396,32 @@ byte_buffer prober::filter_with_english_letters(std::error_code& ec, const uint8
 	byte_buffer ret = byte_buffer::allocate(ec, size);
 	if (ec)
 		return ret;
-	bool is_in_tag = false;
+	bool inside_tag = false;
 	const uint8_t *end = buff + size;
-	const uint8_t *prev_ptr = buff, *cur_ptr = buff;
-	typedef std::char_traits<uint8_t> chtr;
-	for (; cur_ptr < end; ++cur_ptr) {
-		switch( static_cast<unsigned int>(*cur_ptr) ) {
-		case detail::unsign('<'):
-			is_in_tag = true;
-			break;
-		case detail::unsign('>'):
-			is_in_tag = false;
-			break;
-		}
-		if( ! (*cur_ptr & 0x80) && is_latin1(*cur_ptr) ) {
+	const uint8_t *next = buff;
+	const uint8_t *prev = buff;
+	while ( next < end ) {
+	    if( cheq('<', *next ) ) {
+	    	inside_tag = true;
+	    } else if( cheq('>',*next) ) {
+	    	inside_tag = false;
+	    }
+		if( ! (*next & 0x80) && is_latin1(*next) ) {
 			// Current segment contains more than just a symbol
 			// and it is not inside a tag, keep it.
-			if (cur_ptr > prev_ptr && !is_in_tag) {
-				ret.put( prev_ptr, cur_ptr);
-				prev_ptr = cur_ptr;
+			if (next > prev && !inside_tag) {
+				ret.put( prev, next);
+				prev = next;
+			} else {
+				prev = next + 1;
 			}
-			else
-				prev_ptr = cur_ptr + 1;
 		}
+		++next;
 	}
-
 	// If the current segment contains more than just a symbol
 	// and it is not inside a tag then keep it.
-	if (!is_in_tag)
-		ret.put(prev_ptr, cur_ptr);
+	if (!inside_tag )
+		ret.put(prev, next);
 	ret.flip();
 	return ret;
 }

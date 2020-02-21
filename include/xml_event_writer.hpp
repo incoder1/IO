@@ -40,13 +40,15 @@ public:
 	void add_chars(std::error_code& ec,const char* str) noexcept;
 	void add_coment(std::error_code& ec,const char* str) noexcept;
 private:
-	explicit event_writer(writer<char>&& to) noexcept;
+	explicit event_writer(writer<char>&& to, io::byte_buffer&& buff) noexcept;
 	void print(std::error_code& ec,const char* str, std::size_t len) noexcept;
 	void print(std::error_code& ec,const char* str) noexcept;
 	void print(std::error_code& ec,const const_string& str) noexcept;
 	void print(std::error_code& ec,const qname& name) noexcept;
+	void overflow(std::error_code& ec) noexcept;
 private:
 	writer<char> to_;
+	io::byte_buffer buff_;
 };
 
 } // namespace xml

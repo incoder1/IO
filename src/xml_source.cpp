@@ -18,7 +18,7 @@ namespace xml {
 
 
 const std::size_t source::READ_BUFF_INITIAL_SIZE = memory_traits::page_size(); // 4k in most cases
-const std::size_t source::READ_BUFF_MAXIMAL_SIZE = 0x1000000; // 16 m
+const std::size_t source::READ_BUFF_MAXIMAL_SIZE = source::READ_BUFF_INITIAL_SIZE * source::READ_BUFF_INITIAL_SIZE; // about 16 mb
 
 static constexpr unsigned int ASCII_CP_CODE = 20127;
 static constexpr unsigned int ISO_LATIN1_CP_CODE = 28591;

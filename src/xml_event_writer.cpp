@@ -18,7 +18,10 @@ s_event_writer event_writer::open(std::error_code& ec, const s_write_channel& to
 	dst.write(ec, tmp);
 	if(ec)
 		return s_event_writer();
-	event_writer *ret = new (std::nothrow) event_writer( std::move(dst) );
+	io::byte_buffer buff = io::byte_buffer::allocate(ec, io::memory_traits::page_size() );
+	if(ec)
+		return s_event_writer();
+	event_writer *ret = new (std::nothrow) event_writer( std::move(dst), std::move(buff) );
 	return nullptr != ret ? s_event_writer(ret) : s_event_writer();
 }
 
@@ -28,24 +31,38 @@ s_event_writer event_writer::open(std::error_code& ec,const s_write_channel& to,
 	return open(ec, to, io::xml::document_event(vstr, encoding.name(), standalone) );
 }
 
-event_writer::event_writer(writer<char>&& to) noexcept:
+event_writer::event_writer(writer<char>&& to, io::byte_buffer&& buff) noexcept:
 	object(),
-	to_( std::forward< writer<char> >(to) )
+	to_( std::forward< writer<char> >(to) ),
+	buff_( std::forward< io::byte_buffer >(buff) )
 {}
 
 event_writer::~event_writer() noexcept
-{}
+{
+	if( !buff_.empty() ) {
+		std::error_code ec;
+		overflow(ec);
+	}
+}
+
+void event_writer::overflow(std::error_code& ec) noexcept
+{
+	buff_.flip();
+	to_.write( ec, buff_.position().cdata(), buff_.size() );
+	buff_.clear();
+}
 
 void event_writer::print(std::error_code& ec,const char* str, std::size_t len) noexcept
 {
+	if(buff_.available() < len)
+		overflow(ec);
 	if(!ec)
-		to_.write( ec, str, len );
+		buff_.put(str, len);
 }
 
 void event_writer::print(std::error_code& ec,const char* str) noexcept
 {
-	if(!ec)
-		to_.write(ec, str);
+	print(ec, str, io_strlen(str) );
 }
 
 void event_writer::print(std::error_code& ec,const const_string& c) noexcept
