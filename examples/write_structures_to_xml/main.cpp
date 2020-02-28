@@ -67,7 +67,9 @@ int main()
  	io::xml::start_element_event sev( io::xml::qname("tst","test"), false );
  	sev.add_attribute( io::xml::attribute( io::xml::qname("xmlns","xsi"), "http://www.w3.org/2001/XMLSchema-instance") );
  	xew->add( ec, sev );
+ 	xew->add( ec,  io::xml::start_element_event( io::xml::qname("tst","cdata_chars"), false ) );
  	xew->add_cdata(ec, "<Test CDATA >");
+ 	xew->add( ec, io::xml::end_element_event(io::xml::qname("tst","cdata_chars") ) );
  	xew->add_chars(ec, "Test characters");
  	xew->add( ec, io::xml::end_element_event(io::xml::qname("tst","test")) );
 

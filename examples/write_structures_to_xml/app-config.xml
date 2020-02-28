@@ -1,1 +1,7 @@
-<?xml version="1.0" encoding="UTF-8" ?><!--Test event writer--><tst:test xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"><![CDATA[<Test CDATA >]]>Test characters</tst:test>
+<?xml version="1.0" encoding="UTF-8" ?>
+<!--Test event writer-->
+<tst:test xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+	<tst:cdata_chars>
+<![CDATA[<Test CDATA >]]>
+		</tst:cdata_chars>	Test characters
+	</tst:test>
