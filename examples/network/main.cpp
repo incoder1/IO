@@ -37,7 +37,7 @@ static void log(const uint8_t* data,const std::size_t bytes)
 
 static void log(const uint8_t* data,const std::size_t bytes)
 {
-	::write(stdout, data, bytes);
+	::fwrite(data, sizeof(uint8_t), bytes, stdout);
 }
 
 #endif // __IO_WINDOWS_BACKEND__

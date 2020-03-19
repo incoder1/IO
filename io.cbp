@@ -206,12 +206,12 @@
 					<Add option="-pedantic" />
 					<Add option="-std=c++11" />
 					<Add option="-pg" />
+					<Add option="-fPIC" />
+					<Add option="-Og" />
 					<Add option="-g" />
 					<Add option="-fexceptions" />
-					<Add option="-Og" />
-					<Add option="-fPIC" />
 					<Add option="`pkg-config --cflags gnutls`" />
-					<Add option="-DIO_TLS_PROVIDER_GNUTS" />
+					<Add option="-DIO_TLS_PROVIDER_GNUTLS" />
 					<Add directory="include" />
 					<Add directory="include/posix" />
 					<Add directory="include/net" />
@@ -388,11 +388,13 @@
 		<Unit filename="src/charsets.cpp" />
 		<Unit filename="src/conststring.cpp" />
 		<Unit filename="src/hashing.cpp" />
-		<Unit filename="src/local_cash.cpp" />
 		<Unit filename="src/memory_channel.cpp" />
 		<Unit filename="src/net/http_client.cpp" />
 		<Unit filename="src/net/uri.cpp" />
 		<Unit filename="src/posix/console.cpp">
+			<Option target="debug-unix-gcc-static-64bit" />
+		</Unit>
+		<Unit filename="src/posix/errorcheck.cpp">
 			<Option target="debug-unix-gcc-static-64bit" />
 		</Unit>
 		<Unit filename="src/posix/files.cpp">
@@ -421,9 +423,6 @@
 			<Option target="release-win-gcc-static-x64" />
 			<Option target="release-win-gcc-dll-x64" />
 			<Option target="debug-unix-gcc-static-64bit" />
-		</Unit>
-		<Unit filename="src/tls/nss_secure_channel.cpp">
-			<Option target="debug-win-gcc-static-x64-embedtls" />
 		</Unit>
 		<Unit filename="src/unicode_bom.cpp" />
 		<Unit filename="src/win/asynch_channel.cpp">

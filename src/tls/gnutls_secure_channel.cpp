@@ -78,7 +78,7 @@ session::~session() noexcept
 }
 
 int session::client_handshake(::gnutls_session_t const peer) noexcept
-{
+{d
 //	::gnutls_handshake_set_timeout(peer, GNUTLS_DEFAULT_HANDSHAKE_TIMEOUT);
 	int ret = GNUTLS_E_SUCCESS;
 	do {

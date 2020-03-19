@@ -18,7 +18,7 @@ namespace posix {
 //text_color
 
 #define DECLARE_COLOR( _C_NAME, __attr) \
-	static const uint8_t* (_C_NAME) = reinterpret_cast<const uint8_t*>( (__attr) )
+	static const uint8_t* _C_NAME = reinterpret_cast<const uint8_t*>( __attr )
 
 DECLARE_COLOR(NAVY_BLUE,"\033[22;34m");
 DECLARE_COLOR(NAVY_GREEN,"\033[22;32m");

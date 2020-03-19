@@ -4,7 +4,7 @@
 	<Project>
 		<Option title="collada" />
 		<Option compiler="gcc" />
-		<Option virtualFolders="src\;" />
+		<Option virtualFolders="src/;" />
 		<Build>
 			<Target title="debug-gcc-win64">
 				<Option platforms="Windows;" />
@@ -86,7 +86,9 @@
 				<Option use_console_runner="0" />
 				<Option parameters="models/RubiksCube/rubik_cube.dae" />
 				<Compiler>
-					<Add option="-flto" />
+					<Add option="-pg" />
+					<Add option="-Og" />
+					<Add option="-g" />
 					<Add option="-fopenmp" />
 					<Add option="-fno-rtti" />
 					<Add option="-D_WIN32_WINNT=0x0600" />
@@ -97,24 +99,12 @@
 					<Add directory="src" />
 				</Compiler>
 				<Linker>
-					<Add option="-O3" />
-					<Add option="-flto" />
-					<Add option="-s" />
-					<Add option="-fwhole-program" />
-					<Add option="-fdeclone-ctor-dtor" />
-					<Add option="-fdevirtualize-at-ltrans" />
-					<Add option="-Wl,-allow-multiple-definition" />
-					<Add option="-mtune=native" />
+					<Add option="-pg" />
+					<Add option="`pkg-config --libs libpng`" />
 					<Add option="-ffast-math" />
 					<Add option="-fopenmp" />
-					<Add library="glfw3.dll" />
-					<Add library="glew32" />
-					<Add library="opengl32" />
-					<Add library="ole32" />
-					<Add library="shlwapi" />
-					<Add library="windowscodecs" />
-					<Add library="Comdlg32" />
-					<Add directory="../../bin/release-win-gcc-dll-x64" />
+					<Add library="glfw" />
+					<Add directory="../../bin/debug-unix-gcc-x86_64" />
 				</Linker>
 			</Target>
 		</Build>

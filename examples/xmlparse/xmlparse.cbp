@@ -65,7 +65,7 @@
 				<Option object_output="obj/debug-unix-gcc-x64/" />
 				<Option type="1" />
 				<Option compiler="gcc" />
-				<Option parameters="../collada/models/RubiksCube/rubik_cube.dae" />
+				<Option parameters="test.xml" />
 				<Compiler>
 					<Add option="-Weffc++" />
 					<Add option="-pedantic" />
