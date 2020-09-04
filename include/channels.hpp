@@ -274,57 +274,38 @@ private:
 	s_random_access_channel ch_;
 };
 
-typedef std::function<void(std::error_code&,std::size_t,byte_buffer&&)> asynch_callback;
+// predefinition of io_context
+class io_context;
+DECLARE_IPTR(io_context);
+
+typedef std::function<void(std::error_code&,uint8_t*,std::size_t)> asynch_read_completition_routine;
+typedef std::function<void(std::error_code&,const uint8_t*,std::size_t)> asynch_write_completition_routine;
 
 class IO_PUBLIC_SYMBOL asynch_channel:public channel {
+	asynch_channel(const asynch_channel&) = delete;
+	asynch_channel& operator=(const asynch_channel&) = delete;
 protected:
-	asynch_channel() noexcept;
+	 asynch_channel(os_descriptor_t hnd, const asynch_read_completition_routine& rc, const asynch_write_completition_routine& wc) noexcept;
+	 void on_read_finished(std::error_code& ec,uint8_t* bytes,std::size_t read) const;
+	 void on_write_finished(std::error_code& ec, const uint8_t* last, std::size_t written) const;
+	 friend class io_context;
+private:
+	os_descriptor_t hnd_;
+	asynch_read_completition_routine read_callback_;
+	asynch_write_completition_routine write_callback_;
 public:
 	virtual ~asynch_channel() noexcept = 0;
+	/// Returns underlying operating system file handle or socket descriptor
+	os_descriptor_t handle() const noexcept {
+		return hnd_;
+	}
+	virtual void read(uint8_t* into, std::size_t limit, std::size_t start_from) const noexcept = 0;
+	virtual void write(const uint8_t* what, std::size_t bytes, std::size_t start_from) const noexcept = 0;
 	virtual bool cancel_pending() const noexcept = 0;
 	virtual bool cancel_all() const noexcept = 0;
 };
 
-class IO_PUBLIC_SYMBOL asynch_read_channel:public virtual asynch_channel {
-protected:
-	asynch_read_channel(const asynch_callback& routine) noexcept;
-	void on_read_finished(std::error_code& ec,std::size_t pos, byte_buffer&& buff) const;
-public:
-	virtual ~asynch_read_channel() noexcept = 0;
-	virtual void read(std::size_t bytes, std::size_t pos) const noexcept = 0;
-private:
-	asynch_callback callback_;
-};
-
-DECLARE_IPTR(asynch_read_channel);
-
-class IO_PUBLIC_SYMBOL asynch_write_channel:public virtual asynch_channel {
-protected:
-	asynch_write_channel(const asynch_callback& callback) noexcept;
-	void on_write_finished(std::error_code& ec,std::size_t pos, byte_buffer&& buff) const;
-public:
-	virtual ~asynch_write_channel() = 0;
-	virtual void write(byte_buffer&& buff, std::size_t pos) const noexcept = 0;
-private:
-	asynch_callback callback_;
-};
-
-DECLARE_IPTR(asynch_write_channel);
-
-class IO_PUBLIC_SYMBOL asynch_read_write_channel:public virtual asynch_channel,
-	public asynch_read_channel,
-	public asynch_write_channel {
-protected:
-	asynch_read_write_channel(const asynch_callback& rc, const asynch_callback& wc) noexcept;
-public:
-	virtual ~asynch_read_write_channel() noexcept = 0;
-	virtual void read(std::size_t bytes, std::size_t pos) const noexcept override = 0;
-	virtual void write(byte_buffer&& buff, std::size_t pos) const noexcept override = 0;
-	virtual bool cancel_pending() const noexcept override = 0;
-	virtual bool cancel_all() const noexcept override = 0;
-};
-
-DECLARE_IPTR(asynch_read_write_channel);
+DECLARE_IPTR(asynch_channel);
 
 /// Transmits a buffer data into a write channel
 /// function will re-attempt to write unless

@@ -61,7 +61,8 @@ int main()
 	io::console::reset_err_color( io::text_color::light_red);
 
 	std::error_code ec;
- 	io::xml::s_event_writer xew = io::xml::event_writer::open( ec, create_file_channel("app-config.xml") );
+	// create_file_channel("app-config.xml")
+ 	io::xml::s_event_writer xew = io::xml::event_writer::open( ec, io::console::out() );
 
  	xew->add_coment(ec, "Test event writer");
  	io::xml::start_element_event sev( io::xml::qname("tst","test"), false );

@@ -42,50 +42,25 @@ random_access_channel::~random_access_channel() noexcept
 {}
 
 // asynch_channel
-asynch_channel::asynch_channel() noexcept:
-	channel()
+asynch_channel::asynch_channel(os_descriptor_t hnd, const asynch_read_completition_routine& rc, const asynch_write_completition_routine& wc) noexcept:
+	channel(),
+	hnd_(hnd),
+	read_callback_(rc),
+	write_callback_(wc)
 {}
 
 asynch_channel::~asynch_channel() noexcept
 {}
 
-// asynch_read_channel
-asynch_read_channel::asynch_read_channel(const asynch_callback& cb) noexcept:
-	asynch_channel(),
-	callback_(cb)
-{}
-
-asynch_read_channel::~asynch_read_channel() noexcept
-{}
-
-void asynch_read_channel::on_read_finished(std::error_code& ec,std::size_t pos, byte_buffer&& buff) const
+void asynch_channel::on_read_finished(std::error_code& ec,uint8_t* bytes,std::size_t read) const
 {
-	callback_(ec, pos, std::forward<byte_buffer>(buff) );
+	read_callback_( ec, bytes, read );
 }
 
-// asynch_write_channel
-asynch_write_channel::asynch_write_channel(const asynch_callback& cb) noexcept:
-	asynch_channel(),
-	callback_(cb)
-{}
-
-asynch_write_channel::~asynch_write_channel() noexcept
-{}
-
-void asynch_write_channel::on_write_finished(std::error_code& ec,std::size_t pos, byte_buffer&& buff) const
+void asynch_channel::on_write_finished(std::error_code& ec, const uint8_t* last, std::size_t written) const
 {
-	callback_(ec, pos, std::forward<byte_buffer>(buff) );
+	write_callback_(ec, last, written);
 }
-
-// asynch_read_write_channel
-asynch_read_write_channel::asynch_read_write_channel(const asynch_callback& rc, const asynch_callback& wc) noexcept:
-	asynch_channel(),
-	asynch_read_channel(rc),
-	asynch_write_channel(wc)
-{}
-
-asynch_read_write_channel::~asynch_read_write_channel() noexcept
-{}
 
 // Free functions
 

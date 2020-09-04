@@ -35,14 +35,14 @@ public:
 	{
 		::pthread_spin_destroy(&sl_);
 	}
-	__forceinline void lock() noexcept
+	inline void lock() noexcept
 	{
 		::pthread_spin_lock(&sl_);
 	}
-	__forceinline bool try_lock() noexcept {
+	inline bool try_lock() noexcept {
 		return 0 == ::pthread_spin_trylock(&sl_);
 	}
-	__forceinline void unlock() noexcept {
+	inline void unlock() noexcept {
 		::pthread_spin_unlock(&sl_);
 	}
 private:

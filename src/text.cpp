@@ -48,8 +48,8 @@ conv_read_channel::conv_read_channel(const s_read_channel& src,s_code_cnvtr&& co
 std::size_t conv_read_channel::read(std::error_code& ec,uint8_t* const buff, std::size_t bytes) const noexcept
 {
 	assert( bytes < SIZE_MAX );
-	std::size_t length = bytes - (bytes % 2);
-	std::size_t rdbuflen = length >> 2;
+	const std::size_t length = bytes - (bytes % 2);
+	const std::size_t rdbuflen = length >> 2;
 	uint8_t* rdbuf;
 	if ( rdbuflen <= MAX_CONVB_STACK_SIZE) {
 		rdbuf = static_cast<uint8_t*>( io_alloca(rdbuflen) );
@@ -66,15 +66,14 @@ std::size_t conv_read_channel::read(std::error_code& ec,uint8_t* const buff, std
 	uint8_t* rb_it[1]  = { nullptr };
 	do {
 		read = src_->read(ec, rdbuf, rdbuflen);
-		if( 0 != read && !ec) {
-			rb_it[0] = rdbuf;
-			do {
-				conv_->convert(ec, rb_it, read, cvt_it, left);
-			} while(read > 0 && !ec);
-		} else
+		if( 0 == read || ec)
 			break;
+		rb_it[0] = rdbuf;
+		do {
+			conv_->convert(ec, rb_it, read, cvt_it, left);
+		} while(read > 0 && !ec);
 	} while(left > 0);
-	if( rdbuflen > MAX_CONVB_STACK_SIZE)
+	if(rdbuflen > MAX_CONVB_STACK_SIZE)
 		memory_traits::free_temporary( rdbuf );
 	return bytes - left;
 }
@@ -97,7 +96,7 @@ conv_write_channel::~conv_write_channel() noexcept
 
 std::size_t conv_write_channel::convert_some(std::error_code& ec, const uint8_t *src, std::size_t &size, uint8_t *dst) const
 {
-	std::size_t to_convert = (size << 2);
+	const std::size_t to_convert = (size << 2);
 	std::size_t left_after = to_convert;
 	uint8_t* uncv[1] = { const_cast<uint8_t*>(src) };
 	uint8_t* conv[1] = { dst };
@@ -108,7 +107,7 @@ std::size_t conv_write_channel::convert_some(std::error_code& ec, const uint8_t 
 std::size_t conv_write_channel::write(std::error_code& ec, const uint8_t* buff,std::size_t bytes) const noexcept
 {
 	// considering worst scenario with up bytes conversion, i.e. something like UTF-8 to UTF-32
-	std::size_t cnvbuflen = bytes << 2;
+	const std::size_t cnvbuflen = bytes << 2;
 	uint8_t* cnvbuff;
 	// don't touch heap, until not needed
 	if( cnvbuflen <= MAX_CONVB_STACK_SIZE ) {

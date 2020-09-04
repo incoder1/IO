@@ -31,6 +31,7 @@ static std::string get_process_start_dir() {
 }
 #endif // __IO_WINDOWS_BACKEND__
 
+
 io::file shader_file(const char* name) {
 	std::string full_name = get_process_start_dir();
 	full_name.push_back( io::file::separator() );

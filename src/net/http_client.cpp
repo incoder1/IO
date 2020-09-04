@@ -23,6 +23,16 @@ inline const uint8_t* str_bytes(const char* str) noexcept {
 	return reinterpret_cast<const uint8_t*>(str);
 }
 
+static const char* SEP = "\r\n";
+
+std::ostream& operator<<(std::ostream& to,const std::pair<const_string,const_string>& hdr) {
+	to << hdr.first;
+	to << ": ";
+	to << hdr.second;
+	to << SEP;
+	return to;
+}
+
 // request
 request::request(request_method method, const s_uri& uri) noexcept:
 	method_(method),
@@ -30,25 +40,28 @@ request::request(request_method method, const s_uri& uri) noexcept:
 	hdrs_()
 {}
 
-void request::send(std::error_code& ec, const s_write_channel& to) const
+void request::send(std::error_code& ec, writer& to) const noexcept
 {
+
 	std::stringstream buff;
 	switch(method_) {
 		case request_method::get:
-		default:
 			buff << "GET ";
+			break;
+		case request_method::post:
+			buff << "POST ";
+			break;
+		default:
 			break;
 	}
 	buff << uri_->path();
-	buff << " HTTP/1.1\r\n";
-	buff << "Host: " << uri_->host() << "\r\n";
+	buff << " HTTP/1.1" << SEP ;
+	buff << "Host: " << uri_->host() << SEP;
 	for(auto hdr: hdrs_) {
-		buff << hdr.name() << ": ";
-		buff << hdr.value() << "\r\n";
+		buff << hdr;
 	}
-	buff << "\r\n";
-	std::string tmp = buff.str();
-	to->write(ec, str_bytes( tmp.data() ), tmp.size() );
+	buff << SEP;
+	to.write( ec,  buff.str() );
 }
 
 // FIXME: refactor to factory

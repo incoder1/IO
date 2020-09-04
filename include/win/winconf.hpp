@@ -37,6 +37,12 @@
 #include <winsock2.h>
 #include <windows.h>
 
+typedef ::HANDLE os_descriptor_t;
+
+inline os_descriptor_t socket_id(::SOCKET socket) noexcept {
+	return reinterpret_cast<::HANDLE>(socket);
+}
+
 // shared library
 #if defined(IO_SHARED_LIB)
 #	if defined(IO_BUILD)

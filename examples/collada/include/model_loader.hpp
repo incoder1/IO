@@ -160,7 +160,7 @@ class model_loader
 			gl::s_texture,
 			io::const_string_hash,
 			std::equal_to<io::const_string>,
-			std::allocator< std::pair<io::const_string,gl::s_texture> >
+			std::allocator< std::pair<const io::const_string,gl::s_texture> >
 			> textures_;
 };
 

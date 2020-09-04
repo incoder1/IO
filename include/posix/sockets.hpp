@@ -23,8 +23,10 @@
 
 #include <atomic>
 #include <channels.hpp>
+#include <conststring.hpp>
+
 #include "criticalsection.hpp"
-#include "conststring.hpp"
+#include "asynch_channe.hpp"
 
 namespace io {
 

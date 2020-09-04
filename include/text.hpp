@@ -358,17 +358,19 @@ struct is_char_type : public __is_char_type_helper<typename std::remove_cv<_Tp>:
 {};
 
 template<typename C, class ___type_restriction = void>
-class reader;
+class basic_reader;
 
 template<typename C>
-class reader<C, typename std::enable_if< is_char_type< C >::value >::type >
+class basic_reader<C, typename std::enable_if< is_char_type< C >::value >::type >
 {
+private:
+	static constexpr std::size_t CSIZE = sizeof(C);
 public:
-	explicit reader(const s_read_channel& src) noexcept:
+	explicit basic_reader(const s_read_channel& src) noexcept:
 		src_( src )
 	{}
 	inline std::size_t read(std::error_code& ec, C* to, std::size_t chars) const noexcept {
-		return sizeof(C) * src_->read(ec, reinterpret_cast<uint8_t*>(to), (chars * sizeof(C) ) );
+		return CSIZE * src_->read(ec, reinterpret_cast<uint8_t*>(to), (chars * CSIZE ) );
 	}
 private:
 	s_read_channel src_;
@@ -380,13 +382,15 @@ class basic_writer;
 template<typename C>
 class basic_writer<C, typename std::enable_if< is_char_type< C >::value >::type >
 {
+private:
+	static constexpr std::size_t CSIZE = sizeof(C);
 public:
 	typedef std::char_traits<C> char_traits;
 	explicit basic_writer(const s_write_channel& dst) noexcept:
 		dst_( dst )
 	{}
 	inline std::size_t write(std::error_code& ec,const C* str, std::size_t len) const noexcept {
-		return dst_->write(ec,  detail::byte_cast(str), (len*sizeof(C)) ) / sizeof(C);
+		return dst_->write(ec,  detail::byte_cast(str), (len*CSIZE) ) / CSIZE;
 	}
 	inline std::size_t write(std::error_code& ec, const C* str) const noexcept {
 		return write(ec, str, char_traits::length(str) );
@@ -398,7 +402,18 @@ private:
 	s_write_channel dst_;
 };
 
+typedef basic_reader<char> reader;
+typedef basic_reader<wchar_t> wreader;
+typedef basic_reader<char16_t> u16_reader;
+typedef basic_reader<char32_t> u32_reader;
 typedef basic_writer<char> writer;
+typedef basic_writer<wchar_t> wwriter;
+typedef basic_writer<char16_t> u16_writer;
+typedef basic_writer<char32_t> u32_writer;
+#ifdef IO_HAS_CHAR8_T
+typedef basic_writer<char8_t> u8_writer;
+typedef basic_reader<char8_t> u8_reader;
+#endif // IO_HAS_CHAR8_T
 
 } // namespace io
 

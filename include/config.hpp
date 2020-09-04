@@ -28,18 +28,16 @@
 #include <memory>
 #include <system_error>
 
-#if ( defined(_WIN32) || defined(_WIN64) ) && !defined(__CYGWIN__)
-#define __IO_WINDOWS_BACKEND__
-#include "win/winconf.hpp"
-#endif // defined
-
-#if defined(unix) \
+#if ( defined(_WIN32) || defined(_WIN64) ) && ! ( defined(__CYGWIN__) || defined(MSYS2) )
+#    define __IO_WINDOWS_BACKEND__
+#    include "win/winconf.hpp"
+#elif defined(unix) \
       || defined(__unix) \
       || defined(_XOPEN_SOURCE) \
       || defined(_POSIX_SOURCE) \
       || defined(__CYGWIN__)
-#define __IO_POSIX_BACKEND__
-#include "posix/posixconf.hpp"
+#    define __IO_POSIX_BACKEND__
+#    include "posix/posixconf.hpp"
 #endif // defined
 
 #ifndef IO_HAS_BOOST

@@ -102,14 +102,13 @@ class session final:public object {
 
 public:
 
-    static s_session client_session(std::error_code &ec, ::gnutls_certificate_credentials_t crd, net::s_socket&& socket) noexcept;
+    static s_session client_session(std::error_code &ec, ::gnutls_certificate_credentials_t crd, net::socket&& socket) noexcept;
 
     ~session() noexcept;
 
     inline void swap(session& other) noexcept
     {
         std::swap(peer_, other.peer_);
-        socket_.swap( other.socket_ );
     }
 
     std::size_t read(std::error_code& ec, uint8_t * const data, std::size_t max_size) const noexcept;
@@ -118,7 +117,7 @@ public:
 
 private:
 
-	session(gnutls_session_t peer, s_socket&& socket, s_read_write_channel&& connection) noexcept;
+	session(gnutls_session_t peer, s_read_write_channel&& connection) noexcept;
 
 	ssize_t raw_read(uint8_t* dst,std::size_t len) noexcept;
 
@@ -136,7 +135,6 @@ private:
 
 private:
     ::gnutls_session_t peer_;
-    net::s_socket socket_;
     s_read_write_channel connection_;
     std::error_code ec_;
 };

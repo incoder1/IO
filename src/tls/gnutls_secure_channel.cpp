@@ -64,9 +64,8 @@ ssize_t session_pull(::gnutls_transport_ptr_t tr, void * data, std::size_t max_s
 	return s->raw_read(static_cast<uint8_t*>(data), max_size);
 }
 
-session::session(gnutls_session_t peer,s_socket&& socket, s_read_write_channel&& connection) noexcept:
+session::session(gnutls_session_t peer, s_read_write_channel&& connection) noexcept:
 	peer_( peer ),
-	socket_( std::forward<s_socket>(socket) ),
 	connection_( std::forward<s_read_write_channel>(connection) ),
 	ec_()
 {}
@@ -87,7 +86,7 @@ int session::client_handshake(::gnutls_session_t const peer) noexcept
 	return ret;
 }
 
-s_session session::client_session(std::error_code &ec, ::gnutls_certificate_credentials_t crd,s_socket&& socket) noexcept
+s_session session::client_session(std::error_code &ec, ::gnutls_certificate_credentials_t crd,net::socket&& socket) noexcept
 {
 	::gnutls_session_t peer = nullptr;
 	int err = ::gnutls_init(&peer, GNUTLS_CLIENT);
@@ -107,10 +106,13 @@ s_session session::client_session(std::error_code &ec, ::gnutls_certificate_cred
 		ec = std::make_error_code( std::errc::connection_refused );
 		return s_session();
 	}
-	s_read_write_channel connection = socket->connect(ec);
+	s_io_context ioc = io_context::create(ec);
 	if(ec)
 		return s_session();
-	session *ret = new (std::nothrow) session(peer, std::move(socket), std::move(connection) );
+	s_read_write_channel connection = ioc->connect(ec, std::forward<net::socket>(socket) );
+	if(ec)
+		return s_session();
+	session *ret = new (std::nothrow) session(peer, std::move(connection) );
 	if( nullptr == ret ) {
 		ec = std::make_error_code(std::errc::not_enough_memory);
 		return s_session();
@@ -241,11 +243,10 @@ s_read_write_channel service::new_client_blocking_connection(std::error_code& ec
 	const socket_factory* sf = socket_factory::instance(ec);
 	if(ec)
 		return s_read_write_channel();
-	s_socket socket = sf->client_tcp_socket(ec, host, port);
+	socket socket = sf->client_tcp_socket(ec, host, port);
 	if(ec)
 		return s_read_write_channel();
-
-	s_session s = session::client_session(ec, creds_.get(),  std::forward<s_socket>(socket) );
+	s_session s = session::client_session(ec, creds_.get(),  std::move(socket) );
 	if( ec )
 		return s_read_write_channel();
 	tls_channel* ch = nobadalloc< tls_channel >::construct(ec, std::move(s) );

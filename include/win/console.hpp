@@ -162,7 +162,7 @@ public:
 		return s_write_channel( get()->cerr_, true );
 	}
 
-	/// Returns std::basic_stream<char> with ato-reconverting
+	/// Returns std::basic_stream<char> with auto-reconverting
 	/// UTF-8 multibyte characters into console default UTF-16LE
 	static std::ostream& out_stream();
 

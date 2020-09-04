@@ -48,7 +48,7 @@ int main()
 
 	using namespace io::net;
 	std::error_code ec;
-	s_uri url = uri::parse(ec, "https://www.springframework.org/schema/beans/spring-beans.xsd");
+	s_uri url = uri::parse(ec, "https://www.google.com/");
 	io::check_error_code(ec);
 
 	std::printf("Connecting to: %s \n", url->host().data() );
@@ -59,9 +59,11 @@ int main()
     io::s_read_write_channel sch = cfactory->new_client_blocking_connection(ec, url);
     io::check_error_code(ec);
 
+    io::writer httpw(sch);
+
 	http::s_request rq = http::new_get_request( ec, url );
 	io::check_error_code( ec );
-	rq->send( ec, sch );
+	rq->send( ec, httpw );
 	io::check_error_code( ec );
 
 	// 2k

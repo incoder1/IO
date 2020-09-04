@@ -83,7 +83,6 @@
 					<Add option="-Wnon-virtual-dtor" />
 					<Add option="-Winline" />
 					<Add option="-pedantic" />
-					<Add option="-std=c++11" />
 					<Add option="-Og" />
 					<Add option="-g" />
 					<Add option="-fexceptions" />
@@ -159,7 +158,7 @@
 					<Add option="-Weffc++" />
 					<Add option="-pedantic" />
 					<Add option="-Wall" />
-					<Add option="-std=gnu++17" />
+					<Add option="-std=c++20" />
 					<Add option="-fchar8_t" />
 					<Add option="-fno-exceptions" />
 					<Add option="-fno-rtti" />
@@ -289,12 +288,12 @@
 		</Unit>
 		<Unit filename="include/tuple_meta_reflect.hpp" />
 		<Unit filename="include/unicode_bom.hpp" />
-		<Unit filename="include/win/asynch_channel.hpp">
+		<Unit filename="include/win/asynch_socket_channel.hpp">
+			<Option target="debug-win-gcc-static-x64" />
+			<Option target="debug-win-gcc-static-x64-embedtls" />
 			<Option target="debug-win-gcc-dll-x64" />
 			<Option target="release-win-gcc-static-x64" />
-			<Option target="debug-win-gcc-static-x64" />
 			<Option target="release-win-gcc-dll-x64" />
-			<Option target="debug-win-gcc-static-x64-embedtls" />
 		</Unit>
 		<Unit filename="include/win/console.hpp">
 			<Option target="debug-win-gcc-static-x64" />
@@ -330,6 +329,13 @@
 			<Option target="debug-win-gcc-dll-x64" />
 			<Option target="release-win-gcc-dll-x64" />
 			<Option target="debug-win-gcc-static-x64-embedtls" />
+		</Unit>
+		<Unit filename="include/win/io_context.hpp">
+			<Option target="debug-win-gcc-static-x64" />
+			<Option target="debug-win-gcc-static-x64-embedtls" />
+			<Option target="debug-win-gcc-dll-x64" />
+			<Option target="release-win-gcc-static-x64" />
+			<Option target="release-win-gcc-dll-x64" />
 		</Unit>
 		<Unit filename="include/win/memory_traits.hpp">
 			<Option target="debug-win-gcc-static-x64" />
@@ -426,12 +432,12 @@
 			<Option target="debug-unix-gcc-static-64bit" />
 		</Unit>
 		<Unit filename="src/unicode_bom.cpp" />
-		<Unit filename="src/win/asynch_channel.cpp">
+		<Unit filename="src/win/asynch_socket_channel.cpp">
+			<Option target="debug-win-gcc-static-x64" />
+			<Option target="debug-win-gcc-static-x64-embedtls" />
 			<Option target="debug-win-gcc-dll-x64" />
 			<Option target="release-win-gcc-static-x64" />
-			<Option target="debug-win-gcc-static-x64" />
 			<Option target="release-win-gcc-dll-x64" />
-			<Option target="debug-win-gcc-static-x64-embedtls" />
 		</Unit>
 		<Unit filename="src/win/console.cpp">
 			<Option target="debug-win-gcc-static-x64" />
@@ -453,6 +459,13 @@
 			<Option target="debug-win-gcc-dll-x64" />
 			<Option target="release-win-gcc-dll-x64" />
 			<Option target="debug-win-gcc-static-x64-embedtls" />
+		</Unit>
+		<Unit filename="src/win/io_context.cpp">
+			<Option target="debug-win-gcc-static-x64" />
+			<Option target="debug-win-gcc-static-x64-embedtls" />
+			<Option target="debug-win-gcc-dll-x64" />
+			<Option target="release-win-gcc-static-x64" />
+			<Option target="release-win-gcc-dll-x64" />
 		</Unit>
 		<Unit filename="src/win/memory_traits.cpp">
 			<Option target="debug-win-gcc-dll-x64" />
@@ -489,11 +502,7 @@
 		<Unit filename="src/xml_reader.cpp" />
 		<Unit filename="src/xml_source.cpp" />
 		<Extensions>
-			<code_completion />
-			<envvars />
-			<debugger />
 			<lib_finder disable_auto="1" />
-			<fortran_project />
 		</Extensions>
 	</Project>
 </CodeBlocks_project_file>

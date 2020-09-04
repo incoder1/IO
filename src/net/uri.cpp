@@ -38,22 +38,22 @@ static inline bool is_one_of(char c, const char* span) noexcept
 	return nullptr != io_strchr(span, c);
 }
 
-static constexpr bool is_gen_delim(char c)
+static inline bool is_gen_delim(char c)
 {
 	return is_one_of(c,":/?#[]@");
 }
 
-static constexpr bool is_sub_delim(char c)
+static inline bool is_sub_delim(char c)
 {
 	return  is_one_of(c, "!$&\'()*+,;=" );
 }
 
-static constexpr bool is_reserved(char c)
+static inline bool is_reserved(char c)
 {
 	return is_one_of(c,":/?#[]@;!$&\'()*+,;=");
 }
 
-static constexpr bool is_user_info_character(char c)
+static inline bool is_user_info_character(char c)
 {
 	return is_unreserved(c) || io::is_one_of(c,'%',':') || is_sub_delim(c);
 }
