@@ -1,6 +1,6 @@
 /*
  *
- * Copyright (c) 2016
+ * Copyright (c) 2016-2020
  * Viktor Gubin
  *
  * Use, modification and distribution are subject to the
@@ -22,7 +22,6 @@
 #ifdef HAS_PRAGMA_ONCE
 #pragma once
 #endif // HAS_PRAGMA_ONCE
-
 
 namespace io {
 

@@ -18,6 +18,8 @@
 					<Add option="-pedantic" />
 					<Add option="-std=c++11" />
 					<Add option="-std=c11" />
+					<Add option="-pg" />
+					<Add option="-Og" />
 					<Add option="-g" />
 					<Add option="-fexceptions" />
 					<Add option="-minline-stringops-dynamically" />
@@ -33,6 +35,7 @@
 					<Add directory="include/tls" />
 				</Compiler>
 				<Linker>
+					<Add option="-pg -lgmon" />
 					<Add library="iconv.dll" />
 					<Add library="Ws2_32" />
 					<Add library="gnutls.dll" />
@@ -365,6 +368,13 @@
 			<Option target="release-win-gcc-dll-x64" />
 			<Option target="debug-win-gcc-static-x64-embedtls" />
 		</Unit>
+		<Unit filename="include/win/thread_pool.hpp">
+			<Option target="debug-win-gcc-static-x64" />
+			<Option target="debug-win-gcc-static-x64-embedtls" />
+			<Option target="debug-win-gcc-dll-x64" />
+			<Option target="release-win-gcc-static-x64" />
+			<Option target="release-win-gcc-dll-x64" />
+		</Unit>
 		<Unit filename="include/win/winconf.hpp">
 			<Option target="debug-win-gcc-static-x64" />
 			<Option target="release-win-gcc-static-x64" />
@@ -488,6 +498,13 @@
 			<Option target="release-win-gcc-dll-x64" />
 			<Option target="debug-win-gcc-static-x64-embedtls" />
 		</Unit>
+		<Unit filename="src/win/thread_pool.cpp">
+			<Option target="debug-win-gcc-static-x64" />
+			<Option target="debug-win-gcc-static-x64-embedtls" />
+			<Option target="debug-win-gcc-dll-x64" />
+			<Option target="release-win-gcc-static-x64" />
+			<Option target="release-win-gcc-dll-x64" />
+		</Unit>
 		<Unit filename="src/win/wsaerror.cpp">
 			<Option target="debug-win-gcc-static-x64" />
 			<Option target="debug-win-gcc-static-x64-embedtls" />
@@ -502,6 +519,15 @@
 		<Unit filename="src/xml_reader.cpp" />
 		<Unit filename="src/xml_source.cpp" />
 		<Extensions>
+			<DoxyBlocks>
+				<comment_style block="1" line="0" />
+				<doxyfile_project />
+				<doxyfile_build />
+				<doxyfile_warnings />
+				<doxyfile_output />
+				<doxyfile_dot />
+				<general />
+			</DoxyBlocks>
 			<lib_finder disable_auto="1" />
 		</Extensions>
 	</Project>

@@ -1,6 +1,6 @@
 /*
  *
- * Copyright (c) 2017
+ * Copyright (c) 2016-2020
  * Viktor Gubin
  *
  * Use, modification and distribution are subject to the
@@ -109,7 +109,7 @@ s_session session::client_session(std::error_code &ec, ::gnutls_certificate_cred
 	s_io_context ioc = io_context::create(ec);
 	if(ec)
 		return s_session();
-	s_read_write_channel connection = ioc->connect(ec, std::forward<net::socket>(socket) );
+	s_read_write_channel connection = ioc->client_blocking_connect(ec, std::forward<net::socket>(socket) );
 	if(ec)
 		return s_session();
 	session *ret = new (std::nothrow) session(peer, std::move(connection) );
@@ -214,10 +214,12 @@ const service* service::instance(std::error_code& ec) noexcept
 		if(nullptr == ret) {
 			if( GNUTLS_E_SUCCESS == ::gnutls_global_init() ) {
 
-//				gnutls_global_set_log_level(2);
+//#ifndef NO_DEBUG
+//			gnutls_global_set_log_level(2);
 //				::gnutls_global_set_log_function([] (int e, const char *msg) {
 //					std::fprintf(stderr, "%i %s", e, msg);
 //				});
+//#endif // NO_DEBUG
 
 				credentials xcred = credentials::system_trust_creds(ec);
 				if(!ec) {

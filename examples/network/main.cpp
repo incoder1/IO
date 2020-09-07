@@ -1,19 +1,7 @@
-// Network support is not yet complete
-// Able to took an XSD using  https TLS 1.2
-
-#if defined(_WIN32) || defined(_WIN64)
-
-#if _WIN32_WINNT < _WIN32_WINNT_VISTA
-#	undef _WIN32_WINNT
-#	define _WIN32_WINNT _WIN32_WINNT_VISTA
-#else
-#	define _WIN32_WINNT _WIN32_WINNT_VISTA
-#endif // _WIN32_WINNT
-
-#endif // _WIN32
-
-//#define IO_TLS_PROVIDER_GNUTSL
-
+/**
+* Example demonstrate IO network feature, like secured TLS connection, URL and TCP/IP blocking connection
+* for non blocking connection see async_network_client
+*/
 #include <errorcheck.hpp>
 #include <network.hpp>
 
@@ -48,7 +36,7 @@ int main()
 
 	using namespace io::net;
 	std::error_code ec;
-	s_uri url = uri::parse(ec, "https://www.google.com/");
+	s_uri url = uri::parse(ec, "https://tools.ietf.org/html/rfc2616");
 	io::check_error_code(ec);
 
 	std::printf("Connecting to: %s \n", url->host().data() );
@@ -75,7 +63,7 @@ int main()
 		read = sch->read(ec, buff.get(), page_size - 2 );
 		if(read == 0)
 			break;
-		log( buff.get() , read);
+		//log( buff.get() , read);
 	} while(!ec);
 	int ret = 0;
 	if(ec) {

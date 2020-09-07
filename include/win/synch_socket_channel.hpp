@@ -1,6 +1,6 @@
 /*
  *
- * Copyright (c) 2017
+ * Copyright (c) 2016-2020
  * Viktor Gubin
  *
  * Use, modification and distribution are subject to the
@@ -20,10 +20,6 @@
 #ifndef SECURITY_WIN32
 #	define SECURITY_WIN32
 #endif // SECURITY_WIN32
-
-#include <winsock2.h>
-#include <windows.h>
-#include <ws2tcpip.h>
 
 #include "channels.hpp"
 #include "wsaerror.hpp"

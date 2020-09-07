@@ -1,6 +1,6 @@
 /*
  *
- * Copyright (c) 2016-2019
+ * Copyright (c) 2016-2020
  * Viktor Gubin
  *
  * Use, modification and distribution are subject to the
@@ -41,26 +41,24 @@ random_access_channel::random_access_channel() noexcept:
 random_access_channel::~random_access_channel() noexcept
 {}
 
+// asynch_completion_routine
+
+void asynch_completion_routine::recaived(std::error_code& ec, const s_asynch_channel& source, const uint8_t* data, std::size_t transferred) noexcept
+{}
+
+void asynch_completion_routine::sent(std::error_code& ec, const s_asynch_channel& source, const uint8_t* data, std::size_t transfered) noexcept
+{}
+
 // asynch_channel
-asynch_channel::asynch_channel(os_descriptor_t hnd, const asynch_read_completition_routine& rc, const asynch_write_completition_routine& wc) noexcept:
+asynch_channel::asynch_channel(os_descriptor_t hnd, const s_asynch_completion_routine& routine, const io_context* context) noexcept:
 	channel(),
 	hnd_(hnd),
-	read_callback_(rc),
-	write_callback_(wc)
+	routine_( routine ),
+	context_(context)
 {}
 
 asynch_channel::~asynch_channel() noexcept
 {}
-
-void asynch_channel::on_read_finished(std::error_code& ec,uint8_t* bytes,std::size_t read) const
-{
-	read_callback_( ec, bytes, read );
-}
-
-void asynch_channel::on_write_finished(std::error_code& ec, const uint8_t* last, std::size_t written) const
-{
-	write_callback_(ec, last, written);
-}
 
 // Free functions
 

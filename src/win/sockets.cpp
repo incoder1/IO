@@ -1,6 +1,6 @@
 /*
  *
- * Copyright (c) 2017
+ * Copyright (c) 2017-2020
  * Viktor Gubin
  *
  * Use, modification and distribution are subject to the
@@ -126,7 +126,7 @@ static void initialize_winsocks2(std::error_code& ec) noexcept
     ::WSADATA wsadata;
     ::DWORD err = ::WSAStartup( MAKEWORD(2,2), &wsadata );
     if (ERROR_SUCCESS != err) {
-        ec = make_wsa_last_error_code();
+        ec = net::make_wsa_last_error_code();
         ::WSACleanup();
     }
 }

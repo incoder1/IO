@@ -1,6 +1,6 @@
 /*
  *
- * Copyright (c) 2017
+ * Copyright (c) 2016-2020
  * Viktor Gubin
  *
  * Use, modification and distribution are subject to the
@@ -85,30 +85,12 @@ static s_uri return_error(std::error_code& ec, std::errc code)
 	return s_uri();
 }
 
-static __forceinline bool is_uppercase_a(const char ch) noexcept
-{
-#ifdef io_isupper
-	return io_isupper(ch);
-#else
-	return ( ch <= 'Z'  ) && ( ch >= 'A' );
-#endif
-}
-
-static __forceinline char to_lower_a(const char ch) noexcept
-{
-#ifdef io_tolower
-	return io_tolower(ch);
-#else
-	return is_uppercase_a(ch) ? 'z' - ('Z' - ch) : ch;
-#endif // io_tolower
-}
-
 static const char* str_to_lower_a(char* const dst, const char* src) noexcept
 {
 	const char *c = src;
 	char *d = dst;
 	while( '\0' != *c) {
-		*d = to_lower_a( *c );
+		*d = io_tolower( *c );
 		++c;
 		++d;
 	}
@@ -116,7 +98,7 @@ static const char* str_to_lower_a(char* const dst, const char* src) noexcept
 	return dst;
 }
 
-static __forceinline  bool strneq(const char* lsh, const char* rhs, std::size_t l) noexcept
+static bool strneq(const char* lsh, const char* rhs, std::size_t l) noexcept
 {
 	return 0 == io_memcmp(lsh, rhs, l);
 }

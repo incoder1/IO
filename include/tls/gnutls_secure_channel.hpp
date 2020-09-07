@@ -1,6 +1,6 @@
 /*
  *
- * Copyright (c) 2017
+ * Copyright (c) 2016-2020
  * Viktor Gubin
  *
  * Use, modification and distribution are subject to the
@@ -8,7 +8,6 @@
  * LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
  *
  */
-
 /**
     Transport Layer Security channels implementations on top of GNU TLS library http://www.gnutls.org/
 

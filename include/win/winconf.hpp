@@ -1,27 +1,37 @@
+/*
+ *
+ * Copyright (c) 2016-2020
+ * Viktor Gubin
+ *
+ * Use, modification and distribution are subject to the
+ * Boost Software License, Version 1.0. (See accompanying file
+ * LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
+ *
+ */
 #ifndef __IO_WINCONG_HPP_INCLUDED__
 #define __IO_WINCONG_HPP_INCLUDED__
 
-#ifndef _WIN32_WINNT_VISTA
-#	define _WIN32_WINNT_VISTA                  0x0600 // Windows Vista
+#ifndef _WIN32_WINNT_WIN7
+#	define _WIN32_WINNT_WIN7                 0x0601 // Windows 7
 #endif // _WIN32_WINNT_VISTA
 
 // Check for the default value, for MinGW is Windows XP
 #if defined(_WIN32_WINNT) && defined(IO_BUILD)
 
-#	if _WIN32_WINNT < _WIN32_WINNT_VISTA
+#	if _WIN32_WINNT < _WIN32_WINNT_WIN7
 #		undef  _WIN32_WINNT
-#		define WINVER _WIN32_WINNT_VISTA
-#		define _WIN32_WINNT _WIN32_WINNT_VISTA
+#		define WINVER _WIN32_WINNT_WIN7
+#		define _WIN32_WINNT _WIN32_WINNT_WIN7
 #	endif // _WIN32_WINNT
 
 #	define WIN32_LEAN_AND_MEAN
 
 #elif !defined(_WIN32_WINNT)
 
-#	define WINVER _WIN32_WINNT_VISTA
-#	define _WIN32_WINNT _WIN32_WINNT_VISTA
+#	define WINVER _WIN32_WINNT_WIN7
+#	define _WIN32_WINNT _WIN32_WINNT_WIN7
 
-#elif ( _WIN32_WINNT < _WIN32_WINNT_VISTA )
+#elif ( _WIN32_WINNT < _WIN32_WINNT_WIN7 )
 
 #	error "Windows Vista is minimal supported Windows version, \
 			you mind fogot to define _WIN32_WINNT when on MinGW  \
@@ -36,6 +46,7 @@
 
 #include <winsock2.h>
 #include <windows.h>
+#include <ws2tcpip.h>
 
 typedef ::HANDLE os_descriptor_t;
 
