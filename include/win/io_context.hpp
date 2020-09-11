@@ -21,10 +21,7 @@
 #include <channels.hpp>
 #include <buffer.hpp>
 
-#include <net/secure_channel.hpp>
-
 #include "asynch_socket_channel.hpp"
-#include "criticalsection.hpp"
 #include "sockets.hpp"
 #include "synch_socket_channel.hpp"
 #include "thread_pool.hpp"

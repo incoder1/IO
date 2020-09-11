@@ -3,10 +3,10 @@
 * for non blocking connection see async_network_client
 */
 #include <errorcheck.hpp>
-#include <network.hpp>
 
 #include <net/uri.hpp>
 #include <net/http_client.hpp>
+#include <net/security.hpp>
 
 #include <console.hpp>
 
@@ -24,18 +24,15 @@ int main()
 
 	cout << "Connecting to: " <<  url->host().data() << std::endl;
 
-	// TLS service for HTTPS
-	const io::net::secure::service *cfactory = io::net::secure::service::instance(ec);
-
 	// IO context, entry point to network and asynchronous input oputput
 	io::s_io_context ioc = io::io_context::create(ec);
 	io::check_error_code(ec);
-	// Raw connect to the URL's
-	io::s_read_write_channel socket_chnl = ioc->client_blocking_connect(ec, url->host().data(), url->port());
-	io::check_error_code(ec);
 
-	// Construct TLS wrapper channel on top of raw socket channel
-    io::s_read_write_channel sch = cfactory->new_client_blocking_connection(ec, std::move(socket_chnl) );
+	// TLS service for HTTPS
+	io::net::s_security_context secure_ctx = io::net::security_context::create(ec, ioc);
+
+	// Construct TLS security channe;
+    io::s_read_write_channel sch = secure_ctx->client_blocking_connect(ec, url->host().data(), url->port());
     io::check_error_code(ec);
 
     // Construct writer to communicate with service true HTTP 1.1
