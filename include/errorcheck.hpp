@@ -26,6 +26,8 @@
 #   include "posix/errorcheck.hpp"
 #endif // __IO_POSIX_BACKEND__
 
+#include <functional>
+
 #ifdef IO_HAS_BOOST
 
 #ifdef IO_NO_EXCEPTIONS
@@ -33,12 +35,11 @@
 #include <exception>
 
 // to be used when we have boost toolchain
-namespace boost
+namespace boost {
+inline void throw_exception( std::system_error const & e )
 {
-	inline void throw_exception( std::system_error const & e )
-	{
-		io::detail::panic(  e.code().value() , e.what() );
-	}
+    io::detail::panic(  e.code().value(), e.what() );
+}
 }
 #endif // IO_NO_EXCEPTIONS
 
@@ -46,19 +47,38 @@ namespace boost
 
 namespace io {
 
+/// Checks error code variable, if there is an error calls a fall back
+/// \param fallback a fail back to be called in case of error
+/// \param ec reference to error code variable
+inline void check_error_code(const std::error_code& ec,const std::function<void(const std::error_code&)> &fallback) noexcept
+{
+    if( ec )
+        fallback( ec );
+}
+
 /// Checks error code variable, if there is an error
 /// prints error message into standard error stream
 /// and do abnormal flow termination by
 ///     calling std::exit when exceptions off
 /// 	throws std::system_error when exceptions is on
 /// \param ec reference to error code variable
-inline void check_error_code(std::error_code const  &ec)
+inline void check_error_code(const std::error_code &ec)
 {
-	if(ec)
+    if(ec)
 #ifdef IO_NO_EXCEPTIONS
-        detail::panic(ec.value(), ec.message().c_str() );
+        check_error_code(
+			ec,
+			[] (const std::error_code& ec) {
+				detail::panic(ec.value(), ec.message().data() );
+			}
+		);
 #else
-		throw std::system_error( ec, ec.message().c_str() );
+        check_error_code(
+			ec,
+			[] (const std::error_code& ec) {
+				throw std::system_error( ec, ec.message().data() );
+			}
+		);
 #endif // IO_NO_EXCEPTIONS
 }
 

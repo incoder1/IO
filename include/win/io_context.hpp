@@ -21,6 +21,8 @@
 #include <channels.hpp>
 #include <buffer.hpp>
 
+#include <net/secure_channel.hpp>
+
 #include "asynch_socket_channel.hpp"
 #include "criticalsection.hpp"
 #include "sockets.hpp"
@@ -29,35 +31,17 @@
 
 namespace io {
 
-namespace detail {
-
-class asynch_io_context final {
-    asynch_io_context(const asynch_io_context&) = delete;
-    asynch_io_context& operator=(const asynch_io_context&) = delete;
-public:
-    ~asynch_io_context() noexcept;
-    // start a
-    bool bind_to_port(std::error_code& ec,const asynch_channel* src) const noexcept;
-    void await() const noexcept;
- 	// Notify all workers they should stop waiting for new complation events
-	void shutdown(std::error_code& ec) const noexcept;
-    static asynch_io_context* create(std::error_code& ec) noexcept;
-    explicit asynch_io_context(::HANDLE ioc_port, io::s_thread_pool&& thread_poll) noexcept;
-private:
-    static void completion_loop_routine(::HANDLE ioc_port) noexcept;
-private:
-    ::HANDLE ioc_port_;
-    io::s_thread_pool workers_;
-};
-
-} // namespace detail
 
 /// !brief Asynchronous input/output context
 class IO_PUBLIC_SYMBOL io_context final:public io::object {
     io_context(const io_context&) = delete;
     io_context& operator=(const io_context&) = delete;
 public:
+	/**
+	 * Creates new io
+	 */
     static s_io_context create(std::error_code& ec) noexcept;
+
     virtual ~io_context() noexcept override;
 
     /// Opens blocking client connection to network socket
@@ -66,28 +50,65 @@ public:
     /// \return new read/write channel object smart pointer which can be used to communicate over the network, or empty smart pointer in case of error
     s_read_write_channel client_blocking_connect(std::error_code& ec, net::socket&& socket) const noexcept;
 
-    /// Opens non blocking client asynchronous connection to network socket
+	/// Opens blocking client connection to network address
+    /// \param ec operation error code, contains error in case of a network issue or attempt to connect more then once
+	/// \param host host name text representation, i.e. DNS name or IP address (V4 or V6)
+	/// \param port network port
+    /// \return new read/write channel object smart pointer which can be used to communicate over the network, or empty smart pointer in case of error
+    s_read_write_channel client_blocking_connect(std::error_code& ec, const char* host, uint16_t port) const noexcept;
+
+
+private:
+    io_context() noexcept;
+    friend class nobadalloc<io_context>;
+};
+
+class asynch_io_context final:public io::object {
+    asynch_io_context(const asynch_io_context&) = delete;
+    asynch_io_context& operator=(const asynch_io_context&) = delete;
+public:
+    static s_asynch_io_context create(std::error_code& ec, const s_io_context& owner) noexcept;
+
+    ~asynch_io_context() noexcept;
+
+	/// Opens blocking client connection to network socket
+    /// \param ec operation error code, contains error in case of a network issue or attempt to connect more then once
+    /// \param socket a socket object to connect
+    /// \return new read/write channel object smart pointer which can be used to communicate over the network, or empty smart pointer in case of error
+    s_read_write_channel client_blocking_connect(std::error_code& ec, net::socket&& socket) const noexcept;
+	/// Opens blocking client connection to network address
+    /// \param ec operation error code, contains error in case of a network issue or attempt to connect more then once
+	/// \param host host name text representation, i.e. DNS name or IP address (V4 or V6)
+	/// \param port network port
+    /// \return new read/write channel object smart pointer which can be used to communicate over the network, or empty smart pointer in case of error
+    s_read_write_channel client_blocking_connect(std::error_code& ec, const char* host, uint16_t port) const noexcept;
+
+	/// Opens non blocking client asynchronous connection to network socket
     /// \param ec operation error code, contains error in case of a network issue or attempt to connect more then once
     /// \param socket a socket object to connect
     /// \param routine asynchronous IO operations completion routine
     /// \return new read/write channel object smart pointer which can be used to communicate over the network, or empty smart pointer in case of error
     s_asynch_channel client_asynch_connect(std::error_code& ec, net::socket&& socket,const s_asynch_completion_routine& routine) const noexcept;
 
-	/// Notify asynchronous completion workers, that no longer asynchronous io expected
-	/// \param ec operation error code
-    void shutdown_asynchronous(std::error_code& ec) const;
+    /// Waits until all asynchronous operations done, including shutdown signal
+    void await() const noexcept;
 
-    /// Await all asynchronous operations to finish
-    void await_asynchronous(std::error_code& ec);
+ 	/// Notify all workers they should stop waiting for new comletion events, and release waiting threads
+	void shutdown() const noexcept;
+
 
 private:
-    io_context() noexcept;
-    ::SOCKET new_scoket(std::error_code& ec, net::ip_family af, net::transport prot, bool asynch) const noexcept;
-    detail::asynch_io_context* asynch_context(std::error_code& ec) const noexcept;
-    friend class nobadalloc<io_context>;
+    static void notify_send(std::error_code& ec,::DWORD transfered,asynch_channel* channel,io::byte_buffer&& data) noexcept;
+	static void notify_received(std::error_code& ec,::DWORD transfered,asynch_channel* channel, io::byte_buffer&& data) noexcept;
+    static void completion_loop_routine(::HANDLE ioc_port) noexcept;
+
+    asynch_io_context(::HANDLE ioc_port, io::s_thread_pool&& thread_poll, const s_io_context& owner) noexcept;
+    bool bind_to_port(std::error_code& ec,const asynch_channel* src) const noexcept;
+
 private:
-    mutable std::atomic<detail::asynch_io_context*> asynch_context_;
-    mutable critical_section mtx_;
+    ::HANDLE ioc_port_;
+    io::s_thread_pool workers_;
+	s_io_context owner_;
 };
 
 } // namespace io

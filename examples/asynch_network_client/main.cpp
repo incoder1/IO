@@ -6,49 +6,89 @@
 #include <network.hpp>
 #include <iostream>
 
+/// Asynchronous IO operations completion routine
 class my_routine final: public io::asynch_completion_routine {
 private:
     explicit my_routine() noexcept:
         io::asynch_completion_routine()
     {}
 public:
-    static io::s_asynch_completion_routine create(std::error_code& ec) noexcept
-    {
-        if(!ec) {
-            my_routine *ret = new (std::nothrow) my_routine();
-            if(nullptr == ret)
-                ec = std::make_error_code(std::errc::not_enough_memory);
-            else
-                return io::s_asynch_completion_routine(ret);
-        }
-        return io::s_asynch_completion_routine();
-    }
-    virtual void recaived(std::error_code& ec, const io::s_asynch_channel& source, const uint8_t* data, std::size_t transferred) noexcept override
-    {
-        if(!ec) {
-            std::cout.write(reinterpret_cast<const char*>(data), transferred);
-            std::cout.flush();
-            io::memory_traits::free_temporary( const_cast<uint8_t*>(data) );
-        }
-        source->context()->shutdown_asynchronous(ec);
-        if(ec)
-            std::cerr << ec.message() << std::endl;
-    }
-    virtual void sent(std::error_code& ec,const io::s_asynch_channel& source, const uint8_t* data, std::size_t transfered) noexcept override
-    {
-        if(!ec) {
-			std::cout<< "HTTP 1.1 Request sent: \n" <<  reinterpret_cast<const char*>(data) << std::endl;
-            // now asynchroniusly read HTTP response from server
-            source->read(io::memory_traits::calloc_temporary<uint8_t>(4096) , 4096, 0);
-        }
-        if(ec) {
-            source->context()->shutdown_asynchronous(ec);
-            std::cerr << ec.message() << std::endl;
-        }
-    }
+    /// Creates new routine reference on implementation smart pointer
+    /// ec contains operation error code, like out of memory
+    static io::s_asynch_completion_routine create(std::error_code& ec) noexcept;
+    /// Handles asynchronous data received i.e. read is done
+    /// \param ec
+    ///             operation error code like network is down etc.
+    /// \param source
+    ///             a async_channel which was used to asynchronously receive data
+    /// \param data
+    ///             received data buffer, data-length shows transmit data buffer position is set to head,
+	///             last iterator shows on a byte after last received byte
+    virtual void received(std::error_code& ec, const io::s_asynch_channel& source, io::byte_buffer&& data) noexcept override;
+    /// Handles asynchronous data sent i.e. write is done
+	/// \param ec
+    ///             operation error code like network is down etc.
+    /// \param source
+    ///             a async_channel which was used to asynchronously send data
+    /// \param data
+    ///             sent data buffer, position iterator shows on last sent byte, what.lenght() can be used to detect not sent tail bytes
+    virtual void sent(std::error_code& ec,const io::s_asynch_channel& source, io::byte_buffer&& what) noexcept override;
 };
 
-/// Simple HTTP 1.1 Request to a server
+io::s_asynch_completion_routine my_routine::create(std::error_code& ec) noexcept
+{
+    if(!ec) {
+        my_routine *ret = new (std::nothrow) my_routine();
+        if(nullptr == ret)
+            ec = std::make_error_code(std::errc::not_enough_memory);
+        else
+            return io::s_asynch_completion_routine(ret);
+    }
+    return io::s_asynch_completion_routine();
+}
+
+void my_routine::received(std::error_code& ec, const io::s_asynch_channel& source, io::byte_buffer&& data) noexcept
+{
+    if(!ec) {
+        std::cout <<  data.length() << " received from server\n";
+        std::cout.write(data.position().cdata(), data.length() );
+        std::cout.flush();
+    }
+    // notify main application thread, waiting for pending IO operations, we've done
+    // and shutdown IO completion thread pool
+	source->context()->shutdown();
+	if(ec)
+		std::cerr << "Error: " << ec.value() << ' ' << ec.message() << std::endl;
+}
+
+void my_routine::sent(std::error_code& ec,const io::s_asynch_channel& source, io::byte_buffer&& what) noexcept
+{
+    if(!ec) {
+		// check all data sent
+		if(what.empty()) {
+			what.flip();
+			std::cout<< "HTTP 1.1 Request sent: \n" <<  what.position().cdata() << std::endl;
+			// now asynchronously read HTTP response from server
+			if(!ec)
+				source->recaive(ec, io::memory_traits::page_size(), 0);
+		} else {
+			// some data left, send the tail part
+			// since we've using socket, position ramainig 0
+			source->send(ec, std::forward<io::byte_buffer>(what), 0);
+		}
+    }
+    if(ec) {
+		std::cerr << "Error: " << ec.value() << ' ' << ec.message() << std::endl;
+		// in case of error, shutdown asynch io completion handling,
+		// and release threads waiting for it by io::s_io_context::await_asynchronous
+		// in our case it is our main application thread
+        source->context()->shutdown();
+    }
+}
+
+// Simple HTTP 1.1 Request to a server, for demonstration propose
+// it's farfrom what really need by full HTTP client, used to for really tinny communicate with
+// a pulic available server, in our case it is W3C
 const char* HTTP_GET_REQUEST = "GET /html/rfc2616 HTTP/1.1\r\n\
 Host: tools.ietf.org\r\n\
 Accept: text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8\r\n\
@@ -61,21 +101,37 @@ User-Agent: IO/2020  (C++ HTTP client lib)\r\n\r\n";
 int main(int argc, const char** argv)
 {
     std::error_code ec;
+
+    // Create a network socket to connect
     const io::net::socket_factory *sf = io::net::socket_factory::instance(ec);
     io::check_error_code(ec);
     io::s_io_context ioc = io::io_context::create(ec);
     io::check_error_code(ec);
+    io::s_asynch_io_context actx = io::asynch_io_context::create(ec, ioc);
+    io::check_error_code(ec);
+
+    // we'll request HTTP 1.1. RFC document from W3C
+    // this example is shows work with raw network sockets with asynchronous IO, and not about HTTP protocol generaly
+    // real HTTP communication need TLS security layer to communicate over HTTPS
     io::net::socket socket = sf->client_tcp_socket(ec, "tools.ietf.org", 80);
     io::check_error_code(ec);
 
+    // Connect to the server using asynchronous input/ouput
     io::s_asynch_completion_routine routine = my_routine::create(ec);
     io::check_error_code(ec);
+    io::s_asynch_channel asch = actx->client_asynch_connect(ec, std::move(socket), routine );
 
-    io::s_asynch_channel asch = ioc->client_asynch_connect(ec, std::move(socket), routine );
-    // Send HTTP request
-    asch->write( reinterpret_cast<const uint8_t*>(HTTP_GET_REQUEST), std::strlen(HTTP_GET_REQUEST), 0);
-    ioc->await_asynchronous(ec);
+    // Send HTTP request asynchronously
+    io::byte_buffer buff = io::byte_buffer::wrap(ec, HTTP_GET_REQUEST );
     io::check_error_code(ec);
+    asch->send(ec, std::move(buff), 0);
+    io::check_error_code(ec);
+
+    // await for all pending asynchronous operations done
+    // if we've finish now CRT finish main application thread
+    // as well as all threads in io completion thread pool
+    // so that we've loosing our IO operations
+    actx->await();
 
     return 0;
 }

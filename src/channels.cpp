@@ -43,18 +43,18 @@ random_access_channel::~random_access_channel() noexcept
 
 // asynch_completion_routine
 
-void asynch_completion_routine::recaived(std::error_code& ec, const s_asynch_channel& source, const uint8_t* data, std::size_t transferred) noexcept
+void asynch_completion_routine::received(std::error_code& ec, const s_asynch_channel& source,byte_buffer&& data) noexcept
 {}
 
-void asynch_completion_routine::sent(std::error_code& ec, const s_asynch_channel& source, const uint8_t* data, std::size_t transfered) noexcept
+void asynch_completion_routine::sent(std::error_code& ec, const s_asynch_channel& source,byte_buffer&& data) noexcept
 {}
 
 // asynch_channel
-asynch_channel::asynch_channel(os_descriptor_t hnd, const s_asynch_completion_routine& routine, const io_context* context) noexcept:
+asynch_channel::asynch_channel(os_descriptor_t hnd, const s_asynch_completion_routine& routine,const asynch_io_context* context) noexcept:
 	channel(),
 	hnd_(hnd),
 	routine_( routine ),
-	context_(context)
+	context_( context )
 {}
 
 asynch_channel::~asynch_channel() noexcept

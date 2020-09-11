@@ -21,9 +21,10 @@
 #	define SECURITY_WIN32
 #endif // SECURITY_WIN32
 
-#include "channels.hpp"
-
 #include <ws2tcpip.h>
+
+#include "channels.hpp"
+#include "wsaerror.hpp"
 
 namespace io {
 
@@ -36,7 +37,10 @@ enum class operation: ::DWORD {
 };
 
 struct overlapped: public ::OVERLAPPED {
-    overlapped(operation op, uint8_t* px, uint64_t position) noexcept
+    overlapped(operation op, byte_buffer&& data, uint64_t position) noexcept:
+    	OVERLAPPED(),
+		io_op_(op),
+		data_( std::forward<byte_buffer>(data) )
     {
         Internal = reinterpret_cast<ULONG_PTR>(nullptr);
         InternalHigh = reinterpret_cast<ULONG_PTR>(nullptr);
@@ -46,18 +50,9 @@ struct overlapped: public ::OVERLAPPED {
         OffsetHigh = pos.HighPart;
         Offset = pos.LowPart;
         hEvent = static_cast<::HANDLE>(nullptr);
-        io_op_ = op;
-        data_ = px;
     }
-    operation op() const noexcept {
-    	return io_op_;
-    }
-    uint8_t* data() const noexcept {
-    	return data_;
-    }
-private:
 	operation io_op_;
-    uint8_t *data_;
+    byte_buffer data_;
 };
 
 }  // namespace detail
@@ -66,10 +61,10 @@ namespace net {
 
 class IO_PUBLIC_SYMBOL asynch_socket_channel final: public io::asynch_channel {
 public:
-    asynch_socket_channel(::SOCKET socket, const s_asynch_completion_routine& routine, const io::io_context* context) noexcept;
+    asynch_socket_channel(::SOCKET socket, const s_asynch_completion_routine& routine, const asynch_io_context* ctx) noexcept;
     virtual ~asynch_socket_channel() noexcept override;
-    virtual void read(uint8_t* into, std::size_t limit, std::size_t start_from) const noexcept override;
-    virtual void write(const uint8_t* what, std::size_t bytes, std::size_t start_from) const noexcept override;
+	virtual void recaive(std::error_code& ec, std::size_t amout, std::size_t position) const noexcept override;
+    virtual void send(std::error_code& ec, byte_buffer&& what,std::size_t position) const noexcept override;
     virtual bool cancel_pending() const noexcept override;
     virtual bool cancel_all() const noexcept override;
     ::SOCKET native() const noexcept

@@ -7,28 +7,8 @@
 
 #include <net/uri.hpp>
 #include <net/http_client.hpp>
-#include <net/secure_channel.hpp>
 
-#include <fstream>
-#include <iostream>
-
-#ifdef __IO_WINDOWS_BACKEND__
-
-static void log(const uint8_t* data,const std::size_t bytes)
-{
-	static ::HANDLE hcout = ::GetStdHandle(STD_OUTPUT_HANDLE);
-	::DWORD written;
-    ::WriteFile(hcout, data, bytes, &written, nullptr);
-}
-
-#else
-
-static void log(const uint8_t* data,const std::size_t bytes)
-{
-	::fwrite(data, sizeof(uint8_t), bytes, stdout);
-}
-
-#endif // __IO_WINDOWS_BACKEND__
+#include <console.hpp>
 
 
 int main()
@@ -39,36 +19,54 @@ int main()
 	s_uri url = uri::parse(ec, "https://tools.ietf.org/html/rfc2616");
 	io::check_error_code(ec);
 
-	std::printf("Connecting to: %s \n", url->host().data() );
+	std::ostream& cout = io::console::out_stream();
+	io::console::reset_out_color(io::text_color::navy_green);
 
+	cout << "Connecting to: " <<  url->host().data() << std::endl;
+
+	// TLS service for HTTPS
 	const io::net::secure::service *cfactory = io::net::secure::service::instance(ec);
-    io::check_error_code( ec );
 
-    io::s_read_write_channel sch = cfactory->new_client_blocking_connection(ec, url);
+	// IO context, entry point to network and asynchronous input oputput
+	io::s_io_context ioc = io::io_context::create(ec);
+	io::check_error_code(ec);
+	// Raw connect to the URL's
+	io::s_read_write_channel socket_chnl = ioc->client_blocking_connect(ec, url->host().data(), url->port());
+	io::check_error_code(ec);
+
+	// Construct TLS wrapper channel on top of raw socket channel
+    io::s_read_write_channel sch = cfactory->new_client_blocking_connection(ec, std::move(socket_chnl) );
     io::check_error_code(ec);
 
+    // Construct writer to communicate with service true HTTP 1.1
     io::writer httpw(sch);
 
+	// Construct new HTTP GET request
 	http::s_request rq = http::new_get_request( ec, url );
 	io::check_error_code( ec );
+	// Send request to HTTP server
 	rq->send( ec, httpw );
 	io::check_error_code( ec );
 
-	// 2k
-	const std::size_t page_size = io::memory_traits::page_size();
-	io::scoped_arr<uint8_t> buff(page_size);
+	io::console::reset_out_color( io::text_color::white );
+
+	// Read HTTP response from server
+	uint8_t buff[1024];
 	std::size_t read;
 	do {
-		io_zerro_mem( buff.get(), page_size );
-		read = sch->read(ec, buff.get(), page_size - 2 );
-		if(read == 0)
-			break;
-		//log( buff.get() , read);
-	} while(!ec);
-	int ret = 0;
+		io_zerro_mem(buff, sizeof(buff));
+		read = sch->read(ec, buff, sizeof(buff) );
+		if(read > 0) {
+			cout.write(reinterpret_cast<const char*>(buff), read);
+			cout.flush();
+		}
+	} while(0 != read && !ec);
+
 	if(ec) {
-		std::cerr<< "Network error no: " << ec.value() << " " << ec.message() << std::endl;
-		ret = ec.value();
+		std::ostream& cerr = io::console::error_stream();
+		cerr<< "Network error: " << ec.value() << " " << ec.message() << std::endl;
+		return ec.value();
 	}
-    return ret;
+
+    return 0;
 }

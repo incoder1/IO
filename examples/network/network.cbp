@@ -54,13 +54,16 @@
 				<Option type="1" />
 				<Option compiler="gcc" />
 				<Compiler>
-					<Add option="-O3" />
+					<Add option="-flto" />
+					<Add option="-std=c++20" />
 					<Add option="-mtune=native" />
 					<Add option="-DNDEBUG" />
 					<Add option="-DIO_SHARED_LIB" />
 					<Add option="-DIO_TLS_PROVIDER_GNUTLS" />
 				</Compiler>
 				<Linker>
+					<Add option="-O3" />
+					<Add option="-flto" />
 					<Add option="-s" />
 					<Add library="iconv.dll" />
 					<Add library="gnutls.dll" />

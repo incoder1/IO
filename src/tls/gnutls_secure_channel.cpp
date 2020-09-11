@@ -18,6 +18,28 @@ namespace net {
 
 namespace secure {
 
+namespace detail {
+
+synch_transport::synch_transport(io::s_read_write_channel&& raw) noexcept:
+	transport(),
+	raw_( std::forward<io::s_read_write_channel>(raw) )
+{}
+
+ssize_t synch_transport::pull(std::error_code& ec,void* dst,std::size_t len) noexcept
+{
+	size_t ret = raw_->read(ec, static_cast<uint8_t*>(dst), len);
+	return ec ? -1 : ret;
+}
+
+ssize_t synch_transport::push(std::error_code& ec, const void* src,std::size_t len) noexcept
+{
+	size_t ret = raw_->write(ec, static_cast<const uint8_t*>(src), len);
+	return ec ? -1 : ret;
+}
+
+
+} // namespace detail
+
 // credentials
 
 credentials credentials::system_trust_creds(std::error_code& ec) noexcept
@@ -51,7 +73,7 @@ ssize_t session_push(::gnutls_transport_ptr_t tr,const ::giovec_t* buffers, int 
 	ssize_t ret = 0;
 	for(unsigned i=0; i < static_cast<unsigned>(bcount); i++) {
 		const giovec_t* buff = buffers + i;
-		ret += s->raw_write(static_cast<const uint8_t*>(buff->iov_base), buff->iov_len);
+		ret += s->connection()->push(s->ec_, buff->iov_base, buff->iov_len);
 		if(s->ec_)
 			break;
 	}
@@ -61,12 +83,12 @@ ssize_t session_push(::gnutls_transport_ptr_t tr,const ::giovec_t* buffers, int 
 ssize_t session_pull(::gnutls_transport_ptr_t tr, void * data, std::size_t max_size) noexcept
 {
 	session* s = static_cast<session*>( tr );
-	return s->raw_read(static_cast<uint8_t*>(data), max_size);
+	return s->connection()->pull(s->ec_, data, max_size);
 }
 
-session::session(gnutls_session_t peer, s_read_write_channel&& connection) noexcept:
+session::session(gnutls_session_t peer, detail::s_transport&& connection) noexcept:
 	peer_( peer ),
-	connection_( std::forward<s_read_write_channel>(connection) ),
+	connection_( std::forward<detail::s_transport>(connection) ),
 	ec_()
 {}
 
@@ -86,7 +108,7 @@ int session::client_handshake(::gnutls_session_t const peer) noexcept
 	return ret;
 }
 
-s_session session::client_session(std::error_code &ec, ::gnutls_certificate_credentials_t crd,net::socket&& socket) noexcept
+s_session session::client_session(std::error_code &ec, ::gnutls_certificate_credentials_t crd,s_read_write_channel&& raw) noexcept
 {
 	::gnutls_session_t peer = nullptr;
 	int err = ::gnutls_init(&peer, GNUTLS_CLIENT);
@@ -106,13 +128,14 @@ s_session session::client_session(std::error_code &ec, ::gnutls_certificate_cred
 		ec = std::make_error_code( std::errc::connection_refused );
 		return s_session();
 	}
-	s_io_context ioc = io_context::create(ec);
 	if(ec)
 		return s_session();
-	s_read_write_channel connection = ioc->client_blocking_connect(ec, std::forward<net::socket>(socket) );
-	if(ec)
+	detail::synch_transport *connection = new (std::nothrow) detail::synch_transport( std::forward<s_read_write_channel>(raw) );
+	if(nullptr ==  connection) {
+		ec = std::make_error_code(std::errc::not_enough_memory);
 		return s_session();
-	session *ret = new (std::nothrow) session(peer, std::move(connection) );
+	}
+	session *ret = new (std::nothrow) session(peer, detail::s_transport( connection ) );
 	if( nullptr == ret ) {
 		ec = std::make_error_code(std::errc::not_enough_memory);
 		return s_session();
@@ -136,18 +159,6 @@ s_session session::client_session(std::error_code &ec, ::gnutls_certificate_cred
 		return s_session();
 	}
 	return s_session(ret);
-}
-
-ssize_t session::raw_read(uint8_t* dst,std::size_t len) noexcept
-{
-	size_t ret = connection_->read(ec_, dst, len);
-	return ec_ ? -1 : ret;
-}
-
-ssize_t session::raw_write(const uint8_t* src,std::size_t len) noexcept
-{
-	size_t ret = connection_->write(ec_, src, len);
-	return ec_ ? -1 : ret;
 }
 
 
@@ -240,19 +251,18 @@ const service* service::instance(std::error_code& ec) noexcept
 service::~service() noexcept
 {}
 
-s_read_write_channel service::new_client_blocking_connection(std::error_code& ec,const char* host,const uint16_t port) const noexcept
+s_read_write_channel service::new_client_blocking_connection(std::error_code& ec,s_read_write_channel&& raw) const noexcept
 {
-	const socket_factory* sf = socket_factory::instance(ec);
-	if(ec)
-		return s_read_write_channel();
-	socket socket = sf->client_tcp_socket(ec, host, port);
-	if(ec)
-		return s_read_write_channel();
-	s_session s = session::client_session(ec, creds_.get(),  std::move(socket) );
+	s_session clnts = session::client_session(ec, creds_.get(),  std::forward<s_read_write_channel>(raw) );
 	if( ec )
 		return s_read_write_channel();
-	tls_channel* ch = nobadalloc< tls_channel >::construct(ec, std::move(s) );
+	tls_channel* ch = nobadalloc< tls_channel >::construct(ec, std::move(clnts) );
 	return ec ? s_read_write_channel() : s_read_write_channel( ch );
+}
+
+s_asynch_channel service::new_client_connection(std::error_code& ec, s_asynch_channel&& raw) const noexcept
+{
+
 }
 
 

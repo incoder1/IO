@@ -38,15 +38,43 @@
 
 #include "channels.hpp"
 #include "threading.hpp"
-#include "network.hpp"
-
-#include "net/uri.hpp"
 
 namespace io {
 
 namespace net {
 
 namespace secure {
+
+namespace detail {
+
+class transport:public io::object
+{
+	transport(const transport&) = delete;
+	transport& operator=(const transport&) = delete;
+protected:
+	constexpr transport() noexcept:
+		object()
+	{}
+public:
+	virtual ssize_t pull(std::error_code& ec, void* dst,std::size_t len) noexcept = 0;
+
+	virtual ssize_t push(std::error_code& ec, const void* src,std::size_t len) noexcept = 0;
+
+	virtual ~transport() noexcept = default;
+};
+
+DECLARE_IPTR(transport);
+
+class synch_transport final: public transport {
+public:
+	synch_transport(io::s_read_write_channel&& raw) noexcept;
+	virtual ssize_t pull(std::error_code& ec, void* dst,std::size_t len) noexcept override;
+	virtual ssize_t push(std::error_code& ec, const void* src,std::size_t len) noexcept override;
+private:
+	io::s_read_write_channel raw_;
+};
+
+} // namesapce detail
 
 class credentials
 {
@@ -101,7 +129,7 @@ class session final:public object {
 
 public:
 
-    static s_session client_session(std::error_code &ec, ::gnutls_certificate_credentials_t crd, net::socket&& socket) noexcept;
+    static s_session client_session(std::error_code &ec, ::gnutls_certificate_credentials_t crd, s_read_write_channel&& raw) noexcept;
 
     ~session() noexcept;
 
@@ -116,11 +144,11 @@ public:
 
 private:
 
-	session(gnutls_session_t peer, s_read_write_channel&& connection) noexcept;
+	session(gnutls_session_t peer, detail::s_transport&& connection) noexcept;
 
-	ssize_t raw_read(uint8_t* dst,std::size_t len) noexcept;
-
-	ssize_t raw_write(const uint8_t* src,std::size_t len) noexcept;
+	detail::s_transport connection() const noexcept {
+		return connection_;
+	}
 
     static int client_handshake(::gnutls_session_t peer) noexcept;
 
@@ -134,7 +162,7 @@ private:
 
 private:
     ::gnutls_session_t peer_;
-    s_read_write_channel connection_;
+    detail::s_transport connection_;
     std::error_code ec_;
 };
 
@@ -159,11 +187,9 @@ public:
     static const service* instance(std::error_code& ec) noexcept;
     ~service() noexcept;
 
-    s_read_write_channel new_client_blocking_connection(std::error_code& ec, const char* host,const uint16_t port) const noexcept;
+    s_read_write_channel new_client_blocking_connection(std::error_code& ec,s_read_write_channel&& raw) const noexcept;
 
-    inline s_read_write_channel new_client_blocking_connection(std::error_code& ec, const s_uri& uri) const noexcept {
-        return new_client_blocking_connection(ec, uri->host().data(), uri->port());
-    }
+    s_asynch_channel new_client_connection(std::error_code& ec, s_asynch_channel&& raw) const noexcept;
 
 private:
 

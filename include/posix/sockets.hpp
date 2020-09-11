@@ -102,14 +102,33 @@ private:
 	std::shared_ptr<::addrinfo> addr_info_;
 };
 
-class IO_PUBLIC_SYMBOL socket:public virtual object {
-protected:
-	socket() noexcept;
+/// Network socket interface
+class IO_PUBLIC_SYMBOL socket {
 public:
-	virtual bool connected() const noexcept = 0;
-	virtual transport transport_protocol() const noexcept = 0;
-	virtual endpoint get_endpoint() const noexcept = 0;
-	virtual s_read_write_channel connect(std::error_code& ec) const noexcept = 0;
+    socket(endpoint&& ep, transport t_prot) noexcept:
+        transport_(t_prot),
+        ep_( std::forward<endpoint>(ep) )
+	{}
+
+	socket() noexcept:
+		socket( endpoint(), transport::tcp)
+	{}
+
+	/// Returns this socket endpoint
+	/// \return socket endpoint
+    endpoint get_endpoint() const noexcept {
+        return ep_;
+    }
+
+	/// Returns socket transport type, i.e. TCP,UDP or ICMP
+	/// \return socket transport
+    transport transport_protocol() const noexcept {
+        return transport_;
+    }
+
+private:
+    transport transport_;
+    endpoint ep_;
 };
 
 DECLARE_IPTR(socket);
@@ -125,8 +144,8 @@ private:
 public:
 	~socket_factory() noexcept;
 	static const socket_factory* instance(std::error_code& ec) noexcept;
-	s_socket client_tcp_socket(std::error_code& ec, const char* host, uint16_t port) const noexcept;
-	s_socket client_udp_socket(std::error_code& ec, const char* host, uint16_t port) const noexcept;
+	socket client_tcp_socket(std::error_code& ec, const char* host, uint16_t port) const noexcept;
+	socket client_udp_socket(std::error_code& ec, const char* host, uint16_t port) const noexcept;
 private:
 	static std::atomic<socket_factory*> _instance;
 	static critical_section _init_cs;

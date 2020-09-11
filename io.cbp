@@ -247,6 +247,7 @@
 		<Unit filename="include/errorcheck.hpp" />
 		<Unit filename="include/files.hpp" />
 		<Unit filename="include/hashing.hpp" />
+		<Unit filename="include/io_core.ixx" />
 		<Unit filename="include/memory_channel.hpp" />
 		<Unit filename="include/net/http_client.hpp" />
 		<Unit filename="include/net/secure_channel.hpp" />

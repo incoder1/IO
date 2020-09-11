@@ -113,136 +113,136 @@ socket::socket() noexcept:
 	object()
 {}
 
-// synch_socket_channel
-class synch_socket_channel final:public read_write_channel {
-private:
-	static constexpr int SOCKET_ERROR = -1;
-	friend class nobadalloc<synch_socket_channel>;
-	synch_socket_channel(int socket) noexcept:
-		read_write_channel(),
-		socket_(socket)
-	{}
-public:
-	virtual ~synch_socket_channel() noexcept
-	{
-		::close(socket_);
-	}
-	virtual std::size_t read(std::error_code& ec,uint8_t* const buff, std::size_t bytes) const noexcept override
-	{
-		::ssize_t ret = ::recv(socket_, static_cast<void*>(buff), bytes, 0);
-		if(SOCKET_ERROR == ret) {
-			ec.assign( errno, std::system_category() );
-			return 0;
-		}
-		return static_cast<::std::size_t>(ret);
-	}
-	virtual std::size_t write(std::error_code& ec, const uint8_t* buff,std::size_t size) const noexcept override
-	{
-		::ssize_t ret = ::send(socket_, static_cast<const void*>(buff), size,  0);
-		if(SOCKET_ERROR ==  ret ) {
-			ec.assign( errno, std::system_category() );
-			return 0;
-		}
-		return static_cast<::std::size_t>(ret);
-	}
-public:
-	int socket_;
-};
-
-static constexpr int SOCKET_ERROR = -1;
-static constexpr int INVALID_SOCKET = -1;
-
-static int new_socket(int af, transport prot) noexcept
-{
-	int type = 0;
-	switch(prot) {
-	case transport::tcp:
-		type = SOCK_STREAM;
-		break;
-	case transport::udp:
-		type = SOCK_DGRAM;
-		break;
-	case transport::icmp:
-	case transport::icmp6:
-		type = SOCK_RAW;
-		break;
-	}
-	int ret = ::socket(af,type,static_cast<int>(prot));
-	if(INVALID_SOCKET != ret) {
-		if(AF_INET6 == af) {
-			int off = 0;
-			::setsockopt(
-			    ret,
-			    IPPROTO_IPV6,
-			    IPV6_V6ONLY,
-			    reinterpret_cast<const char*>(&off),
-			    sizeof(off)
-			);
-		}
-	}
-	return ret;
-}
-
-// intet_socket
-class inet_socket final: public socket {
-public:
-
-	inet_socket(endpoint&& ep, transport t_prot) noexcept:
-		socket(),
-		transport_(t_prot),
-		connected_(false),
-		ep_( std::forward<endpoint>(ep) )
-	{}
-
-	virtual endpoint get_endpoint() const noexcept override
-	{
-		return ep_;
-	}
-
-	virtual transport transport_protocol() const noexcept override
-	{
-		return transport_;
-	}
-
-	virtual bool connected() const noexcept override
-	{
-		return connected_.load( std::memory_order_seq_cst );
-	}
-
-	virtual s_read_write_channel connect(std::error_code& ec) const noexcept override
-	{
-		bool tmp = connected_.load( std::memory_order_relaxed );
-		if( tmp ||
-		        !connected_.compare_exchange_strong(
-		            tmp, true,
-		            std::memory_order_acquire,
-		            std::memory_order_relaxed
-		        )
-		  ) {
-			ec = std::make_error_code( std::errc::device_or_resource_busy );
-			return s_read_write_channel();
-		}
-		const ::addrinfo *ai = static_cast<const ::addrinfo *>(ep_.native());
-		int s = new_socket( ai->ai_family, transport_);
-		if(INVALID_SOCKET == s ) {
-			connected_.store(false, std::memory_order_release );
-			ec.assign( errno, std::system_category() );
-			return s_read_write_channel();
-		}
-		if(SOCKET_ERROR == ::connect(s, ai->ai_addr, ai->ai_addrlen) ) {
-			connected_.store(false, std::memory_order_release );
-			ec.assign( errno, std::system_category() );
-			return s_read_write_channel();
-		}
-		connected_.store(true, std::memory_order_release );
-		return s_read_write_channel( nobadalloc<synch_socket_channel>::construct(ec, s ) );
-	}
-
-private:
-	transport transport_;
-	mutable std::atomic_bool connected_;
-	endpoint ep_;
-};
+//// synch_socket_channel
+//class synch_socket_channel final:public read_write_channel {
+//private:
+//	static constexpr int SOCKET_ERROR = -1;
+//	friend class nobadalloc<synch_socket_channel>;
+//	synch_socket_channel(int socket) noexcept:
+//		read_write_channel(),
+//		socket_(socket)
+//	{}
+//public:
+//	virtual ~synch_socket_channel() noexcept
+//	{
+//		::close(socket_);
+//	}
+//	virtual std::size_t read(std::error_code& ec,uint8_t* const buff, std::size_t bytes) const noexcept override
+//	{
+//		::ssize_t ret = ::recv(socket_, static_cast<void*>(buff), bytes, 0);
+//		if(SOCKET_ERROR == ret) {
+//			ec.assign( errno, std::system_category() );
+//			return 0;
+//		}
+//		return static_cast<::std::size_t>(ret);
+//	}
+//	virtual std::size_t write(std::error_code& ec, const uint8_t* buff,std::size_t size) const noexcept override
+//	{
+//		::ssize_t ret = ::send(socket_, static_cast<const void*>(buff), size,  0);
+//		if(SOCKET_ERROR ==  ret ) {
+//			ec.assign( errno, std::system_category() );
+//			return 0;
+//		}
+//		return static_cast<::std::size_t>(ret);
+//	}
+//public:
+//	int socket_;
+//};
+//
+//static constexpr int SOCKET_ERROR = -1;
+//static constexpr int INVALID_SOCKET = -1;
+//
+//static int new_socket(int af, transport prot) noexcept
+//{
+//	int type = 0;
+//	switch(prot) {
+//	case transport::tcp:
+//		type = SOCK_STREAM;
+//		break;
+//	case transport::udp:
+//		type = SOCK_DGRAM;
+//		break;
+//	case transport::icmp:
+//	case transport::icmp6:
+//		type = SOCK_RAW;
+//		break;
+//	}
+//	int ret = ::socket(af,type,static_cast<int>(prot));
+//	if(INVALID_SOCKET != ret) {
+//		if(AF_INET6 == af) {
+//			int off = 0;
+//			::setsockopt(
+//			    ret,
+//			    IPPROTO_IPV6,
+//			    IPV6_V6ONLY,
+//			    reinterpret_cast<const char*>(&off),
+//			    sizeof(off)
+//			);
+//		}
+//	}
+//	return ret;
+//}
+//
+//// intet_socket
+//class inet_socket final: public socket {
+//public:
+//
+//	inet_socket(endpoint&& ep, transport t_prot) noexcept:
+//		socket(),
+//		transport_(t_prot),
+//		connected_(false),
+//		ep_( std::forward<endpoint>(ep) )
+//	{}
+//
+//	virtual endpoint get_endpoint() const noexcept override
+//	{
+//		return ep_;
+//	}
+//
+//	virtual transport transport_protocol() const noexcept override
+//	{
+//		return transport_;
+//	}
+//
+//	virtual bool connected() const noexcept override
+//	{
+//		return connected_.load( std::memory_order_seq_cst );
+//	}
+//
+//	virtual s_read_write_channel connect(std::error_code& ec) const noexcept override
+//	{
+//		bool tmp = connected_.load( std::memory_order_relaxed );
+//		if( tmp ||
+//		        !connected_.compare_exchange_strong(
+//		            tmp, true,
+//		            std::memory_order_acquire,
+//		            std::memory_order_relaxed
+//		        )
+//		  ) {
+//			ec = std::make_error_code( std::errc::device_or_resource_busy );
+//			return s_read_write_channel();
+//		}
+//		const ::addrinfo *ai = static_cast<const ::addrinfo *>(ep_.native());
+//		int s = new_socket( ai->ai_family, transport_);
+//		if(INVALID_SOCKET == s ) {
+//			connected_.store(false, std::memory_order_release );
+//			ec.assign( errno, std::system_category() );
+//			return s_read_write_channel();
+//		}
+//		if(SOCKET_ERROR == ::connect(s, ai->ai_addr, ai->ai_addrlen) ) {
+//			connected_.store(false, std::memory_order_release );
+//			ec.assign( errno, std::system_category() );
+//			return s_read_write_channel();
+//		}
+//		connected_.store(true, std::memory_order_release );
+//		return s_read_write_channel( nobadalloc<synch_socket_channel>::construct(ec, s ) );
+//	}
+//
+//private:
+//	transport transport_;
+//	mutable std::atomic_bool connected_;
+//	endpoint ep_;
+//};
 
 // socket_factory
 std::atomic<socket_factory*> socket_factory::_instance(nullptr);

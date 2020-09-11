@@ -280,6 +280,10 @@ DECLARE_IPTR(asynch_channel);
 class io_context;
 DECLARE_IPTR(io_context);
 
+class asynch_io_context;
+DECLARE_IPTR(asynch_io_context);
+
+
 class IO_PUBLIC_SYMBOL asynch_completion_routine:public io::object {
     asynch_completion_routine(const asynch_completion_routine&) = delete;
     asynch_completion_routine& operator=(asynch_completion_routine&) = delete;
@@ -292,14 +296,13 @@ public:
     /// \param ec contains i/o error if any
     /// \param source source channel which calls non blocking read operation
     /// \param data recaived data
-    /// \param transferred transferred bytes in data
-    virtual void recaived(std::error_code& ec, const s_asynch_channel& source, const uint8_t* data, std::size_t transferred) noexcept;
+    virtual void received(std::error_code& ec, const s_asynch_channel& source, io::byte_buffer&& data) noexcept;
     /// Routine calls by asynch_channel instances for handling asynchronous write operation complete
     /// \param ec contains i/o error if any
     /// \param source source channel which calls non blocking read operation
     /// \param data sent data
     /// \param transferred transferred bytes in data
-    virtual void sent(std::error_code& ec,const s_asynch_channel& source, const uint8_t* data, std::size_t transfered) noexcept;
+    virtual void sent(std::error_code& ec, const s_asynch_channel& source, io::byte_buffer&& data) noexcept;
 };
 
 DECLARE_IPTR(asynch_completion_routine);
@@ -308,7 +311,7 @@ class IO_PUBLIC_SYMBOL asynch_channel:public channel {
     asynch_channel(const asynch_channel&) = delete;
     asynch_channel& operator=(const asynch_channel&) = delete;
 protected:
-    asynch_channel(os_descriptor_t hnd, const s_asynch_completion_routine& routines, const io_context* context) noexcept;
+    asynch_channel(os_descriptor_t hnd, const s_asynch_completion_routine& routines, const asynch_io_context* context) noexcept;
 public:
     virtual ~asynch_channel() noexcept = 0;
     /// Returns current completion routine
@@ -321,18 +324,17 @@ public:
     {
         return hnd_;
     }
-	const io::io_context* context() const noexcept
-    {
-        return context_;
+    const asynch_io_context* context() const noexcept {
+    	return context_;
     }
-    virtual void read(uint8_t* into, std::size_t limit, std::size_t start_from) const noexcept = 0;
-    virtual void write(const uint8_t* what, std::size_t bytes, std::size_t start_from) const noexcept = 0;
+    virtual void recaive(std::error_code& ec, std::size_t amout, std::size_t position) const noexcept = 0;
+    virtual void send(std::error_code& ec, byte_buffer&& what,std::size_t position) const noexcept = 0;
     virtual bool cancel_pending() const noexcept = 0;
     virtual bool cancel_all() const noexcept = 0;
 private:
     os_descriptor_t hnd_;
     s_asynch_completion_routine routine_;
-    const io_context* context_;
+    const asynch_io_context* context_;
 };
 
 DECLARE_IPTR(asynch_channel);
