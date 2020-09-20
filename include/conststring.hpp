@@ -328,14 +328,14 @@ inline std::wostream& operator<<(std::wostream& os, const const_string& cstr)
 	return os;
 }
 
-inline std::basic_ostream<char16_t>& operator<<(std::basic_iostream<char16_t>& os, const const_string& cstr)
+inline std::basic_ostream<char16_t>& operator<<(std::basic_ostream<char16_t>& os, const const_string& cstr)
 {
 	std::u16string conv = cstr.convert_to_u16();
 	os.write( conv.data(), conv.size() );
 	return os;
 }
 
-inline std::basic_ostream<char32_t>& operator<<(std::basic_iostream<char32_t>& os, const const_string& cstr)
+inline std::basic_ostream<char32_t>& operator<<(std::basic_ostream<char32_t>& os, const const_string& cstr)
 {
 	std::u32string conv = cstr.convert_to_u32();
 	os.write( conv.data(), conv.size() );
