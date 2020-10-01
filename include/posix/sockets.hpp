@@ -18,9 +18,14 @@
 #endif // HAS_PRAGMA_ONCE
 
 #include <atomic>
+
+#include <sys/types.h>
+#include <sys/socket.h>
+#include <arpa/inet.h>
+#include <netdb.h>
+
 #include "criticalsection.hpp"
 #include "conststring.hpp"
-#include "synch_socket_channel.hpp"
 
 namespace io {
 
@@ -72,7 +77,7 @@ class IO_PUBLIC_SYMBOL endpoint {
 private:
 	static void do_nothing(void const *p) noexcept
 	{}
-	endpoint(::addrinfo* const info) noexcept:
+	endpoint(::addrinfo* info) noexcept:
 		addr_info_(info, &endpoint::do_nothing )
 	{}
 public:

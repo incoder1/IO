@@ -33,7 +33,7 @@ private:
 	friend class nobadalloc<synch_socket_channel>;
 public:
 	synch_socket_channel(int socket) noexcept;
-	virtual ~synch_socket_channel() noexcept
+	virtual ~synch_socket_channel() noexcept;
 	virtual std::size_t read(std::error_code& ec,uint8_t* const buff, std::size_t bytes) const noexcept override;
 	virtual std::size_t write(std::error_code& ec, const uint8_t* buff,std::size_t size) const noexcept override;
 public:

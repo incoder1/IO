@@ -27,7 +27,7 @@
 
 #	include "posix/criticalsection.hpp"
 #	include "posix/rwlock.hpp"
-#	include "poxix/thread_pool.hpp"
+#	include "posix/thread_pool.hpp"
 
 #endif // __IO_WINDOWS_BACKEND__
 

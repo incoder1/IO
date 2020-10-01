@@ -108,18 +108,18 @@ public:
 
 
 private:
-    static void notify_send(std::error_code& ec,::DWORD transfered,asynch_channel* channel,io::byte_buffer&& data) noexcept;
-	static void notify_received(std::error_code& ec,::DWORD transfered,asynch_channel* channel, io::byte_buffer&& data) noexcept;
-    static void completion_loop_routine(::HANDLE ioc_port) noexcept;
+    static void notify_send(std::error_code& ec,std::size_t transfered,asynch_channel* channel,io::byte_buffer&& data) noexcept;
+	static void notify_received(std::error_code& ec,std::size_t transfered,asynch_channel* channel, io::byte_buffer&& data) noexcept;
+    static void completion_loop_routine(void * some) noexcept;
 
-    asynch_io_context(::HANDLE ioc_port, io::s_thread_pool&& thread_poll, const s_io_context& owner) noexcept;
+    asynch_io_context(void* ioc_port, io::s_thread_pool&& thread_poll, const s_io_context& owner) noexcept;
     bool bind_to_port(std::error_code& ec,const asynch_channel* src) const noexcept;
 
 private:
-    ::HANDLE ioc_port_;
     io::s_thread_pool workers_;
 	s_io_context owner_;
 };
 
+} // namespace io
 
 #endif // __IO_POSIX_CONTEXT_HPP_INCLUDED__

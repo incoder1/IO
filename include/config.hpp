@@ -41,9 +41,9 @@
 #endif // defined
 
 #ifndef IO_HAS_BOOST
-#include "config/libs/intrusive_ptr.hpp"
+#   include "config/libs/intrusive_ptr.hpp"
 #else
-#include <boost/intrusive_ptr.hpp>
+#   include <boost/intrusive_ptr.hpp>
 #endif // HAS_BOOST
 
 #include "config/libs/exceptions.hpp"

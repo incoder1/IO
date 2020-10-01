@@ -48,7 +48,7 @@ int main()
 	io::console::reset_out_color( io::text_color::white );
 
 	// Read HTTP response from server
-	uint8_t buff[1024];
+	uint8_t buff[4096];
 	std::size_t read;
 	do {
 		io_zerro_mem(buff, sizeof(buff));
