@@ -100,7 +100,7 @@ s_asynch_io_context asynch_io_context::create(std::error_code& ec, const s_io_co
         ec = std::error_code( ::GetLastError(), std::system_category() );
     } else {
     	// Create workers thread pool, all of them will reach same routine handling asynch io operation ending
-		io::s_thread_pool workers = io::thread_pool::create(ec, max_worker_threads, max_worker_threads );
+		io::s_thread_pool workers = io::thread_pool::create(ec,  max_worker_threads );
 		if(!ec) {
 			 asynch_io_context* ret = new (std::nothrow) asynch_io_context(ioc_port, std::move(workers), owner);
 			 if(nullptr == ret)
@@ -161,31 +161,31 @@ void asynch_io_context::completion_loop_routine(::HANDLE ioc_port) noexcept
 	asynch_channel* channel = nullptr;
 	do {
 		::DWORD transfered = 0;
-		::LPOVERLAPPED ovlp;
+		detail::overlapped* ovlp;
 		status = ::GetQueuedCompletionStatus(
 				ioc_port,
 				&transfered,
-				reinterpret_cast<PULONG_PTR>(&channel),
-				&ovlp,
+				reinterpret_cast<::PULONG_PTR>(&channel),
+				reinterpret_cast<::LPOVERLAPPED*>(&ovlp),
 				INFINITE);
 		if(TRUE == status && nullptr != channel) {
-			detail::overlapped *overlapped = reinterpret_cast<detail::overlapped *>(ovlp);
 			std::error_code ec;
 			// don't increase reference counting, must be done by channel in a thread requested asynch io operation
-			switch(overlapped->io_op_)
+			switch(ovlp->io_op_)
 			{
 			case io::detail::operation::send:
-				notify_send( ec, transfered,  channel, std::move(overlapped->data_) );
+				notify_send( ec, transfered,  channel, std::move(ovlp->data_) );
 				break;
 			case io::detail::operation::recaive:
-				notify_received(ec, transfered, channel, std::move(overlapped->data_) );
+				notify_received(ec, transfered, channel, std::move(ovlp->data_) );
 				break;
 			case io::detail::operation::accept:
+				// TODO: implement
 				break;
 			}
-			io::memory_traits::free_temporary(overlapped);
+			io::memory_traits::free_temporary(ovlp);
 		}
-	} while(TRUE != true || nullptr != channel);
+	} while(TRUE != status || nullptr != channel);
 }
 
 /// binds a device asynchronous channel (file, pipe or socket) to io completion port

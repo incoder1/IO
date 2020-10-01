@@ -25,37 +25,9 @@
 
 #include "channels.hpp"
 #include "wsaerror.hpp"
+#include "overlapped.hpp"
 
 namespace io {
-
-namespace detail {
-
-enum class operation: ::DWORD {
-   accept = 0,
-   send = 1,
-   recaive = 2
-};
-
-struct overlapped: public ::OVERLAPPED {
-    overlapped(operation op, byte_buffer&& data, uint64_t position) noexcept:
-    	OVERLAPPED(),
-		io_op_(op),
-		data_( std::forward<byte_buffer>(data) )
-    {
-        Internal = reinterpret_cast<ULONG_PTR>(nullptr);
-        InternalHigh = reinterpret_cast<ULONG_PTR>(nullptr);
-        // set-up offset
-		::LARGE_INTEGER pos;
-		pos.QuadPart = position;
-        OffsetHigh = pos.HighPart;
-        Offset = pos.LowPart;
-        hEvent = static_cast<::HANDLE>(nullptr);
-    }
-	operation io_op_;
-    byte_buffer data_;
-};
-
-}  // namespace detail
 
 namespace net {
 

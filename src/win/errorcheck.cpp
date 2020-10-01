@@ -29,7 +29,6 @@
 
 namespace io {
 
-
 class output_swap {
 	output_swap(const output_swap&) = delete;
 	output_swap operator=(output_swap&) = delete;
@@ -76,7 +75,6 @@ static void print_error_message(int errcode,const char* message) noexcept
 #endif
 	output_swap oswap;
 	::DWORD written;
-	#include <cwchar>
 	if( ! ::WriteConsoleW( ::GetStdHandle(STD_ERROR_HANDLE), msg, static_cast<::DWORD>(len), &written, nullptr ) ) {
 		MessageBoxExW(NULL, msg, NULL, MB_OK | MB_ICONERROR, MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT) );
 	}
@@ -88,20 +86,15 @@ void IO_PANIC_ATTR exit_with_current_error()
 {
 	::DWORD lastErr =::GetLastError();
 	if( NO_ERROR != lastErr ) {
-
 		output_swap oswap;
-
 		wchar_t msg[512];
-
 		::DWORD len = ::FormatMessageW(
 						  FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_IGNORE_INSERTS,
 						  NULL, lastErr,
 						  MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT),
 						  (::LPWSTR) &msg,
 						  256, NULL );
-
 		::DWORD written;
-		::AllocConsole();
 		if( !::WriteFile( ::GetStdHandle(STD_ERROR_HANDLE), msg, len, &written, nullptr ) ) {
 			MessageBoxExW(NULL, msg, NULL, MB_OK | MB_ICONERROR, MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT) );
 		}

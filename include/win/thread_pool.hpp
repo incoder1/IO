@@ -17,6 +17,7 @@
 #pragma once
 #endif // HAS_PRAGMA_ONCE
 
+
 #include <functional>
 #include <forward_list>
 
@@ -25,39 +26,45 @@ namespace io {
 class thread_pool;
 DECLARE_IPTR(thread_pool);
 
-typedef std::function<void()> thread_routine;
+typedef std::function<void()> async_task;
 
+/// !\brief Executes each submitted task using one of possibly several pooled threads
 class IO_PUBLIC_SYMBOL thread_pool:public io::object {
     thread_pool(const thread_pool&) = delete;
     thread_pool operator=(const thread_pool&) = delete;
 private:
-	struct routine_context {
-		explicit routine_context(thread_routine&& routine) noexcept:
-			routine_( std::forward<thread_routine>(routine) )
+	struct task_context {
+		explicit task_context(async_task&& task) noexcept:
+			task_( std::forward<async_task>(task) )
 		{}
-		void call() noexcept {
-			routine_();
+		inline void call() noexcept {
+			task_();
 		}
 	private:
-		thread_routine routine_;
+		async_task task_;
 	};
 public:
-    static s_thread_pool create(std::error_code& ec, unsigned int min_threads, unsigned int max_threads) noexcept;
+
+	/// Creates new pool
+	/// \param ec operation error code
+	/// \param max_threads maximum threads in this pool
+	/// \return pointer on new thread pool reference, or empty intrusive_ptr in case of error
+    static s_thread_pool create(std::error_code& ec, unsigned int max_threads) noexcept;
 
     virtual ~thread_pool() noexcept;
 
-    inline unsigned int min_threads() noexcept
-    {
-        return min_threads_;
-    }
-
+    /// Return maximum threads count int this pool
     inline unsigned int max_threads() noexcept
     {
         return max_threads_;
     }
 
-    void sumbmit(std::error_code& ec,thread_routine&& routine) noexcept;
+	/// Submit an asynchronous task to be executed in a pool thread
+    /// \param ec operation error code
+	/// \param task a task
+    void sumbmit(std::error_code& ec,async_task&& routine) noexcept;
 
+    /// Sends stop signal for all pool threads, and waits until all pending operations done
     void join() noexcept;
 
 private:

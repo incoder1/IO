@@ -242,7 +242,7 @@ void source::read_until_char(byte_buffer& to,const char lookup,const char illega
 	}
 	while( nullptr == io_memchr(stops, static_cast<int>(c), 3) );
 	if( lookup != c ) {
-		if(EOF == c)
+		if( cheq(c,EOF) )
 			last_ = error::illegal_markup;
 		to.clear();
 	}

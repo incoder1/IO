@@ -26,4 +26,6 @@
 
 #include  "memory_traits.hpp"
 
+typedef int os_descriptor_t;
+
 #endif // __IO_POSIXCONF_HPP_INCLUDED__

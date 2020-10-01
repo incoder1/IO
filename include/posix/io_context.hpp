@@ -8,11 +8,10 @@
  * LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
  *
  */
-#ifndef __IO_WIN_IO_CONTEXT_HPP_INCLUDED__
-#define __IO_WIN_IO_CONTEXT_HPP_INCLUDED__
+#ifndef __IO_POSIX_CONTEXT_HPP_INCLUDED__
+#define __IO_POSIX_CONTEXT_HPP_INCLUDED__
 
-#include <config.hpp>
-#include "winconf.hpp"
+#include "config.hpp"
 
 #ifdef HAS_PRAGMA_ONCE
 #pragma once
@@ -21,21 +20,20 @@
 #include <channels.hpp>
 #include <buffer.hpp>
 
-#include "asynch_socket_channel.hpp"
+//#include "asynch_socket_channel.hpp"
 #include "sockets.hpp"
 #include "synch_socket_channel.hpp"
 #include "thread_pool.hpp"
 
 namespace io {
 
-
-/// !brief Asynchronous input/output context
+/// !brief input/output context
 class IO_PUBLIC_SYMBOL io_context final:public io::object {
     io_context(const io_context&) = delete;
     io_context& operator=(const io_context&) = delete;
 public:
 	/**
-	 * Creates new io
+	 * Creates new io context
 	 */
     static s_io_context create(std::error_code& ec) noexcept;
 
@@ -54,17 +52,19 @@ public:
     /// \return new read/write channel object smart pointer which can be used to communicate over the network, or empty smart pointer in case of error
     s_read_write_channel client_blocking_connect(std::error_code& ec, const char* host, uint16_t port) const noexcept;
 
-
 private:
     io_context() noexcept;
     friend class nobadalloc<io_context>;
 };
 
+/// !\brief asynchronous input/output context
+/// Windows implementation based on IO completion port and thread pool
+/// Default IO completion waiting thread poll size is available logical CPU count * 2
 class asynch_io_context final:public io::object {
     asynch_io_context(const asynch_io_context&) = delete;
     asynch_io_context& operator=(const asynch_io_context&) = delete;
 public:
- 	/// Creates new asynchronous input/output context
+	/// Creates new asynchronous input/output context
 	/// \param ec operation error code
 	/// \param owner an exising synchronous io_context
 	/// \return a smart pointer on reference to new asynch_io_context or an empty smart pointer in case of error
@@ -78,7 +78,6 @@ public:
 		s_io_context ctx = io::io_context::create(ec);
 		return ec ? s_asynch_io_context() : create(ec, ctx);
 	}
-
 
     ~asynch_io_context() noexcept;
 
@@ -122,6 +121,5 @@ private:
 	s_io_context owner_;
 };
 
-} // namespace io
 
-#endif // __IO_WIN_IO_CONTEXT_HPP_INCLUDED__
+#endif // __IO_POSIX_CONTEXT_HPP_INCLUDED__

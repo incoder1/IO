@@ -5,18 +5,6 @@
 // UTF-8, UTF-16 (LE,BE) or UTF-32(LE,BE)
 // For non UTF-8 UNICODE encodings XML file should have byte order mark (BOM)
 
-// mini embedded version of winver.h
-// needed by MinGW/64 headers which uses WinXP by
-// default
-// We need Windows Vista +
-#ifdef _WIN32
-#	if _WIN32_WINNT < 0x0600
-#		undef  _WIN32_WINNT
-#		define WINVER 0x0600
-#		define _WIN32_WINNT 0x0600
-#	endif // _WIN32_WINNT
-#endif
-
 // for file channels
 #include <files.hpp>
 // StAX XML parser
@@ -180,6 +168,7 @@ int main(int argc, const char** argv)
 	std::ostream& cout = io::console::out_stream();
 	std::ostream& cerr = io::console::error_stream();
 #else
+	std::ios::sync_with_stdio(false);
 	std::ostream& cout = std::cout;
 	std::ostream& cerr = std::cerr;
 #endif

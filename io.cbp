@@ -272,6 +272,9 @@
 		<Unit filename="include/posix/files.hpp">
 			<Option target="debug-unix-gcc-static-64bit" />
 		</Unit>
+		<Unit filename="include/posix/io_context.hpp">
+			<Option target="debug-unix-gcc-static-64bit" />
+		</Unit>
 		<Unit filename="include/posix/memory_traits.hpp">
 			<Option target="debug-unix-gcc-static-64bit" />
 		</Unit>
@@ -282,6 +285,12 @@
 			<Option target="debug-unix-gcc-static-64bit" />
 		</Unit>
 		<Unit filename="include/posix/sockets.hpp">
+			<Option target="debug-unix-gcc-static-64bit" />
+		</Unit>
+		<Unit filename="include/posix/synch_socket_channel.hpp">
+			<Option target="debug-unix-gcc-static-64bit" />
+		</Unit>
+		<Unit filename="include/posix/thread_pool.hpp">
 			<Option target="debug-unix-gcc-static-64bit" />
 		</Unit>
 		<Unit filename="include/scoped_array.hpp" />
@@ -424,7 +433,16 @@
 		<Unit filename="src/posix/files.cpp">
 			<Option target="debug-unix-gcc-static-64bit" />
 		</Unit>
+		<Unit filename="src/posix/io_context.cpp">
+			<Option target="debug-unix-gcc-static-64bit" />
+		</Unit>
 		<Unit filename="src/posix/sockets.cpp">
+			<Option target="debug-unix-gcc-static-64bit" />
+		</Unit>
+		<Unit filename="src/posix/synch_socket_channel.cpp">
+			<Option target="debug-unix-gcc-static-64bit" />
+		</Unit>
+		<Unit filename="src/posix/thread_pool.cpp">
 			<Option target="debug-unix-gcc-static-64bit" />
 		</Unit>
 		<Unit filename="src/shared_library.cpp" />

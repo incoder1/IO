@@ -105,9 +105,7 @@ int main(int argc, const char** argv)
     // Create a network socket to connect
     const io::net::socket_factory *sf = io::net::socket_factory::instance(ec);
     io::check_error_code(ec);
-    io::s_io_context ioc = io::io_context::create(ec);
-    io::check_error_code(ec);
-    io::s_asynch_io_context actx = io::asynch_io_context::create(ec, ioc);
+    io::s_asynch_io_context aioc = io::asynch_io_context::create(ec);
     io::check_error_code(ec);
 
     // we'll request HTTP 1.1. RFC document from W3C
@@ -119,7 +117,7 @@ int main(int argc, const char** argv)
     // Connect to the server using asynchronous input/ouput
     io::s_asynch_completion_routine routine = my_routine::create(ec);
     io::check_error_code(ec);
-    io::s_asynch_channel asch = actx->client_asynch_connect(ec, std::move(socket), routine );
+    io::s_asynch_channel asch = aioc->client_asynch_connect(ec, std::move(socket), routine );
 
     // Send HTTP request asynchronously
     io::byte_buffer buff = io::byte_buffer::wrap(ec, HTTP_GET_REQUEST );
@@ -131,7 +129,7 @@ int main(int argc, const char** argv)
     // if we've finish now CRT finish main application thread
     // as well as all threads in io completion thread pool
     // so that we've loosing our IO operations
-    actx->await();
+    aioc->await();
 
     return 0;
 }

@@ -17,16 +17,10 @@
 #pragma once
 #endif // HAS_PRAGMA_ONCE
 
-#include <arpa/inet.h>
-#include <sys/socket.h>
-#include <netdb.h>
-
 #include <atomic>
-#include <channels.hpp>
-#include <conststring.hpp>
-
 #include "criticalsection.hpp"
-#include "asynch_channe.hpp"
+#include "conststring.hpp"
+#include "synch_socket_channel.hpp"
 
 namespace io {
 
@@ -131,8 +125,6 @@ private:
     endpoint ep_;
 };
 
-DECLARE_IPTR(socket);
-
 class IO_PUBLIC_SYMBOL socket_factory {
 	socket_factory(const socket_factory&) = delete;
 	socket_factory& operator=(const socket_factory&) = delete;
@@ -141,6 +133,7 @@ private:
 	static void do_release() noexcept;
 	constexpr socket_factory() noexcept
 	{}
+	std::shared_ptr<::addrinfo> get_host_by_name(std::error_code& ec, const char* host) const noexcept;
 public:
 	~socket_factory() noexcept;
 	static const socket_factory* instance(std::error_code& ec) noexcept;

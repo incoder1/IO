@@ -33,7 +33,7 @@
 
 #elif ( _WIN32_WINNT < _WIN32_WINNT_WIN7 )
 
-#	error "Windows Vista is minimal supported Windows version, \
+#	error "Windows 7 is minimal supported Windows version, \
 			you mind fogot to define _WIN32_WINNT when on MinGW  \
 			or check your winver.h in visual studio project "
 
@@ -41,7 +41,7 @@
 
 #ifdef WINVER
 #	undef WINVER
-#	define WINVER _WIN32_WINNT_VISTA
+#	define WINVER _WIN32_WINNT_WIN7
 #endif // WINVER
 
 #include <winsock2.h>

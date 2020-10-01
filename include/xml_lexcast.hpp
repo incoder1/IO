@@ -342,11 +342,11 @@ private:
 	// and/or complier shows bad optimization results
 	static inline uint8_t divmod(int_type& n) noexcept {
 		uint8_t rem = n % 10;
-		n >>= 3;
-		n >>= 1;
+		n /= 10;
 		return rem;
 	}
-	static inline char_type* format_u(int_type value, char_type* to) noexcept {
+	static inline char_type* format_u(int_type value, char_type* to) noexcept
+	{
 		char_type result[ctraits::max_str_len];
 		char_type *s = &result[ctraits::max_str_len];
 		*s = char_traits::to_char_type(0);
@@ -587,8 +587,7 @@ public:
 	}
 
 	static inline double str_to_double(const char_type* str,const char_type** endptr) noexcept {
-		char buff[DOUBLE_MAX_DIGITS+1];
-		io_memset(buff, '\0', DOUBLE_MAX_DIGITS+1);
+		char buff[DOUBLE_MAX_DIGITS+1] = {'\0'};
 		move_digits<char_type>::move( buff, str);
 		char *ep;
 		double ret = std::strtod(buff, &ep);
@@ -600,8 +599,7 @@ public:
 	}
 
 	static inline const char_type* longdouble_to_str(long double v,char_type* to) noexcept {
-		char buff[LONG_DOUBLE_MAX_DIGITS+1];
-		io_memset(buff, '\0', LONG_DOUBLE_MAX_DIGITS+1);
+		char buff[LONG_DOUBLE_MAX_DIGITS+1] = {'\0'};
 #ifdef __GNUG__
 		__builtin_snprintf(buff, LONG_DOUBLE_MAX_DIGITS, "%G", v);
 #else

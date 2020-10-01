@@ -25,16 +25,6 @@ where id and enabled fields stored as XML attributes and name stored as a tag
 
 */
 
-// Mini WinVer.h for Windows
-#ifdef _WIN32
-#	if _WIN32_WINNT < 0x0600
-#		undef  _WIN32_WINNT
-#		define WINVER 0x0600
-#		define _WIN32_WINNT 0x0600
-#	endif // _WIN32_WINNT
-#endif
-
-
 #include <iostream>
 #include <vector>
 
@@ -82,9 +72,22 @@ static configuration read_config(io::unsafe<io::xml::reader>& rd)
 	return ret;
 }
 
+#ifdef IO_NO_EXCEPTIONS
+// handle unexpected error if any
+// current implementation
+// print last error (errno for UNIX or GetLastError for Windows) message into
+// standard error stream and calls for std::exit with error number as a process
+// execution result
+static void on_terminate() noexcept
+{
+	io::exit_with_current_error();
+}
+#endif // IO_NO_EXCEPTIONS
+
+
 int main(int argc, const char** argv)
 {
-
+	std::ios::sync_with_stdio(false);
 	io::file sf("test-config.xml");
 	if( !sf.exist() ) {
 		std::cerr << sf.path() << " is not exist" << std::endl;
@@ -98,6 +101,9 @@ int main(int argc, const char** argv)
 
 #ifndef IO_NO_EXCEPTIONS
 	try {
+#else
+    // set terminate handler for unexpected errors if any
+	std::set_terminate( on_terminate );
 #endif // IO_NO_EXCEPTIONS
 		io::unsafe<io::xml::reader> rd( std::move(psr) );
 		// goto <configurations>

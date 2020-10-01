@@ -19,7 +19,7 @@ namespace net {
 
 namespace http {
 
-inline const uint8_t* str_bytes(const char* str) noexcept {
+static inline const uint8_t* str_bytes(const char* str) noexcept {
 	return reinterpret_cast<const uint8_t*>(str);
 }
 
@@ -42,7 +42,6 @@ request::request(request_method method, const s_uri& uri) noexcept:
 
 void request::send(std::error_code& ec, writer& to) const noexcept
 {
-
 	std::stringstream buff;
 	switch(method_) {
 		case request_method::get:
