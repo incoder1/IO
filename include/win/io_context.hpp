@@ -28,7 +28,6 @@
 
 namespace io {
 
-
 /// !brief Asynchronous input/output context
 class IO_PUBLIC_SYMBOL io_context final:public io::object {
     io_context(const io_context&) = delete;

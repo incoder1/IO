@@ -16,7 +16,7 @@
 					<Add option="-Wnon-virtual-dtor" />
 					<Add option="-Winline" />
 					<Add option="-pedantic" />
-					<Add option="-std=c++11" />
+					<Add option="-std=c++17" />
 					<Add option="-std=c11" />
 					<Add option="-pg" />
 					<Add option="-Og" />
@@ -53,7 +53,7 @@
 					<Add option="-Wnon-virtual-dtor" />
 					<Add option="-Winline" />
 					<Add option="-pedantic" />
-					<Add option="-std=c++11" />
+					<Add option="-std=c++17" />
 					<Add option="-pg" />
 					<Add option="-Og" />
 					<Add option="-g" />
@@ -86,6 +86,7 @@
 					<Add option="-Wnon-virtual-dtor" />
 					<Add option="-Winline" />
 					<Add option="-pedantic" />
+					<Add option="-std=c++17" />
 					<Add option="-Og" />
 					<Add option="-g" />
 					<Add option="-fexceptions" />
@@ -120,7 +121,7 @@
 					<Add option="-Weffc++" />
 					<Add option="-pedantic" />
 					<Add option="-Wall" />
-					<Add option="-std=c++14" />
+					<Add option="-std=c++20" />
 					<Add option="-fno-exceptions" />
 					<Add option="-fno-rtti" />
 					<Add option="-fdeclone-ctor-dtor" />
@@ -203,24 +204,41 @@
 				<Option compiler="gcc" />
 				<Option createDefFile="1" />
 				<Compiler>
-					<Add option="-Wnon-virtual-dtor" />
-					<Add option="-Winline" />
+					<Add option="-flto" />
+					<Add option="-Weffc++" />
 					<Add option="-pedantic" />
-					<Add option="-std=c++11" />
-					<Add option="-pg" />
-					<Add option="-fPIC" />
-					<Add option="-Og" />
-					<Add option="-g" />
-					<Add option="-fexceptions" />
-					<Add option="`pkg-config --cflags gnutls`" />
+					<Add option="-Wall" />
+					<Add option="-std=c++20" />
+					<Add option="-fchar8_t" />
+					<Add option="-fno-exceptions" />
+					<Add option="-fno-rtti" />
+					<Add option="-DNDEBUG" />
+					<Add option="-DIO_SHARED_LIB" />
 					<Add option="-DIO_TLS_PROVIDER_GNUTLS" />
 					<Add directory="include" />
-					<Add directory="include/posix" />
 					<Add directory="include/net" />
+					<Add directory="include/win" />
+					<Add directory="$(#msys2.include)" />
 					<Add directory="include/tls" />
 				</Compiler>
 				<Linker>
-					<Add option="-pg" />
+					<Add option="-O3" />
+					<Add option="-flto" />
+					<Add option="-s" />
+					<Add option="-fwhole-program" />
+					<Add option="-fdeclone-ctor-dtor" />
+					<Add option="-fdevirtualize-at-ltrans" />
+					<Add option="-Wl,-allow-multiple-definition" />
+					<Add option="-mtune=generic" />
+					<Add option="-minline-stringops-dynamically" />
+					<Add option="-mavx" />
+					<Add option="-mavx2" />
+					<Add option="-mlzcnt" />
+					<Add option="-mmovbe" />
+					<Add library="iconv.dll" />
+					<Add library="Ws2_32" />
+					<Add library="gnutls.dll" />
+					<Add directory="$(#msys2.lib)" />
 				</Linker>
 			</Target>
 		</Build>
@@ -378,6 +396,13 @@
 			<Option target="debug-win-gcc-static-x64-embedtls" />
 		</Unit>
 		<Unit filename="include/win/thread_pool.hpp">
+			<Option target="debug-win-gcc-static-x64" />
+			<Option target="debug-win-gcc-static-x64-embedtls" />
+			<Option target="debug-win-gcc-dll-x64" />
+			<Option target="release-win-gcc-static-x64" />
+			<Option target="release-win-gcc-dll-x64" />
+		</Unit>
+		<Unit filename="include/win/win_asynch_channel.hpp">
 			<Option target="debug-win-gcc-static-x64" />
 			<Option target="debug-win-gcc-static-x64-embedtls" />
 			<Option target="debug-win-gcc-dll-x64" />

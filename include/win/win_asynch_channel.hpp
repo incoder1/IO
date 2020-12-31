@@ -1,5 +1,5 @@
-#ifndef __IO_WIN_OVERLAPPED_HPP__
-#define __IO_WIN_OVERLAPPED_HPP__
+#ifndef __IO_WIN_ASYNC_CHANNEL_HPP__
+#define __IO_WIN_ASYNC_CHANNEL_HPP__
 
 #include "config.hpp"
 
@@ -8,10 +8,11 @@
 #endif // HAS_PRAGMA_ONCE
 
 #include "buffer.hpp"
+#include "channels.hpp"
 
 namespace io {
 
-namespace detail {
+namespace win {
 
 enum class operation: ::DWORD {
    accept = 0,
@@ -38,8 +39,26 @@ struct overlapped: public ::OVERLAPPED {
     byte_buffer data_;
 };
 
-}  // namespace detail
+
+class win_asynch_channel:public asynch_channel
+{
+	win_asynch_channel(const win_asynch_channel&) = delete;
+	win_asynch_channel& operator=(const win_asynch_channel&) = delete;
+public:
+	win_asynch_channel(::HANDLE hnd,const s_asynch_completion_routine& routines, const asynch_io_context* context) noexcept:
+		asynch_channel(routines,context),
+		hnd_(hnd)
+	{}
+	::HANDLE handle() const noexcept {
+		return hnd_;
+	};
+private:
+	::HANDLE hnd_;
+};
+
+
+}  // namespace win
 
 } // namespace IO
 
-#endif // __IO_WIN_OVERLAPPED_HPP__
+#endif // __IO_WIN_ASYNC_CHANNEL_HPP__

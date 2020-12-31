@@ -69,6 +69,15 @@ private:
 	io::s_read_write_channel raw_;
 };
 
+class asynch_transport final: public transport {
+public:
+	asynch_transport(io::s_asynch_channel&& raw) noexcept;
+	virtual ssize_t pull(std::error_code& ec, void* dst,std::size_t len) noexcept override;
+	virtual ssize_t push(std::error_code& ec, const void* src,std::size_t len) noexcept override;
+private:
+	io::s_asynch_channel raw_;
+};
+
 
 class credentials
 {

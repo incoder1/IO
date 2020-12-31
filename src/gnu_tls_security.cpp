@@ -35,6 +35,26 @@ ssize_t synch_transport::push(std::error_code& ec, const void* src,std::size_t l
     return ec ? -1 : ret;
 }
 
+// asynch_transport
+
+asynch_transport::asynch_transport(io::s_asynch_channel&& raw) noexcept:
+    transport(),
+	raw_( std::forward<io::s_asynch_channel>(raw) )
+{}
+
+ssize_t asynch_transport::pull(std::error_code& ec, void* dst,std::size_t len) noexcept
+{
+	raw_->recaive(ec, len, 0 );
+	// TODO: wait for completion and notify
+	return -1;
+}
+
+ssize_t asynch_transport::push(std::error_code& ec, const void* src,std::size_t len) noexcept
+{
+	raw_->send(ec, io::byte_buffer::wrap(ec, static_cast<const uint8_t*>(src), len), 0 );
+	// TODO: wait for completion and notify
+	return -1;
+}
 
 // credentials
 credentials credentials::system_trust_creds(std::error_code& ec) noexcept
@@ -99,7 +119,7 @@ int session::client_handshake(::gnutls_session_t const peer) noexcept
     do {
         ret = ::gnutls_handshake( peer );
     }
-    while( ret != GNUTLS_E_SUCCESS && 0 == gnutls_error_is_fatal(ret) );
+    while( ret != GNUTLS_E_SUCCESS && 0 == ::gnutls_error_is_fatal(ret) );
     return ret;
 }
 

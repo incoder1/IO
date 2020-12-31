@@ -27,18 +27,6 @@
 
 namespace io {
 
-/// \brief General input/output channel interface
-/// \details Adds ability for put implementor into instrusive_ptr
-class IO_PUBLIC_SYMBOL channel:public object {
-public:
-    channel(const channel&) = delete;
-    channel& operator=(const channel&) = delete;
-protected:
-    constexpr channel() noexcept:
-        object()
-    {}
-    virtual ~channel() override = default;
-};
 
 template <class C>
 class unsafe {
@@ -47,7 +35,7 @@ class unsafe {
 /**
   General interface to input operations on an resource like a: file, socket, std in device, named pipe, shared memory blocks etc.
  **/
-class IO_PUBLIC_SYMBOL read_channel:public virtual channel {
+class IO_PUBLIC_SYMBOL read_channel:public virtual object {
 protected:
     read_channel() noexcept;
 public:
@@ -91,7 +79,7 @@ private:
  * General interface to output operations on an resource
  * like a: file, socket, std out device, named pipe, shared memory blocks etc.
  **/
-class IO_PUBLIC_SYMBOL write_channel:public virtual channel {
+class IO_PUBLIC_SYMBOL write_channel:public virtual object {
 protected:
     write_channel() noexcept;
 public:
@@ -136,7 +124,7 @@ private:
 * General interface to input and output operations on an resource
 * like a: file, socket, std in/out device, named pipe, shared memory blocks etc.
 **/
-class IO_PUBLIC_SYMBOL read_write_channel:public virtual channel, public read_channel, public write_channel {
+class IO_PUBLIC_SYMBOL read_write_channel:public virtual object, public read_channel, public write_channel {
 protected:
     read_write_channel() noexcept;
 public:
@@ -284,7 +272,7 @@ class asynch_io_context;
 DECLARE_IPTR(asynch_io_context);
 
 
-class IO_PUBLIC_SYMBOL asynch_completion_routine:public io::object {
+class IO_PUBLIC_SYMBOL asynch_completion_routine:public object {
     asynch_completion_routine(const asynch_completion_routine&) = delete;
     asynch_completion_routine& operator=(asynch_completion_routine&) = delete;
 public:
@@ -307,22 +295,17 @@ public:
 
 DECLARE_IPTR(asynch_completion_routine);
 
-class IO_PUBLIC_SYMBOL asynch_channel:public channel {
+class IO_PUBLIC_SYMBOL asynch_channel:public object {
     asynch_channel(const asynch_channel&) = delete;
     asynch_channel& operator=(const asynch_channel&) = delete;
 protected:
-    asynch_channel(os_descriptor_t hnd, const s_asynch_completion_routine& routines, const asynch_io_context* context) noexcept;
+    asynch_channel(const s_asynch_completion_routine& routines, const asynch_io_context* context) noexcept;
 public:
     virtual ~asynch_channel() noexcept = 0;
     /// Returns current completion routine
     s_asynch_completion_routine routine() const noexcept
     {
         return routine_;
-    }
-    /// Returns underlying operating system file handle or socket descriptor
-    os_descriptor_t handle() const noexcept
-    {
-        return hnd_;
     }
     const asynch_io_context* context() const noexcept {
     	return context_;
@@ -332,7 +315,6 @@ public:
     virtual bool cancel_pending() const noexcept = 0;
     virtual bool cancel_all() const noexcept = 0;
 private:
-    os_descriptor_t hnd_;
     s_asynch_completion_routine routine_;
     const asynch_io_context* context_;
 };

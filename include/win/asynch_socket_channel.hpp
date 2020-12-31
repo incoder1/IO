@@ -23,15 +23,14 @@
 
 #include <ws2tcpip.h>
 
-#include "channels.hpp"
 #include "wsaerror.hpp"
-#include "overlapped.hpp"
+#include "win_asynch_channel.hpp"
 
 namespace io {
 
 namespace net {
 
-class IO_PUBLIC_SYMBOL asynch_socket_channel final: public io::asynch_channel {
+class IO_PUBLIC_SYMBOL asynch_socket_channel final: public io::win::win_asynch_channel {
 public:
     asynch_socket_channel(::SOCKET socket, const s_asynch_completion_routine& routine, const asynch_io_context* ctx) noexcept;
     virtual ~asynch_socket_channel() noexcept override;

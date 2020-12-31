@@ -87,8 +87,8 @@ void my_routine::sent(std::error_code& ec,const io::s_asynch_channel& source, io
 }
 
 // Simple HTTP 1.1 Request to a server, for demonstration propose
-// it's farfrom what really need by full HTTP client, used to for really tinny communicate with
-// a pulic available server, in our case it is W3C
+// HTTP client, used to for really tinny communicate with
+// a public available server, in our case it is W3C
 const char* HTTP_GET_REQUEST = "GET /html/rfc2616 HTTP/1.1\r\n\
 Host: tools.ietf.org\r\n\
 Accept: text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8\r\n\
@@ -108,27 +108,30 @@ int main(int argc, const char** argv)
     io::s_asynch_io_context aioc = io::asynch_io_context::create(ec);
     io::check_error_code(ec);
 
-    // we'll request HTTP 1.1. RFC document from W3C
-    // this example is shows work with raw network sockets with asynchronous IO, and not about HTTP protocol generaly
-    // real HTTP communication need TLS security layer to communicate over HTTPS
+    // We'll request HTTP 1.1. RFC document from W3C
+    // this example shows work with raw network sockets with asynchronous IO,
+    // and generally not about HTTP protocol it self
+    // Real HTTP communication need TLS security layer to support communication over HTTPS
     io::net::socket socket = sf->client_tcp_socket(ec, "tools.ietf.org", 80);
     io::check_error_code(ec);
 
-    // Connect to the server using asynchronous input/ouput
-    io::s_asynch_completion_routine routine = my_routine::create(ec);
+	//Create asynchronous completion routine object instance
+	// which will handle all asynchronous operations complete states
+	io::s_asynch_completion_routine routine = my_routine::create(ec);
     io::check_error_code(ec);
+    // Connect to the server using asynchronous input/ouput
     io::s_asynch_channel asch = aioc->client_asynch_connect(ec, std::move(socket), routine );
 
-    // Send HTTP request asynchronously
+    // Wrap HTTP request text into byte buffer and send HTTP request asynchronously
     io::byte_buffer buff = io::byte_buffer::wrap(ec, HTTP_GET_REQUEST );
     io::check_error_code(ec);
     asch->send(ec, std::move(buff), 0);
     io::check_error_code(ec);
 
-    // await for all pending asynchronous operations done
-    // if we've finish now CRT finish main application thread
-    // as well as all threads in io completion thread pool
-    // so that we've loosing our IO operations
+    // Await for all pending asynchronous operations to be done.
+    // Don't allow main CRT thread to finish and terminate
+    // all threads with in completion thread pool
+    // so that our IO operations would't be lost
     aioc->await();
 
     return 0;

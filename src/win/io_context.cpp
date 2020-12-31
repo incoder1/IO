@@ -161,7 +161,7 @@ void asynch_io_context::completion_loop_routine(::HANDLE ioc_port) noexcept
 	asynch_channel* channel = nullptr;
 	do {
 		::DWORD transfered = 0;
-		detail::overlapped* ovlp;
+		win::overlapped* ovlp;
 		status = ::GetQueuedCompletionStatus(
 				ioc_port,
 				&transfered,
@@ -173,13 +173,13 @@ void asynch_io_context::completion_loop_routine(::HANDLE ioc_port) noexcept
 			// don't increase reference counting, must be done by channel in a thread requested asynch io operation
 			switch(ovlp->io_op_)
 			{
-			case io::detail::operation::send:
+			case io::win::operation::send:
 				notify_send( ec, transfered,  channel, std::move(ovlp->data_) );
 				break;
-			case io::detail::operation::recaive:
+			case io::win::operation::recaive:
 				notify_received(ec, transfered, channel, std::move(ovlp->data_) );
 				break;
-			case io::detail::operation::accept:
+			case io::win::operation::accept:
 				// TODO: implement
 				break;
 			}
@@ -192,7 +192,8 @@ void asynch_io_context::completion_loop_routine(::HANDLE ioc_port) noexcept
 /// so that worker threads able to process input/output operations
 bool asynch_io_context::bind_to_port(std::error_code& ec, const asynch_channel* src) const noexcept
 {
-    bool ret = ioc_port_ == ::CreateIoCompletionPort( src->handle(), ioc_port_, reinterpret_cast<ULONG_PTR>( src ), 0 );
+	const io::win::win_asynch_channel  *ch = reinterpret_cast<const io::win::win_asynch_channel*>(src);
+    bool ret = ioc_port_ == ::CreateIoCompletionPort( ch->handle(), ioc_port_, reinterpret_cast<ULONG_PTR>( src ), 0 );
     if(!ret) {
         ec = std::error_code( ::GetLastError(), std::system_category() );
     }

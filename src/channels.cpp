@@ -15,17 +15,17 @@ namespace io {
 
 //read_channel
 read_channel::read_channel() noexcept:
-	channel()
+	object()
 {}
 
 //write_channel
 write_channel::write_channel() noexcept:
-	channel()
+	object()
 {}
 
 // read_write_channel
 read_write_channel::read_write_channel() noexcept:
-	channel(),
+	object(),
 	read_channel(),
 	write_channel()
 {}
@@ -50,9 +50,8 @@ void asynch_completion_routine::sent(std::error_code& ec, const s_asynch_channel
 {}
 
 // asynch_channel
-asynch_channel::asynch_channel(os_descriptor_t hnd, const s_asynch_completion_routine& routine,const asynch_io_context* context) noexcept:
-	channel(),
-	hnd_(hnd),
+asynch_channel::asynch_channel(const s_asynch_completion_routine& routine,const asynch_io_context* context) noexcept:
+	object(),
 	routine_( routine ),
 	context_( context )
 {}
