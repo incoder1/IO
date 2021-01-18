@@ -22,7 +22,7 @@ public:
     /// \param source
     ///             a async_channel which was used to asynchronously receive data
     /// \param data
-    ///             received data buffer, data-length shows transmit data buffer position is set to head,
+    ///             received data buffer, data.length() shows transmit data, buffer position is set to head when
 	///             last iterator shows on a byte after last received byte
     virtual void received(std::error_code& ec, const io::s_asynch_channel& source, io::byte_buffer&& data) noexcept override;
     /// Handles asynchronous data sent i.e. write is done

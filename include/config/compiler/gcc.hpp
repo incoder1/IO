@@ -52,11 +52,13 @@
 #endif // exception
 
 #if defined(__i386__) || defined(__i486__) || defined(__i586__) || defined(__i686__) || defined(__x86_64__)
-#define IO_CPU_INTEL
+#	define IO_CPU_INTEL
 #endif // INTEL
 
 #if defined(__LP64__) || defined(__x86_64__) || defined(__MINGW64__)
-#define IO_CPU_BITS_64 1
+#	define IO_CPU_BITS_64 1
+#else
+#	define IO_CPU_BITS_32 1
 #endif // __LP64__
 
 // should not be used unless something specific, i.e. inline assembly based function

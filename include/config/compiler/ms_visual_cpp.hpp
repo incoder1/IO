@@ -1,6 +1,6 @@
 ﻿/*
  *
- * Copyright (c) 2016
+ * Copyright (c) 2016-2021
  * Viktor Gubin
  *
  * Use, modification and distribution are subject to the
@@ -72,6 +72,8 @@
 
 #if defined(_M_X64) || defined(_M_AMD64) || defined(_M_ARM64) || defined(_WIN64)
 #	define IO_CPU_BITS_64 1
+#else
+#	define IO_CPU_BITS_32 1
 #endif
 
 #ifdef IO_CPU_BITS_64
