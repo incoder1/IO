@@ -11,7 +11,9 @@ Make sure you have installed video card drivers with hardware accelerated 3D gra
 > Note: Unix/Linux more likelly you'll need proprietary video card drivers from your card vendor. Check your distoro documentation.
 
 ## Additional libraries you'll need for 3D graphics engine
-|| Library  || Description || minimal required version || Platform ||
+
+| Library  | Description | Minimal required version | Platform |
+ --- | --- | --- | --- 
 | [glwf](https://www.glfw.org/) | API for creating windows, contexts and surfaces, receiving input and events. | 3.0 | ALL |
 | [glew](http://glew.sourceforge.net/)| GLEW provides efficient run-time mechanisms for determining which OpenGL extensions are supported on the target platform) | 2.0 | ALL |
 | [GLM](https://github.com/g-truc/glm) | C++ mathematics library for graphics software based on the OpenGL Shading Language (GLSL) specifications | 0.9.9.8 | ALL |
