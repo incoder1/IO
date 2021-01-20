@@ -19,7 +19,9 @@
 
 
 #include <functional>
-#include <forward_list>
+
+
+#include <winbase.h>
 
 namespace io {
 
@@ -75,11 +77,9 @@ private:
 
 private:
     ::PTP_POOL id_;
-    unsigned int min_threads_;
     unsigned int max_threads_;
     ::PTP_CLEANUP_GROUP cleanup_group_;
     ::TP_CALLBACK_ENVIRON cbenv_;
-    std::forward_list< ::PTP_WORK > works_;
 };
 
 } // namespace io

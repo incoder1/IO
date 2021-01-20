@@ -36,6 +36,9 @@ inline void DestroyThreadpoolEnvironment( PTP_CALLBACK_ENVIRON CallbackEnviron) 
 {
     UNREFERENCED_PARAMETER(CallbackEnviron);
 }
+
+#define SetThreadpoolCallbackCleanupGroup(__pcbe,__ptpcg,__pfng) TpSetCallbackCleanupGroup( (__pcbe), (__ptpcg), (__pfng) )
+
 #endif // __GNUG__
 
 namespace io {
@@ -82,16 +85,16 @@ thread_pool::thread_pool(::PTP_POOL id, ::DWORD max_threads, ::PTP_CLEANUP_GROUP
     id_(id),
     max_threads_(max_threads),
     cleanup_group_(cleanup_group),
-    cbenv_(),
-    works_()
+    cbenv_()
 {
     InitializeThreadpoolEnvironment(&cbenv_);
+    SetThreadpoolCallbackCleanupGroup(&cbenv_, cleanup_group_, [](PVOID object_context, PVOID cleanup_context) {} );
 }
 
 thread_pool::~thread_pool() noexcept
 {
     // Clean up the cleanup group.
-    ::CloseThreadpoolCleanupGroupMembers(cleanup_group_, FALSE, this);
+    ::CloseThreadpoolCleanupGroupMembers(cleanup_group_, TRUE, this);
     ::CloseThreadpoolCleanupGroup(cleanup_group_);
     ::DestroyThreadpoolEnvironment(&cbenv_);
     // Close thread pool
@@ -107,18 +110,12 @@ void thread_pool::sumbmit(std::error_code& ec,async_task&& routine) noexcept
     else {
         ::PTP_WORK work = ::CreateThreadpoolWork(&thread_pool::routine_wrapper, tc, &cbenv_);
         ::SubmitThreadpoolWork(work);
-        works_.push_front( work );
     }
 }
 
 void thread_pool::join() noexcept
 {
-    while( !works_.empty() ) {
-        ::PTP_WORK work = works_.front();
-        ::WaitForThreadpoolWorkCallbacks(work, FALSE );
-        ::CloseThreadpoolWork(work);
-        works_.pop_front();
-    }
+	::CloseThreadpoolCleanupGroupMembers(cleanup_group_, FALSE, this);
 }
 
 } // namespace io

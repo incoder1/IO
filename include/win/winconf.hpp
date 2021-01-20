@@ -41,7 +41,7 @@
 
 #ifdef WINVER
 #	undef WINVER
-#	define WINVER _WIN32_WINNT_WIN7
+#	define WINVER _WIN32_WINNT
 #endif // WINVER
 
 #include <winsock2.h>
