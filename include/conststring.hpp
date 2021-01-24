@@ -38,7 +38,7 @@ namespace detail {
 #if defined(__HAS_CPP_17) && defined(__cpp_char8_t)
 typedef char8_t utf8char;
 #else
-typedef uint8_t utf8char;
+typedef char utf8char;
 #endif // defined
 
 struct long_char_buf_t {
@@ -59,7 +59,7 @@ struct short_char_buf_t {
 	// assuming MAX_SIZE string length is not possible,
     uint8_t size: CHAR_BIT - 1;
 	// max val + zero ending char
-	char char_buf[ SSO_MAX+1 ];
+	utf8char char_buf[ SSO_MAX+1 ];
 };
 
 // Packs small strings into char array instead of allocating heap value
@@ -80,9 +80,9 @@ constexpr std::size_t short_size(const sso_variant_t& v) noexcept
 	return v.short_buf.size;
 }
 
-constexpr const char* short_str(const sso_variant_t& v) noexcept
+inline const char* short_str(const sso_variant_t& v) noexcept
 {
-	return v.short_buf.char_buf;
+	return reinterpret_cast<const char*>(v.short_buf.char_buf);
 }
 
 inline const char* long_str(const sso_variant_t& v) noexcept

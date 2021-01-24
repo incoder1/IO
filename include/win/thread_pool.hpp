@@ -17,11 +17,7 @@
 #pragma once
 #endif // HAS_PRAGMA_ONCE
 
-
 #include <functional>
-
-
-#include <winbase.h>
 
 namespace io {
 

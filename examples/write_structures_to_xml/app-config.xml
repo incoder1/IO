@@ -1,7 +1,1 @@
-<?xml version="1.0" encoding="UTF-8" ?>
-<!--Test event writer-->
-<tst:test xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
-	<tst:cdata_chars>
-<![CDATA[<Test CDATA >]]>
-		</tst:cdata_chars>	Test characters
-	</tst:test>
+﻿<?xml version="1.0" encoding="UTF-8" ?><application-settings xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="app-config.xsd"><primary-configuration id="1"/><configurations><configuration id="1" enabled="true"><date-created>2021-01-20Z</date-created><name>First configuration</name></configuration><configuration id="2" enabled="false"><date-created>2021-01-20Z</date-created><name>Second configuration</name></configuration></configurations></application-settings>

@@ -35,36 +35,76 @@ struct version {
 class IO_PUBLIC_SYMBOL event_writer final: public io::object {
 public:
 
-	static s_event_writer open(std::error_code& ec,const s_write_channel& to,bool format,const document_event& prologue) noexcept;
+	static s_event_writer open(std::error_code& ec,s_write_channel&& to,bool format,const document_event& prologue) noexcept;
 
-	static s_event_writer open(std::error_code& ec,const s_write_channel& to, bool format, const version& v,const charset& encoding, bool standalone) noexcept;
+	static s_event_writer open(std::error_code& ec,s_write_channel&& to, bool format, const version& v,const charset& encoding, bool standalone) noexcept;
 
-	static inline s_event_writer open(std::error_code& ec, const s_write_channel& to) noexcept {
-		return open(ec, to, true, {1,0}, code_pages::UTF_8, false );
-	}
+	static s_event_writer open(std::error_code& ec, s_write_channel&& to) noexcept;
 
 	~event_writer() noexcept override;
-	void add(std::error_code& ec,const start_element_event& ev) noexcept;
-	void add(std::error_code& ec,const end_element_event& ev) noexcept;
-	void add_cdata(std::error_code& ec,const char* str) noexcept;
-	void add_chars(std::error_code& ec,const char* str) noexcept;
-	void add_coment(std::error_code& ec,const char* str) noexcept;
+	void add(const start_element_event& ev) noexcept;
+	void add(const end_element_event& ev) noexcept;
+	void add_cdata(const char* str) noexcept;
+	void add_chars(const char* str) noexcept;
+	void add_coment(const char* str) noexcept;
+	bool has_error() const noexcept
+	{
+		return static_cast<bool>(ec_);
+	}
+	std::error_code last_error() noexcept
+	{
+		return ec_;
+	}
 private:
-	explicit event_writer(bool format,writer&& to, io::byte_buffer&& buff) noexcept;
-	void print(std::error_code& ec,const char* str, std::size_t len) noexcept;
-	void print(std::error_code& ec,const char* str) noexcept;
-	void print(std::error_code& ec,const const_string& str) noexcept;
-	void print(std::error_code& ec,const qname& name) noexcept;
-	void overflow(std::error_code& ec) noexcept;
-	void independent(std::error_code& ec) noexcept;
+	explicit event_writer(bool format,writer&& to) noexcept;
+	void print(char ch) noexcept;
+	void print(const char* str) noexcept;
+	void print(const const_string& str) noexcept;
+	void print(const qname& name) noexcept;
+	void independent() noexcept;
 private:
 	std::size_t nesting_level_;
 	bool format_;
 	writer to_;
-	io::byte_buffer buff_;
+	std::error_code ec_;
 };
 
 } // namespace xml
+
+template <>
+class unsafe<xml::event_writer> {
+public:
+	explicit unsafe(xml::s_event_writer&& ew) noexcept:
+		ew_( std::forward<xml::s_event_writer>(ew) )
+	{}
+	void add(const xml::start_element_event& ev)
+	{
+		ew_->add(ev);
+		check_error_code(ew_->last_error());
+	}
+	void add(const xml::end_element_event& ev)
+	{
+		ew_->add(ev);
+		check_error_code(ew_->last_error());
+	}
+	void add_cdata(const char* str)
+	{
+		ew_->add_cdata(str);
+		check_error_code(ew_->last_error());
+	}
+	void add_chars(const char* str)
+	{
+		ew_->add_chars(str);
+		check_error_code(ew_->last_error());
+	}
+	void add_coment(const char* str)
+	{
+		ew_->add_coment(str);
+		check_error_code(ew_->last_error());
+	}
+private:
+	 xml::s_event_writer ew_;
+};
 
 } // namespace io
 

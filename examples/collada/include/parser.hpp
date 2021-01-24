@@ -22,7 +22,7 @@
 namespace collada {
 
 
-/// Parses COLLADA model asssets from XML file
+/// Parses COLLADA model assets from DAE XML stream
 class parser {
 public:
 	/// Constructs COLLADA parser for read stream points to XML data
@@ -39,9 +39,9 @@ public:
 private:
 
 	// StAX parsing helpers
-	/// Move XML parser to next parser state, i.e. skip XML specific declarations like dtd etc
+	/// Move XML parser to next parser state, i.e. skip XML specific declarations like DTD etc.
 	io::xml::state_type to_next_state() noexcept;
-	/// Move XML parser next parser event, i.e. skip spaces between tags, comments, dtd
+	/// Move XML parser next parser event, i.e. skip spaces between tags, comments, DTD etc.
 	io::xml::event_type to_next_event(io::xml::state_type& state);
 	/// Move XML parser to next tag event, i.e. element start or element end
 	/// skips any comments or characters
@@ -51,14 +51,14 @@ private:
 	/// Checks for end of document, i.e. no more data or parsing error
 	inline void check_eod(io::xml::state_type state,const char* msg);
 	/// Checks XML parser event is end element event of the required element local name
-	bool is_end_element(io::xml::event_type et,const io::cached_string& local_name);
+	bool is_end_element(io::xml::event_type et,const io::const_string& local_name);
 	/// Checks XML parser event is end element event of the required full tag name
 	inline bool is_end_element(io::xml::event_type et,const io::xml::qname& tagname);
 
 	/// Checks start element points to element of the required element local name
-	static bool is_element(const io::xml::start_element_event& e,const io::cached_string& ln) noexcept;
+	static bool is_element(const io::xml::start_element_event& e,const io::const_string& ln) noexcept;
 	/// Checks end element points to element of the required element local name
-	static bool is_element(const io::xml::end_element_event& e,const io::cached_string& ln) noexcept;
+	static bool is_element(const io::xml::end_element_event& e,const io::const_string& ln) noexcept;
 
 	bool is_element(const io::xml::start_element_event& e,const char* s) noexcept
 	{
@@ -121,11 +121,11 @@ private:
 private:
 	io::xml::s_event_stream_parser xp_;
 // pre-cache root section elements, to speed up the main parsing loop
-	io::cached_string library_materials_;
-	io::cached_string library_effects_;
-	io::cached_string library_geometries_;
-	io::cached_string library_visual_scenes_;
-	io::cached_string library_images_;
+	io::const_string library_materials_;
+	io::const_string library_effects_;
+	io::const_string library_geometries_;
+	io::const_string library_visual_scenes_;
+	io::const_string library_images_;
 };
 
 } // namespace collada

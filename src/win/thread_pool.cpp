@@ -12,32 +12,21 @@
 #include "thread_pool.hpp"
 
 #ifdef __GNUG__
-inline void InitializeThreadpoolEnvironment(PTP_CALLBACK_ENVIRON CallbackEnviron) noexcept
+
+inline void InitializeThreadpoolEnvironment(PTP_CALLBACK_ENVIRON cbe) noexcept
 {
-#if (_WIN32_WINNT >= _WIN32_WINNT_WIN7)
-    CallbackEnviron->Version = 3;
-#else
-    CallbackEnviron->Version = 1;
-#endif
-    CallbackEnviron->Pool = nullptr;
-    CallbackEnviron->CleanupGroup = nullptr;
-    CallbackEnviron->CleanupGroupCancelCallback = nullptr;
-    CallbackEnviron->RaceDll = nullptr;
-    CallbackEnviron->ActivationContext = nullptr;
-    CallbackEnviron->FinalizationCallback = nullptr;
-    CallbackEnviron->u.Flags = 0;
-#if (_WIN32_WINNT >= _WIN32_WINNT_WIN7)
-    CallbackEnviron->CallbackPriority = TP_CALLBACK_PRIORITY_NORMAL;
-    CallbackEnviron->Size = sizeof(TP_CALLBACK_ENVIRON);
-#endif
+	TpInitializeCallbackEnviron (cbe);
 }
 
-inline void DestroyThreadpoolEnvironment( PTP_CALLBACK_ENVIRON CallbackEnviron) noexcept
+inline void SetThreadpoolCallbackCleanupGroup(PTP_CALLBACK_ENVIRON cbe, PTP_CLEANUP_GROUP cg, PTP_CLEANUP_GROUP_CANCEL_CALLBACK cgccb) noexcept
 {
-    UNREFERENCED_PARAMETER(CallbackEnviron);
+	TpSetCallbackCleanupGroup( cbe, cg, cgccb );
 }
 
-#define SetThreadpoolCallbackCleanupGroup(__pcbe,__ptpcg,__pfng) TpSetCallbackCleanupGroup( (__pcbe), (__ptpcg), (__pfng) )
+inline void DestroyThreadpoolEnvironment(PTP_CALLBACK_ENVIRON cbe) noexcept
+{
+	TpDestroyCallbackEnviron(cbe);
+}
 
 #endif // __GNUG__
 
@@ -75,6 +64,8 @@ s_thread_pool thread_pool::create(std::error_code& ec, unsigned int max_threads)
     thread_pool *ret = new ( std::nothrow ) thread_pool(id, max_threads, cleanup_group);
     if( nullptr == ret) {
         ec = std::make_error_code(std::errc::not_enough_memory);
+        ::CloseThreadpoolCleanupGroup(cleanup_group);
+        ::CloseThreadpool(id);
         return s_thread_pool();
     }
     return s_thread_pool(ret);
@@ -88,13 +79,13 @@ thread_pool::thread_pool(::PTP_POOL id, ::DWORD max_threads, ::PTP_CLEANUP_GROUP
     cbenv_()
 {
     InitializeThreadpoolEnvironment(&cbenv_);
-    SetThreadpoolCallbackCleanupGroup(&cbenv_, cleanup_group_, [](PVOID object_context, PVOID cleanup_context) {} );
+    SetThreadpoolCallbackCleanupGroup(&cbenv_, cleanup_group_, [](PVOID object_context, PVOID cleanup_context) {});
 }
 
 thread_pool::~thread_pool() noexcept
 {
-    // Clean up the cleanup group.
-    ::CloseThreadpoolCleanupGroupMembers(cleanup_group_, TRUE, this);
+    // Clean up the cleanup_group
+    ::CloseThreadpoolCleanupGroupMembers(cleanup_group_, FALSE, this);
     ::CloseThreadpoolCleanupGroup(cleanup_group_);
     ::DestroyThreadpoolEnvironment(&cbenv_);
     // Close thread pool
@@ -115,6 +106,7 @@ void thread_pool::sumbmit(std::error_code& ec,async_task&& routine) noexcept
 
 void thread_pool::join() noexcept
 {
+	// Close members and wait for all pending operations
 	::CloseThreadpoolCleanupGroupMembers(cleanup_group_, FALSE, this);
 }
 

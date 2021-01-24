@@ -1,16 +1,5 @@
 // This example demonstrate memory buffer read and write synchronous channels
 
-// mini embedded version of winver.h
-// needed bu MinGW/64 headers which uses WinXP by
-// default
-// We need Windows Vista +
-#ifdef _WIN32
-#	if _WIN32_WINNT < 0x0600
-#		undef  _WIN32_WINNT
-#		define WINVER 0x0600
-#		define _WIN32_WINNT 0x0600
-#	endif // _WIN32_WINNT
-#endif
 
 #include <console.hpp>
 #include <memory_channel.hpp>

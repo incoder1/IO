@@ -1,6 +1,7 @@
 /**
-* Example demonstrate IO network feature, like secured TLS connection, URL and TCP/IP blocking connection
-* for non blocking connection see async_network_client
+* Example demonstrate IO blocking TCP/IP and HTTP network client input-output
+* including secured TLS protected HTTP connection.
+* For non blocking connection see async_network_client
 */
 #include <errorcheck.hpp>
 
@@ -10,16 +11,19 @@
 
 #include <console.hpp>
 
-
-int main()
+int main(int argc, const char** argv)
 {
 
 	using namespace io::net;
 	std::error_code ec;
+	// unified resource identifier on HTTP 1.1 RFC
 	s_uri url = uri::parse(ec, "https://tools.ietf.org/html/rfc2616");
 	io::check_error_code(ec);
 
+	// IO console stream, it supports UNICODE console including Windows consoles
+	// as well as colored output
 	std::ostream& cout = io::console::out_stream();
+	// reset default text color
 	io::console::reset_out_color(io::text_color::navy_green);
 
 	cout << "Connecting to: " <<  url->host().data() << std::endl;
@@ -31,14 +35,14 @@ int main()
 	// TLS service for HTTPS
 	io::net::s_security_context secure_ctx = io::net::security_context::create(ec, ioc);
 
-	// Construct TLS security channe;
+	// Construct TLS secured channel;
     io::s_read_write_channel sch = secure_ctx->client_blocking_connect(ec, url->host().data(), url->port());
     io::check_error_code(ec);
 
-    // Construct writer to communicate with service true HTTP 1.1
+    // Construct writer to communicate with service over HTTP 1.1
     io::writer httpw(sch);
 
-	// Construct new HTTP GET request
+	// Construct new HTTP GET requests
 	http::s_request rq = http::new_get_request( ec, url );
 	io::check_error_code( ec );
 	// Send request to HTTP server

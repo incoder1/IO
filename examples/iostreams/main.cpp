@@ -1,7 +1,4 @@
-/// This example shows io channels to std lib streams compatibility layer
-#ifdef _WIN32
-#define _WIN32_WINNT 0x0600
-#endif // _WIN32
+/// This example shows IO channels to std lib input/output streams API compatibility layer
 
 #include <console.hpp>
 #include <files.hpp>
@@ -42,7 +39,7 @@ io::s_write_channel prepare_file() {
 const char* umessage = "Hello!\nПривет!\nПривіт!\nΧαιρετίσματα!\nHelló!\nHallå!\n";
 const wchar_t* wmessage = L"Hello!\nПривет!\nПривіт!\nΧαιρετίσματα!\nHelló!\nHallå!\n";
 
-int main()
+int main(int argc, const char** argv)
 {
 
 	// writing wchar_t chars into UTF-8 file

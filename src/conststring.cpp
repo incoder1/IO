@@ -18,7 +18,7 @@ void const_string::init_short(detail::sso_variant_t& dst, const char* str, std::
 	dst.short_buf.sso = true;
 	dst.short_buf.size = length;
 	io_zerro_mem(dst.short_buf.char_buf, detail::SSO_MAX);
-	traits_type::move(dst.short_buf.char_buf, str, length);
+	io_memmove(dst.short_buf.char_buf, str, length);
 }
 
 void const_string::init_long(detail::sso_variant_t& dst,std::size_t size,const char* str, std::size_t length) noexcept

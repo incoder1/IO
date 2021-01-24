@@ -11,14 +11,17 @@
 #include "stdafx.hpp"
 #include "charsets.hpp"
 
+#ifdef __IO_POSIX_BACKEND__
+#	include <langinfo.h>
+#endif // __
 
 namespace io {
 
 
 // code_pages
 
-#define DECLARE_CHARSET(ID,code,name,unicode,maxchar) \
-const charset code_pages::ID(code,name,unicode,maxchar);
+#define DECLARE_CHARSET(ID,__code,__name,__is_unicode,__maxchar) \
+const charset code_pages::ID( (__code), (__name), (__is_unicode), (__maxchar) );
 
 // unicode character sets
 DECLARE_CHARSET(UTF_8,65001,"UTF-8",4,true)
@@ -49,10 +52,10 @@ DECLARE_CHARSET(ISO_8859_16,28606,"ISO-8859-16",1,false)
 /* Cyrillic Unix */
 DECLARE_CHARSET(KOI8_R,20866,"KOI8-R",1,false) // Unix Russian
 DECLARE_CHARSET(KOI8_U,21866,"KOI8-U",1,false) // Unix Ukrainian
-DECLARE_CHARSET(KOI8_RU,20866,"KOI8-RU",1,false) // Unix Belarusian
+DECLARE_CHARSET(KOI8_RU,20866,"KOI8-RU",1,false) // Unix Belorussian
 // Windows national code pages for the alphabet based languages
 DECLARE_CHARSET(CP_1250,1250,"CP1250",1,false) // ANSI Central European; Central European (Windows)
-DECLARE_CHARSET(CP_1251,1251,"CP1251",1,false) // ANSI Cyrillic; Cyrillic (Windows) (Bulgarian, Belarusian, Russian, Serbian or Ukrainian)
+DECLARE_CHARSET(CP_1251,1251,"CP1251",1,false) // ANSI Cyrillic; Cyrillic (Windows) (Bulgarian, Belorussian, Russian, Serbian or Ukrainian)
 DECLARE_CHARSET(CP_1252,1252,"CP1252",1,false) // ANSI Latin 1; Western European (Windows)
 DECLARE_CHARSET(CP_1253,1253,"CP1253",1,false) // ANSI Greek; Greek (Windows)
 DECLARE_CHARSET(CP_1254,1254,"CP1254",1,false) // ANSI Turkish; Turkish (Windows)
@@ -113,9 +116,12 @@ std::pair<bool, charset> code_pages::for_name(const char* name) noexcept
 {
 	static constexpr std::size_t MAX_LEN = 11;
     if(nullptr != name && '\0' != *name) {
-    	// slow search
+    	char tmp[MAX_LEN] = {'\0'};
+    	for(std::size_t i=0; i < MAX_LEN && name[i] != '\0'; i++) {
+			tmp[i] = io_toupper(name[i]);
+    	}
     	for(std::size_t i=0; i < MAX_SUPPORTED; i++) {
-        	if( 0  == io_strncmp(ALL_SUPPORTED[i]->name(), name, MAX_LEN) )
+        	if( 0 == io_strncmp(ALL_SUPPORTED[i]->name(), tmp, MAX_LEN) )
 				return std::make_pair(false, *ALL_SUPPORTED[i] );
     	}
     }
@@ -129,10 +135,10 @@ const charset& code_pages::platform_default() noexcept {
 		return UTF_8;
 	#else
 		return UTF_8;
-	#endif // __IO_WINDOWS_BACKEND__
+	#endif
 }
 
-const charset& code_pages::platform_current() noexcept {
+charset code_pages::platform_current() noexcept {
 	#ifdef __IO_WINDOWS_BACKEND__
 		switch(::GetACP()) {
 			case 1250:
@@ -161,11 +167,12 @@ const charset& code_pages::platform_current() noexcept {
 			default:
 				return UTF_16LE;
 		}
+	#elif __IO_POSIX_BACKEND__
+		std::pair<bool, charset> sres = for_name(::nl_langinfo(CODESET));
+		return sres.first ? sres.second : UTF_8;
 	#else
 		return UTF_8;
-	#endif // __IO_WINDOWS_BACKEND__
+	#endif
 }
 
 } // namesapce io
-
-

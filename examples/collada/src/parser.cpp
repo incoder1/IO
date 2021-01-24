@@ -132,12 +132,12 @@ static io::const_string unref(const io::const_string& ref) noexcept
 
 // parser
 
-bool parser::is_element(const io::xml::start_element_event& e,const io::cached_string& ln) noexcept
+bool parser::is_element(const io::xml::start_element_event& e,const io::const_string& ln) noexcept
 {
 	return e.name().local_name() == ln;
 }
 
-bool parser::is_element(const io::xml::end_element_event& e,const io::cached_string& ln) noexcept
+bool parser::is_element(const io::xml::end_element_event& e,const io::const_string& ln) noexcept
 {
 	return e.name().local_name() == ln;
 }
@@ -204,7 +204,7 @@ inline void parser::check_eod( io::xml::state_type state,const char* msg)
 }
 
 
-bool parser::is_end_element(io::xml::event_type et,const io::cached_string& local_name)
+bool parser::is_end_element(io::xml::event_type et,const io::const_string& local_name)
 {
 	using io::xml::event_type;
 	return (event_type::end_element == et)

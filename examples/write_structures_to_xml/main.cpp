@@ -1,9 +1,4 @@
-#if _WIN32_WINNT < _WIN32_WINNT_VISTA
-#		undef _WIN32_WINNT
-#		define _WIN32_WINNT _WIN32_WINNT_VISTA
-#else
-#		define _WIN32_WINNT _WIN32_WINNT_VISTA
-#endif // _WIN32_WINNT
+// If you see this - please don't use XML write API yet. This API must be changed, work in progress
 
 #include <console.hpp>
 #include <files.hpp>
@@ -12,6 +7,8 @@
 #include "stubs.hpp"
 
 #include <xml_event_writer.hpp>
+
+#include <iostream>
 
 static const char* PROLOGUE = "<?xml version=\"1.0\" encoding=\"UTF-8\" ?>";
 
@@ -58,21 +55,31 @@ void generate_xsd(app_settings& root, std::ostream& cout) {
 
 int main()
 {
-	io::console::reset_err_color( io::text_color::light_red);
+	try {
+		std::error_code ec;
+		// create_file_channel("app-config-.xml")
 
-	std::error_code ec;
-	// create_file_channel("app-config.xml")
- 	io::xml::s_event_writer xew = io::xml::event_writer::open( ec, io::console::out() );
+		io::s_write_channel dst = create_file_channel("test.xml");
+		io::check_error_code(ec);
+		io::xml::s_event_writer safe_ew = io::xml::event_writer::open( ec, std::move(dst) );
+		io::check_error_code(ec);
+		io::unsafe<io::xml::event_writer> xew( std::move(safe_ew) );
 
- 	xew->add_coment(ec, "Test event writer");
- 	io::xml::start_element_event sev( io::xml::qname("tst","test"), false );
- 	sev.add_attribute( io::xml::attribute( io::xml::qname("xmlns","xsi"), "http://www.w3.org/2001/XMLSchema-instance") );
- 	xew->add( ec, sev );
- 	xew->add( ec,  io::xml::start_element_event( io::xml::qname("tst","cdata_chars"), false ) );
- 	xew->add_cdata(ec, "<Test CDATA >");
- 	xew->add( ec, io::xml::end_element_event(io::xml::qname("tst","cdata_chars") ) );
- 	xew->add_chars(ec, "Test characters");
- 	xew->add( ec, io::xml::end_element_event(io::xml::qname("tst","test")) );
+		xew.add_coment("Test event writer");
+		io::xml::start_element_event sev( io::xml::qname("tst","test"), false );
+		// TODO: handle name spaces
+		sev.add_attribute(io::xml::attribute( io::xml::qname("xmlns","xsi"), "http://www.w3.org/2001/XMLSchema-instance"));
+		sev.add_attribute(io::xml::attribute( io::xml::qname("xmlns","tst"), "https://github.com/incoder1/IO"));
+
+		xew.add(sev);
+		xew.add(io::xml::start_element_event(io::xml::qname("tst","cdata_chars"), false));
+		xew.add_cdata("<Test CDATA >");
+		xew.add(io::xml::end_element_event(io::xml::qname("tst","cdata_chars")));
+		xew.add_chars("Test characters");
+		xew.add(io::xml::end_element_event(io::xml::qname("tst","test")));
+	} catch(std::exception& exc) {
+		std::cerr << exc.what() << std::endl;
+	}
 
 //	std::ostream& cout = io::console::out_stream();
 

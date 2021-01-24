@@ -110,6 +110,12 @@ public:
 		local_name_()
 	{}
 
+	explicit qname(const cached_string& local_name) noexcept:
+		prefix_(),
+		local_name_(local_name)
+	{
+	}
+
 	qname(const cached_string& p,const cached_string& n) noexcept:
 		prefix_(p),
 		local_name_(n)

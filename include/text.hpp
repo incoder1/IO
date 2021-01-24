@@ -383,24 +383,105 @@ class basic_writer;
 template<typename C>
 class basic_writer<C, typename std::enable_if< is_char_type< C >::value >::type >
 {
+	basic_writer(const basic_writer&&) = delete;
+	basic_writer operator=(const basic_writer&&) = delete;
 private:
 	static constexpr std::size_t CSIZE = sizeof(C);
+private:
+	void flush()
+	{
+		buffer_.flip();
+		std::size_t written = 0;
+		std::size_t left = buffer_.length();
+		while( !ec_ && 0 != left ) {
+			written = dst_->write(ec_, buffer_.position().get(), left );
+			buffer_.shift(written);
+			left = buffer_.length();
+		}
+		buffer_.clear();
+	}
 public:
 	typedef std::char_traits<C> char_traits;
-	explicit basic_writer(const s_write_channel& dst) noexcept:
-		dst_( dst )
+	basic_writer(s_write_channel&& dst,io::byte_buffer &&buffer) noexcept:
+		dst_(  std::forward<s_write_channel>(dst) ),
+		buffer_( std::forward<byte_buffer>(buffer) )
 	{}
-	inline std::size_t write(std::error_code& ec,const C* str, std::size_t len) const noexcept {
-		return dst_->write(ec,  detail::byte_cast(str), (len*CSIZE) ) / CSIZE;
+
+	basic_writer(basic_writer&& other) noexcept:
+		dst_(),
+		buffer_(),
+		ec_()
+	{
+		dst_ = std::move(other.dst_);
+		buffer_ = std::move(other.buffer_);
+		ec_ = std::move(other.ec_);
 	}
-	inline std::size_t write(std::error_code& ec, const C* str) const noexcept {
-		return write(ec, str, char_traits::length(str) );
+
+	basic_writer& operator=(basic_writer&& other) noexcept
+	{
+		basic_writer( other ).swap( *this );
+		return *this;
 	}
-	inline std::size_t write(std::error_code& ec, const std::basic_string<C>& str ) const noexcept {
-		return write( ec , str.data(), str.size() );
+
+	~basic_writer() noexcept
+	{
+		if(dst_ && !buffer_.empty() && !ec_ ) {
+			buffer_.flip();
+			std::size_t written = 0;
+			std::size_t left = buffer_.length();
+			while( !ec_ && 0 != left ) {
+				written = dst_->write(ec_, buffer_.position().get(), left );
+				buffer_.shift(written);
+				left = buffer_.length();
+			}
+		}
 	}
+
+	void write(C ch) noexcept
+	{
+		if( buffer_.full() )
+			flush();
+		buffer_.put(ch);
+	}
+
+	void write(const C* str, std::size_t len) noexcept
+	{
+		if( buffer_.available() < (len*CSIZE) )
+			flush();
+		buffer_.put(str, len);
+	}
+
+	void write(const C* str) noexcept
+	{
+		return write(str, char_traits::length(str) );
+	}
+
+	void write(const std::basic_string<C>& str ) noexcept
+	{
+		return write( str.data(), str.size() );
+	}
+
+	explicit operator bool() const noexcept
+	{
+		return 0 == ec_.value();
+	}
+
+	std::error_code last_error() const noexcept
+	{
+		return ec_;
+	}
+
+	void swap(basic_writer& other) noexcept
+	{
+		dst_.swap( other.dst_ );
+		buffer_.swap(other.buffer_);
+		std::swap(ec_, other.ec_);
+	}
+
 private:
 	s_write_channel dst_;
+	byte_buffer buffer_;
+	std::error_code ec_;
 };
 
 typedef basic_reader<char> reader;

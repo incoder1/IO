@@ -14,7 +14,7 @@
 				<Option compiler="gcc" />
 				<Option parameters="test.xml" />
 				<Compiler>
-					<Add option="-std=c++11" />
+					<Add option="-std=gnu++20" />
 					<Add option="-pg" />
 					<Add option="-Og" />
 					<Add option="-g" />
@@ -40,7 +40,7 @@
 					<Add option="-pedantic" />
 					<Add option="-Wextra" />
 					<Add option="-Wall" />
-					<Add option="-std=gnu++17" />
+					<Add option="-std=gnu++20" />
 					<Add option="-fno-exceptions" />
 					<Add option="-fno-rtti" />
 					<Add option="-DNDEBUG" />
@@ -71,7 +71,7 @@
 					<Add option="-pedantic" />
 					<Add option="-Wextra" />
 					<Add option="-Wall" />
-					<Add option="-std=c++14" />
+					<Add option="-std=gnu++20" />
 					<Add option="-pg" />
 					<Add option="-g" />
 				</Compiler>

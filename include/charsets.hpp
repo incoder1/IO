@@ -153,7 +153,7 @@ public:
 	/// Returns character set assigned for this process/application,
 	/// i.e. current locale character set
 	/// \return current locale charter set
-	static const charset& platform_current() noexcept;
+	static charset platform_current() noexcept;
 private:
 	constexpr code_pages() noexcept
 	{}

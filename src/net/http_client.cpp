@@ -60,7 +60,8 @@ void request::send(std::error_code& ec, writer& to) const noexcept
 		buff << hdr;
 	}
 	buff << SEP;
-	to.write( ec,  buff.str() );
+	to.write( buff.str() );
+	ec = to.last_error();
 }
 
 // FIXME: refactor to factory
