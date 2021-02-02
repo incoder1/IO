@@ -1,6 +1,6 @@
 /*
  *
- * Copyright (c) 2016-2020
+ * Copyright (c) 2016-2021
  * Viktor Gubin
  *
  * Use, modification and distribution are subject to the
@@ -26,10 +26,7 @@ s_event_writer event_writer::open(std::error_code& ec, s_write_channel&& to, boo
 	std::snprintf( tmp, sizeof(tmp), PROLOGUE_FMT, prologue.version().data(), prologue.encoding().data(), standalone);
 	if(format)
         tmp[ io_strlen(tmp) ] = '\n';
-	io::byte_buffer buff = byte_buffer::allocate(ec, memory_traits::page_size() );
-	if(ec)
-		return s_event_writer();
-	writer dst( std::move(to), std::move(buff) );
+	writer dst( std::move(to) );
 	dst.write(tmp);
 	if(!dst) {
 		ec = dst.last_error();

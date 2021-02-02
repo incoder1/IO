@@ -19,14 +19,13 @@
 
 #include <algorithm>
 #include <chrono>
-#include <ostream>
-#include <iomanip>
 #include <list>
 #include <vector>
 #include <type_traits>
 #include <utility>
 
 #include "tuple_meta_reflect.hpp"
+#include "xml_event_writer.hpp"
 #include "xml_lexcast.hpp"
 
 #define IO_XML_HAS_TO_XSD !defined(IO_NO_RTTI) && !defined(NDEBUG)
@@ -109,19 +108,19 @@ inline constexpr const char* xsd_type_name(xsd_type t)
 	    : "unsupported_type";
 }
 
-inline void pretty_begin(std::ostream& to,uint8_t shift)
+inline void pretty_begin(writer& to,uint8_t shift)
 {
 	for(int i=0; i < (shift-1); i++)
-		to << '\t';
+		to.write('\t');
 }
 
-inline void pretty_end(std::ostream& to,uint8_t shift)
+inline void pretty_end(writer& to,uint8_t shift)
 {
 	if(shift > 0)
-		to << '\n';
+		to.write('\n');
 }
 
-static inline void write_begin(std::ostream& to, const char* name, bool attr, uint8_t shift)
+static inline void write_begin(writer& to, const char* name, bool attr, uint8_t shift)
 {
 	if(attr)
 		to << ' ' << name << "=\"";
@@ -130,7 +129,7 @@ static inline void write_begin(std::ostream& to, const char* name, bool attr, ui
 		to << '<' << name << '>';
 	}
 }
-static inline void write_end(std::ostream& to, const char* name, bool attr, uint8_t shift)
+static inline void write_end(writer& to, const char* name, bool attr, uint8_t shift)
 {
 	if(attr)
 		to << "\"";
@@ -170,13 +169,13 @@ struct xsd_el_gen<T, std::true_type, std::false_type> {
 private:
 	typedef typename T::mapped_type cplx_mpt; // complex mapped type, i.e. class, list or structure name
 public:
-	static void gen(const T& t, std::ostream& to)
+	static void gen(const T& t, writer& to)
 	{
-		to << "<xs:element name=\"";
-		to << t.name();
-		to << "\" type=\"";
-		to << extract_xsd_type_name<cplx_mpt>();
-		to << "\" />";
+		to.write("<xs:element name=\"";
+		to.write( t.name() );
+		to.write( "\" type=\"");
+		to.write( extract_xsd_type_name<cplx_mpt>() );
+		to.write("\" />");
 	}
 };
 

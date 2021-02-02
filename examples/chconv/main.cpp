@@ -15,9 +15,10 @@ int main(int argc, const char** argv)
 	// Open IO file channel with UTF-16LE encoded text
 	file sf( "test-utf16le.txt" );
 	if(!sf.exist()) {
-		std::cerr << " test file " << sf.path()
-		<< "is not exist or can not be found"
-		<< std::endl;
+		std::cerr<<
+			" test file "<< sf.path() <<
+			 "is not exist"<<
+		std::endl;
 		return -1;
 	}
 	// Create new destination file with UTF-8 encoded text result
@@ -25,9 +26,10 @@ int main(int argc, const char** argv)
 	if( !to.exist() )
 		to.create();
 
-	std::cout << "Converting " << sf.path()
-			  << " to "  << to.path()
-			  << std::endl;
+	std::cout<<
+		"Converting "<< sf.path()<<
+		" to "<<to.path()<<
+    std::endl;
 
 	// Open a character set converter between UTF-16LE and UTF-8 code pages
 	s_code_cnvtr cvn = code_cnvtr::open(ec,
@@ -50,10 +52,11 @@ int main(int argc, const char** argv)
 	std::size_t transcoded = transmit(ec, src, dst, 512);
 	check_error_code(ec);
 
-	std::cout<< "Transcoded " << transcoded <<
-		" bytes from "<< sf.name()
-		<< " to " << to.name()
-		<< std::endl;
+	std::cout<<
+		"Transcoded "<<transcoded<<
+		" bytes from "<<sf.name()<<
+		" to "<<to.name()<<
+	std::endl;
 
     return 0;
 }

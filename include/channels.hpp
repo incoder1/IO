@@ -336,7 +336,6 @@ std::size_t IO_PUBLIC_SYMBOL transmit_buffer(
     const uint8_t* buffer,
     std::size_t size) noexcept;
 
-
 /// Transmits all read channels data to destination write channel
 /// \param ec operation error code, contains error
 ///				when io error or not enough memory for allocating buffer

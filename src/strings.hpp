@@ -1,6 +1,6 @@
 /*
  *
- * Copyright (c) 2016
+ * Copyright (c) 2016-2021
  * Viktor Gubin
  *
  * Use, modification and distribution are subject to the
@@ -215,7 +215,7 @@ constexpr uint16_t pack_word(uint16_t w, char c) noexcept {
 #ifdef IO_IS_LITTLE_ENDIAN
 	return (w << CHAR_BIT) | static_cast<uint16_t>(c);
 #else
-	return (w >> CHAR_BIT) | static_cast<uint16_t>(ch);
+	return (w >> CHAR_BIT) | static_cast<uint16_t>(c);
 #endif // IO_IS_LITTLE_ENDIAN
 }
 

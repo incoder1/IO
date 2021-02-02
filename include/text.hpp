@@ -27,16 +27,10 @@
 #include <string>
 
 #ifdef __IO_WINDOWS_BACKEND__
-#	define IO_SYS_UNICODE io::code_pages::UTF_16LE
 typedef wchar_t unicode_char;
 #endif // __IO_WINDOWS_BACKEND__
 
 #ifdef __IO_POSIX_BACKEND__
-#	ifdef IO_IS_LITTLE_ENDIAN
-#		define IO_SYS_UNICODE io::code_pages::UTF_32LE
-#	else
-#		define IO_SYS_UNICODE io::code_pages::UTF_32BE
-#	endif // IO_IS_LITTLE_ENDIAN
 typedef char32_t unicode_char;
 #endif // __IO_WINDOWS_BACKEND__
 
@@ -165,12 +159,12 @@ static std::size_t utf32_buff_size(const char* b, std::size_t size) noexcept
 
 static constexpr uint16_t LATIN1_MAX = 0x80;
 static constexpr uint16_t TWOB_MAX = 0x800;
-static constexpr uint16_t SURROGATE_LEAD_FIRST = 0xDC00;
-static constexpr uint16_t SURROGATE_TRAIL_LAST = 0xDF;
 static constexpr uint32_t THREEB_MAX = 0x10000;
 
-static constexpr bool is_surogate_word(uint16_t ch) noexcept {
-	return ch >= SURROGATE_LEAD_FIRST && ch <= SURROGATE_TRAIL_LAST;
+
+static constexpr bool is_surogate_word(uint16_t ch) noexcept
+{
+	return (ch - 0xDC00) < ( (0xDF00 - 0xDC00) + 1);
 }
 
 static std::size_t utf8_buff_size(const char16_t* ustr, std::size_t size) noexcept
@@ -344,7 +338,6 @@ inline std::string transcode(const wchar_t* ucs_str)
 	return transcode(ucs_str, std::char_traits<wchar_t>::length(ucs_str) );
 }
 
-
 template<typename> struct __is_char_type_helper : public std::false_type {};
 template<> struct __is_char_type_helper<char> : public std::true_type {};
 template<> struct __is_char_type_helper<wchar_t> : public std::true_type {};
@@ -383,34 +376,27 @@ class basic_writer;
 template<typename C>
 class basic_writer<C, typename std::enable_if< is_char_type< C >::value >::type >
 {
-	basic_writer(const basic_writer&&) = delete;
-	basic_writer operator=(const basic_writer&&) = delete;
+	basic_writer(const basic_writer&) = delete;
+	basic_writer operator=(const basic_writer&) = delete;
 private:
 	static constexpr std::size_t CSIZE = sizeof(C);
-private:
-	void flush()
-	{
-		buffer_.flip();
-		std::size_t written = 0;
-		std::size_t left = buffer_.length();
-		while( !ec_ && 0 != left ) {
-			written = dst_->write(ec_, buffer_.position().get(), left );
-			buffer_.shift(written);
-			left = buffer_.length();
-		}
-		buffer_.clear();
-	}
 public:
 	typedef std::char_traits<C> char_traits;
-	basic_writer(s_write_channel&& dst,io::byte_buffer &&buffer) noexcept:
-		dst_(  std::forward<s_write_channel>(dst) ),
-		buffer_( std::forward<byte_buffer>(buffer) )
+
+	basic_writer(s_write_channel&& dst,std::size_t buffer_size) noexcept:
+		ec_(),
+		buffer_(io::byte_buffer::allocate(ec_, buffer_size)),
+		dst_(std::forward<s_write_channel>(dst))
+	{}
+
+	explicit basic_writer(s_write_channel&& dst) noexcept:
+		basic_writer(std::forward<s_write_channel>(dst), memory_traits::page_size())
 	{}
 
 	basic_writer(basic_writer&& other) noexcept:
-		dst_(),
+		ec_(),
 		buffer_(),
-		ec_()
+		dst_()
 	{
 		dst_ = std::move(other.dst_);
 		buffer_ = std::move(other.buffer_);
@@ -427,13 +413,7 @@ public:
 	{
 		if(dst_ && !buffer_.empty() && !ec_ ) {
 			buffer_.flip();
-			std::size_t written = 0;
-			std::size_t left = buffer_.length();
-			while( !ec_ && 0 != left ) {
-				written = dst_->write(ec_, buffer_.position().get(), left );
-				buffer_.shift(written);
-				left = buffer_.length();
-			}
+			transmit_buffer(ec_ , dst_, buffer_.position().get(), buffer_.length() );
 		}
 	}
 
@@ -477,11 +457,20 @@ public:
 		buffer_.swap(other.buffer_);
 		std::swap(ec_, other.ec_);
 	}
-
 private:
-	s_write_channel dst_;
-	byte_buffer buffer_;
+	void flush() noexcept
+	{
+		if(!ec_) {
+			buffer_.flip();
+			transmit_buffer(ec_ , dst_, buffer_.position().get(), buffer_.length() );
+			if(!ec_)
+				buffer_.clear();
+		}
+	}
+private:
 	std::error_code ec_;
+	byte_buffer buffer_;
+	s_write_channel dst_;
 };
 
 typedef basic_reader<char> reader;
