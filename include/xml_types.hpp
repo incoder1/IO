@@ -26,7 +26,7 @@
 
 #include "tuple_meta_reflect.hpp"
 #include "xml_event_writer.hpp"
-#include "xml_lexcast.hpp"
+#include "char_cast.hpp"
 
 #define IO_XML_HAS_TO_XSD !defined(IO_NO_RTTI) && !defined(NDEBUG)
 
@@ -108,42 +108,11 @@ inline constexpr const char* xsd_type_name(xsd_type t)
 	    : "unsupported_type";
 }
 
-inline void pretty_begin(writer& to,uint8_t shift)
-{
-	for(int i=0; i < (shift-1); i++)
-		to.write('\t');
-}
-
-inline void pretty_end(writer& to,uint8_t shift)
-{
-	if(shift > 0)
-		to.write('\n');
-}
-
-static inline void write_begin(writer& to, const char* name, bool attr, uint8_t shift)
-{
-	if(attr)
-		to << ' ' << name << "=\"";
-	else {
-		pretty_begin(to,shift);
-		to << '<' << name << '>';
-	}
-}
-static inline void write_end(writer& to, const char* name, bool attr, uint8_t shift)
-{
-	if(attr)
-		to << "\"";
-	else {
-		to << "</" << name << '>';
-		detail::pretty_end(to, shift);
-	}
-}
-
 IO_PUSH_IGNORE_UNUSED_PARAM
 
 struct marshalling_functor {
 public:
-	constexpr marshalling_functor(std::ostream& to, uint8_t nesting) noexcept:
+	constexpr marshalling_functor(writer& to, uint8_t nesting) noexcept:
 		nesting_(nesting),
 		to_(to)
 	{}
@@ -154,7 +123,7 @@ public:
 	}
 private:
 	uint8_t nesting_;
-	std::ostream& to_;
+	writer& to_;
 };
 
 // XSD generation util
@@ -171,17 +140,17 @@ private:
 public:
 	static void gen(const T& t, writer& to)
 	{
-		to.write("<xs:element name=\"";
-		to.write( t.name() );
-		to.write( "\" type=\"");
-		to.write( extract_xsd_type_name<cplx_mpt>() );
-		to.write("\" />");
+//		to.write("<xs:element name=\"");
+//		to.write( t.name() );
+//		to.write("\" type=\"");
+//		to.write( extract_xsd_type_name<cplx_mpt>() );
+//		to.write("\" />");
 	}
 };
 
 template<class T>
 struct xsd_el_gen<T, std::false_type, std::true_type> {
-	static void gen(const T& t, std::ostream& to)
+	static void gen(const T& t, writer& to)
 	{
 		t.to_xsd(to);
 	}
@@ -197,7 +166,7 @@ private:
 		return 0 != tr::compare(what,"xmlns:xsi",9) && 0 != tr::compare(what,"xsi:",4);
 	}
 public:
-	static void gen(const T& t, std::ostream& to)
+	static void gen(const T& t, writer& to)
 	{
 		if( not_namespace_or_schema( t.name() ) )
 			t.to_xsd(to);
@@ -206,7 +175,7 @@ public:
 
 struct xsd_functor {
 public:
-	constexpr explicit xsd_functor(std::ostream& to) noexcept:
+	constexpr explicit xsd_functor(writer& to) noexcept:
 		to_(to)
 	{}
 	template<class T>
@@ -217,18 +186,18 @@ public:
 		xsd_el_gen<T,is_complex,is_list>::gen(t,to_);
 	}
 private:
-	std::ostream& to_;
+	writer& to_;
 };
 
 #endif // IO_XML_HAS_TO_XSD
 
 template<class _tuple_t>
 struct marshaller {
-	static inline void marshal(const _tuple_t& t, std::ostream& to,uint8_t shift)
+	static inline void marshal(const _tuple_t& t, writer& to,uint8_t shift)
 	{
 		meta::for_each(  const_cast<_tuple_t&&>(t), marshalling_functor(to,shift) );
 	}
-	static inline void marshal(_tuple_t&& t, std::ostream& to,uint8_t shift)
+	static inline void marshal(_tuple_t&& t, writer& to,uint8_t shift)
 	{
 		meta::for_each( std::forward<_tuple_t>(t), marshalling_functor(to,shift) );
 	}
@@ -237,29 +206,29 @@ struct marshaller {
 template<>
 struct marshaller< std::tuple<> > {
 public:
-	static inline void marshal(const std::tuple<>& t, std::ostream& to,uint8_t shift)
+	static inline void marshal(const std::tuple<>& t, writer& to,uint8_t shift)
 	{}
-	static inline void marshal(std::tuple<>&& t, std::ostream& to,uint8_t shift)
+	static inline void marshal(std::tuple<>&& t, writer& to,uint8_t shift)
 	{}
 };
 
 #ifdef IO_XML_HAS_TO_XSD
 template<class _tuple_t>
 struct xsd_generator {
-	static inline void generate(const _tuple_t& t, std::ostream& to)
+	static inline void generate(const _tuple_t& t, writer& to)
 	{
 		meta::for_each( const_cast<_tuple_t&&>(t), xsd_functor(to) );
 	}
-	static inline void generate(_tuple_t&& t, std::ostream& to) {
+	static inline void generate(_tuple_t&& t, writer& to) {
 		meta::for_each( std::forward<_tuple_t&&>(t), xsd_functor(to) );
 	}
 };
 
 template<>
 struct xsd_generator< std::tuple<> > {
-	static inline void generate(const std::tuple<>& t, std::ostream& to)
+	static inline void generate(const std::tuple<>& t, writer& to)
 	{}
-	static inline void generate(std::tuple<>&& t, std::ostream& to)
+	static inline void generate(std::tuple<>&& t, writer& to)
 	{}
 };
 
@@ -280,17 +249,11 @@ public:
 		v_(v)
 	{}
 
-	inline void marshal(std::ostream& to, uint8_t shift) const
-	{
-		write_begin(to,name_,is_attribute, shift);
-		to << v_;
-		write_end(to,name_,is_attribute, shift);
-	}
-
+/*
 #ifdef IO_XML_HAS_TO_XSD
 	static constexpr const char* XS_TYPE = xsd_type_name(_xs_type);
 
-	inline void to_xsd(std::ostream& to) const
+	inline void to_xsd(writer& to) const
 	{
 		if( is_attribute )
 			to << "<xs:attribute name=\"";
@@ -302,7 +265,7 @@ public:
 		to << "\" />";
 	}
 #endif // IO_XML_HAS_TO_XSD
-
+*/
 	inline const char* name() const noexcept
 	{
 		return name_;
@@ -320,150 +283,6 @@ private:
 	mapped_type v_;
 };
 
-template<bool is_attribute>
-class simple_type<uint8_t,xsd_type::xs_ubyte,is_attribute> {
-public:
-	static constexpr bool is_simple = true;
-	static constexpr bool attribute = is_attribute;
-	typedef uint8_t mapped_type;
-	typedef std::false_type is_complex;
-	typedef std::false_type is_list;
-
-	constexpr simple_type(const char* name, uint8_t v) noexcept:
-		name_(name),
-		v_(v)
-	{}
-
-	void marshal(std::ostream& to, uint8_t shift) const noexcept
-	{
-		detail::write_begin(to,name_,is_attribute,shift);
-		to << static_cast<uint16_t>(v_);
-		detail::write_end(to,name_,is_attribute,shift);
-	}
-
-#ifdef IO_XML_HAS_TO_XSD
-
-	static constexpr const char* XS_TYPE = "unsignedByte";
-
-	inline void to_xsd(std::ostream& to) const
-	{
-		to << (is_attribute ? "<xs:attribute" : "<xs:element" );
-		to << " name=\"" << name_ << "\" type=\"xs:unsignedByte\" />";
-	}
-#endif // IO_XML_HAS_TO_XSD
-
-	inline const char* name() const noexcept
-	{
-		return name_;
-	}
-	inline uint8_t value() const noexcept
-	{
-		return v_;
-	}
-	inline void set_value(uint8_t&& v) noexcept
-	{
-		v_ = v;
-	}
-private:
-	const char* name_;
-	uint8_t v_;
-};
-
-template<bool is_attribute>
-class simple_type<int8_t,xsd_type::xs_byte,is_attribute> {
-public:
-	static constexpr bool is_simple = true;
-	static constexpr bool attribute = is_attribute;
-
-	typedef int8_t mapped_type;
-	typedef std::false_type is_complex;
-	typedef std::false_type is_list;
-
-	constexpr simple_type(const char* name, int8_t v) noexcept:
-		name_(name),
-		v_(v)
-	{}
-	void marshal(std::ostream& to, uint8_t shift) const noexcept
-	{
-		write_begin(to,name_,is_attribute,shift);
-		to << static_cast<int16_t>(v_);
-		write_end(to,name_,is_attribute,shift);
-	}
-
-#ifdef IO_XML_HAS_TO_XSD
-	static constexpr const char* XS_TYPE = "byte";
-
-	inline void to_xsd(std::ostream& to) const
-	{
-		to << (is_attribute ? "<xs:attribute" : "<xs:element" );
-		to << " name=\"" << name_ << "\" type=\"xs:byte\" />";
-	}
-#endif // IO_XML_HAS_TO_XSD
-
-	inline const char* name() const noexcept
-	{
-		return name_;
-	}
-	inline int8_t value() const noexcept
-	{
-		return v_;
-	}
-	inline void set_value(int8_t&& v) noexcept
-	{
-		v_ = v;
-	}
-private:
-	const char* name_;
-	uint8_t v_;
-};
-
-template<bool is_attribute>
-class simple_type<bool,xsd_type::xs_boolean,is_attribute> {
-public:
-	static constexpr bool is_simple = true;
-	static constexpr bool attribute = is_attribute;
-
-	typedef bool mapped_type;
-	typedef std::false_type is_complex;
-	typedef std::false_type is_list;
-
-	constexpr simple_type(const char* name, bool v) noexcept:
-		name_(name),
-		v_(v)
-	{}
-	void marshal(std::ostream& to,uint8_t shift) const noexcept
-	{
-		write_begin(to, name_, is_attribute, shift);
-		to << (v_ ? "true" : "false") ;
-		write_end(to, name_, is_attribute, shift);
-	}
-
-#ifdef IO_XML_HAS_TO_XSD
-	static constexpr const char* XS_TYPE = "boolean";
-
-	inline void to_xsd(std::ostream& to) const
-	{
-		to << (is_attribute ? "<xs:attribute" : "<xs:element");
-		to << " name=\"" << name_  << "\" type=\"xs:boolean\" />";
-	}
-#endif // IO_XML_HAS_TO_XSD
-
-	inline const char* name() const noexcept
-	{
-		return name_;
-	}
-	inline int8_t value() const noexcept
-	{
-		return v_;
-	}
-	inline void set_value(bool&& v) noexcept
-	{
-		v_ = v;
-	}
-private:
-	const char* name_;
-	bool v_;
-};
 
 template<bool is_attribute>
 class simple_type<
@@ -482,7 +301,7 @@ public:
 		name_(name),
 		v_( tm )
 	{}
-	void marshal(std::ostream& to,uint8_t shift) const noexcept
+	void marshal(writer& to,uint8_t shift) const noexcept
 	{
 		write_begin(to, name_, is_attribute, shift);
 		std::time_t tm = std::chrono::system_clock::to_time_t(v_);
@@ -493,7 +312,7 @@ public:
 #ifdef IO_XML_HAS_TO_XSD
 	static constexpr const char* XS_TYPE = "time";
 
-	inline void to_xsd(std::ostream& to) const
+	inline void to_xsd(writer& to) const
 	{
 		to << (is_attribute ? "<xs:attribute" : "<xs:element" );
 		to << " name=\"" << name_;
@@ -535,7 +354,7 @@ public:
 		name_(name),
 		v_( tm )
 	{}
-	void marshal(std::ostream& to,uint8_t shift) const noexcept
+	void marshal(writer& to,uint8_t shift) const noexcept
 	{
 		write_begin(to, name_, is_attribute, shift);
 		std::time_t tm = std::chrono::system_clock::to_time_t(v_);
@@ -546,7 +365,7 @@ public:
 #ifdef IO_XML_HAS_TO_XSD
 	static constexpr const char* XS_TYPE = "date";
 
-	inline void to_xsd(std::ostream& to) const
+	inline void to_xsd(writer& to) const
 	{
 		to << (is_attribute ? "<xs:attribute" : "<xs:element" );
 		to << " name=\"" << name_;
@@ -585,13 +404,13 @@ private:
 	static constexpr std::size_t ASIZE = std::tuple_size<attribute_types>::value;
 	static constexpr std::size_t ESIZE = std::tuple_size<element_types>::value;
 
-	inline void write_begin_el(std::ostream& to,uint8_t shift) const
+	inline void write_begin_el(writer& to,uint8_t shift) const
 	{
 		pretty_begin(to,shift);
 		to << '<' << name_ ;
 	}
 
-	inline void write_end_el(std::ostream& to,uint8_t shift) const
+	inline void write_end_el(writer& to,uint8_t shift) const
 	{
 		pretty_begin(to,shift);
 		to << "</" << name_ << '>';
@@ -622,7 +441,7 @@ public:
 		ref_count_(0)
 	{}
 
-	void marshal(std::ostream& to,const uint8_t shift) const
+	void marshal(writer& to,const uint8_t shift) const
 	{
 		write_begin_el(to, shift );
 		if(ASIZE > 0)
@@ -644,7 +463,7 @@ public:
 	// workaround for list
 	static constexpr const char* XS_TYPE = "dummy";
 
-	void to_xsd(std::ostream& to) const
+	void to_xsd(writer& to) const
 	{
 		to << "<xs:complexType name=\"" << extract_xsd_type_name<mapped_type>() << "\">";
 		if( ESIZE > 0 ) {
@@ -773,7 +592,7 @@ private:
 		wrapper_fmt(const wrapper_fmt&) = delete;
 		wrapper_fmt& operator=(const wrapper_fmt&) = delete;
 	public:
-		wrapper_fmt(const char* wrapper,uint8_t shift,std::ostream& to):
+		wrapper_fmt(const char* wrapper,uint8_t shift,writer& to):
 			wrapper_(wrapper),
 			nesting_(shift),
             to_(to)
@@ -798,7 +617,7 @@ private:
 	private:
 		const char* wrapper_;
 		uint8_t nesting_;
-		std::ostream& to_;
+		writer& to_;
 	};
 
 public:
@@ -832,7 +651,7 @@ public:
 		unmapper<_STL_container,complex_t>::unmap_to( cont_.cbegin(), cont_.cend(), to);
 	}
 
-	void marshal(std::ostream& to, uint8_t shift) const
+	void marshal(writer& to, uint8_t shift) const
 	{
 		wrapper_fmt fmt(wrapper_name_, shift, to);
 		const uint8_t nesting = shift >= 1 ? shift+1 : 0;
@@ -863,7 +682,7 @@ private:
 		return cont_.begin()->name();
 	}
 
-	void gen_xsd_type_with_wrapper(std::ostream& to) const
+	void gen_xsd_type_with_wrapper(writer& to) const
 	{
 		to << "<xs:element name=\"";
 		to << wrapper_name_;
@@ -884,7 +703,7 @@ private:
 		to << "\" /></xs:sequence></xs:complexType></xs:element>";
 	}
 
-	void make_xs_ref(std::ostream& to) const
+	void make_xs_ref(writer& to) const
 	{
 		to << "<xs:element name=\"";
 		to << holding_element();
@@ -902,7 +721,7 @@ private:
 
 public:
 
-	void to_xsd(std::ostream& to) const
+	void to_xsd(writer& to) const
 	{
 		if( nullptr != wrapper_name_ && '\0' != *wrapper_name_ )
 			gen_xsd_type_with_wrapper(to);
@@ -1047,7 +866,7 @@ public:
 	/// Marshal this object into output stream recursively
 	/// \param to output stream to marshal into
 	/// \param shift pretty print shift, 0 - no pretty print i.e. single line
-	void marshal(std::ostream& to,const uint8_t shift) const
+	void marshal(writer& to,const uint8_t shift) const
 	{
 		self_->marshal(to,shift);
 	}
@@ -1058,7 +877,7 @@ public:
 
 	/// Recursive generate XSD from this XML type
 	/// \param to output stream to marshal
-	void to_xsd(std::ostream& to)
+	void to_xsd(writer& to)
 	{
 		self_->to_xsd(to);
 	}
@@ -1160,13 +979,13 @@ public:
 		return self_->size();
 	}
 
-	inline void marshal(std::ostream& to, uint8_t shift) const
+	inline void marshal(writer& to, uint8_t shift) const
 	{
 		self_->marshal(to,shift);
 	}
 
 #ifdef IO_XML_HAS_TO_XSD
-	inline void to_xsd(std::ostream& to) const
+	inline void to_xsd(writer& to) const
 	{
 		self_->to_xsd(to);
 	}

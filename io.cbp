@@ -252,6 +252,7 @@
 		<Unit filename="CMakeLists.txt" />
 		<Unit filename="include/buffer.hpp" />
 		<Unit filename="include/channels.hpp" />
+		<Unit filename="include/char_cast.hpp" />
 		<Unit filename="include/charsetcvt.hpp" />
 		<Unit filename="include/charsetdetector.hpp" />
 		<Unit filename="include/charsets.hpp" />
@@ -317,6 +318,7 @@
 		<Unit filename="include/text.hpp" />
 		<Unit filename="include/threading.hpp" />
 		<Unit filename="include/tuple_meta_reflect.hpp" />
+		<Unit filename="include/type_traits_ext.hpp" />
 		<Unit filename="include/unicode_bom.hpp" />
 		<Unit filename="include/win/asynch_socket_channel.hpp">
 			<Option target="debug-win-gcc-static-x64" />
@@ -427,13 +429,13 @@
 		<Unit filename="include/xml_error.hpp" />
 		<Unit filename="include/xml_event.hpp" />
 		<Unit filename="include/xml_event_writer.hpp" />
-		<Unit filename="include/xml_lexcast.hpp" />
 		<Unit filename="include/xml_parse.hpp" />
 		<Unit filename="include/xml_reader.hpp" />
 		<Unit filename="include/xml_source.hpp" />
 		<Unit filename="include/xml_types.hpp" />
 		<Unit filename="src/buffer.cpp" />
 		<Unit filename="src/channels.cpp" />
+		<Unit filename="src/char_cast.cpp" />
 		<Unit filename="src/charsetcvt.cpp" />
 		<Unit filename="src/charsetdetector.cpp" />
 		<Unit filename="src/charsets.cpp" />

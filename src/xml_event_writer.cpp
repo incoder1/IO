@@ -56,7 +56,8 @@ event_writer::event_writer(bool format, writer&& to) noexcept:
 	object(),
 	nesting_level_( 0 ),
 	format_( format ),
-	to_( std::forward< writer >(to) )
+	to_( std::forward< writer >(to) ),
+	ec_()
 {}
 
 event_writer::~event_writer() noexcept

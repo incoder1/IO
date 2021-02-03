@@ -344,7 +344,11 @@ std::size_t IO_PUBLIC_SYMBOL transmit_buffer(
 /// \param buff memory buffer size, OS page size will be used if 0
 /// \return count of bytes transfered
 /// \throw never throws
-std::size_t IO_PUBLIC_SYMBOL transmit(std::error_code& ec,const s_read_channel& src, const s_write_channel& dst, unsigned long buff_size) noexcept;
+std::size_t IO_PUBLIC_SYMBOL transmit(
+	std::error_code& ec,
+	const s_read_channel& src,
+	const s_write_channel& dst,
+	unsigned long buff_size) noexcept;
 
 
 } // namespace io

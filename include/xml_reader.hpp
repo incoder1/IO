@@ -132,17 +132,45 @@ public:
 	/// \return whether next document state is an end element event
 	bool is_tag_end_next() noexcept;
 
-	/// Drop parser to the next tag and checks whether it has requiared name
+	/// Drop parser to the next tag and checks whether it has expected tag name with default name space
 	/// Check for tag self closing by start_element_event#empty_element
 	/// \param ec operation error code
+	/// \param nsp tag name name space prefix
+	/// \param local_name tag name local name
 	/// \return start element event
-	start_element_event next_expected_tag_begin(std::error_code& ec, const char* nmp, const char* local_name) noexcept;
+	start_element_event next_expected_tag_begin(std::error_code& ec, const char* nsp, const char* local_name) noexcept;
 
-	/// Drop parser to the next tag end - e.g. to next end element event
+
+	/// Drop parser to the next tag end and checks whether it has expected tag name
 	/// WARN. Self closed tags do not handled by this method
 	/// \param ec operation error code
+	/// \param nsp tag name name space prefix
+	/// \param local_name tag name local name
 	/// \return end element event
-	end_element_event next_expected_tag_end(std::error_code& ec, const char* nmp, const char* local_name) noexcept;
+	end_element_event next_expected_tag_end(std::error_code& ec, const char* nsp, const char* local_name) noexcept;
+
+
+	/// Drop parser to the next tag and checks whether it has expected tag name with default name space
+	/// Check for tag self closing by start_element_event#empty_element
+	/// \param ec operation error code
+	/// \param nsp tag name name space prefix
+	/// \param local_name tag name local name
+	/// \return start element event
+	start_element_event next_expected_tag_begin(std::error_code& ec, const char* local_name) noexcept
+	{
+		return next_expected_tag_begin(ec, "", local_name);
+	}
+
+
+	/// Drop parser to the next tag end and checks whether it has expected tag name with default name space
+	/// WARN. Self closed tags do not handled by this method
+	/// \param ec operation error code
+	/// \param local_name tag name local name
+	/// \return end element event
+	end_element_event next_expected_tag_end(std::error_code& ec, const char* local_name) noexcept
+	{
+		return next_expected_tag_end(ec, "", local_name);
+	}
 
 private:
 	inline bool parse_error(std::error_code& ec) noexcept {
@@ -244,46 +272,67 @@ public:
 		return rd_.position();
 	}
 
-	xml::start_element_event next_expected_tag_begin(const char* nmp, const char* local_name) {
-		xml::start_element_event ret = rd_.next_expected_tag_begin(ec_, nmp, local_name);
-		if(ec_) {
-			std::pair<std::size_t, std::size_t> pos = rd_.position();
-			std::stringstream msg;
-			msg << "XML validation error at ";
-			msg << '[' << pos.first << ',' << pos.second << ']';
-			msg << " : start element <";
-			if(nullptr != nmp && '\0' != *nmp)
-				msg << nmp << ':';
-			msg << local_name;
-			msg << "> expected in this state";
-#ifdef IO_NO_EXCEPTIONS
-        io::detail::panic( ec_.value() , msg.str().data() );
-#else
-		throw std::runtime_error( msg.str() );
-#endif // IO_NO_EXCEPTIONS
-		}
+	xml::start_element_event next_expected_tag_begin(const char* nsp, const char* local_name) {
+		xml::start_element_event ret = rd_.next_expected_tag_begin(ec_, nsp, local_name);
+		check_error("tag start", nsp, local_name);
 		return ret;
 	}
 
-	xml::end_element_event next_expected_tag_end(const char* nmp, const char* local_name) {
-		xml::end_element_event ret = rd_.next_expected_tag_end(ec_, nmp, local_name);
+	xml::start_element_event next_expected_tag_begin(const char* local_name) noexcept
+	{
+		return next_expected_tag_begin("",local_name);
+	}
+
+	xml::end_element_event next_expected_tag_end(const char* nsp, const char* local_name) {
+		xml::end_element_event ret = rd_.next_expected_tag_end(ec_, nsp, local_name);
+		check_error("tag end", nsp, local_name);
+		return ret;
+	}
+
+	xml::end_element_event next_expected_tag_end(const char* local_name) noexcept
+	{
+		return next_expected_tag_end("", local_name);
+	}
+private:
+
+	void check_error(const char* type, const char* nmp, const char* local_name)
+	{
 		if(ec_) {
+			char emsg[ 512 ] = {'\0'};
 			std::pair<std::size_t, std::size_t> pos = rd_.position();
-			std::stringstream msg;
-			msg << "XML validation error at ";
-			msg << '[' << pos.first << ',' << pos.second << ']';
-			msg << " : end element </";
 			if(nullptr != nmp && '\0' != *nmp)
-				msg << nmp << ':';
-			msg << local_name;
-			msg << "> expected in this state";
-#ifdef IO_NO_EXCEPTIONS
-        io::detail::panic( ec_.value(), msg.str().data() );
+				std::snprintf(
+						emsg,
+						512,
+#ifdef IO_CPU_BITS_64
+						"XML validation error at [%llu,%llu] %s:%s %s expected in this state",
 #else
-		throw std::runtime_error( msg.str() );
+						"XML validation error at [%lu,%lu] %s:%s %s expected in this state",
+#endif // IO_CPU_BITS_64
+						pos.first,
+						pos.second,
+						nmp,
+						local_name,
+						type);
+			else
+				std::snprintf(
+						emsg,
+						512,
+#ifdef IO_CPU_BITS_64
+						"XML validation error at [%llu,%llu] %s %s expected in this state",
+#else
+						"XML validation error at [%lu,%lu] %s %s expected in this state",
+#endif // IO_CPU_BITS_64
+						pos.first,
+						pos.second,
+						local_name,
+						type);
+#ifdef IO_NO_EXCEPTIONS
+        io::detail::panic( ec_.value() , emsg );
+#else
+		throw std::runtime_error( emsg );
 #endif // IO_NO_EXCEPTIONS
 		}
-		return ret;
 	}
 
 private:

@@ -30,7 +30,7 @@ where id and enabled fields stored as XML attributes and name stored as a tag
 
 #include <files.hpp>
 #include <xml_reader.hpp>
-#include <xml_lexcast.hpp>
+#include <char_cast.hpp>
 
 /// A structure to parse into
 struct configuration {
@@ -45,30 +45,24 @@ std::ostream& operator<<(std::ostream& s, const configuration& cnd)
 	return s;
 }
 
-// for converting characters into std::size_t
-// can be replaced with boost lexical_cast
-// or  std::stringstream etc
-typedef io::xml::lexical_cast_traits<std::size_t> size_t_cast;
-typedef io::xml::lexical_cast_traits<bool> bool_cast;
-
 // De-serialize configuration structure from XML reader
 static configuration read_config(io::unsafe<io::xml::reader>& rd)
 {
 	configuration ret;
 	// taking next start element event and check whether it <configuration>
-	io::xml::start_element_event sev = rd.next_expected_tag_begin("","configuration");
+	io::xml::start_element_event sev = rd.next_expected_tag_begin("configuration");
 	// obtain id="123" attribute value
 	io::const_string tmp = sev.get_attribute("","id").first;
-	ret.id = size_t_cast::from_string( tmp.data() );
+	io::from_string(tmp, ret.id);
 	// obtain enabled="true|false" attribute value
 	tmp = sev.get_attribute("","enabled").first;
-	ret.enabled = bool_cast::from_string( tmp.data() );
+	io::from_string(tmp, ret.enabled);
 	// read nesting <name>name</name> tag value
-	rd.next_expected_tag_begin("","name");
+	rd.next_expected_tag_begin("name");
 		ret.name = std::string( rd.next_characters().data() );
-	rd.next_expected_tag_end("","name");
+	rd.next_expected_tag_end("name");
 	// check next is </configuration> tag end
-	rd.next_expected_tag_end("","configuration");
+	rd.next_expected_tag_end("configuration");
 	return ret;
 }
 

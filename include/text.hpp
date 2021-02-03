@@ -19,8 +19,9 @@
 
 #include "channels.hpp"
 #include "charsetcvt.hpp"
-#include "unicode_bom.hpp"
 #include "errorcheck.hpp"
+#include "type_traits_ext.hpp"
+#include "unicode_bom.hpp"
 
 #include <atomic>
 #include <exception>
@@ -338,24 +339,12 @@ inline std::string transcode(const wchar_t* ucs_str)
 	return transcode(ucs_str, std::char_traits<wchar_t>::length(ucs_str) );
 }
 
-template<typename> struct __is_char_type_helper : public std::false_type {};
-template<> struct __is_char_type_helper<char> : public std::true_type {};
-template<> struct __is_char_type_helper<wchar_t> : public std::true_type {};
-template<> struct __is_char_type_helper<char16_t> : public std::true_type {};
-template<> struct __is_char_type_helper<char32_t> : public std::true_type {};
-#ifdef IO_HAS_CHAR8_T
-template<> struct __is_char_type_helper<char8_t> : public std::true_type {};
-#endif
-
-template<typename _Tp>
-struct is_char_type : public __is_char_type_helper<typename std::remove_cv<_Tp>::type>::type
-{};
 
 template<typename C, class ___type_restriction = void>
 class basic_reader;
 
 template<typename C>
-class basic_reader<C, typename std::enable_if< is_char_type< C >::value >::type >
+class basic_reader<C, typename std::enable_if< is_charcter< C >::value >::type >
 {
 private:
 	static constexpr std::size_t CSIZE = sizeof(C);
@@ -374,7 +363,7 @@ template<typename C, class ___type_restriction = void>
 class basic_writer;
 
 template<typename C>
-class basic_writer<C, typename std::enable_if< is_char_type< C >::value >::type >
+class basic_writer<C, typename std::enable_if< is_charcter< C >::value >::type >
 {
 	basic_writer(const basic_writer&) = delete;
 	basic_writer operator=(const basic_writer&) = delete;
