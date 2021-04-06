@@ -75,7 +75,7 @@ public:
 	/// Get OpenGL LH frustum matrix
 	/// \param prj projection matrix
     /// \param mv model view matrix
-	void world(glm::mat4 &prj, glm::mat4& mv) const noexcept;
+	void world(glm::mat4 &prj, glm::mat4& mv, glm::vec4& camera) const noexcept;
 
 	/// Gets current light parameters
 	/// \return light parameters

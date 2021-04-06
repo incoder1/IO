@@ -1,6 +1,6 @@
 /*
  *
- * Copyright (c) 2016-2020
+ * Copyright (c) 2016-2021
  * Viktor Gubin
  *
  * Use, modification and distribution are subject to the
@@ -135,9 +135,8 @@ static std::size_t utf16_buff_size(const char* b, std::size_t size) noexcept
 	const char *end = b + size;
 	std::size_t ret = 0;
 	const char *c = b;
-	unsigned int mblen;
 	while( (b < end) && '\0' != *c) {
-		mblen = u8_mblen(c);
+		unsigned int mblen = u8_mblen(c);
 		ret = ret > 2 ? ret + 2 : ret + 1;
 		c = c + mblen;
 	}
@@ -149,9 +148,8 @@ static std::size_t utf32_buff_size(const char* b, std::size_t size) noexcept
 	const char *end = b + size;
 	std::size_t ret = 0;
 	const char *c = b;
-	unsigned int mblen;
 	while( (b < end) && '\0' != *c) {
-		mblen = u8_mblen(c);
+		unsigned int mblen = u8_mblen(c);
 		ret += mblen;
 		c = c + mblen;
 	}
@@ -214,9 +212,9 @@ static std::string transcode_big(const wchar_t* ucs_str, std::size_t len)
 #endif // __IO_WINDOWS_BACKEND__
 	scoped_arr<char> arr( detail::utf8_buff_size(ucs, len) );
 	std::error_code ec;
-	std::size_t conv = transcode(ec, ucs, len, detail::byte_cast(arr.get()), arr.len() );
+	std::size_t conv = transcode(ec, ucs, len, detail::byte_cast(arr.begin()), arr.len() );
 	check_error_code(ec);
-	return std::string(arr.get(), conv);
+	return std::string(arr.begin(), conv);
 }
 
 static std::string transcode_small(const wchar_t* ucs_str, std::size_t len)
@@ -246,9 +244,9 @@ inline std::u16string transcode_to_u16(const char* u8_str, std::size_t bytes)
 {
 	scoped_arr<char16_t> arr( detail::utf16_buff_size(u8_str, bytes) + 1 );
 	std::error_code ec;
-	std::size_t conv = transcode(ec, detail::byte_cast(u8_str), bytes, arr.get(), arr.len() );
+	std::size_t conv = transcode(ec, detail::byte_cast(u8_str), bytes, arr.begin(), arr.len() );
 	check_error_code(ec);
-	return std::u16string(arr.get(), conv);
+	return std::u16string(arr.begin(), conv);
 }
 
 /// Convert an UTF-8 character array to system UCS-4 encoded char16_t string
@@ -260,9 +258,9 @@ inline std::u32string transcode_to_u32(const char* u8_str, std::size_t bytes)
 {
 	scoped_arr<char32_t> arr( detail::utf32_buff_size(u8_str,bytes) + 1);
 	std::error_code ec;
-	std::size_t conv = transcode(ec, detail::byte_cast(u8_str), bytes, arr.get(), arr.len() );
+	std::size_t conv = transcode(ec, detail::byte_cast(u8_str), bytes, arr.begin(), arr.len() );
 	check_error_code(ec);
-	return std::u32string(arr.get(), conv);
+	return std::u32string(arr.begin(), conv);
 }
 
 /// Convert an UTF-8 zero terminated string to system USC-2 encoded char16_t string
@@ -282,9 +280,9 @@ inline std::string transcode(const char16_t* u16_str, std::size_t len)
 {
 	scoped_arr<char> arr( detail::utf8_buff_size(u16_str, len)  );
 	std::error_code ec;
-	std::size_t conv = transcode(ec, u16_str, len, detail::byte_cast(arr.get()), arr.len() );
+	std::size_t conv = transcode(ec, u16_str, len, detail::byte_cast(arr.begin()), arr.len() );
 	check_error_code(ec);
-	return std::string(arr.get(), conv);
+	return std::string(arr.begin(), conv);
 }
 
 /// Convert a system UCS-4 character array to UTF-8 encoded STL string
@@ -292,9 +290,9 @@ inline std::string transcode(const char32_t* u32_str, std::size_t len)
 {
 	scoped_arr<char> arr( detail::utf8_buff_size(u32_str, len) );
 	std::error_code ec;
-	std::size_t conv = transcode(ec, u32_str, len,detail::byte_cast(arr.get()), arr.len() );
+	std::size_t conv = transcode(ec, u32_str, len,detail::byte_cast(arr.begin()), arr.len() );
 	check_error_code(ec);
-	return std::string(arr.get(), conv);
+	return std::string(arr.begin(), conv);
 }
 
 inline std::string transcode(const char16_t* u16_str)
@@ -317,9 +315,9 @@ inline std::wstring transcode_to_ucs(const char* u8_str, std::size_t bytes)
 	scoped_arr<char32_t> arr( detail::utf32_buff_size(u8_str,bytes) + 1);
 #endif // __IO_WINDOWS_BACKEND__
 	std::error_code ec;
-	std::size_t conv = transcode(ec, detail::byte_cast(u8_str), bytes, arr.get(), arr.len() );
+	std::size_t conv = transcode(ec, detail::byte_cast(u8_str), bytes, arr.begin(), arr.len() );
 	check_error_code(ec);
-	return std::wstring(reinterpret_cast<const wchar_t*>(arr.get()), conv );
+	return std::wstring(reinterpret_cast<const wchar_t*>(arr.begin()), conv );
 }
 
 inline std::wstring transcode_to_ucs(const char* u8_str)
@@ -362,6 +360,7 @@ private:
 template<typename C, class ___type_restriction = void>
 class basic_writer;
 
+/// !\brief Character output interface
 template<typename C>
 class basic_writer<C, typename std::enable_if< is_charcter< C >::value >::type >
 {
@@ -372,25 +371,38 @@ private:
 public:
 	typedef std::char_traits<C> char_traits;
 
+	/// Construct new writer on top of the write channel
+	/// \brief a destination output channgel
+	/// \brief internal character buffer size
 	basic_writer(s_write_channel&& dst,std::size_t buffer_size) noexcept:
 		ec_(),
 		buffer_(io::byte_buffer::allocate(ec_, buffer_size)),
 		dst_(std::forward<s_write_channel>(dst))
 	{}
 
+	/// Construct new writer on top of the write channel with default internal character buffer
+	/// \brief a destination output channgel
 	explicit basic_writer(s_write_channel&& dst) noexcept:
 		basic_writer(std::forward<s_write_channel>(dst), memory_traits::page_size())
 	{}
 
+#ifdef __HAS_CPP_14
 	basic_writer(basic_writer&& other) noexcept:
-		ec_(),
-		buffer_(),
-		dst_()
+		ec_( std::exchange(other.ec_, std::error_code() ) ),
+		buffer_( std::exchange(other.buffer_, byte_buffer()) ),
+		dst_( std::exchange(other.dst_, s_write_channel()) )
+	{}
+#else
+	basic_writer(basic_writer&& other) noexcept:
+		ec_( std::move(other.ec_) ),
+		buffer_( std::move(other.buffer_) ),
+		dst_( std::move(other.dst_) )
 	{
-		dst_ = std::move(other.dst_);
-		buffer_ = std::move(other.buffer_);
-		ec_ = std::move(other.ec_);
+		other.ec_ = std::error_code();
+		other.buffer_ = byte_buffer();
+		other.dst_ = s_write_channel();
 	}
+#endif // __HAS_CPP_14
 
 	basic_writer& operator=(basic_writer&& other) noexcept
 	{
@@ -446,7 +458,7 @@ public:
 		buffer_.swap(other.buffer_);
 		std::swap(ec_, other.ec_);
 	}
-private:
+
 	void flush() noexcept
 	{
 		if(!ec_) {

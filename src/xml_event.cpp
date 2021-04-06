@@ -20,12 +20,6 @@ attribute::~attribute() noexcept
 {}
 
 //start_element_event
-start_element_event::start_element_event() noexcept:
-	name_(),
-	attributes_(),
-	empty_element_(false)
-{
-}
 
 start_element_event::start_element_event(start_element_event&& rhs) noexcept:
 	name_( std::move(rhs.name_) ),

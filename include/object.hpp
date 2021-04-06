@@ -24,7 +24,10 @@
 
 namespace io {
 
-class IO_PUBLIC_SYMBOL object {
+/// !\brief base class for any pointer on reference which should be used from
+/// boost intrusive counter smart pointer. Reference counter implementing atomic
+/// increment and decrement.
+ class IO_PUBLIC_SYMBOL object {
 	object(const object&) = delete;
 	object& operator=(const object&) = delete;
 	object(object&&) = delete;
@@ -38,7 +41,7 @@ public:
 	virtual ~object() noexcept = default;
 
 
-#if defined(__IO_WINDOWS_BACKEND__) && defined(IO_SHARED_LIB)
+#if defined(__GNUG__) && defined(__IO_WINDOWS_BACKEND__) && defined(IO_SHARED_LIB)
 
 #ifdef IO_NO_EXCEPTIONS
 
@@ -70,11 +73,11 @@ public:
 		memory_traits::free(ptr);
 	}
 
-	void operator delete(void* const ptr) noexcept {
+	void operator delete(void* const ptr) noexcept
+	{
 		assert(nullptr != ptr);
 		memory_traits::free(ptr);
 	}
-
 
 #endif // defined(__IO_WINDOWS_BACKEND__) && defined(IO_SHARED_LIB)
 

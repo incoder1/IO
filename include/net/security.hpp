@@ -18,7 +18,7 @@
 #endif // HAS_PRAGMA_ONCE
 
 #if defined(IO_TLS_PROVIDER_GNUTLS)
-#	include "gnu_tls_security.hpp"
+#	include "tls/security_context.hpp"
 #else
 #	error Secure transport layer is not provided
 #endif // IO_TLS_PROVIDER_GNUTSL

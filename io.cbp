@@ -16,9 +16,7 @@
 					<Add option="-Wnon-virtual-dtor" />
 					<Add option="-Winline" />
 					<Add option="-pedantic" />
-					<Add option="-std=c++17" />
-					<Add option="-std=c11" />
-					<Add option="-pg" />
+					<Add option="-std=gnu++17" />
 					<Add option="-Og" />
 					<Add option="-g" />
 					<Add option="-fexceptions" />
@@ -35,7 +33,6 @@
 					<Add directory="include/tls" />
 				</Compiler>
 				<Linker>
-					<Add option="-pg -lgmon" />
 					<Add library="iconv.dll" />
 					<Add library="Ws2_32" />
 					<Add library="gnutls.dll" />
@@ -265,13 +262,6 @@
 		<Unit filename="include/conststring.hpp" />
 		<Unit filename="include/errorcheck.hpp" />
 		<Unit filename="include/files.hpp" />
-		<Unit filename="include/gnu_tls_security.hpp">
-			<Option target="debug-win-gcc-static-x64" />
-			<Option target="debug-win-gcc-dll-x64" />
-			<Option target="release-win-gcc-static-x64" />
-			<Option target="release-win-gcc-dll-x64" />
-			<Option target="debug-unix-gcc-static-64bit" />
-		</Unit>
 		<Unit filename="include/hashing.hpp" />
 		<Unit filename="include/memory_channel.hpp" />
 		<Unit filename="include/net/http_client.hpp" />
@@ -317,6 +307,11 @@
 		<Unit filename="include/stringpool.hpp" />
 		<Unit filename="include/text.hpp" />
 		<Unit filename="include/threading.hpp" />
+		<Unit filename="include/tls/blocking_channel.hpp" />
+		<Unit filename="include/tls/credentials.hpp" />
+		<Unit filename="include/tls/security_context.hpp" />
+		<Unit filename="include/tls/session.hpp" />
+		<Unit filename="include/tls/transport.hpp" />
 		<Unit filename="include/tuple_meta_reflect.hpp" />
 		<Unit filename="include/type_traits_ext.hpp" />
 		<Unit filename="include/unicode_bom.hpp" />
@@ -440,13 +435,6 @@
 		<Unit filename="src/charsetdetector.cpp" />
 		<Unit filename="src/charsets.cpp" />
 		<Unit filename="src/conststring.cpp" />
-		<Unit filename="src/gnu_tls_security.cpp">
-			<Option target="debug-win-gcc-static-x64" />
-			<Option target="debug-win-gcc-dll-x64" />
-			<Option target="release-win-gcc-static-x64" />
-			<Option target="release-win-gcc-dll-x64" />
-			<Option target="debug-unix-gcc-static-64bit" />
-		</Unit>
 		<Unit filename="src/hashing.cpp" />
 		<Unit filename="src/memory_channel.cpp" />
 		<Unit filename="src/net/http_client.cpp" />
@@ -486,6 +474,11 @@
 		<Unit filename="src/stringpool.cpp" />
 		<Unit filename="src/strings.hpp" />
 		<Unit filename="src/text.cpp" />
+		<Unit filename="src/tls/blocking_channel.cpp" />
+		<Unit filename="src/tls/credentials.cpp" />
+		<Unit filename="src/tls/security_context.cpp" />
+		<Unit filename="src/tls/session.cpp" />
+		<Unit filename="src/tls/transport.cpp" />
 		<Unit filename="src/unicode_bom.cpp" />
 		<Unit filename="src/win/asynch_socket_channel.cpp">
 			<Option target="debug-win-gcc-static-x64" />

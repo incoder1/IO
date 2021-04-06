@@ -90,9 +90,17 @@ Tested implementations:
     * [GNU iconv](https://www.gnu.org/software/libiconv/)
     *  GNU C Library iconv
 
+- [GNU TLS v 3.0+] 
+#### UNIX
+	Most Unix distributions have an implementation, use your package manager
+#### Windows
+	Compiler | instruction
+	MSYS2 | install developement package by pacman
+	MS Visual C++ | build can be found at: https://github.com/ShiftMediaProject/gnutls
+
 ## SUPPORTED OPERATING SYSTEMS AND COMPILERS
 
-Library supports Windows Vista+ and GNU Linux Operating systems With GCC 4.8.2+ or MS Visual C++ 15+ compilers. 
+Library supports Windows 7+ and GNU Linux Operating systems With GCC 4.8.2+ or MS Visual C++ 15+ compilers. 
 
 	
 ### TESTED CONFIGURATIONS
@@ -100,16 +108,12 @@ Library supports Windows Vista+ and GNU Linux Operating systems With GCC 4.8.2+ 
 OS | Compiler | Version | Arhitecture
 --- | --- | --- | ---
 **Windows** | | |
-Windows 7  | GCC/G++ | 5.1 MinGW64 (TDM build) | x86_64
 Windows 7  | GCC/G++ | 7.2.0 MinGW64 (MSYS2 build) | x86_64
-Windows 10 | GCC/G++ | 7.2.0 MinGW64 (MSYS2 build) | x86_64
-Windows 10 | GCC/G++ | 7.3.0 MinGW64 (MSYS2 build) | x86_64
-Windows 10 | GCC/G++ | 8.2.0 MinGW64 (MSYS2 build) | x86_64
-Windows 10 | GCC/G++ | 8.3.0 MinGW64 (MSYS2 build) | x86_64
 Windows 10 | GCC/G++ | 9.1.0 MinGW64 (MSYS2 build) | x86_64
+Windows 10 | GCC/G++ | 10.2.0 MinGW64 (MSYS2 build) | x86_64
 Windows 10 | MS Visual C++ | 17 | x64 
+Windows 10 | MS Visual C++ | 19 | x64 
 **GNU/Lunux** | | | 
- Fedora 23 | GCC/G++ | 6.3 | x86_64
  Fedora 26 | GCC/G++ | 7.1 | x86_64
  Fedora 30 | GCC/G++ | 9.1.0 | x86_64
 

@@ -1,6 +1,6 @@
-﻿/*
+/*
  *
- * Copyright (c) 2016-2020
+ * Copyright (c) 2016-2021
  * Viktor Gubin
  *
  * Use, modification and distribution are subject to the
@@ -414,7 +414,7 @@ public:
 
 	/// Puts content between position and last bytes from another buffer
 	/// \return count of bytes put from another buffer, or 0 if not enough available space in this buffer
-	inline std::size_t put(byte_buffer& other) noexcept {
+	inline std::size_t put(const byte_buffer& other) noexcept {
 		return ( available() < other.length() ) ? 0 : put( other.position_, other.last_ );
 	}
 
@@ -550,20 +550,17 @@ public:
 	/// Extends (i.e. realloc) this buffer by increasing this buffer capacity with extend_size (capacity+extend_size)
 	/// If not enough memory, buffer will be kept in memory as is
 	/// \param extend_size count of bytes to extend this buffer capacity
-	/// \return true buffer was extended, false if not enough available memory
-	/// \throw never throws
+	/// \return wheter buffer extended
 	bool extend(std::size_t extend_size) noexcept;
 
-	/// Exponential growth this buffer by sq this buffer capacity
+	/// Exponential growth this buffer capacity
 	/// If not enough memory, buffer will be kept in memory as is
 	/// \return true buffer was extended, false if not enough available memory
-	/// \throw never throws
 	bool exp_grow() noexcept;
 
-	/// Natural logarithm grow this buffer by ln this buffer capacity
+	/// Log-linear growth this buffer this buffer capacity
 	/// If not enough memory, buffer will be kept in memory as is
 	/// \return true buffer was extended, false if not enough available memory
-	/// \throw never throws
 	bool ln_grow() noexcept;
 
 private:
@@ -588,7 +585,7 @@ private:
 		if( empty() ) {
 			ret = static_cast<T>(0);
 		} else {
-			ret = * ( reinterpret_cast<T*>( position_ ) );
+			io_memmove( &ret, position_, sizeof(T) );
 			shift( sizeof(T) );
 		}
 		return ret;
@@ -604,7 +601,7 @@ private:
 		if( empty() ) {
 			ret = std::numeric_limits<T>::quiet_NaN();
 		} else {
-			ret = * ( reinterpret_cast<T*>( position_ ) );
+			io_memmove( &ret, position_, sizeof(T) );
 			shift( sizeof(T) );
 		}
 		return ret;

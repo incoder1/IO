@@ -89,35 +89,6 @@ constexpr bool is_one_of(_cht1 what, _cht2 c1, _cht2 c2, _cht2 c3, _cht2 c4)
 	return is_one_of(what,c1,c2,c3) || cheq(what, c4);
 }
 
-template<typename _cht1, typename _cht2>
-constexpr bool is_one_of(_cht1 what, _cht2 c1, _cht2 c2, _cht2 c3, _cht2 c4, _cht2 c5)
-{
-	return is_one_of(what,c1,c2,c3,c4) || cheq(what, c5);
-}
-
-template<typename _cht1, typename _cht2>
-constexpr bool is_one_of(_cht1 what, _cht2 c1, _cht2 c2, _cht2 c3, _cht2 c4, _cht2 c5, _cht2 c6)
-{
-	return is_one_of(what,c1,c2,c3,c4,c5) || cheq(what, c6);
-}
-
-template<typename _cht1, typename _cht2>
-constexpr bool is_one_of(_cht1 what, _cht2 c1, _cht2 c2, _cht2 c3, _cht2 c4, _cht2 c5, _cht2 c6, _cht2 c7)
-{
-	return is_one_of(what,c1,c2,c3,c4,c5,c6) || cheq(what, c7);
-}
-
-template<typename _cht1, typename _cht2>
-constexpr bool is_one_of(_cht1 what, _cht2 c1, _cht2 c2, _cht2 c3, _cht2 c4, _cht2 c5, _cht2 c6, _cht2 c7, _cht2 c8)
-{
-	return is_one_of(what,c1,c2,c3,c4,c5,c6,c7) || cheq(what, c8);
-}
-
-inline const char* find_delimiter(const char* where, const char* delimitters) noexcept {
-	return io_strpbrk( where, delimitters);
-}
-
-
 static constexpr const unsigned int BITS = sizeof(unsigned int) * CHAR_BIT;
 static constexpr const unsigned int ALBT_SIZE = 26;
 static constexpr const unsigned int LAT_A = static_cast<unsigned int>('a');
@@ -197,10 +168,10 @@ inline char* strchrn(const char* s,const char c,const std::size_t max_len) noexc
 	return const_cast<char*>( std::char_traits<char>::find(s, max_len, c) );
 }
 
-inline char* find_first_symbol(const char* s) noexcept
+inline char* skip_spaces(const char* s) noexcept
 {
-	constexpr const char* sym = "\t\n\v\f\r ";
-	return const_cast<char*>(s) + io_strspn(s, sym);
+	constexpr const char* SPACE = "\t\n\v\f\r ";
+	return const_cast<char*>(s) + io_strspn(s, SPACE);
 }
 
 constexpr bool is_endl(const char ch) noexcept {

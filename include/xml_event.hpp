@@ -1,6 +1,6 @@
 /*
  *
- * Copyright (c) 2016-2020
+ * Copyright (c) 2016-2021
  * Viktor Gubin
  *
  * Use, modification and distribution are subject to the
@@ -30,21 +30,26 @@ namespace xml {
 
 /// \brief XML event masking type
 enum class event_type {
-	start_document,
-	start_element,
-	end_element,
-	processing_instruction
+	start_document, ///< indicates start document event type
+	start_element, ///< indicates start  element event type
+	end_element, ///< indicates end  element event type
+	processing_instruction ///< indicates processing instruction event type
 };
 
 /// \brief Start document event
 class IO_PUBLIC_SYMBOL document_event final {
 public:
+
 	constexpr document_event() noexcept:
 		version_(),
 		encoding_(),
 		standalone_(false)
 	{}
 
+	/// Constructs new start document event
+	/// \param version XML markup version i.e. 1.0 or 1.1 version
+	/// \param enc XML document encoding i.e. UTF-8 or Latin 1
+	/// \param standalone whether XML document is standalone
 	document_event(const_string&& version,const_string&& enc, bool standalone) noexcept:
 		version_( std::forward<const_string>(version) ),
 		encoding_( std::forward<const_string>(enc) ),
@@ -75,22 +80,31 @@ private:
 	bool standalone_;
 };
 
+/// !\brief XML processing instruction event
 class IO_PUBLIC_SYMBOL instruction_event final {
 public:
+
 	constexpr instruction_event() noexcept:
 		target_(),
 		data_()
 	{}
 
+	/// Constructs new processing instruction XML event
+	/// \param target - XML processing instruction target
+	/// \param data - XML processing instruction body data
 	instruction_event(const_string&& target,const_string&& data) noexcept:
 		target_( std::move(target) ),
 		data_( std::move(data) )
 	{}
 
+	/// Returns processing instruction target
+	/// \return instruction target
 	inline const_string target() const noexcept {
 		return target_;
 	}
 
+	/// Returns processing instruction body data
+	/// \return instruction body data
 	inline const_string data() const noexcept {
 		return data_;
 	}
@@ -101,7 +115,7 @@ private:
 
 class event_stream_parser;
 
-/// \brief qualified name
+/// \brief Qualified name
 class qname final {
 public:
 
@@ -110,15 +124,17 @@ public:
 		local_name_()
 	{}
 
-	explicit qname(const cached_string& local_name) noexcept:
-		prefix_(),
-		local_name_(local_name)
-	{
-	}
-
-	qname(const cached_string& p,const cached_string& n) noexcept:
+	/// Constructs new qualified name with default name space prefix
+	/// \param local_name local name
+	qname(const const_string& p,const const_string& n) noexcept:
 		prefix_(p),
 		local_name_(n)
+	{}
+
+	/// Constructs new qualified name with default name space prefix
+	/// \param local_name local name
+	explicit qname(const const_string& local_name) noexcept:
+		qname(const_string(),local_name)
 	{}
 
 	qname(const qname& other) noexcept:
@@ -157,14 +173,14 @@ public:
 
 	/// Returns name space prefix if present
 	/// \return name space prefix of empty string if it is not present
-	inline cached_string prefix() const noexcept {
+	inline const_string prefix() const noexcept {
 		return prefix_;
 	}
 
 
 	/// Returns tag local name
 	/// \return tag local name
-	inline cached_string local_name() const noexcept {
+	inline const_string local_name() const noexcept {
 		return local_name_;
 	}
 
@@ -184,8 +200,8 @@ public:
 	}
 
 private:
-	cached_string prefix_;
-	cached_string local_name_;
+	const_string prefix_;
+	const_string local_name_;
 };
 
 /// \brief XML tag attribute
@@ -258,14 +274,17 @@ private:
 public:
 	typedef attrs_storage::const_iterator iterator;
 
-	start_element_event(const start_element_event& rhs) = delete;
-	start_element_event& operator=(const start_element_event& rhs) = delete;
-
-	start_element_event() noexcept;
-	~start_element_event() noexcept = default;
+	start_element_event() noexcept:
+		name_(),
+		attributes_(),
+		empty_element_(false)
+	{}
 
 	start_element_event(qname&& name, bool empty_element) noexcept;
+
 	start_element_event(start_element_event&& rhs) noexcept;
+
+	~start_element_event() noexcept = default;
 
 	start_element_event& operator=(start_element_event&& rhs) noexcept {
 		start_element_event( std::forward<start_element_event>(rhs) ).swap( *this );
@@ -319,11 +338,11 @@ public:
 	end_element_event(const end_element_event&) = delete;
 	end_element_event& operator=(const end_element_event&) = delete;
 
+	~end_element_event() noexcept = default;
+
 	constexpr end_element_event() noexcept:
 		name_()
 	{}
-
-	~end_element_event() noexcept = default;
 
 	end_element_event(qname&& cp) noexcept:
 		name_( std::forward<qname>(cp) )

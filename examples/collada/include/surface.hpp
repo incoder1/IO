@@ -66,6 +66,8 @@ protected:
 	/// Vertex texture coordinates shader attribute name
 	static constexpr const char* VATTR_UV = "vertex_uv";
 
+	/// Camera position uniform name
+	static constexpr const char* UNFM_CAMERA_POS = "camera_pos";
 	/// model-view-projection matrix uniform name
 	static constexpr const char* UNFM_MVP_MAT = "mvp";
 	/// model-view matrix uniform name

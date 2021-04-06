@@ -25,12 +25,11 @@ static inline const uint8_t* str_bytes(const char* str) noexcept {
 
 static const char* SEP = "\r\n";
 
-std::ostream& operator<<(std::ostream& to,const std::pair<const_string,const_string>& hdr) {
-	to << hdr.first;
-	to << ": ";
-	to << hdr.second;
-	to << SEP;
-	return to;
+static void write_header(writer& to,const std::pair<const_string,const_string>& hdr) {
+	to.write(hdr.first.data(), hdr.first.size());
+	to.write(": ");
+	to.write(hdr.second.data(), hdr.second.size());
+	to.write(SEP);
 }
 
 // request
@@ -42,25 +41,28 @@ request::request(request_method method, const s_uri& uri) noexcept:
 
 void request::send(std::error_code& ec, writer& to) const noexcept
 {
-	std::stringstream buff;
+	// FIXME: refactor text
 	switch(method_) {
 		case request_method::get:
-			buff << "GET ";
+			to.write("GET ");
 			break;
 		case request_method::post:
-			buff << "POST ";
+			to.write("POST ");
 			break;
 		default:
 			break;
 	}
-	buff << uri_->path();
-	buff << " HTTP/1.1" << SEP ;
-	buff << "Host: " << uri_->host() << SEP;
+	to.write(uri_->path().data(),uri_->path().size());
+	to.write(" HTTP/1.1");
+	to.write(SEP);
+	to.write("Host: ");
+	to.write(uri_->host().data(), uri_->host().size());
+	to.write(SEP);
 	for(auto hdr: hdrs_) {
-		buff << hdr;
+		write_header(to,hdr);
 	}
-	buff << SEP;
-	to.write( buff.str() );
+	to.write(SEP);
+	to.flush();
 	ec = to.last_error();
 }
 

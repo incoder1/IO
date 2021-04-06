@@ -46,7 +46,6 @@ private:
 	bool initialized_;
 };
 
-
 // read_stream
 class read_stream final: public ::IStream {
 	read_stream(const read_stream&) = delete;
@@ -95,13 +94,13 @@ read_stream::read_stream(io::s_read_channel&& ch):
 	::ULONG written;
 	std::error_code ec;
 	io::scoped_arr<uint8_t> arr( io::memory_traits::page_size() );
-	read = ch_->read( ec, arr.get(), arr.len() );
+	read = ch_->read( ec, arr.begin(), arr.len() );
 	while(!ec && read > 0 ) {
 		for(std::size_t left = read; left > 0; left -= written) {
-			uint8_t *px = arr.get() + (read - left);
+			uint8_t *px = arr.begin() + (read - left);
 			mem_proxy_->Write(px, left, &written);
 		}
-		read = ch_->read( ec, arr.get(), arr.len() );
+		read = ch_->read( ec, arr.begin(), arr.len() );
 	}
 	if(ec)
 		throw std::system_error(ec);
@@ -293,7 +292,7 @@ static s_IWICBitmapLock bitmap_lock(const s_IWICBitmap& bitmap, ::WICRect& rc_lo
 static io::scoped_arr<uint8_t> flip_vertically(const ::BYTE* origin,const std::size_t size,const std::size_t line_stride)
 {
 	io::scoped_arr<uint8_t> ret(size);
-	uint8_t* dst = const_cast<uint8_t*>( ret.get() );
+	uint8_t* dst = const_cast<uint8_t*>( ret.begin() );
 	const uint8_t* src = origin;
 	const std::size_t lines_count = size / line_stride;
 	#ifdef _OPENMP

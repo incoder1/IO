@@ -34,7 +34,7 @@ void material_helper::bind_to_shader(const gl::s_program& prg)
 void material_helper::transfer_to_shader() const noexcept
 {
 	::glUniformMatrix4fv(adse_ul_, 1, GL_FALSE, mat_.adse);
-	::glUniform1f(shininess_ul_, mat_.shininess * 128.0F );
+	::glUniform1f(shininess_ul_, mat_.shininess * 128.0F);
 }
 
 // light_helper

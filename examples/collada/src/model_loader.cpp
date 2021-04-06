@@ -230,7 +230,7 @@ s_surface model_loader::load_static_sub_mesh(const collada::s_sub_mesh& sm, cons
 			   new geometry_mesh(
 							sufrace_data(
 									mat,vertex_count,
-				   					util::array_view<float>(vbo.get(),vbo.len()),
+				   					util::array_view<float>(vbo.begin(),vbo.len()),
 									util::array_view<unsigned int>()
 									)
 								)
@@ -282,7 +282,7 @@ s_surface model_loader::load_textured_sub_mesh(const collada::s_sub_mesh& sm, co
 			   new textured_mesh(
 					sufrace_data(
 						DEFAULT_MATERIAL, vertex_count,
-						util::array_view<float>(vbo.get(), vbo.len()),
+						util::array_view<float>(vbo.begin(), vbo.len()),
 						util::array_view<unsigned int>()
 					 ),
 					tex
@@ -310,7 +310,7 @@ s_surface model_loader::load_bummaped_mesh(const collada::s_sub_mesh& sm, const 
 	#endif // _OPENMP
 	for(std::size_t i=0; i < vertex_count; i += TAN_STRIDE) {
 		// triangle face to calculate tangent vector
-		float *face = vbo.get() +  (i * dst_vertex_size);
+		float *face = vbo.begin() +  (i * dst_vertex_size);
 		// copy face into tmp buff, and calculate tangent vector
         acr.copy_vertex( face , i);
 		acr.copy_vertex( face + dst_vertex_size, i+1);
@@ -324,7 +324,7 @@ s_surface model_loader::load_bummaped_mesh(const collada::s_sub_mesh& sm, const 
 			new normal_mapped_mesh(
 				sufrace_data(
 				   DEFAULT_MATERIAL, vertex_count,
-				   util::array_view<float>(vbo.get(), vbo.len()),
+				   util::array_view<float>(vbo.begin(), vbo.len()),
 				   util::array_view<unsigned int>()
 				),
 				diffuse_tex,

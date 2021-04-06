@@ -16,9 +16,17 @@
 	 Check your compiller options must have -std=c++[11,14,17,...]"
 #endif // CPP11 detection
 
+#if __cplusplus >= 201402L
+#	define __HAS_CPP_14 1
+#endif // C++ 14
+
 #if __cplusplus >= 201703L
 #	define __HAS_CPP_17 1
 #endif // C++ 17
+
+#if __cplusplus >= 202002L
+#	define __HAS_CPP_20 1
+#endif // C++ 20
 
 #pragma once
 

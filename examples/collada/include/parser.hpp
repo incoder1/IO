@@ -17,7 +17,6 @@
 #include "collada.hpp"
 
 #include <xml_parse.hpp>
-#include <xml_lexcast.hpp>
 
 namespace collada {
 

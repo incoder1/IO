@@ -50,7 +50,7 @@ public:
 	/// \param nmp a XML name space prefix
 	/// \param local_name XML element local name
 	/// \return whether start element event points to the specific element name
-	bool is_element(const start_element_event& sev, const cached_string& nmp, const cached_string& local_name) noexcept {
+	bool is_element(const start_element_event& sev, const const_string& nmp, const const_string& local_name) noexcept {
 		qname rhs( nmp, local_name );
 		return rhs == sev.name();
 	}
@@ -60,7 +60,7 @@ public:
 	/// \param nmp a XML name space prefix
 	/// \param local_name XML element local name
 	/// \return whether start element event points to the specific element name
-	bool is_element(const end_element_event& eev, const cached_string& nmp, const cached_string& local_name) noexcept {
+	bool is_element(const end_element_event& eev, const const_string& nmp, const const_string& local_name) noexcept {
 		qname rhs( nmp, local_name );
 		return rhs == eev.name();
 	}
@@ -244,11 +244,11 @@ public:
 		return rd_.is_tag_end_next();
 	}
 
-	bool is_element(const xml::start_element_event& sev, const cached_string& nmp, const cached_string& local_name) noexcept {
+	bool is_element(const xml::start_element_event& sev, const const_string& nmp, const const_string& local_name) noexcept {
 		return rd_.is_element(sev,nmp,local_name);
 	}
 
-	bool is_element(const xml::end_element_event& eev, const cached_string& nmp, const cached_string& local_name) noexcept {
+	bool is_element(const xml::end_element_event& eev, const const_string& nmp, const const_string& local_name) noexcept {
 		return rd_.is_element(eev,nmp,local_name);
 	}
 

@@ -31,43 +31,57 @@ string_pool::~string_pool() noexcept
 {
 }
 
-const cached_string string_pool::get(const char* s, std::size_t count) noexcept
+const const_string string_pool::get(const char* s, std::size_t count) noexcept
 {
 	typedef pool_type::value_type pair_type;
-
 	if( io_unlikely( (nullptr == s || '\0' == *s || count == 0 ) ) )
-		return cached_string();
-	if( count > detail::SSO_MAX ) {
-		const std::size_t str_hash = io::hash_bytes(s,count);
-		pool_type::iterator it = pool_.find( str_hash );
-		if( it != pool_.end() ) {
-			// handle hash-miss collision
-			// more likely never happens, since City Hash
-			if( io_unlikely( pool_.count( str_hash ) > 1 ) ) {
-				auto its = pool_.equal_range( str_hash );
-				it = std::find_if(its.first, its.second, [s,count] (const pair_type& entry) {
-					return entry.second.equal(s, count);
-				} );
-			}
-			return it->second;
-		}
-#ifndef IO_NO_EXCEPTIONS
-		try {
-#endif // IO_NO_EXCEPTIONS
-			std::pair<pool_type::iterator,bool> ret = pool_.emplace( str_hash, cached_string(s, count) );
-			if( io_likely( ret.second ) )
-				return ret.first->second;
-#ifndef IO_NO_EXCEPTIONS
-		}
-		catch(std::exception&) {
-			// skip out of memory, and return string as it is
-			// i.e. empty string
-		}
-#endif // IO_NO_EXCEPTIONS
+		return const_string();
+
+	// no problem on SSO string
+	// no any heap memory allocation happing for character array
+	// i.e. string array is less then
+	// sizeof of struct like { char* cstr; size_t len}
+	// and wee need pool nothing
+ 	if( count <= detail::SSO_MAX ) {
+		return const_string(s, count);
 	}
-	// no problem on SSO string, it should not be pulled since
-	// all data stored inside string object it self
-	return cached_string(s, count);
+
+	// search for a string in the pool
+	const std::size_t str_hash = io::hash_bytes(s,count);
+	pool_type::iterator it = pool_.find( str_hash );
+	if( it != pool_.end() ) {
+		// handle unlikelly hash-miss collision,
+		// if we have move then one strings in hash table with the same hash
+		// CityHash used City32 for 32 bit instruction set, and City64 for 64 bit
+		// to minimize hash collisions as much as possible
+		if( io_unlikely( pool_.count( str_hash ) > 1 ) ) {
+			auto its = pool_.equal_range( str_hash );
+			// find string by comparing memory
+			// more likely never going to happen
+			it = std::find_if(its.first, its.second, [s,count] (const pair_type& entry) {
+				return entry.second.equal(s, count);
+			} );
+		}
+		return it->second;
+	}
+	// string is not found in hash table, construct and insert it
+#ifndef IO_NO_EXCEPTIONS
+	try {
+#endif // IO_NO_EXCEPTIONS
+		auto ret =
+			pool_.emplace(
+					std::piecewise_construct,
+					std::forward_as_tuple(str_hash),
+					std::forward_as_tuple(s, count)
+				);
+		return ret.first->second;
+#ifndef IO_NO_EXCEPTIONS
+	}
+	catch(std::exception&) {
+	  // seems like we are out of memory, return empty string
+	   return const_string();
+	}
+#endif // IO_NO_EXCEPTIONS
 }
 
 } // namespace io

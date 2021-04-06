@@ -34,11 +34,14 @@
 #include <stdlib.h>
 #include <malloc.h>
 #include <string.h>
+#include <BaseTsd.h>
 
 // Intel compiler specific
 #ifdef __ICL
 #	include <immintrin.h>
 #endif
+
+typedef SSIZE_T ssize_t;
 
 #define HAS_PRAGMA_ONCE
 

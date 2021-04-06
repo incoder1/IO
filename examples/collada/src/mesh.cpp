@@ -42,6 +42,7 @@ geometry_mesh::geometry_mesh(sufrace_data&& data):
 	mvp_ul_(-1),
 	mv_ul_(-1),
 	nrm_ul_(-1),
+	camera_pos_ul_(-1),
 	elemens_draw_( data.index() )
 {
 	gl::shader vertex_sh = gl::shader::load_glsl(gl::shader_type::vertex,gl::shader_file(VERTEX_SHADER));
@@ -85,27 +86,33 @@ geometry_mesh::geometry_mesh(sufrace_data&& data):
 	mat_helper_.bind_to_shader(program_);
 	light_helper_.bind_to_shader(program_);
 
+	camera_pos_ul_ = program_->uniform_location(UNFM_CAMERA_POS);
+
 	::glBindVertexArray(0);
 }
 
 void geometry_mesh::draw(const scene& scn) const
 {
-	::glm::mat4 projection_mat;
-	::glm::mat4 model_view_mat;
-	scn.world(projection_mat,model_view_mat);
-	::glm::mat4 normal_mat( glm::transpose( glm::inverse(  glm::mat3(model_view_mat) ) ) );
+	glm::mat4 projection_mat;
+	glm::mat4 model_view_mat;
+	glm::vec4 camera_pos;
+	scn.world(projection_mat,model_view_mat,camera_pos);
+
+	glm::mat3 normal_mat( glm::transpose( glm::inverse( glm::mat3(model_view_mat) ) ) );
 
 	program_->start();
 
 	// transfer world
 	::glUniformMatrix4fv(mvp_ul_, 1, GL_FALSE, glm::value_ptr( projection_mat * model_view_mat ) );
 	::glUniformMatrix4fv(mv_ul_, 1, GL_FALSE, glm::value_ptr( model_view_mat ) );
-	::glUniformMatrix4fv(nrm_ul_, 1, GL_FALSE, glm::value_ptr( normal_mat ) );
+	::glUniformMatrix3fv(nrm_ul_, 1, GL_FALSE, glm::value_ptr( normal_mat ) );
 
 	// transfer light
 	light_helper_.transfer_to_shader( scn.light() );
 	// transfer material
 	mat_helper_.transfer_to_shader();
+
+	::glUniform4fv(camera_pos_ul_, 1, glm::value_ptr(camera_pos) );
 
 	::glBindVertexArray(vao_);
 	// draw with index, if any
@@ -180,10 +187,11 @@ colored_geometry_mesh::colored_geometry_mesh(sufrace_data&& data):
 
 void colored_geometry_mesh::draw(const scene& scn) const
 {
-	::glm::mat4 projection_mat;
-	::glm::mat4 model_view_mat;
-	scn.world(projection_mat,model_view_mat);
-	::glm::mat4 normal_mat( glm::transpose( glm::inverse(  glm::mat3(model_view_mat) ) ) );
+	glm::mat4 projection_mat;
+	glm::mat4 model_view_mat;
+	glm::vec4 camera_pos;
+	scn.world(projection_mat,model_view_mat,camera_pos);
+	glm::mat4 normal_mat( glm::transpose( glm::inverse(  glm::mat3(model_view_mat) ) ) );
 
 	program_->start();
 
@@ -276,10 +284,11 @@ textured_mesh::textured_mesh(sufrace_data&& data,const gl::s_texture& texture):
 
 void textured_mesh::draw(const scene& scn) const
 {
-	::glm::mat4 projection_mat;
-	::glm::mat4 model_view_mat;
-	scn.world(projection_mat,model_view_mat);
-	::glm::mat4 normal_mat( glm::transpose( glm::inverse(  glm::mat3(model_view_mat) ) ) );
+	glm::mat4 projection_mat;
+	glm::mat4 model_view_mat;
+	glm::vec4 camera_pos;
+	scn.world(projection_mat,model_view_mat,camera_pos);
+	glm::mat4 normal_mat( glm::transpose( glm::inverse(  glm::mat3(model_view_mat) ) ) );
 
 	program_->start();
 
@@ -389,7 +398,8 @@ void normal_mapped_mesh::draw(const scene& scn) const
 
 	glm::mat4 projection_mat;
 	glm::mat4 model_view_mat;
-	scn.world(projection_mat,model_view_mat);
+	glm::vec4 camera_pos;
+	scn.world(projection_mat,model_view_mat,camera_pos);
 
 	glm::mat4 mvp = projection_mat * model_view_mat;
 

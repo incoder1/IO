@@ -57,7 +57,7 @@ struct light_t {
 	float pads[16];
 };
 
-/// Default OpenGL light position
+//camera_position/ Default OpenGL light position
 static constexpr const light_t DEFAULT_LIGHT = {
 	{
 	 0.0F,0.0F,1.0F,0.0F,

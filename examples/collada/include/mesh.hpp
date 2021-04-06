@@ -54,6 +54,7 @@ private:
 	::GLint mvp_ul_;
 	::GLint mv_ul_;
 	::GLint nrm_ul_;
+	::GLint camera_pos_ul_;
 	bool elemens_draw_;
 };
 

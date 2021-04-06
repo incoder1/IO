@@ -103,9 +103,9 @@ std::size_t IO_PUBLIC_SYMBOL transmit(std::error_code& ec,const s_read_channel& 
 	std::size_t result = 0;
 	std::size_t read = 0;
 	do {
-		read = src->read(ec, rbuf.get(), rbuf.len() );
+		read = src->read(ec, rbuf.begin(), rbuf.len() );
 		if(read > 0 && !ec)
-			result += transmit_buffer(ec, dst, rbuf.get(), read);
+			result += transmit_buffer(ec, dst, rbuf.begin(), read);
 		else
 			break;
 	} while( !ec );

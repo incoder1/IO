@@ -17,12 +17,8 @@
 #pragma once
 #endif // HAS_PRAGMA_ONCE
 
-#ifndef SECURITY_WIN32
-#	define SECURITY_WIN32
-#endif // SECURITY_WIN32
 
 #include <ws2tcpip.h>
-
 #include "wsaerror.hpp"
 #include "win_asynch_channel.hpp"
 

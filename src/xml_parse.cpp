@@ -23,20 +23,20 @@ static const char* DOCTYPE  = "<!DOCTYPE";
 static constexpr const std::size_t MEDIUM_BUFF_SIZE = 128;
 static constexpr const std::size_t HUGE_BUFF_SIZE = 256;
 
-// unicode constants in digit forms, to handle endians
-static constexpr const int ENDL = 0;
-static constexpr const int LEFTB =  60; // '<';
-static constexpr const int RIGHTB =  62; // '>';
-static constexpr const int SRIGHTB = 93; // ']'
-static constexpr const int QNM = 34; // '"'
-static constexpr const int APH = 39; // '\''
-static constexpr const int SPACE = 32;//' ';
-static constexpr const int EM = 33;//'!';
-static constexpr const int SOLIDUS = 47;// '/'
-static constexpr const int HYPHEN = 45;// '-'
-static constexpr const int COLON = 58; // ':'
-static constexpr const int ES = 61 ; // '='
-static constexpr const int QM = 63; // '?'
+// UNICODE constants in digit forms
+static constexpr const char ENDL = 0;
+static constexpr const char LEFTB =  60; // '<';
+static constexpr const char RIGHTB =  62; // '>';
+static constexpr const char SRIGHTB = 93; // ']'
+static constexpr const char QNM = 34; // '"'
+static constexpr const char APH = 39; // '\''
+static constexpr const char SPACE = 32;//' ';
+static constexpr const char EM = 33;//'!';
+static constexpr const char SOLIDUS = 47;// '/'
+static constexpr const char HYPHEN = 45;// '-'
+static constexpr const char COLON = 58; // ':'
+static constexpr const char ES = 61 ; // '='
+static constexpr const char QM = 63; // '?'
 
 
 static inline bool is_prologue(const char *s) noexcept
@@ -308,7 +308,7 @@ inline void event_stream_parser::putch(byte_buffer& buf, char ch) noexcept
 		assign_error(error::out_of_memory);
 }
 
-cached_string event_stream_parser::precache(const char* str) noexcept
+const_string event_stream_parser::precache(const char* str) noexcept
 {
 	return pool_->get(str);
 }
@@ -317,8 +317,8 @@ cached_string event_stream_parser::precache(const char* str) noexcept
 // extract name and namespace prefix if any
 qname event_stream_parser::extract_qname(const char* from, std::size_t& len) noexcept
 {
-	cached_string prefix;
-	cached_string local_name;
+	const_string prefix;
+	const_string local_name;
 	len = 0;
 	std::size_t start = 0;
 	std::size_t count = extract_prefix( start, from );
@@ -483,7 +483,7 @@ document_event event_stream_parser::parse_start_doc() noexcept
 		i = const_cast<char*> ( stop + 1 );
 	}
 	// check error in this point
-	if( 0 != io_memcmp( find_first_symbol(i), END_PROLOGUE, 2) ) {
+	if( 0 != io_memcmp( skip_spaces(i), END_PROLOGUE, 2) ) {
 		assign_error(error::illegal_prologue);
 		return document_event();
 	}
@@ -716,8 +716,8 @@ attribute event_stream_parser::extract_attribute(const char* from, std::size_t& 
 {
 	len = 0;
 	// skip lead spaces, don't copy them into name
-	const char *i = find_first_symbol(from);
-	if( nullptr == i || is_one_of(*i, SOLIDUS,RIGHTB,0) )
+	const char *i = skip_spaces(from);
+	if( nullptr == i || is_one_of(*i, SOLIDUS,RIGHTB, ENDL) )
 		return attribute();
 
 	const char* start = i;
@@ -729,8 +729,8 @@ attribute event_stream_parser::extract_attribute(const char* from, std::size_t& 
 
 	const char val_sep = *(++i);
 
-	cached_string np;
-	cached_string ln;
+	const_string np;
+	const_string ln;
 	// find prefix if any, ans split onto qualified name
 	char *tmp = strchrn( start, COLON, str_size(start,i) );
 	if(nullptr != tmp) {
@@ -775,7 +775,7 @@ attribute event_stream_parser::extract_attribute(const char* from, std::size_t& 
 	return attribute( qname( std::move(np), std::move(ln) ), std::move(value) );
 }
 
-bool event_stream_parser::validate_xml_name(const cached_string& str, bool attr) noexcept
+bool event_stream_parser::validate_xml_name(const const_string& str, bool attr) noexcept
 {
 	std::size_t str_hash = str.hash();
 	if( validated_.end() == validated_.find( str_hash ) ) {

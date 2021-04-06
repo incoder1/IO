@@ -203,13 +203,6 @@ public:
 		return empty() ? std::string() : std::string( data(), size() );
 	}
 
-#ifdef __HAS_CPP_17
-	inline std::string_view get_view() const  {
-		return std::string_view( data(), size() );
-	}
-#endif // __HAS_CPP_17
-
-
 	/// Converts this string to system UCS-2 ( UTF-16 LE or BE)
 	inline std::u16string convert_to_u16() const {
 		return empty() ? std::u16string() : transcode_to_u16( data(), size() );
@@ -238,7 +231,7 @@ public:
 		return empty() ? 0 : sso() ? detail::short_size(data_) : data_.long_buf.size;
 	}
 
-	/// Hash this string bytes (murmur3 for 32bit, Cityhash for 64 bit)
+	/// Calculates non cryptographic hash value for this string bytes
 	/// \return string content hash
 	inline std::size_t hash() const noexcept {
 		return empty() ? 0 : io::hash_bytes( data(), size() );
@@ -259,10 +252,17 @@ public:
 		return compare( rhs ) > 0;
 	}
 
+	/// Check this string background char lexicographically equals to a raw C zero ending char array
+	/// \param rhs char array to compare
+	/// \return whether this string background char array equals to argument
 	inline bool equal(const char* rhs) const noexcept {
 		return equal( rhs, nullptr != rhs ? traits_type::length(rhs) : 0 );
 	}
 
+	/// Check this string background char lexicographically equals to a raw char array
+	/// \param rhs char array to compare
+	/// \param len rhs length in characters
+	/// \return whether this string background char array equals to argement
 	bool equal(const char* rhs, const std::size_t len) const noexcept {
 		if(carr_empty(rhs, len) && empty() )
 			return true;
@@ -282,15 +282,14 @@ private:
 	}
 
 	int compare(const const_string& rhs) const noexcept {
+		int ret = 1;
 		if( ( empty() && rhs.empty() ) || ptr_equal(rhs) ) {
-			return 0;
+			ret = 0;
 		} else {
-			std::size_t byte_size = size();
-			if( byte_size < rhs.size() )
-				return -1;
-			return traits_type::compare( data(), rhs.data(), byte_size );
+			const std::size_t byte_size = size();
+			ret = byte_size < rhs.size() ? -1 : traits_type::compare( data(), rhs.data(), byte_size );
 		}
-		return 1;
+		return ret;
 	}
 
 private:

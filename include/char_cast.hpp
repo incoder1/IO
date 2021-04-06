@@ -91,9 +91,10 @@ to_chars_result to_chars(char* first, char* last, T value) noexcept
         if( len > buf_size) {
             ret.ec = std::errc::no_buffer_space;
             len = memory_traits::distance(first,last);
+        } else {
+			io_memmove(first, s, len);
+			ret.ptr = first + len;
         }
-        io_memmove(first, s, len);
-        ret.ptr = first + len;
     }
     return ret;
 }
@@ -137,9 +138,10 @@ to_chars_result to_chars(char* first, char* last, T value) noexcept
         if( len > buf_size) {
             ret.ec = std::errc::no_buffer_space;
             len = memory_traits::distance(first,last);
+        } else {
+			io_memmove(first, s, len);
+			ret.ptr = first + len;
         }
-        io_memmove(first, s, len);
-        ret.ptr = first + len;
     }
     return ret;
 }
@@ -261,6 +263,19 @@ inline io::const_string to_string(std::error_code& ec, T value) noexcept
 	constexpr std::size_t buff_size = limits::digits10 + 1;
 	char tmp[ buff_size ] = {'\0'};
 	to_chars_result tch_ret = io::to_chars(tmp, buff_size, value);
+	if(nullptr == tch_ret.ptr) {
+		ec = std::make_error_code( tch_ret.ec );
+		return io::const_string();
+	}
+	return io::const_string(tmp);
+}
+
+inline io::const_string to_string(std::error_code& ec, const long double& value) noexcept
+{
+	typedef std::numeric_limits<long double> limits;
+	constexpr std::size_t buff_size = limits::digits10 + 1;
+	char tmp[ buff_size ] = {'\0'};
+	to_chars_result tch_ret = detail::float_to_chars(tmp, tmp+buff_size, value);
 	if(nullptr == tch_ret.ptr) {
 		ec = std::make_error_code( tch_ret.ec );
 		return io::const_string();

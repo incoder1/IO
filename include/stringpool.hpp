@@ -29,8 +29,6 @@
 
 namespace io {
 
-typedef const_string cached_string;
-
 class string_pool;
 DECLARE_IPTR(string_pool);
 
@@ -52,38 +50,40 @@ public:
 
 	virtual ~string_pool() noexcept override;
 
-	/// Returns a cached_string object for the raw character array.
+	/// Returns a cached constant string object for the raw character array.
 	/// \param s source character array
 	/// \param size size of array in bytes
-	/// \return cached_string object or empty cached string if out of memory or size is 0
+	/// \return a constant string with the cached value or empty string when no free RAM left
 	/// \throw never throws
-	const cached_string get(const char* s, std::size_t count) noexcept;
+	const  const_string get(const char* s, std::size_t count) noexcept;
 
-	/// Returns a cached_string object for the C zero ending string
+	/// Returns a cached constant string object for the C zero ending string
 	/// \param s source zero terminated C string
-	/// \return cached_string object or empty cached string if out of memory or s is "" or nullptr
+	/// \return a constant string with the cached value or empty string when no free RAM left, or s points to "" or nullptr
 	/// \throw never throws
-	inline const cached_string get(const char* s) noexcept {
-		return get(s, cached_string::traits_type::length(s) );
+	inline const const_string get(const char* s) noexcept
+	{
+		return get(s, const_string::traits_type::length(s) );
 	}
 
 	/// Returns count of strings cached by this pool
 	/// \return count of strings
-	inline std::size_t size() const noexcept {
+	inline std::size_t size() const noexcept
+	{
 		return pool_.size();
 	}
 
 private:
 	friend class nobadalloc<string_pool>;
 #ifdef __IO_WINDOWS_BACKEND__
-	typedef enclave_allocator< std::pair<const std::size_t, cached_string> > allocator_type;
+	typedef enclave_allocator< std::pair<const std::size_t, const_string> > allocator_type;
 #else
-	typedef h_allocator< std::pair<const std::size_t, cached_string> > allocator_type;
+	typedef h_allocator< std::pair<const std::size_t, const_string> > allocator_type;
 #endif // __IO_WINDOWS_BACKEND__
 
 	typedef std::unordered_map<
 		std::size_t,
-		cached_string,
+		const_string,
 		std::hash<std::size_t>,
 		std::equal_to<std::size_t>,
 		allocator_type

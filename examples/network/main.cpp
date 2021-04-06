@@ -33,7 +33,8 @@ int main(int argc, const char** argv)
 	io::check_error_code(ec);
 
 	// TLS service for HTTPS
-	io::net::s_security_context secure_ctx = io::net::security_context::create(ec, ioc);
+	io::net::tls::s_security_context secure_ctx = io::net::tls::security_context::create(ec, ioc);
+	io::check_error_code(ec);
 
 	// Construct TLS secured channel;
     io::s_read_write_channel sch = secure_ctx->client_blocking_connect(ec, url->host().data(), url->port());

@@ -82,7 +82,7 @@ void scene::move_light(float x_delta, float y_delta, float z_delta) noexcept
 	light_.pads[2] += z_delta;
 }
 
-void  scene::world(glm::mat4 &prj, glm::mat4& mv) const noexcept
+void  scene::world(glm::mat4 &prj, glm::mat4& mv, glm::vec4& camera) const noexcept
 {
 	prj = glm::frustum( -width_,width_, -height_,height_, eye_distance_, depth_);
 
@@ -97,6 +97,8 @@ void  scene::world(glm::mat4 &prj, glm::mat4& mv) const noexcept
 
 	mv = glm::rotate(mv, angle_x_, up_x);
 	mv = glm::rotate(mv, angle_y_, up_y);
+
+	camera = glm::vec4(0.0F, 0.0F, eye_distance_, 1.0);
 }
 
 

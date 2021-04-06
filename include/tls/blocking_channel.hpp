@@ -1,6 +1,6 @@
 /*
  *
- * Copyright (c) 2016-2020
+ * Copyright (c) 2016-2021
  * Viktor Gubin
  *
  * Use, modification and distribution are subject to the
@@ -8,8 +8,8 @@
  * LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
  *
  */
-#ifndef __POSIX_SYNCH_SOCKET_CHANNEL_HPP__INCLUDED__
-#define __POSIX_SYNCH_SOCKET_CHANNEL_HPP__INCLUDED__
+#ifndef __IO_TLS_BLOCKING_CHANNEL_HPP_INCLUDED__
+#define __IO_TLS_BLOCKING_CHANNEL_HPP_INCLUDED__
 
 #include "config.hpp"
 
@@ -17,32 +17,30 @@
 #pragma once
 #endif // HAS_PRAGMA_ONCE
 
-#include <arpa/inet.h>
-#include <sys/socket.h>
-#include <netdb.h>
-
 #include "channels.hpp"
+#include "session.hpp"
 
 namespace io {
 
 namespace net {
 
-class synch_socket_channel final:public read_write_channel {
-private:
-	static constexpr int SOCKET_ERROR = -1;
-	friend class nobadalloc<synch_socket_channel>;
+namespace tls {
+
+class IO_PUBLIC_SYMBOL blocking_channel final: public read_write_channel
+{
 public:
-	explicit synch_socket_channel(int socket) noexcept;
-	virtual ~synch_socket_channel() noexcept;
+    blocking_channel(s_session&& session) noexcept;
+	virtual ~blocking_channel() noexcept override;
 	virtual std::size_t read(std::error_code& ec,uint8_t* const buff, std::size_t bytes) const noexcept override;
 	virtual std::size_t write(std::error_code& ec, const uint8_t* buff,std::size_t size) const noexcept override;
-public:
-	os_descriptor_t socket_;
+private:
+    s_session session_;
 };
 
+} // namespace tls
 
-} // namespace net
+} //namespace net
 
 } // namespace io
 
-#endif // __POSIX_SYNCH_SOCKET_CHANNEL_HPP__INCLUDED__
+#endif // __IO_TLS_BLOCKING_CHANNEL_HPP_INCLUDED__
