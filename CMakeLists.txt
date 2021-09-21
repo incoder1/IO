@@ -82,6 +82,8 @@ else()
 	add_library(io STATIC ${COMMON_SRC} ${PLATFORM_SRC})
 endif()
 
+target_precompile_headers(io PRIVATE stdafx.hpp)
+
 if( CMAKE_COMPILER_IS_GNUCXX )
 	target_link_libraries(io ${EXTRA_LIBS})
 

@@ -38,6 +38,8 @@ public:
 
     static s_session client_blocking_session(std::error_code &ec, ::gnutls_certificate_credentials_t crd, s_read_write_channel&& raw) noexcept;
 
+//    static s_session client_asynch_session(sdd::error_code &ec, ::gnutls_certificate_credentials_t crd, s_read_write_channel&& raw) noexcept;
+
     ~session() noexcept;
 
     inline void swap(session& other) noexcept
@@ -53,9 +55,9 @@ private:
 
 	session(::gnutls_session_t peer, s_transport&& connection) noexcept;
 
-	s_transport connection() const noexcept {
-		return connection_;
-	}
+	ssize_t push(const void *data, std::size_t size) noexcept;
+
+	ssize_t pull(void *data, std::size_t size) noexcept;
 
     static int client_handshake(::gnutls_session_t peer) noexcept;
 
@@ -63,7 +65,7 @@ private:
 
     friend int get_session_error_no(::gnutls_transport_ptr_t) noexcept;
 
- 	friend ssize_t session_push(::gnutls_transport_ptr_t tr, const void* msg, std::size_t msg_size) noexcept;
+ 	friend ssize_t session_push(::gnutls_transport_ptr_t tr, const ::giovec_t * iov, int iovcnt) noexcept;
 
     friend ssize_t session_pull(::gnutls_transport_ptr_t tr, void* buff, std::size_t buff_size) noexcept;
 

@@ -11,9 +11,6 @@
 #include "stdafx.hpp"
 #include "synch_socket_channel.hpp"
 
-#undef send
-#undef recv
-
 namespace io {
 
 namespace net {

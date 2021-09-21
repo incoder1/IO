@@ -29,18 +29,27 @@ int get_session_error_no(::gnutls_transport_ptr_t tr) noexcept
     return s->ec_.value();
 }
 
-ssize_t session_push(::gnutls_transport_ptr_t tr, const void* msg, std::size_t msg_size) noexcept
+ssize_t session_push(::gnutls_transport_ptr_t tr, const ::giovec_t * iov, int iovcnt) noexcept
 {
 	session* s = static_cast<session*>( tr );
-	s_transport con = s->connection();
-	return con->push(s->ec_, msg, msg_size);
+	ssize_t ret = 0;
+	ssize_t written = 0;
+	for(std::size_t i = 0; i < static_cast<std::size_t>(iovcnt); i++) {
+		written = s->push(iov[i].iov_base, iov[i].iov_len);
+		if(written < 0) {
+			ret = -1;
+			break;
+		} else {
+			ret += written;
+		}
+	}
+	return ret;
 }
 
 ssize_t session_pull(::gnutls_transport_ptr_t tr, void* buff, std::size_t buff_size) noexcept
 {
     session* s = static_cast<session*>( tr );
-    s_transport con = s->connection();
-    return con->pull(s->ec_, buff, buff_size);
+    return s->pull( buff, buff_size);
 }
 
 // session
@@ -54,6 +63,16 @@ session::~session() noexcept
 {
     ::gnutls_bye(peer_, GNUTLS_SHUT_RDWR);
     ::gnutls_deinit( peer_ );
+}
+
+ssize_t session::push(const void *data, std::size_t size) noexcept
+{
+	return connection_->push(ec_, data, size);
+}
+
+ssize_t session::pull(void *data, std::size_t size) noexcept
+{
+	return connection_->pull(ec_, data, size);
 }
 
 int session::client_handshake(::gnutls_session_t const peer) noexcept
@@ -99,9 +118,8 @@ s_session session::client_blocking_session(std::error_code &ec, ::gnutls_certifi
         return s_session();
     }
     ::gnutls_transport_set_ptr(peer, static_cast<::gnutls_transport_ptr_t>( ret ) );
-    //::gnutls_transport_set_ptr2(peer, session_pull, session_push);
-	::gnutls_transport_set_push_function(peer, session_push );
 	::gnutls_transport_set_pull_function(peer, session_pull);
+	::gnutls_transport_set_vec_push_function(peer, session_push );
 
     ::gnutls_transport_set_pull_timeout_function(peer, ::gnutls_system_recv_timeout);
     ::gnutls_transport_set_errno_function(peer,get_session_error_no);

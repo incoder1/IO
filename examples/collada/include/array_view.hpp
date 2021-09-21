@@ -14,7 +14,7 @@
 namespace util {
 
 /// A non-owning reference to an raw array
-template<class T>
+template<typename T>
 class array_view
 {
 	public:
@@ -28,8 +28,11 @@ class array_view
 		explicit operator bool() const noexcept {
 			return nullptr != px_;
 		}
-		const T* get() const noexcept {
+		const T* begin() const noexcept {
 			return px_;
+		}
+		const T* end() const noexcept {
+			return px_ + size_;
 		}
 		const std::size_t size() const noexcept {
 			return size_;

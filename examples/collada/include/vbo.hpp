@@ -111,13 +111,13 @@ private:
 public:
 
 	static inline s_buffer create(const util::array_view<unsigned int>& data, buffer_type bt, buffer_usage u) {
-		const void* px =  static_cast<const void*>( data.get() );
+		const void* px =  static_cast<const void*>( data.begin() );
 		std::size_t size = data.bytes();
 		return create( px, size, bt, data_type::UNSIGNED_INT , u);
 	}
 
 	static inline s_buffer create(const util::array_view<float>& data, buffer_type bt, buffer_usage u) {
-		const void* px =  static_cast<const void*>( data.get() );
+		const void* px =  static_cast<const void*>( data.begin() );
 		return create( px, data.bytes(), bt, data_type::FLOAT , u );
 	}
 
