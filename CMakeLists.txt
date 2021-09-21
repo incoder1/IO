@@ -9,7 +9,7 @@ include_directories(src)
 
 
 file(GLOB PROJECT_SOURCE_PATH ${PROJECT_SOURCE_DIR}/src)
-file(GLOB COMMON_SRC ${PROJECT_SOURCE_PATH}/stdafx.hpp ${PROJECT_SOURCE_PATH}/*.cpp ${PROJECT_SOURCE_PATH}/net/*.cpp)
+file(GLOB COMMON_SRC ${PROJECT_SOURCE_PATH}/*.cpp ${PROJECT_SOURCE_PATH}/net/*.cpp)
 
 set(EXTRA_LIBS)
 set(CMAKE_BINARY_DIR target)
@@ -50,12 +50,13 @@ if( NOT MSVC )
 		include_directories(${GNUTLS_INCLUDE_DIR})
 		list(APPEND EXTRA_LIBS ${GNUTLS_LIBRARIES})
 		include_directories(include/tls)
-		file(GLOB PLATFORM_SRC ${PROJECT_SOURCE_PATH}/tls/*.cpp)
+		file(GLOB TLS_SRC ${PROJECT_SOURCE_PATH}/tls/*.cpp)
 	endif(GNUTLS_FOUND) # GNU TLS
 else()
 	list(APPEND EXTRA_LIBS kernel32.lib)
 	list(APPEND EXTRA_LIBS user32.lib)
 	list(APPEND EXTRA_LIBS Ws2_32.lib)
+	file(GLOB TLS_SRC "")
 endif()
 
 if(MSYS OR CYGWIN)
@@ -77,15 +78,14 @@ elseif(${CMAKE_BUILD_TYPE} STREQUAL "Debug")
 endif()
 
 if(BUILD_SHARED_LIBS)
-	add_library(io SHARED ${COMMON_SRC} ${PLATFORM_SRC})
+	add_library(io SHARED ${COMMON_SRC} ${TLS_SRC} ${PLATFORM_SRC})
 else()
-	add_library(io STATIC ${COMMON_SRC} ${PLATFORM_SRC})
+	add_library(io STATIC ${COMMON_SRC} ${TLS_SRC} ${PLATFORM_SRC})
 endif()
-
-target_precompile_headers(io PRIVATE stdafx.hpp)
 
 if( CMAKE_COMPILER_IS_GNUCXX )
 	target_link_libraries(io ${EXTRA_LIBS})
+	target_precompile_headers(io PRIVATE ${PROJECT_SOURCE_PATH}/stdafx.hpp)
 
 	if(BUILD_SHARED_LIBS)
 		add_definitions(-DIO_SHARED_LIB -DIO_BUILD)

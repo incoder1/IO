@@ -41,16 +41,15 @@ template<> struct __is_unsigned_integer<unsigned char> : public std::true_type {
 template<> struct __is_unsigned_integer<unsigned short> : public std::true_type {};
 template<> struct __is_unsigned_integer<unsigned int> : public std::true_type {};
 template<> struct __is_unsigned_integer<unsigned long int> : public std::true_type {};
-template<> struct __is_unsigned_integer<unsigned long long int> : public std::true_type {}
+template<> struct __is_unsigned_integer<unsigned long long int> : public std::true_type {};
 
 template<typename> struct __is_signed_integer : public std::false_type {};
 template<> struct __is_signed_integer<char> : public std::true_type {};
 template<> struct __is_signed_integer<short> : public std::true_type {};
 template<> struct __is_signed_integer<int> : public std::true_type {};
 template<> struct __is_signed_integer<long int> : public std::true_type {};
-template<> struct __is_signed_integer<unsigned long long int> : public std::true_type {}
-
-template<> struct __is_unsigned_integer<std::size_t> : public std::true_type {}
+template<> struct __is_signed_integer<unsigned long long int> : public std::true_type {};
+template<> struct __is_unsigned_integer<std::size_t> : public std::true_type {};
 
 template<typename _Tp>
 struct is_unsigned_integer : public __is_unsigned_integer<typename std::remove_cv<_Tp>::type>::type
