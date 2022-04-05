@@ -17,10 +17,6 @@
 #pragma once
 #endif // HAS_PRAGMA_ONCE
 
-#if defined(IO_TLS_PROVIDER_GNUTLS)
-#	include "tls/security_context.hpp"
-#else
-#	error Secure transport layer is not provided
-#endif // IO_TLS_PROVIDER_GNUTSL
+#include "tls/security_context.hpp"
 
 #endif // __IO_SECURE_CHANNEL_HPP_INCLUDED__

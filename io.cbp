@@ -16,9 +16,8 @@
 					<Add option="-Wnon-virtual-dtor" />
 					<Add option="-Winline" />
 					<Add option="-pedantic" />
-					<Add option="-std=gnu++17" />
-					<Add option="-Og" />
 					<Add option="-g" />
+					<Add option="-std=gnu++20" />
 					<Add option="-fexceptions" />
 					<Add option="-minline-stringops-dynamically" />
 					<Add option="-mavx" />
@@ -311,6 +310,7 @@
 		<Unit filename="include/tls/credentials.hpp" />
 		<Unit filename="include/tls/security_context.hpp" />
 		<Unit filename="include/tls/session.hpp" />
+		<Unit filename="include/tls/tls_error.hpp" />
 		<Unit filename="include/tls/transport.hpp" />
 		<Unit filename="include/tuple_meta_reflect.hpp" />
 		<Unit filename="include/type_traits_ext.hpp" />
@@ -478,6 +478,7 @@
 		<Unit filename="src/tls/credentials.cpp" />
 		<Unit filename="src/tls/security_context.cpp" />
 		<Unit filename="src/tls/session.cpp" />
+		<Unit filename="src/tls/tls_error.cpp" />
 		<Unit filename="src/tls/transport.cpp" />
 		<Unit filename="src/unicode_bom.cpp" />
 		<Unit filename="src/win/asynch_socket_channel.cpp">

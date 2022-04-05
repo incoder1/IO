@@ -19,6 +19,7 @@
 
 #include "credentials.hpp"
 #include "transport.hpp"
+#include "tls_error.hpp"
 
 namespace io {
 
@@ -72,7 +73,6 @@ private:
 private:
     ::gnutls_session_t peer_;
     s_transport connection_;
-    std::error_code ec_;
 };
 
 } // namespace tls

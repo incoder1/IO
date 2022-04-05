@@ -148,12 +148,12 @@ public:
 	s_write_channel ch_;
 	std::atomic_size_t ref_count_;
 
-	inline friend void intrusive_ptr_add_ref(self_type* const obj) noexcept
+	friend void intrusive_ptr_add_ref(self_type* const obj) noexcept
 	{
 		obj->ref_count_.fetch_add(1, std::memory_order_relaxed);
 	}
 
-	inline friend void intrusive_ptr_release(self_type* const obj) noexcept
+	friend void intrusive_ptr_release(self_type* const obj) noexcept
 	{
 		if(1 == obj->ref_count_.fetch_sub(1, std::memory_order_acquire) ) {
 			std::atomic_thread_fence( std::memory_order_release);

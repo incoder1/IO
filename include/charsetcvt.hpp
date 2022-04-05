@@ -205,11 +205,7 @@ private:
 	friend IO_PUBLIC_SYMBOL std::error_code make_error_code(io::converrc errc) noexcept;
 	friend IO_PUBLIC_SYMBOL std::error_condition make_error_condition(io::converrc err) noexcept;
 #endif
-	static inline const chconv_error_category* instance()
-	{
-		static chconv_error_category _instance;
-		return &_instance;
-	}
+	static const chconv_error_category* instance();
 
 	const char* cstr_message(int err_code) const;
 

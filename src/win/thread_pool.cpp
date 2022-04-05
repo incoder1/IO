@@ -11,25 +11,6 @@
 #include "stdafx.hpp"
 #include "thread_pool.hpp"
 
-#ifdef __GNUG__
-
-inline void InitializeThreadpoolEnvironment(PTP_CALLBACK_ENVIRON cbe) noexcept
-{
-	TpInitializeCallbackEnviron (cbe);
-}
-
-inline void SetThreadpoolCallbackCleanupGroup(PTP_CALLBACK_ENVIRON cbe, PTP_CLEANUP_GROUP cg, PTP_CLEANUP_GROUP_CANCEL_CALLBACK cgccb) noexcept
-{
-	TpSetCallbackCleanupGroup( cbe, cg, cgccb );
-}
-
-inline void DestroyThreadpoolEnvironment(PTP_CALLBACK_ENVIRON cbe) noexcept
-{
-	TpDestroyCallbackEnviron(cbe);
-}
-
-#endif // __GNUG__
-
 namespace io {
 
 void CALLBACK thread_pool::routine_wrapper(::PTP_CALLBACK_INSTANCE instance,::PVOID context, ::PTP_WORK work) noexcept

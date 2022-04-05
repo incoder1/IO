@@ -89,14 +89,14 @@ void my_routine::sent(std::error_code& ec,const io::s_asynch_channel& source, io
 // Simple HTTP 1.1 Request to a server, for demonstration propose
 // HTTP client, used to for really tinny communicate with
 // a public available server, in our case it is W3C
-const char* HTTP_GET_REQUEST = "GET /html/rfc2616 HTTP/1.1\r\n\
+const char* HTTP_GET_REQUEST = "GET /Protocols/HTTP/AsImplemented.html HTTP/1.1\r\n\
 Host: tools.ietf.org\r\n\
 Accept: text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8\r\n\
 Cache-Control: no-cache\r\n\
 Pragma: no-cache\r\n\
 Connection: close\r\n\
 Accept-Language: en-US,en;q=0.5\r\n\
-User-Agent: IO/2020  (C++ HTTP client lib)\r\n\r\n";
+User-Agent: IO (C++ HTTP client lib)\r\n\r\n";
 
 int main(int argc, const char** argv)
 {
@@ -112,7 +112,7 @@ int main(int argc, const char** argv)
     // this example shows work with raw network sockets with asynchronous IO,
     // and generally not about HTTP protocol it self
     // Real HTTP communication need TLS security layer to support communication over HTTPS
-    io::net::socket socket = sf->client_tcp_socket(ec, "tools.ietf.org", 80);
+    io::net::socket socket = sf->client_tcp_socket(ec, "www.w3.org", 80);
     io::check_error_code(ec);
 
 	//Create asynchronous completion routine object instance

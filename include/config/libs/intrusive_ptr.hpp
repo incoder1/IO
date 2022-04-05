@@ -111,7 +111,7 @@ public:
 			intrusive_ptr_add_ref(px_);
     }
 
-    inline ~intrusive_ptr() noexcept
+    ~intrusive_ptr() noexcept
     {
         if( px_ != nullptr )
 			intrusive_ptr_release(px_);

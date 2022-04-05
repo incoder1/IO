@@ -34,9 +34,11 @@ protected:
 		object()
 	{}
 public:
-	virtual ssize_t pull(std::error_code& ec, void* dst,std::size_t len) noexcept = 0;
+	virtual ssize_t pull(void* dst,std::size_t len) noexcept = 0;
 
-	virtual ssize_t push(std::error_code& ec, const void* src,std::size_t len) noexcept = 0;
+	virtual ssize_t push(const void* src,std::size_t len) noexcept = 0;
+
+	virtual std::error_code last_error() noexcept = 0;
 
 	virtual ~transport() noexcept = default;
 };
@@ -46,19 +48,23 @@ DECLARE_IPTR(transport);
 class synch_transport final: public transport {
 public:
 	synch_transport(io::s_read_write_channel&& raw) noexcept;
-	virtual ssize_t pull(std::error_code& ec, void* dst,std::size_t len) noexcept override;
-	virtual ssize_t push(std::error_code& ec, const void* src,std::size_t len) noexcept override;
+	virtual ssize_t pull(void* dst,std::size_t len) noexcept override;
+	virtual ssize_t push(const void* src,std::size_t len) noexcept override;
+	virtual std::error_code last_error() noexcept override;
 private:
 	io::s_read_write_channel raw_;
+	std::error_code ec_;
 };
 
 class asynch_transport final: public transport {
 public:
 	asynch_transport(io::s_asynch_channel&& raw) noexcept;
-	virtual ssize_t pull(std::error_code& ec, void* dst,std::size_t len) noexcept override;
-	virtual ssize_t push(std::error_code& ec, const void* src,std::size_t len) noexcept override;
+	virtual ssize_t pull(void* dst,std::size_t len) noexcept override;
+	virtual ssize_t push(const void* src,std::size_t len) noexcept override;
+	virtual std::error_code last_error() noexcept override;
 private:
 	io::s_asynch_channel raw_;
+	std::error_code ec_;
 };
 
 

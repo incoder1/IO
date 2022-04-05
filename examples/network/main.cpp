@@ -16,8 +16,7 @@ int main(int argc, const char** argv)
 
 	using namespace io::net;
 	std::error_code ec;
-	// unified resource identifier on HTTP 1.1 RFC
-	s_uri url = uri::parse(ec, "https://tools.ietf.org/html/rfc2616");
+	s_uri url = uri::parse(ec, "https://raw.githubusercontent.com/incoder1/IO/master/examples/network/main.cpp");
 	io::check_error_code(ec);
 
 	// IO console stream, it supports UNICODE console including Windows consoles
@@ -53,16 +52,16 @@ int main(int argc, const char** argv)
 	io::console::reset_out_color( io::text_color::white );
 
 	// Read HTTP response from server
-	uint8_t buff[4096];
+	uint8_t buff[4096] = {'\0'};
 	std::size_t read;
 	do {
-		io_zerro_mem(buff, sizeof(buff));
 		read = sch->read(ec, buff, sizeof(buff) );
 		if(read > 0) {
 			cout.write(reinterpret_cast<const char*>(buff), read);
 			cout.flush();
+			buff[0] = '\0';
 		}
-	} while(0 != read && !ec);
+	} while( !ec && read > 0 );
 
 	if(ec) {
 		std::ostream& cerr = io::console::error_stream();

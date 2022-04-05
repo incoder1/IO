@@ -104,6 +104,12 @@ converrc engine::convert(uint8_t** src,std::size_t& size, uint8_t** dst, std::si
 
 // chconv_error_category
 
+const chconv_error_category* chconv_error_category::instance()
+{
+	static chconv_error_category _instance;
+	return &_instance;
+}
+
 const char* chconv_error_category::name() const noexcept
 {
 	return "Character set conversation error";

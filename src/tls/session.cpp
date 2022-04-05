@@ -23,12 +23,6 @@ int session_timeout(::gnutls_transport_ptr_t tr, unsigned int ms) noexcept
     return static_cast<int>( ms);
 }
 
-int get_session_error_no(::gnutls_transport_ptr_t tr) noexcept
-{
-    session* s = static_cast<session*>( tr );
-    return s->ec_.value();
-}
-
 ssize_t session_push(::gnutls_transport_ptr_t tr, const ::giovec_t * iov, int iovcnt) noexcept
 {
 	session* s = static_cast<session*>( tr );
@@ -55,33 +49,37 @@ ssize_t session_pull(::gnutls_transport_ptr_t tr, void* buff, std::size_t buff_s
 // session
 session::session(gnutls_session_t peer, s_transport&& connection) noexcept:
     peer_( peer ),
-    connection_( std::forward<s_transport>(connection) ),
-    ec_()
+    connection_( std::forward<s_transport>(connection) )
 {}
 
 session::~session() noexcept
 {
-    ::gnutls_bye(peer_, GNUTLS_SHUT_RDWR);
+	int res;
+	do {
+		res = ::gnutls_bye(peer_, GNUTLS_SHUT_RDWR);
+	} while( GNUTLS_E_INTERRUPTED == res || GNUTLS_E_AGAIN == res);
     ::gnutls_deinit( peer_ );
 }
 
 ssize_t session::push(const void *data, std::size_t size) noexcept
 {
-	return connection_->push(ec_, data, size);
+	return connection_->push(data, size);
 }
 
 ssize_t session::pull(void *data, std::size_t size) noexcept
 {
-	return connection_->pull(ec_, data, size);
+	return connection_->pull(data, size);
 }
 
 int session::client_handshake(::gnutls_session_t const peer) noexcept
 {
-    int ret = GNUTLS_E_SUCCESS;
-    do {
-        ret = ::gnutls_handshake( peer );
-    }
-    while( ret != GNUTLS_E_SUCCESS && 0 == ::gnutls_error_is_fatal(ret) );
+	int ret = ::gnutls_handshake(peer);
+	while (ret == GNUTLS_E_AGAIN || ret == GNUTLS_E_INTERRUPTED)
+	{
+		if ( 1 != ::gnutls_record_get_direction(peer) )
+			break;
+		ret = ::gnutls_handshake(peer);
+	}
     return ret;
 }
 
@@ -90,19 +88,19 @@ s_session session::client_blocking_session(std::error_code &ec, ::gnutls_certifi
     ::gnutls_session_t peer = nullptr;
     int err = ::gnutls_init(&peer, GNUTLS_CLIENT);
     if(GNUTLS_E_SUCCESS != err) {
-        ec = std::make_error_code( std::errc::connection_refused );
+        ec = make_error_code( err );
         return s_session();
     }
     /* Use default priorities */
     //::gnutls_session_enable_compatibility_mode(peer);
     err = ::gnutls_set_default_priority(peer);
     if(GNUTLS_E_SUCCESS != err) {
-        ec = std::make_error_code( std::errc::connection_refused );
+        ec = make_error_code( err );
         return s_session();
     }
     err = ::gnutls_credentials_set(peer, GNUTLS_CRD_CERTIFICATE, crd);
     if(GNUTLS_E_SUCCESS != err) {
-        ec = std::make_error_code( std::errc::connection_refused );
+        ec = make_error_code( err );
         return s_session();
     }
     if(ec)
@@ -122,28 +120,27 @@ s_session session::client_blocking_session(std::error_code &ec, ::gnutls_certifi
 	::gnutls_transport_set_vec_push_function(peer, session_push );
 
     ::gnutls_transport_set_pull_timeout_function(peer, ::gnutls_system_recv_timeout);
-    ::gnutls_transport_set_errno_function(peer,get_session_error_no);
 
     err = client_handshake( peer );
-    switch(err) {
-    case GNUTLS_E_SUCCESS:
-        break;
-    case GNUTLS_E_CERTIFICATE_VERIFICATION_ERROR:
-        ec = std::make_error_code( std::errc::operation_canceled );
-        return s_session();
-    default:
-        ec = ret->ec_;
-        return s_session();
+
+    if(GNUTLS_E_SUCCESS != err) {
+	   ec = make_error_code(err);
+	   return s_session();
     }
-    return s_session(ret);
+	return s_session(ret);
 }
 
 
 std::size_t session::read(std::error_code& ec, uint8_t * const data, std::size_t max_size) const noexcept
 {
-    ssize_t ret = ::gnutls_record_recv(peer_, static_cast<void*>(data), max_size);
-    if( ret < 0 && 0 != ::gnutls_error_is_fatal(ret) ) {
-        ec = ec_;
+    ssize_t ret;
+    do {
+		ret = ::gnutls_record_recv(peer_, static_cast<void*>(data), max_size);
+    } while( (ret == GNUTLS_E_AGAIN || ret == GNUTLS_E_INTERRUPTED) && !::gnutls_record_get_direction(peer_));
+    if( ret < 0 ) {
+		ec = connection_->last_error();
+		if(!ec && ::gnutls_error_is_fatal(ret) )
+			ec = make_error_code( ret );
         return 0;
     }
     return static_cast<std::size_t>( ret );
@@ -152,8 +149,14 @@ std::size_t session::read(std::error_code& ec, uint8_t * const data, std::size_t
 std::size_t session::write(std::error_code& ec, const uint8_t *data, std::size_t data_size) const noexcept
 {
     ssize_t ret = ::gnutls_record_send(peer_, static_cast<const void*>(data), data_size);
-    if( ret < 0 && 0 != ::gnutls_error_is_fatal(ret) ) {
-        ec = ec_;
+    while( GNUTLS_E_INTERRUPTED == ret || GNUTLS_E_AGAIN  == ret)
+    {
+		ret = ::gnutls_record_send(peer_, nullptr, 0);
+    }
+    if( ret < 0 ) {
+		ec = connection_->last_error();
+		if(!ec && ::gnutls_error_is_fatal(ret) )
+			ec = make_error_code( ret );
         return 0;
     }
     return static_cast<std::size_t>( ret );

@@ -47,7 +47,7 @@
 		</Build>
 		<Compiler>
 			<Add option="-Wall" />
-			<Add option="-std=c++20" />
+			<Add option="-std=gnu++20" />
 			<Add option="-fexceptions" />
 			<Add option="-DIO_TLS_PROVIDER_GNUTLS" />
 			<Add directory="../../include" />
