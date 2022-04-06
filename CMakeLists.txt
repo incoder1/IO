@@ -44,7 +44,7 @@ endif()
 # Dependencies
 #GnuTLS is not exist for MS VC++
 if( NOT MSVC )
-	find_package(GnuTLS 3.0)
+	find_package(GnuTLS 3.6.5)
 	if(GNUTLS_FOUND)
 		add_definitions(-DIO_TLS_PROVIDER_GNUTSL ${GNUTLS_DEFINITIONS} )
 		include_directories(${GNUTLS_INCLUDE_DIR})

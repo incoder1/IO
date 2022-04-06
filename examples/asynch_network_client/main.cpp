@@ -49,14 +49,16 @@ io::s_asynch_completion_routine my_routine::create(std::error_code& ec) noexcept
 
 void my_routine::received(std::error_code& ec, const io::s_asynch_channel& source, io::byte_buffer&& data) noexcept
 {
-    if(!ec) {
+    if(!ec && !data.empty()) {
         std::cout <<  data.length() << " received from server\n";
         std::cout.write(data.position().cdata(), data.length() );
         std::cout.flush();
+        source->recaive(ec, io::memory_traits::page_size(), 0);
+    } else {
+		// notify main application thread, waiting for pending IO operations, we've done
+		// and shutdown IO completion thread pool
+		source->context()->shutdown();
     }
-    // notify main application thread, waiting for pending IO operations, we've done
-    // and shutdown IO completion thread pool
-	source->context()->shutdown();
 	if(ec)
 		std::cerr << "Error: " << ec.value() << ' ' << ec.message() << std::endl;
 }

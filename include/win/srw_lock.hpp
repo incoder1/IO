@@ -17,7 +17,7 @@
 
 namespace io {
 
-/// Windows Vista+ SWR lock slim reader/writer barrier implementation
+/// Windows SWR lock slim reader/writer barrier implementation
 class read_write_barrier
 {
 	read_write_barrier(const read_write_barrier&) = delete;
