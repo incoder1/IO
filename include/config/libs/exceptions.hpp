@@ -11,17 +11,16 @@
 #ifndef __IO_EXCEPTIONS_HPP_INCLUDED__
 #define __IO_EXCEPTIONS_HPP_INCLUDED__
 
+#ifdef HAS_PRAGMA_ONCE
+#pragma once
+#endif // HAS_PRAGMA_ONCE
+
 #include <system_error>
 #include <type_traits>
 
 #ifndef IO_NO_EXCEPTIONS
 #	include <stdexcept>
 #endif // IO_NO_EXCEPTIONS
-
-
-#ifdef HAS_PRAGMA_ONCE
-#pragma once
-#endif // HAS_PRAGMA_ONCE
 
 namespace io {
 

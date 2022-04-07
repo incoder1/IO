@@ -89,4 +89,91 @@ s_read_write_channel io_context::client_blocking_connect(std::error_code& ec, co
 	return s_read_write_channel();
 }
 
+// demultiplexor
+namespace detail {
+
+#if defined(__IO_EPOLL_MULTIPLEX__)
+s_demultiplexor demultiplexor::create(std::error_code& ec) noexcept
+{
+    int descriptor = ::epoll_create1(0);
+    if(-1 == descriptor) {
+        ec = std::error_code( errno , std::system_category() );
+        return s_demultiplexor();
+    }
+    demultiplexor *ret = new std::nowthrow demultiplexor(descriptor);
+    if(nullptr == ret) {
+        ec = std::make_error_code(std::errc::not_enough_memory);
+        return s_demultiplexor();
+    }
+    return s_demultiplexor( ret );
+}
+
+demultiplexor::~demultiplexor() noexcept
+{
+    ::close(peer_);
+}
+
+void demultiplexor::register_descriptor(std::error_code& ec, int descriptor) noexcept
+{
+    int flags = ::fcntl(descriptor, F_GETFL, 0);
+    flags |= O_NONBLOCK;
+    if(-1 == ::fcntl(descriptor, F_SETFL, flags) ) {
+        ec = std::error_code( errno , std::system_category() );
+    }
+    ::epoll_event ev;
+    ev.data.fd = descriptor;
+    ev.events = EPOLLIN | EPOLLET;
+    if(-1 = ::epoll_ctl(peer_, EPOLL_CTL_ADD, descriptor, &ev) ) {
+        ec = std::error_code( errno , std::system_category() );
+    }
+}
+
+#elif defined(__IO_KQUEUE_DEMULTIPLEX__)
+
+
+s_demultiplexor demultiplexor::create(std::error_code& ec) noexcept
+{
+
+}
+
+demultiplexor::~demultiplexor() noexcept
+{
+
+}
+
+void demultiplexor::register_descriptor(std::error_code& ec, int descriptor) noexcept
+{
+
+}
+
+#endif
+
+} // namespace detail
+
+// asynch_io_context
+s_asynch_io_context asynch_io_context::create(std::error_code& ec, const s_io_context& owner) noexcept
+{
+    ec = std::make_error_code(std::errc::function_not_supported);
+    return s_asynch_io_context();
+}
+
+asynch_io_context::asynch_io_context(detail::s_demultiplexor reactor, s_thread_pool&& workers, const s_io_context& owner) noexcept:
+	io::object(),
+    reactor_(reactor),
+    workers_( std::forward<s_thread_pool>(workers) ),
+    owner_(owner)
+{
+	// set-up all workers threads
+//	std::error_code ec;
+//	for(unsigned int i=0; i < workers_->max_threads(); i++ ) {
+//		workers_->sumbmit( ec , std::bind(&asynch_io_context::completion_loop_routine, ioc_port) );
+//	}
+}
+
+asynch_io_context::~asynch_io_context() noexcept
+{
+
+}
+
+
 } // namespace io

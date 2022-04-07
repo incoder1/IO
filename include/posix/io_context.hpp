@@ -17,6 +17,22 @@
 #pragma once
 #endif // HAS_PRAGMA_ONCE
 
+#include <sys/types.h>
+
+// select demultiplexing
+// Use epoll for Linux
+#if defined(__ANDROID__) || defined(__linux) || defined(__linux__) || defined(__gnu_linux__)
+#   define __IO_EPOLL_DEMULTIPLEX__
+#   include <sys/epoll.h>
+// use kqueue for FreeBSD and Mac OSX
+#elif defined(__FreeBSD__) || ( defined(__APPLE__) && defined(__MACH__) )
+#   define __IO_KQUEUE_DEMULTIPLEX__
+#   include <sys/event.h>
+#   include <sys/time.h>
+#else
+#   error "This operating system asyncronous io is not yet supported"
+#endif
+
 #include <channels.hpp>
 #include <buffer.hpp>
 
@@ -26,6 +42,29 @@
 #include "thread_pool.hpp"
 
 namespace io {
+
+namespace detail {
+
+    class demultiplexor;
+    DECLARE_IPTR(demultiplexor);
+
+    class demultiplexor final: public io::object {
+    public:
+        static s_demultiplexor create(std::error_code& ec) noexcept;
+        virtual ~demultiplexor() noexcept override;
+        void register_descriptor(std::error_code& ec, int descriptor) noexcept;
+    private:
+        static constexpr int MAX_EVENTS = 64;
+        constexpr demultiplexor(int peer) noexcept:
+            io::object(),
+            peer_(peer)
+        {}
+    private:
+        int peer_;
+    };
+
+
+} // namespace detail
 
 /// !brief input/output context
 class IO_PUBLIC_SYMBOL io_context final:public io::object {
@@ -112,10 +151,11 @@ private:
 	static void notify_received(std::error_code& ec,std::size_t transfered,asynch_channel* channel, io::byte_buffer&& data) noexcept;
     static void completion_loop_routine(void * some) noexcept;
 
-    asynch_io_context(void* ioc_port, io::s_thread_pool&& thread_poll, const s_io_context& owner) noexcept;
+    asynch_io_context(detail::s_demultiplexor reactor, io::s_thread_pool&& thread_poll, const s_io_context& owner) noexcept;
     bool bind_to_port(std::error_code& ec,const asynch_channel* src) const noexcept;
 
 private:
+    detail::s_demultiplexor reactor_;
     io::s_thread_pool workers_;
 	s_io_context owner_;
 };
