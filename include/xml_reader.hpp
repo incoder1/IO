@@ -304,11 +304,11 @@ private:
 				std::snprintf(
 						emsg,
 						512,
-#ifdef IO_CPU_BITS_64
+#if defined(IO_CPU_BITS_64) && defined(__IO_WINDOWS_BACKEND__)
 						"XML validation error at [%llu,%llu] %s:%s %s expected in this state",
 #else
 						"XML validation error at [%lu,%lu] %s:%s %s expected in this state",
-#endif // IO_CPU_BITS_64
+#endif // IO_CPU_BITS_64 and Windows
 						pos.first,
 						pos.second,
 						nmp,
@@ -318,7 +318,7 @@ private:
 				std::snprintf(
 						emsg,
 						512,
-#ifdef IO_CPU_BITS_64
+#if defined(IO_CPU_BITS_64) && defined(__IO_WINDOWS_BACKEND__)
 						"XML validation error at [%llu,%llu] %s %s expected in this state",
 #else
 						"XML validation error at [%lu,%lu] %s %s expected in this state",

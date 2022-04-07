@@ -139,7 +139,7 @@ const charset& code_pages::platform_default() noexcept {
 }
 
 charset code_pages::platform_current() noexcept {
-	#ifdef __IO_WINDOWS_BACKEND__
+	#if defined(__IO_WINDOWS_BACKEND__)
 		switch(::GetACP()) {
 			case 1250:
 				return CP_1250;
@@ -167,7 +167,7 @@ charset code_pages::platform_current() noexcept {
 			default:
 				return UTF_16LE;
 		}
-	#elif __IO_POSIX_BACKEND__
+	#elif defined(__IO_POSIX_BACKEND__)
 		std::pair<bool, charset> sres = for_name(::nl_langinfo(CODESET));
 		return sres.first ? sres.second : UTF_8;
 	#else
