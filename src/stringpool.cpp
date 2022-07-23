@@ -18,7 +18,11 @@ namespace io {
 s_string_pool string_pool::create(std::error_code& ec) noexcept
 {
 	string_pool* result = new (std::nothrow) string_pool();
-	return nullptr != result ? s_string_pool(result) : s_string_pool();
+	if(nullptr == result) {
+        ec = std::make_error_code( std::errc::not_enough_memory );
+        return s_string_pool();
+	}
+	return s_string_pool(result);
 }
 
 string_pool::string_pool() noexcept:

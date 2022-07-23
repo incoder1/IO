@@ -1,4 +1,4 @@
-IO
+﻿IO
 ======
 [![Build Status](https://travis-ci.org/incoder1/IO.svg?branch=master)](https://travis-ci.org/incoder1/IO)
 [![bs1-1.0](https://img.shields.io/badge/license-boost-blue.svg)](https://www.boost.org/LICENSE_1_0.txt)
@@ -85,60 +85,38 @@ You should have C++ 11 compatible compiler with STD C++ library. Optionally you 
     **UNICODE** | `UTF-8`  `UTF-16LE`  `UTF-16BE`  `UTF-32LE`  `UTF-32BE`  `UTF-7` 
     **One byte** | `US ASCII` `ISO-8859-1…ISO-8859-16` `KOI8-R` `KOI8-U` `KOI8-RU` 
     **Windows** | `CP-1250 … CP-1258`
-	
+
 Tested implementations:
     * [GNU iconv](https://www.gnu.org/software/libiconv/)
     *  GNU C Library iconv
 
 - [GNU TLS v 3.0+] 
 #### UNIX
-	Most Unix distributions have an implementation, use your package manager
+	Most Unix distributions have an implementation, use your package manager to install development package
 #### Windows
-	Compiler | instruction
-	MSYS2 | install developement package by pacman
-	MS Visual C++ | build can be found at: https://github.com/ShiftMediaProject/gnutls
+   Compiler | instruction
+    MSYS2 | install developement package i.e. `pacman -S libgnutls-devel`
+    MS Visual C++ | build can be found at: [ShiftMediaProject/gnutls](https://github.com/ShiftMediaProject/gnutls)
 
 ## SUPPORTED OPERATING SYSTEMS AND COMPILERS
 
-Library supports Windows 7+ and GNU Linux Operating systems With GCC 4.8.2+ or MS Visual C++ 15+ compilers. 
+Library supports Windows 7+ and GNU Linux Operating systems With GCC 10+ or MS Visual C++ 17+ compilers. 
 
-	
 ### TESTED CONFIGURATIONS
 
 OS | Compiler | Version | Arhitecture
 --- | --- | --- | ---
 **Windows** | | |
-Windows 7  | GCC/G++ | 7.2.0 MinGW64 (MSYS2 build) | x86_64
-Windows 10 | GCC/G++ | 9.1.0 MinGW64 (MSYS2 build) | x86_64
-Windows 10 | GCC/G++ | 10.2.0 MinGW64 (MSYS2 build) | x86_64
-Windows 10 | MS Visual C++ | 17 | x64 
-Windows 10 | MS Visual C++ | 19 | x64 
+ Windows 7  | GCC/G++ | 11.2.0 MinGW64 (MSYS2 build) | x86_64
+ Windows 10 | GCC/G++ | 11.2.0 MinGW64 (MSYS2 build) | x86_64
+ Windows 10 | MS Visual C++ | 19 | x64 
 **GNU/Lunux** | | | 
- Fedora 26 | GCC/G++ | 7.1 | x86_64
  Fedora 30 | GCC/G++ | 9.1.0 | x86_64
+ Fedora 32 | GCC/G++ | 10.1.2 | x86_64
+ Fedora 35 | GCC/G++ | 11.1.3 |  x86_64
 
 ## BUILDING
- 
 
-### Building with Code::Blocks IDE
-
-Code::Blocks IDE project files bundled. There are predefined configurations for GCC. 
-
-#### Windows GCC - MinGW64
-
-Preferable MinGW64 distribution is [MSYS2 MinGW64](https://www.msys2.org/). 
-In case of another MinGW64 distributionsyou need following additional packages
-find/build 
-   - [MinGW64 GNU iconv](https://sourceforge.net/projects/mingw-w64/files/External%20binary%20packages%20%28Win64%20hosted%29/libiconv/)
-
-For Msys2 you can install iconv dependency with following command. And make sure that Code::Blocks using [MSYS GCC](https://www.cprogramming.com/code_blocks/) rather then any another.
-```bash
-pacman -S libiconv-devel
-```
-
-#### Linux/Unix
-   Choose UNIX configration in Code::Blocks, and build the library. 
-   
 ### Building with CMake
 To build with CMake build tool to can use following command
 
@@ -146,13 +124,13 @@ You can build shared or static library release or debug version, optionally you 
 
 
 ```bash
-cmake . -DCMAKE_BUILD_TYPE=<Release|Debug> [-DBUILD_SHARED_LIBS=ON] [-DNO_EXCEPTIONS=ON] [-DNO_RTTI=ON]
+cmake . -DCMAKE_BUILD_TYPE=<Release|Debug> -DBUILD_LIBRARY_TYPE=<Shared|Static> [-DNO_EXCEPTIONS=ON] [-DNO_RTTI=ON]
 cmake --build .
 ```
 
-- DBUILD_SHARED_LIBS flag used for static or dynamic library (DLL/shared library) building
-- NO_EXCEPTIONS flag used for disiabling C++ exceptions
-- NO_RTTI flag used for disiabling C++ runtime type information
+- BUILD_LIBRARY_TYPE use Shared with this flag to build shared library (DLL) or Static for the static library
+- NO_EXCEPTIONS optional flag for disiabling C++ exceptions, by default exceptions will be used
+- NO_RTTI optional flag for disiabling C++ runtime type information, by default RTTI generated
 
 Build result can be found at _target/<Release|Debug>/lib_ sub-folder, if you don't whant to install libary with cmake.
 
@@ -160,28 +138,9 @@ When you've choose to build with MS VC++ solution as the Cmake output you can go
 ```bash
 MSBuild io.sln /p:Configuration=[Release|Debug]
 ```
-If yu'd like to build from command line. Otherwise simply build solution with IDE. As alternative you can build the DLL with
-nmake.
+If you'd like to build from command line. Otherwise simply build solution with IDE. As alternative you can build the DLL with
+[nmake](#Windows with Microsoft VC++ and NMake). 
 
-### Building with makefiles
-
-This make files have no configuration state, i.e. all compile options are predefined. Only release version with exceptions 
-and RTTI off provided.
-
-#### Buildind for Windows MinGW64
-
-From the msys2 console type:
-
-```bash
-make -f Makefile-mingw64-static
-```
-or 
-```bash
-make -f Makefile-mingw64-dll
-```
-To build static or dynamic library. 
-Build result can be found at the _target/release-win-gcc-dll-x64_  or _target/release-win-gcc-satic-x64_ sub folder.
- 
 #### Windows with Microsoft VC++ and NMake
 
 You need Visual Studio or Visual Studio BuildTools version 15+
@@ -195,24 +154,30 @@ Then goto IO source code root directory and execute
 nmake -f NMakefile-msvcx64-dll.mak
 ```
 
-Build result can be foound in _target/release-win-msvc-dll-x64_ sub folder 
+Build result can be foound in _target/release-win-msvc-dll-x64_ sub folder
 
+### Building with Code::Blocks IDE
 
-#### Unix with GNU make
+Code::Blocks IDE project files bundled. There are predefined configurations for GCC. 
 
-You can build shared library with:
+#### Windows GCC MinGW64
+
+Preferable MinGW64 distribution is [MSYS2 MinGW64](https://www.msys2.org/).
+When you are using Msys2 make sure that Code::Blocks using [MSYS GCC](https://www.youtube.com/watch?v=G3QguXOVJM4) rather then any another compiler.
+Make sure that you have dependencies installed, install them if not yet
 ```bash
-make –f Makefile-unix-shared
+pacman -S libiconv-devel mingw-w64-x86_64-gnutls
 ```
 
-Build result can be found at _target/release-unix-gcc-so-x86_64_ subfolder.
+#### Linux/Unix
+Chekc that you have dependencies installed, install them if not yet with your package manager i.e. dnf, apt, pacman, port etc.Choose UNIX configration in Code::Blocks, and build the library.
 
 ### EXAMPLES
 Code examples can be found examples sub-folder. 
 Where:
 * xmlparse – XML parsing with event API, prints into console XML or any type
-* xml_parse_to_structures - reads XML of known sturcture into C++ structures with cursor API
-* write_structures_to_xml – compile time reflection plain C object XML marshalling and XSD generation example	
-* chconv – converting characters between different code pages example 
+* xml_parse_to_structures - reads XML into C++ structure data type with cursor API
+* write_structures_to_xml – compile time reflection plain C object XML marshalling and XSD generation example
+* chconv – converting characters between different code pages example
 * iostreams – writes UNICODE strings into file and console with reconverting characters between multiple UNICODE representation, using C++ iostreams build on top of IO channels.
-* collada - limited set of [COLLADA](https://www.khronos.org/collada/) 3D model OpenGL 4+ based viewer. Contans even based collada parser and simple 3D graphical engine. 
+* collada - limited set of [COLLADA](https://www.khronos.org/collada/) 3D model OpenGL 4+ based viewer. Contans even based collada parser and simple 3D graphical model rendering engine.

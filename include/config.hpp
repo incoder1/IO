@@ -40,16 +40,18 @@
 #    include "posix/posixconf.hpp"
 #endif // defined
 
+#include "config/libs/exceptions.hpp"
+#include "config/libs/h_allocator.hpp"
+
 #ifndef IO_HAS_BOOST
 #   include "config/libs/intrusive_ptr.hpp"
 #else
 #   include <boost/intrusive_ptr.hpp>
 #endif // HAS_BOOST
 
-#include "config/libs/exceptions.hpp"
-
 #ifndef DECLARE_IPTR
 #define DECLARE_IPTR(T) typedef boost::intrusive_ptr<T> s_##T
 #endif // DECLARE_IPTR
+
 
 #endif // IO_CONFIG_HPP_INCLUDED

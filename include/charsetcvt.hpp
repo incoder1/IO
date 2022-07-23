@@ -292,8 +292,8 @@ public:
 	void convert(std::error_code& ec, const uint8_t* src,const std::size_t src_size, byte_buffer& dst) const noexcept;
 
 private:
+    friend class nobadalloc<code_cnvtr>;
 	code_cnvtr(detail::engine&& eng) noexcept;
-	friend class io::nobadalloc<code_cnvtr>;
 public:
 	static s_code_cnvtr open(std::error_code& ec,const charset& from,const charset& to, cnvrt_control conrol) noexcept;
 	static std::error_condition _ok;

@@ -16,6 +16,8 @@
 					<Add option="-Wnon-virtual-dtor" />
 					<Add option="-Winline" />
 					<Add option="-pedantic" />
+					<Add option="-pg" />
+					<Add option="-Og" />
 					<Add option="-g" />
 					<Add option="-std=gnu++20" />
 					<Add option="-fexceptions" />
@@ -24,37 +26,6 @@
 					<Add option="-mavx2" />
 					<Add option="-mlzcnt" />
 					<Add option="-mmovbe" />
-					<Add option="-DIO_TLS_PROVIDER_GNUTLS" />
-					<Add directory="include" />
-					<Add directory="include/net" />
-					<Add directory="include/win" />
-					<Add directory="$(#msys2.include)" />
-					<Add directory="include/tls" />
-				</Compiler>
-				<Linker>
-					<Add library="iconv.dll" />
-					<Add library="Ws2_32" />
-					<Add library="gnutls.dll" />
-					<Add directory="$(#msys2.lib)" />
-				</Linker>
-			</Target>
-			<Target title="debug-win-gcc-static-x64-embedtls">
-				<Option platforms="Windows;" />
-				<Option output="bin/debug-win-gcc-static-x64-mbedtls/io" prefix_auto="1" extension_auto="1" />
-				<Option working_dir="" />
-				<Option object_output="obj/debug-win-gcc-static-x64-mbedtls/" />
-				<Option type="2" />
-				<Option compiler="gcc" />
-				<Compiler>
-					<Add option="-Wnon-virtual-dtor" />
-					<Add option="-Winline" />
-					<Add option="-pedantic" />
-					<Add option="-std=c++17" />
-					<Add option="-pg" />
-					<Add option="-Og" />
-					<Add option="-g" />
-					<Add option="-fexceptions" />
-					<Add option="-DIO_TLS_PROVIDER_NSS" />
 					<Add directory="include" />
 					<Add directory="include/net" />
 					<Add directory="include/win" />
@@ -65,82 +36,7 @@
 					<Add option="-pg -lgmon" />
 					<Add library="iconv.dll" />
 					<Add library="Ws2_32" />
-					<Add library="nss.dll" />
-					<Add directory="$(#msys2.lib)" />
-				</Linker>
-			</Target>
-			<Target title="debug-win-gcc-dll-x64">
-				<Option platforms="Windows;" />
-				<Option output="bin/debug-win-gcc-dll-x64/io" prefix_auto="1" extension_auto="1" />
-				<Option working_dir="bin/debug-win-gcc-dll-x64" />
-				<Option object_output="obj/debug-win-gcc-dll-x64/" />
-				<Option type="3" />
-				<Option compiler="gcc" />
-				<Option createDefFile="1" />
-				<Option createStaticLib="1" />
-				<Compiler>
-					<Add option="-Wnon-virtual-dtor" />
-					<Add option="-Winline" />
-					<Add option="-pedantic" />
-					<Add option="-std=c++17" />
-					<Add option="-Og" />
-					<Add option="-g" />
-					<Add option="-fexceptions" />
-					<Add option="-mavx" />
-					<Add option="-mavx2" />
-					<Add option="-mlzcnt" />
-					<Add option="-mmovbe" />
-					<Add option="-DIO_SHARED_LIB" />
-					<Add option="-DIO_TLS_PROVIDER_GNUTSL" />
-					<Add directory="include" />
-					<Add directory="include/net" />
-					<Add directory="include/win" />
-					<Add directory="$(#msys2.include)" />
-					<Add directory="include/tls" />
-				</Compiler>
-				<Linker>
-					<Add library="iconv.dll" />
-					<Add library="Ws2_32" />
 					<Add library="gnutls.dll" />
-					<Add directory="$(#msys2.lib)" />
-				</Linker>
-			</Target>
-			<Target title="release-win-gcc-static-x64">
-				<Option platforms="Windows;" />
-				<Option output="bin/release-win-gcc-static-x64/io" prefix_auto="1" extension_auto="1" />
-				<Option working_dir="" />
-				<Option object_output="obj/release-win-gcc-static-x64/" />
-				<Option type="2" />
-				<Option compiler="gcc" />
-				<Compiler>
-					<Add option="-O3" />
-					<Add option="-Weffc++" />
-					<Add option="-pedantic" />
-					<Add option="-Wall" />
-					<Add option="-std=c++20" />
-					<Add option="-fno-exceptions" />
-					<Add option="-fno-rtti" />
-					<Add option="-fdeclone-ctor-dtor" />
-					<Add option="-fdevirtualize-at-ltrans" />
-					<Add option="-mtune=generic" />
-					<Add option="-minline-stringops-dynamically" />
-					<Add option="-mavx" />
-					<Add option="-mavx2" />
-					<Add option="-mlzcnt" />
-					<Add option="-mmovbe" />
-					<Add option="-DNDEBUG" />
-					<Add option="-DIO_TLS_PROVIDER_GNUTSL" />
-					<Add directory="include" />
-					<Add directory="include/net" />
-					<Add directory="include/win" />
-					<Add directory="$(#msys2.include)" />
-					<Add directory="include/tls" />
-				</Compiler>
-				<Linker>
-					<Add option="-s" />
-					<Add library="iconv.dll" />
-					<Add library="gnutls.dll" />
-					<Add library="Ws2_32" />
 					<Add directory="$(#msys2.lib)" />
 				</Linker>
 			</Target>
@@ -164,7 +60,6 @@
 					<Add option="-fno-rtti" />
 					<Add option="-DNDEBUG" />
 					<Add option="-DIO_SHARED_LIB" />
-					<Add option="-DIO_TLS_PROVIDER_GNUTLS" />
 					<Add directory="include" />
 					<Add directory="include/net" />
 					<Add directory="include/win" />
@@ -244,11 +139,7 @@
 			<Add directory="src" />
 		</Compiler>
 		<Unit filename="CMakeLists.txt">
-			<Option target="debug-win-gcc-static-x64" />
-			<Option target="debug-win-gcc-static-x64-embedtls" />
-			<Option target="debug-win-gcc-dll-x64" />
-			<Option target="release-win-gcc-static-x64" />
-			<Option target="release-win-gcc-dll-x64" />
+			<Option target="&lt;{~None~}&gt;" />
 		</Unit>
 		<Unit filename="include/buffer.hpp" />
 		<Unit filename="include/channels.hpp" />
@@ -321,108 +212,63 @@
 		<Unit filename="include/unicode_bom.hpp" />
 		<Unit filename="include/win/asynch_socket_channel.hpp">
 			<Option target="debug-win-gcc-static-x64" />
-			<Option target="debug-win-gcc-static-x64-embedtls" />
-			<Option target="debug-win-gcc-dll-x64" />
-			<Option target="release-win-gcc-static-x64" />
 			<Option target="release-win-gcc-dll-x64" />
 		</Unit>
 		<Unit filename="include/win/console.hpp">
 			<Option target="debug-win-gcc-static-x64" />
-			<Option target="release-win-gcc-static-x64" />
-			<Option target="debug-win-gcc-dll-x64" />
 			<Option target="release-win-gcc-dll-x64" />
-			<Option target="debug-win-gcc-static-x64-embedtls" />
 		</Unit>
 		<Unit filename="include/win/criticalsection.hpp">
 			<Option target="debug-win-gcc-static-x64" />
-			<Option target="release-win-gcc-static-x64" />
-			<Option target="debug-win-gcc-dll-x64" />
 			<Option target="release-win-gcc-dll-x64" />
-			<Option target="debug-win-gcc-static-x64-embedtls" />
 		</Unit>
 		<Unit filename="include/win/errorcheck.hpp">
-			<Option target="debug-win-gcc-dll-x64" />
-			<Option target="release-win-gcc-static-x64" />
 			<Option target="debug-win-gcc-static-x64" />
 			<Option target="release-win-gcc-dll-x64" />
-			<Option target="debug-win-gcc-static-x64-embedtls" />
 		</Unit>
 		<Unit filename="include/win/files.hpp">
 			<Option target="debug-win-gcc-static-x64" />
-			<Option target="release-win-gcc-static-x64" />
-			<Option target="debug-win-gcc-dll-x64" />
 			<Option target="release-win-gcc-dll-x64" />
-			<Option target="debug-win-gcc-static-x64-embedtls" />
 		</Unit>
 		<Unit filename="include/win/handlechannel.hpp">
 			<Option target="debug-win-gcc-static-x64" />
-			<Option target="release-win-gcc-static-x64" />
-			<Option target="debug-win-gcc-dll-x64" />
 			<Option target="release-win-gcc-dll-x64" />
-			<Option target="debug-win-gcc-static-x64-embedtls" />
 		</Unit>
 		<Unit filename="include/win/io_context.hpp">
 			<Option target="debug-win-gcc-static-x64" />
-			<Option target="debug-win-gcc-static-x64-embedtls" />
-			<Option target="debug-win-gcc-dll-x64" />
-			<Option target="release-win-gcc-static-x64" />
 			<Option target="release-win-gcc-dll-x64" />
 		</Unit>
 		<Unit filename="include/win/memory_traits.hpp">
 			<Option target="debug-win-gcc-static-x64" />
-			<Option target="debug-win-gcc-dll-x64" />
-			<Option target="release-win-gcc-static-x64" />
 			<Option target="release-win-gcc-dll-x64" />
-			<Option target="debug-win-gcc-static-x64-embedtls" />
 		</Unit>
 		<Unit filename="include/win/sockets.hpp">
-			<Option target="debug-win-gcc-dll-x64" />
-			<Option target="release-win-gcc-static-x64" />
 			<Option target="debug-win-gcc-static-x64" />
 			<Option target="release-win-gcc-dll-x64" />
-			<Option target="debug-win-gcc-static-x64-embedtls" />
 		</Unit>
 		<Unit filename="include/win/srw_lock.hpp">
 			<Option target="debug-win-gcc-static-x64" />
-			<Option target="debug-win-gcc-dll-x64" />
-			<Option target="release-win-gcc-static-x64" />
 			<Option target="release-win-gcc-dll-x64" />
-			<Option target="debug-win-gcc-static-x64-embedtls" />
 		</Unit>
 		<Unit filename="include/win/synch_socket_channel.hpp">
-			<Option target="debug-win-gcc-dll-x64" />
-			<Option target="release-win-gcc-static-x64" />
 			<Option target="debug-win-gcc-static-x64" />
 			<Option target="release-win-gcc-dll-x64" />
-			<Option target="debug-win-gcc-static-x64-embedtls" />
 		</Unit>
 		<Unit filename="include/win/thread_pool.hpp">
 			<Option target="debug-win-gcc-static-x64" />
-			<Option target="debug-win-gcc-static-x64-embedtls" />
-			<Option target="debug-win-gcc-dll-x64" />
-			<Option target="release-win-gcc-static-x64" />
 			<Option target="release-win-gcc-dll-x64" />
 		</Unit>
 		<Unit filename="include/win/win_asynch_channel.hpp">
 			<Option target="debug-win-gcc-static-x64" />
-			<Option target="debug-win-gcc-static-x64-embedtls" />
-			<Option target="debug-win-gcc-dll-x64" />
-			<Option target="release-win-gcc-static-x64" />
 			<Option target="release-win-gcc-dll-x64" />
 		</Unit>
 		<Unit filename="include/win/winconf.hpp">
 			<Option target="debug-win-gcc-static-x64" />
-			<Option target="release-win-gcc-static-x64" />
-			<Option target="debug-win-gcc-dll-x64" />
 			<Option target="release-win-gcc-dll-x64" />
-			<Option target="debug-win-gcc-static-x64-embedtls" />
 		</Unit>
 		<Unit filename="include/win/wsaerror.hpp">
-			<Option target="debug-win-gcc-dll-x64" />
-			<Option target="release-win-gcc-static-x64" />
 			<Option target="debug-win-gcc-static-x64" />
 			<Option target="release-win-gcc-dll-x64" />
-			<Option target="debug-win-gcc-static-x64-embedtls" />
 		</Unit>
 		<Unit filename="include/xml_binding.hpp" />
 		<Unit filename="include/xml_error.hpp" />
@@ -469,7 +315,6 @@
 			<Option link="0" />
 			<Option weight="1" />
 			<Option target="debug-win-gcc-static-x64" />
-			<Option target="debug-win-gcc-static-x64-embedtls" />
 			<Option target="debug-unix-gcc-static-64bit" />
 		</Unit>
 		<Unit filename="src/stdafx.hpp">
@@ -488,72 +333,42 @@
 		<Unit filename="src/unicode_bom.cpp" />
 		<Unit filename="src/win/asynch_socket_channel.cpp">
 			<Option target="debug-win-gcc-static-x64" />
-			<Option target="debug-win-gcc-static-x64-embedtls" />
-			<Option target="debug-win-gcc-dll-x64" />
-			<Option target="release-win-gcc-static-x64" />
 			<Option target="release-win-gcc-dll-x64" />
 		</Unit>
 		<Unit filename="src/win/console.cpp">
 			<Option target="debug-win-gcc-static-x64" />
-			<Option target="release-win-gcc-static-x64" />
-			<Option target="debug-win-gcc-dll-x64" />
 			<Option target="release-win-gcc-dll-x64" />
-			<Option target="debug-win-gcc-static-x64-embedtls" />
 		</Unit>
 		<Unit filename="src/win/errorcheck.cpp">
-			<Option target="debug-win-gcc-dll-x64" />
-			<Option target="release-win-gcc-static-x64" />
 			<Option target="debug-win-gcc-static-x64" />
 			<Option target="release-win-gcc-dll-x64" />
-			<Option target="debug-win-gcc-static-x64-embedtls" />
 		</Unit>
 		<Unit filename="src/win/files.cpp">
 			<Option target="debug-win-gcc-static-x64" />
-			<Option target="release-win-gcc-static-x64" />
-			<Option target="debug-win-gcc-dll-x64" />
 			<Option target="release-win-gcc-dll-x64" />
-			<Option target="debug-win-gcc-static-x64-embedtls" />
 		</Unit>
 		<Unit filename="src/win/io_context.cpp">
 			<Option target="debug-win-gcc-static-x64" />
-			<Option target="debug-win-gcc-static-x64-embedtls" />
-			<Option target="debug-win-gcc-dll-x64" />
-			<Option target="release-win-gcc-static-x64" />
 			<Option target="release-win-gcc-dll-x64" />
 		</Unit>
 		<Unit filename="src/win/memory_traits.cpp">
-			<Option target="debug-win-gcc-dll-x64" />
-			<Option target="release-win-gcc-static-x64" />
 			<Option target="debug-win-gcc-static-x64" />
 			<Option target="release-win-gcc-dll-x64" />
-			<Option target="debug-win-gcc-static-x64-embedtls" />
 		</Unit>
 		<Unit filename="src/win/sockets.cpp">
-			<Option target="debug-win-gcc-dll-x64" />
-			<Option target="release-win-gcc-static-x64" />
 			<Option target="debug-win-gcc-static-x64" />
 			<Option target="release-win-gcc-dll-x64" />
-			<Option target="debug-win-gcc-static-x64-embedtls" />
 		</Unit>
 		<Unit filename="src/win/synch_socket_channel.cpp">
-			<Option target="debug-win-gcc-dll-x64" />
-			<Option target="release-win-gcc-static-x64" />
 			<Option target="debug-win-gcc-static-x64" />
 			<Option target="release-win-gcc-dll-x64" />
-			<Option target="debug-win-gcc-static-x64-embedtls" />
 		</Unit>
 		<Unit filename="src/win/thread_pool.cpp">
 			<Option target="debug-win-gcc-static-x64" />
-			<Option target="debug-win-gcc-static-x64-embedtls" />
-			<Option target="debug-win-gcc-dll-x64" />
-			<Option target="release-win-gcc-static-x64" />
 			<Option target="release-win-gcc-dll-x64" />
 		</Unit>
 		<Unit filename="src/win/wsaerror.cpp">
 			<Option target="debug-win-gcc-static-x64" />
-			<Option target="debug-win-gcc-static-x64-embedtls" />
-			<Option target="debug-win-gcc-dll-x64" />
-			<Option target="release-win-gcc-static-x64" />
 			<Option target="release-win-gcc-dll-x64" />
 		</Unit>
 		<Unit filename="src/xml_error.cpp" />

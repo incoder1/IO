@@ -11,6 +11,19 @@ include_directories(src)
 file(GLOB PROJECT_SOURCE_PATH ${PROJECT_SOURCE_DIR}/src)
 file(GLOB COMMON_SRC ${PROJECT_SOURCE_PATH}/*.cpp ${PROJECT_SOURCE_PATH}/net/*.cpp)
 
+# set type of OCCT libraries
+if (NOT BUILD_LIBRARY_TYPE)
+  set (BUILD_LIBRARY_TYPE "Shared" CACHE STRING "${BUILD_LIBRARY_TYPE_DESCR}" FORCE)
+  SET_PROPERTY(CACHE BUILD_LIBRARY_TYPE PROPERTY STRINGS Shared Static)
+endif()
+
+if ("${BUILD_LIBRARY_TYPE}" STREQUAL "Shared")
+  set (BUILD_SHARED_LIBS ON)
+else()
+  unset (BUILD_SHARED_LIBS)
+  unset (BUILD_SHARED_LIBRARY_NAME_POSTFIX)
+endif()
+
 set(EXTRA_LIBS)
 set(CMAKE_BINARY_DIR target)
 
@@ -59,7 +72,7 @@ else()
 	file(GLOB TLS_SRC "")
 endif()
 
-if(MSYS OR CYGWIN)
+if(NOT MSVC)
 	find_package(Iconv REQUIRED)
 elseif(MSVC)
 	set(Iconv_INCLUDE_DIR "${PROJECT_SOURCE_DIR}/deps/msvc/include")
@@ -71,8 +84,8 @@ include_directories(${Iconv_INCLUDE_DIR})
 list(APPEND EXTRA_LIBS ${Iconv_LIBRARY})
 
 if( ${CMAKE_BUILD_TYPE} STREQUAL "Release" )
- add_definitions(-DNDEBUG)
- set(LIBRARY_OUTPUT_PATH ${CMAKE_BINARY_DIR}/Release/lib)
+	add_definitions(-DNDEBUG)
+	set(LIBRARY_OUTPUT_PATH ${CMAKE_BINARY_DIR}/Release/lib)
 elseif(${CMAKE_BUILD_TYPE} STREQUAL "Debug")
 	set(LIBRARY_OUTPUT_PATH ${CMAKE_BINARY_DIR}/Debug/lib)
 endif()
@@ -94,7 +107,7 @@ if( CMAKE_COMPILER_IS_GNUCXX )
 
 	if( ${CMAKE_SYSTEM_PROCESSOR} STREQUAL "x86_64")
 		set(CPU_SPECIFIC_FLAGS "-minline-stringops-dynamically -mavx -mavx2 -mlzcnt -mmovbe")
-    else()
+	else()
 		set(CPU_SPECIFIC_FLAGS "")
 	endif()
 

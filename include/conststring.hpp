@@ -296,14 +296,7 @@ private:
 	detail::sso_variant_t data_;
 };
 
-#ifndef _MSC_VER
-class const_string_hash: public std::unary_function<std::size_t,io::const_string> {
-public:
-	inline std::size_t operator()(const io::const_string& str) const noexcept {
-		return str.hash();
-	}
-};
-#else
+
 class const_string_hash {
 public:
 	typedef io::const_string argument_type;
@@ -312,8 +305,6 @@ public:
 		return str.hash();
 	}
 };
-#endif
-
 
 inline std::ostream& operator<<(std::ostream& os, const const_string& cstr)
 {

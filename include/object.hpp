@@ -83,10 +83,10 @@ public:
 
 private:
 	std::atomic_size_t ref_count_;
-	inline friend void intrusive_ptr_add_ref(object* const obj) noexcept {
+	friend void intrusive_ptr_add_ref(object* const obj) noexcept {
     	obj->ref_count_.fetch_add(1, std::memory_order_relaxed);
     }
-    inline friend void intrusive_ptr_release(object* const obj) noexcept {
+    friend void intrusive_ptr_release(object* const obj) noexcept {
     	if(1 == obj->ref_count_.fetch_sub(1, std::memory_order_release) ) {
 			std::atomic_thread_fence(  std::memory_order_acquire );
 			delete obj;

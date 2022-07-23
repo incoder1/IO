@@ -89,14 +89,14 @@ public:
 	}
 
 	template<typename _Up, typename... _Args>
-	__forceinline void construct(_Up* const __p, _Args&&... __args) noexcept( noexcept( _Up(std::forward<_Args>(__args)...) ) )
+	inline void construct(_Up* const __p, _Args&&... __args) noexcept( noexcept( _Up(std::forward<_Args>(__args)...) ) )
 	{
 		assert(nullptr != __p);
 		::new( static_cast<void *>(__p) ) _Up(std::forward<_Args>(__args)...);
 	}
 
 	template<typename _Up>
-	__forceinline void  destroy(_Up* const __p) noexcept( noexcept( __p->~_Up() ) )
+	inline void  destroy(_Up* const __p) noexcept( noexcept( __p->~_Up() ) )
 	{
 		__p->~_Up();
 	}
@@ -105,6 +105,7 @@ public:
 	{
 		return SIZE_MAX / sizeof(value_type);
 	}
+
 };
 
 } // namespace io
