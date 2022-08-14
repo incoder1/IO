@@ -39,22 +39,38 @@ static constexpr const char ES = 61 ; // '='
 static constexpr const char QM = 63; // '?'
 
 
-static inline bool is_prologue(const char *s) noexcept
+static char* skip_spaces(const char* s) noexcept
+{
+    constexpr const char* SPACE = "\t\n\v\f\r ";
+    return const_cast<char*>(s) + io_strspn(s, SPACE);
+}
+
+static bool start_with(const char* s,const char* pattern,const std::size_t size) noexcept
+{
+    return 0 == io_memcmp( static_cast<const void*>(s), static_cast<const void*>(pattern), size);
+}
+
+static std::size_t str_size(const char* b, const char* e) noexcept
+{
+    return memory_traits::distance(b, e);
+}
+
+static bool is_prologue(const char *s) noexcept
 {
 	return start_with(s, PROLOGUE, 3) && is_space( s[3] );
 }
 
-static inline bool is_comment(const char *s) noexcept
+static bool is_comment(const char *s) noexcept
 {
 	return start_with(s, COMMENT, 4);
 }
 
-static inline bool is_cdata(const char* s) noexcept
+static bool is_cdata(const char* s) noexcept
 {
 	return start_with(s, CDATA, 9);
 }
 
-static inline bool is_doc_type(const char *s) noexcept
+static bool is_doc_type(const char *s) noexcept
 {
 	return start_with(s, DOCTYPE, 9);
 }
@@ -67,8 +83,8 @@ static std::size_t prefix_delimit(const char* src) noexcept
 
 static size_t xmlname_strspn(const char *s) noexcept
 {
-	constexpr const char* sym = "\t\n\v\f\r />";
-	return io_strcspn(s, sym);
+	constexpr const char* SYM = "\t\n\v\f\r />";
+	return io_strcspn(s, SYM);
 }
 
 static std::size_t extract_prefix(std::size_t &start, const char* str) noexcept
@@ -91,11 +107,11 @@ static std::size_t extract_local_name(std::size_t& start,const char* str) noexce
 {
 	char *s = const_cast<char*>(str);
 	start = 0;
-	if( is_one_of(*s, LEFTB,COLON,QM) ) {
+	if( is_one_of<LEFTB,COLON,QM>(*s) ) {
 		++start;
 		++s;
 	}
-	if( cheq(*s, SOLIDUS) ) {
+	if( cheq(SOLIDUS, *s) ) {
 		++start;
 		++s;
 	}
@@ -152,13 +168,14 @@ static bool is_xml_name_char(uint32_t ch) noexcept
 static constexpr bool is_xml_name_start_char_lo(char32_t ch) noexcept
 {
 	// _ | :
-	return is_one_of(ch, U'_', U':') || is_alpha( ch );
+	return is_one_of<U'_',U':'>(ch) || is_alpha( ch );
 }
 
 template<
  std::make_unsigned<char32_t>::type S,
  std::make_unsigned<char32_t>::type E,
- std::make_unsigned<char32_t>::type D = ((E - S) + 1) >
+ std::make_unsigned<char32_t>::type D = ((E - S) + 1)
+>
 static constexpr bool between(char32_t ch) noexcept {
 	return (static_cast< std::make_unsigned<char32_t>::type >(ch)-S) < D;
 }
@@ -184,8 +201,8 @@ static constexpr bool is_xml_name_start_char(char32_t ch) noexcept
 static constexpr bool is_xml_name_char(char32_t ch) noexcept
 {
 	return is_digit(ch) ||
-		   // - | . | U+00B7
-		   is_one_of(ch,0x2D,0x2E,0xB7) ||
+		   // - (U+002D) | . (U+002E) | · (U+00B7)
+		   is_one_of<0x2D,0x2E,0xB7>(ch) ||
 		   is_xml_name_start_char(ch) ||
 		   between<0x0300,0x036F>(ch)  ||
 		   between<0x203F,0x2040>(ch);
@@ -406,15 +423,15 @@ document_event event_stream_parser::parse_start_doc() noexcept
 
 	const char* prologue = buff.position().cdata();
 	// extract version
-	char* i = io_strstr( const_cast<char*>(prologue), VERSION );
+	const char* i = io_strstr( const_cast<char*>(prologue), VERSION );
 
 	if(nullptr == i) {
 		assign_error(error::illegal_prologue);
 		return document_event();
 	}
 	i += 8; // i + strlen(VERSION)
-	int sep = std::char_traits<char>::to_int_type( *i );
-	if( !is_one_of(sep,QNM,APH) ) {
+	char sep = *i;
+	if( is_none_of<QNM,APH>(sep) ) {
 		assign_error(error::illegal_prologue);
 		return document_event();
 	}
@@ -433,14 +450,14 @@ document_event event_stream_parser::parse_start_doc() noexcept
 	}
 
 	// extract optional
-	i = const_cast<char*>( stop + 1 );
+	i = stop + 1;
 
 	// extract encoding if exist
 	const char* j = io_strstr(i, ENCODING);
 	if(nullptr != j) {
-		i = const_cast<char*>( j + 9 );
-		sep = std::char_traits<char>::to_int_type( *i );
-		if( !is_one_of(sep,QNM,APH) ) {
+		i =  j + 9;
+		sep =  *i;
+		if( !is_one_of<QNM,APH>(sep) ) {
 			assign_error(error::illegal_prologue);
 			return document_event();
 		}
@@ -456,15 +473,15 @@ document_event event_stream_parser::parse_start_doc() noexcept
 			assign_error(error::out_of_memory);
 			return document_event();
 		}
-		i = const_cast<char*> ( stop + 1 );
+		i = stop + 1;
 	}
 	// extract standalone if exist
 	j = io_strstr(i, STANDALONE);
 	if(nullptr != j) {
 		// j + strlen(STANDALONE)
-		i = const_cast<char*> ( j + 11 );
+		i =  j + 11;
 		sep = std::char_traits<char>::to_int_type( *i );
-		if( !is_one_of(sep,QNM,APH) ) {
+		if( !is_one_of<QNM,APH>(sep) ) {
 			assign_error(error::illegal_prologue);
 			return document_event();
 		}
@@ -480,7 +497,7 @@ document_event event_stream_parser::parse_start_doc() noexcept
 			assign_error(error::illegal_prologue);
 			return document_event();
 		}
-		i = const_cast<char*> ( stop + 1 );
+		i = stop + 1;
 	}
 	// check error in this point
 	if( 0 != io_memcmp( skip_spaces(i), END_PROLOGUE, 2) ) {
@@ -717,12 +734,12 @@ attribute event_stream_parser::extract_attribute(const char* from, std::size_t& 
 	len = 0;
 	// skip lead spaces, don't copy them into name
 	const char *i = skip_spaces(from);
-	if( nullptr == i || is_one_of(*i, SOLIDUS,RIGHTB, ENDL) )
+	if( nullptr == i || is_one_of<SOLIDUS,RIGHTB, ENDL>(*i) )
 		return attribute();
 
 	const char* start = i;
 	i = io_strchr(start, ES);
-	if( nullptr == i || !is_one_of( i[1], QNM, APH) ) {
+	if( nullptr == i || is_none_of<QNM, APH>(i[1]) ) {
 		assign_error(error::illegal_markup);
 		return attribute();
 	}

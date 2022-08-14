@@ -8,24 +8,19 @@
 #include <net/uri.hpp>
 #include <net/http_client.hpp>
 #include <net/security.hpp>
-
-#include <console.hpp>
+#include <iostream>
 
 int main(int argc, const char** argv)
 {
 
 	using namespace io::net;
 	std::error_code ec;
-	s_uri url = uri::parse(ec, "https://raw.githubusercontent.com/incoder1/IO/master/examples/network/main.cpp");
+	s_uri url = uri::parse(ec, "https://www.rfc-editor.org/rfc/rfc9110.html");
 	io::check_error_code(ec);
 
-	// IO console stream, it supports UNICODE console including Windows consoles
-	// as well as colored output
-	std::ostream& cout = io::console::out_stream();
-	// reset default text color
-	io::console::reset_out_color(io::text_color::navy_green);
 
-	cout << "Connecting to: " <<  url->host().data() << std::endl;
+    std::ios::sync_with_stdio(false);
+	std::cout << "Connecting to: " <<  url->host().data() << std::endl;
 
 	// IO context, entry point to network and asynchronous input oputput
 	io::s_io_context ioc = io::io_context::create(ec);
@@ -39,33 +34,32 @@ int main(int argc, const char** argv)
     io::s_read_write_channel sch = secure_ctx->client_blocking_connect(ec, url->host().data(), url->port());
     io::check_error_code(ec);
 
-    // Construct writer to communicate with service over HTTP 1.1
+    // Construct reader and writer to communicate with service over HTTP 1.1
+    io::reader httpr(sch);
     io::writer httpw(sch);
 
 	// Construct new HTTP GET requests
 	http::s_request rq = http::new_get_request( ec, url );
 	io::check_error_code( ec );
+
 	// Send request to HTTP server
 	rq->send( ec, httpw );
 	io::check_error_code( ec );
 
-	io::console::reset_out_color( io::text_color::white );
-
 	// Read HTTP response from server
-	uint8_t buff[4096] = {'\0'};
+    io::scoped_arr<char> buff( io::memory_traits::page_size() * 2 );
 	std::size_t read;
 	do {
-		read = sch->read(ec, buff, sizeof(buff) );
+		read = httpr.read(ec, buff.begin(), buff.len() );
 		if(read > 0) {
-			cout.write(reinterpret_cast<const char*>(buff), read);
-			cout.flush();
+			std::cout.write(buff.begin(), read);
 			buff[0] = '\0';
 		}
 	} while( !ec && read > 0 );
+	std::cout.flush();
 
 	if(ec) {
-		std::ostream& cerr = io::console::error_stream();
-		cerr<< "Network error: " << ec.value() << " " << ec.message() << std::endl;
+		std::cerr << "Network error: " << ec.value() << " " << ec.message() << std::endl;
 		return ec.value();
 	}
 

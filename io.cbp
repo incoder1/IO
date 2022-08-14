@@ -13,10 +13,9 @@
 				<Option type="2" />
 				<Option compiler="gcc" />
 				<Compiler>
-					<Add option="-Wnon-virtual-dtor" />
-					<Add option="-Winline" />
+					<Add option="-Winit-self" />
+					<Add option="-Weffc++" />
 					<Add option="-pedantic" />
-					<Add option="-pg" />
 					<Add option="-Og" />
 					<Add option="-g" />
 					<Add option="-std=gnu++20" />
@@ -33,7 +32,6 @@
 					<Add directory="include/tls" />
 				</Compiler>
 				<Linker>
-					<Add option="-pg -lgmon" />
 					<Add library="iconv.dll" />
 					<Add library="Ws2_32" />
 					<Add library="gnutls.dll" />

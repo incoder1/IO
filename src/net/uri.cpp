@@ -19,14 +19,15 @@ namespace io {
 
 namespace net {
 
-static inline bool is_scheme_character(char c)
+
+static bool is_scheme_character(char c)
 {
-	return is_alnum( c ) || is_one_of(c, '+', '-', '.');
+	return is_alnum( c ) || is_one_of<'+', '-', '.'>(c);
 }
 
-static constexpr inline bool is_unreserved(char c)
+static constexpr bool is_unreserved(char c)
 {
-	return is_alnum(c) || is_one_of(c,'-','.','_','~');
+	return is_alnum(c) || is_one_of<'-','.','_','~'>(c);
 }
 
 #ifdef __GNUG__
@@ -55,7 +56,7 @@ static inline bool is_reserved(char c)
 
 static inline bool is_user_info_character(char c)
 {
-	return is_unreserved(c) || io::is_one_of(c,'%',':') || is_sub_delim(c);
+	return is_unreserved(c) || io::is_one_of<'%',':'>(c) || is_sub_delim(c);
 }
 
 static inline bool is_authorety_character(char c)
@@ -184,7 +185,7 @@ s_uri uri::parse(std::error_code& ec, const char* str) noexcept
 	// parse the authorety portion
 	if( 0 == io_memcmp(b, "//", 2) ) {
 		b += 2;
-		for( e = b; !io::is_one_of(*e,'/','?','#','\0'); e++) {
+		for( e = b; !io::is_one_of<'/','?','#','\0'>(*e); e++) {
 			if( ! is_authorety_character(*e) )
 				return return_error(ec, std::errc::invalid_argument);
 		}
@@ -218,7 +219,7 @@ s_uri uri::parse(std::error_code& ec, const char* str) noexcept
 	if ( cheq(*b,'/') || is_path_character(*b) ) {
 		e = b;
 		// ? # or '\0'
-		while( !io::is_one_of(*e, '?','#','\0') ) {
+		while( !io::is_one_of<'?','#','\0'>(*e) ) {
 			if (!is_path_character(*e))
 				return return_error(ec, std::errc::invalid_argument );
 			++e;
@@ -235,7 +236,7 @@ s_uri uri::parse(std::error_code& ec, const char* str) noexcept
 	if ( cheq(*b, '?') ) {
 		e = ++b;
 		// '#' or '\0'
-		while( !io::is_one_of(*e,'#','\0') ) {
+		while( !io::is_one_of<'#','\0'>(*e) ) {
 			if (!is_query_character(*e))
 				return return_error(ec, std::errc::invalid_argument );
 			++e;

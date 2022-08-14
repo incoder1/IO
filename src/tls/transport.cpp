@@ -20,7 +20,8 @@ namespace tls {
 // synch_transport
 synch_transport::synch_transport(io::s_read_write_channel&& raw) noexcept:
     transport(),
-    raw_( std::forward<io::s_read_write_channel>(raw) )
+    raw_( std::forward<io::s_read_write_channel>(raw) ),
+    ec_()
 {}
 
 ssize_t synch_transport::pull(void* dst,std::size_t len) noexcept

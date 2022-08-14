@@ -81,10 +81,11 @@ private:
 	static constexpr std::size_t MAX_SCAN_BUFF_SIZE = 16;
 
 	typedef std::unordered_set<
-	std::size_t,
+        std::size_t,
 		std::hash<std::size_t>,
 		std::equal_to<std::size_t>,
-		io::h_allocator<std::size_t> > validated_set;
+		io::h_allocator<std::size_t>
+		> validated_set;
 
 	friend class nobadalloc<event_stream_parser>;
 	event_stream_parser(const event_stream_parser&) = delete;

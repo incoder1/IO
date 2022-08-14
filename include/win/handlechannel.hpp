@@ -48,7 +48,7 @@ public:
 		::CloseHandle(hnd_);
 	}
 
-	inline std::size_t read(std::error_code& err, uint8_t* const buff, std::size_t bytes) const noexcept
+    std::size_t read(std::error_code& err, uint8_t* const buff, std::size_t bytes) const noexcept
 	{
 		::DWORD result;
 		if( ! ::ReadFile(hnd_, void_cast(buff), static_cast<DWORD>(bytes), &result, nullptr) )
@@ -56,7 +56,7 @@ public:
 		return result;
 	}
 
-	inline std::size_t write(std::error_code& err, const uint8_t* buff,std::size_t size) const noexcept
+	std::size_t write(std::error_code& err, const uint8_t* buff,std::size_t size) const noexcept
 	{
 		::DWORD result;
 		if ( ! ::WriteFile(hnd_, void_cast(buff), static_cast<::DWORD>(size), &result, nullptr) )

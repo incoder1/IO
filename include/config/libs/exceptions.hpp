@@ -33,7 +33,7 @@ namespace io {
 	public:
 
 	 template<typename... _Args>
-	 static inline T* construct(std::error_code& ec,_Args&&... __args) noexcept( noexcept( T(std::forward<_Args>(__args)...) ) ) {
+	 static T* construct(std::error_code& ec,_Args&&... __args) noexcept( noexcept( T(std::forward<_Args>(__args)...) ) ) {
 			T* result = new ( std::nothrow ) T( std::forward<_Args>(__args)... );
 			if(nullptr == result)
 				ec = std::make_error_code(std::errc::not_enough_memory);

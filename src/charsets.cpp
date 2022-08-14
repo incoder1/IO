@@ -23,7 +23,7 @@ namespace io {
 #define DECLARE_CHARSET(ID,__code,__name,__is_unicode,__maxchar) \
 const charset code_pages::ID( (__code), (__name), (__is_unicode), (__maxchar) );
 
-// unicode character sets
+// UNICODE character sets
 DECLARE_CHARSET(UTF_8,65001,"UTF-8",4,true)
 DECLARE_CHARSET(UTF_16LE,1200,"UTF-16LE",2,true)
 DECLARE_CHARSET(UTF_16BE,1201,"UTF-16BE",2,true)

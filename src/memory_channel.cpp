@@ -30,13 +30,14 @@ memory_read_channel::~memory_read_channel()  noexcept
 
 std::size_t memory_read_channel::read(std::error_code& ec,uint8_t* const buff, std::size_t bytes) const noexcept
 {
-	if( data_.empty() )
-		return 0;
-	lock_guard lock(mtx_);
-	std::size_t available = data_.size();
-	std::size_t ret = (available >= bytes) ? bytes : available;
-	io_memmove(buff, data_.position().get(), ret);
-	data_.shift(ret);
+    std::size_t ret = 0;
+	if( io_likely(!data_.empty()) ) {
+        lock_guard lock(mtx_);
+        std::size_t available = data_.size();
+        ret = (available >= bytes) ? bytes : available;
+        io_memmove(buff, data_.position().get(), ret);
+        data_.shift(ret);
+	}
 	return ret;
 }
 
@@ -44,12 +45,15 @@ std::size_t memory_read_channel::read(std::error_code& ec,uint8_t* const buff, s
 
 s_memory_write_channel memory_write_channel::open(std::error_code& ec, std::size_t initial_size) noexcept
 {
+	s_memory_write_channel ret;
 	byte_buffer buff = byte_buffer::allocate(ec, initial_size);
 	if( io_likely(!ec) ) {
-		memory_write_channel *ret = nobadalloc<memory_write_channel>::construct(ec, std::move(buff) );
-		return io_likely(nullptr != ret) ? s_memory_write_channel(ret) : s_memory_write_channel();
+		memory_write_channel *px = nobadalloc<memory_write_channel>::construct(ec, std::move(buff) );
+        if( nullptr != px ) {
+          ret = s_memory_write_channel(px);
+        }
 	}
-	return s_memory_write_channel();
+	return ret;
 }
 
 

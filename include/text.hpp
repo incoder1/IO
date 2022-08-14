@@ -111,98 +111,43 @@ private:
 namespace detail {
 
 template<typename T>
-static constexpr uint8_t* byte_cast(const T* p) noexcept
+static inline uint8_t* byte_cast(const T* p) noexcept
 {
 	return const_cast<uint8_t*>( reinterpret_cast<const uint8_t*>(p) );
 }
 
 // returns UTF-8 character size in bytes
-static unsigned int u8_mblen(const char* mb) noexcept
+__forceinline unsigned int u8_mblen(const char* mb) noexcept
 {
-	if( static_cast<unsigned int>(mb[0]) < 0x80U)
-		return 1;
+    unsigned int ret = 1;
+	if( 0x80U < static_cast<unsigned int>(mb[0]) ) {
 #ifdef IO_IS_LITTLE_ENDIAN
-	static constexpr unsigned int MB_SHIFT = ( sizeof(unsigned int) << 3 ) - 8;
-	unsigned int c = static_cast<unsigned int>(mb[0]) << MB_SHIFT;
+        static constexpr unsigned int MB_SHIFT = ( sizeof(unsigned int) << 3 ) - 8;
+        unsigned int c = static_cast<unsigned int>(mb[0]) << MB_SHIFT;
 #else
-	unsigned int c = static_cast<unsigned int>(mb[0]);
+        unsigned int c = static_cast<unsigned int>(mb[0]);
 #endif // IO_IS_LITTLE_ENDIAN
-	return static_cast<unsigned int>( io_clz( ~c ) );
-}
-
-static std::size_t utf16_buff_size(const char* b, std::size_t size) noexcept
-{
-	const char *end = b + size;
-	std::size_t ret = 0;
-	const char *c = b;
-	while( (b < end) && '\0' != *c) {
-		unsigned int mblen = u8_mblen(c);
-		ret = ret > 2 ? ret + 2 : ret + 1;
-		c = c + mblen;
+        ret = static_cast<unsigned int>( io_clz( ~c ) );
 	}
 	return ret;
 }
 
-static std::size_t utf32_buff_size(const char* b, std::size_t size) noexcept
-{
-	const char *end = b + size;
-	std::size_t ret = 0;
-	const char *c = b;
-	while( (b < end) && '\0' != *c) {
-		unsigned int mblen = u8_mblen(c);
-		ret += mblen;
-		c = c + mblen;
-	}
-	return ret;
-}
+std::size_t IO_PUBLIC_SYMBOL utf8_buff_size(const char16_t* ustr, std::size_t size) noexcept;
+std::size_t IO_PUBLIC_SYMBOL utf8_buff_size(const char32_t* ustr, std::size_t size) noexcept;
+std::size_t IO_PUBLIC_SYMBOL utf16_buff_size(const char* b, std::size_t size) noexcept;
+std::size_t IO_PUBLIC_SYMBOL utf32_buff_size(const char* b, std::size_t size) noexcept;
 
 static constexpr uint16_t LATIN1_MAX = 0x80;
 static constexpr uint16_t TWOB_MAX = 0x800;
 static constexpr uint32_t THREEB_MAX = 0x10000;
-
 
 static constexpr bool is_surogate_word(uint16_t ch) noexcept
 {
 	return (ch - 0xDC00) < ( (0xDF00 - 0xDC00) + 1);
 }
 
-static std::size_t utf8_buff_size(const char16_t* ustr, std::size_t size) noexcept
-{
-	std::size_t ret = 0;
-	const uint16_t* c = reinterpret_cast<const uint16_t*>( ustr );
-	for (std::size_t i = 0; *c && (i < size); i++, c++) {
-		if (*c < LATIN1_MAX)
-			++ret;
-		else if (*c < TWOB_MAX) {
-			ret += 2;
-		}
-		else if ( is_surogate_word(*c) ) {
-			ret += 4;
-			++i;
-		}
-		else
-			ret += 3;
-	}
-	return ret;
-}
-
-static std::size_t utf8_buff_size(const char32_t* ustr, std::size_t size) noexcept
-{
-	std::size_t ret = 0;
-    const uint32_t* c = reinterpret_cast<const uint32_t*>(ustr);
-	for(std::size_t i = 0; *c && (i < size); i++, c++) {
-		if(*c < LATIN1_MAX)
-			++ret;
-		else if(*c < TWOB_MAX)
-			ret += 2;
-		else if(*c < THREEB_MAX)
-			ret += 3;
-		else
-			ret += 4;
-	}
-	return ret;
-}
-
+// inside header to avoid exporting std::basic_string<char> i.e. std::string into shared library
+// and avoid possible issue with different memory allocators like jemalloc etc
 static std::string transcode_big(const wchar_t* ucs_str, std::size_t len)
 {
 #ifdef __IO_WINDOWS_BACKEND__
@@ -350,7 +295,8 @@ public:
 	explicit basic_reader(const s_read_channel& src) noexcept:
 		src_( src )
 	{}
-	inline std::size_t read(std::error_code& ec, C* to, std::size_t chars) const noexcept {
+    std::size_t read(std::error_code& ec, C* const to, std::size_t chars) const noexcept {
+	    assert(nullptr != to);
 		return CSIZE * src_->read(ec, reinterpret_cast<uint8_t*>(to), (chars * CSIZE ) );
 	}
 private:

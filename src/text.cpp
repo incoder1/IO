@@ -13,6 +13,75 @@
 
 namespace io {
 
+// free functions
+namespace detail {
+
+std::size_t IO_PUBLIC_SYMBOL utf16_buff_size(const char* b, std::size_t size) noexcept
+{
+	const char *end = b + size;
+	std::size_t ret = 0;
+	const char *c = b;
+	while( (b < end) && '\0' != *c) {
+		unsigned int mblen = u8_mblen(c);
+		ret = ret > 2 ? ret + 2 : ret + 1;
+		c = c + mblen;
+	}
+	return ret;
+}
+
+std::size_t IO_PUBLIC_SYMBOL utf32_buff_size(const char* b, std::size_t size) noexcept
+{
+	const char *end = b + size;
+	std::size_t ret = 0;
+	const char *c = b;
+	while( (b < end) && '\0' != *c) {
+		unsigned int mblen = u8_mblen(c);
+		ret += mblen;
+		c = c + mblen;
+	}
+	return ret;
+}
+
+std::size_t IO_PUBLIC_SYMBOL utf8_buff_size(const char16_t* ustr, std::size_t size) noexcept
+{
+	std::size_t ret = 0;
+	const uint16_t* c = reinterpret_cast<const uint16_t*>( ustr );
+	for (std::size_t i = 0; *c && (i < size); i++, c++) {
+		if (*c < LATIN1_MAX)
+			++ret;
+		else if (*c < TWOB_MAX) {
+			ret += 2;
+		}
+		else if ( is_surogate_word(*c) ) {
+			ret += 4;
+			++i;
+		}
+		else
+			ret += 3;
+	}
+	return ret;
+}
+
+std::size_t IO_PUBLIC_SYMBOL utf8_buff_size(const char32_t* ustr, std::size_t size) noexcept
+{
+	std::size_t ret = 0;
+    const uint32_t* c = reinterpret_cast<const uint32_t*>(ustr);
+	for(std::size_t i = 0; *c && (i < size); i++, c++) {
+		if(*c < LATIN1_MAX)
+			++ret;
+		else if(*c < TWOB_MAX)
+			ret += 2;
+		else if(*c < THREEB_MAX)
+			ret += 3;
+		else
+			ret += 4;
+	}
+	return ret;
+}
+
+
+} // namesapce detail
+
 // max size for stack mem buffer
 // 4k which is page size in most cases
 static constexpr std::size_t MAX_CONVB_STACK_SIZE = 4096;

@@ -198,22 +198,26 @@ public:
 		return empty() ? "" : sso() ? detail::short_str(data_) : detail::long_str(data_);
 	}
 
-	/// Returns mutable std::string by deep copying underlying character array
+	/// Returns mutable std::string by deep copying underlying character array, i.e. copy on write
+	/// \return mutable string in UTF-8 code character set
 	inline std::string get_mutable() const {
 		return empty() ? std::string() : std::string( data(), size() );
 	}
 
 	/// Converts this string to system UCS-2 ( UTF-16 LE or BE)
+	/// \return mutable string in system endian UTF-16 code character set
 	inline std::u16string convert_to_u16() const {
 		return empty() ? std::u16string() : transcode_to_u16( data(), size() );
 	}
 
 	/// Converts this string to system UCS-4 ( UTF-32 LE or BE)
+	/// \return mutable string in system endian UTF-32 code character set
 	inline std::u32string convert_to_u32() const {
 		return empty() ? std::u32string() : transcode_to_u32( data(), size() );
 	}
 
 	/// Converts this string to system wide UNICODE (UTF-16/32 LE/BE OS and CPU byte order depends) representation
+	/// \return mutable wstring
 	inline std::wstring convert_to_ucs() const {
 		return empty() ? std::wstring() : transcode_to_ucs( data(), size() );
 	}
@@ -252,14 +256,14 @@ public:
 		return compare( rhs ) > 0;
 	}
 
-	/// Check this string background char lexicographically equals to a raw C zero ending char array
+	/// Check this string lexicographically equals to a raw C zero ending char array
 	/// \param rhs char array to compare
 	/// \return whether this string background char array equals to argument
-	inline bool equal(const char* rhs) const noexcept {
+	bool equal(const char* rhs) const noexcept {
 		return equal( rhs, nullptr != rhs ? traits_type::length(rhs) : 0 );
 	}
 
-	/// Check this string background char lexicographically equals to a raw char array
+	/// Check this string lexicographically equals to a raw char array
 	/// \param rhs char array to compare
 	/// \param len rhs length in characters
 	/// \return whether this string background char array equals to argement

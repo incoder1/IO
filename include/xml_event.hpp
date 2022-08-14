@@ -160,14 +160,14 @@ public:
 
 	~qname() noexcept = default;
 
-	inline void swap(qname& other) noexcept {
+    void swap(qname& other) noexcept {
 		prefix_.swap( other.prefix_ );
 		local_name_.swap( other.local_name_ );
 	}
 
 	/// Returns whether this name contains name space prefix
 	/// \return whether name space prefix present
-	inline bool has_prefix() const noexcept {
+    bool has_prefix() const noexcept {
 		return !prefix_.empty();
 	}
 
