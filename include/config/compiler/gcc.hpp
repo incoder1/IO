@@ -80,12 +80,6 @@
 #	define io_size_t_abs(__x) __builtin_labs( (__x) )
 #endif
 
-// Force compiler intrinsics to avoid standard library calls
-// It allows to use inlined assembly operators even when compiler options off intrinsics
-// optimizations with debug builds
-
-//#define io_alloca(__x) __builtin_alloca((__x))
-
 #define io_alloca(__x) __builtin_alloca_with_align( (__x), sizeof(size_t) )
 
 #define io_memmove(__dst, __src, __bytes) __builtin_memmove( (__dst), (__src), (__bytes) )
@@ -167,10 +161,19 @@
 #define io_unlikely(__expr__) __builtin_expect(!!(__expr__), 0)
 #define io_unreachable __builtin_unreachable();
 
+// C++ 20 features test
+#ifdef __HAS_CPP_20
 
-#if (__cplusplus >= 201703L) && defined(__cpp_char8_t)
+#ifdef __cpp_char8_t
 #  define IO_HAS_CHAR8_T 1
-#endif
+#endif // defined
+
+#ifdef __cpp_concepts
+#  define IO_HAS_CONNCEPTS 1
+#endif // __cpp_concepts
+
+#endif // __HAS_CPP_20
+
 
 namespace io {
 namespace detail {
@@ -181,12 +184,12 @@ namespace detail {
 // should not be used with any non dynamically allocated memory,
 // otherwise can bring to undefined results
 namespace atomic_traits {
-     __forceinline std::size_t inc(std::size_t volatile *ptr) {
-        return __atomic_add_fetch(ptr, 1, __ATOMIC_RELAXED);
-    }
-    __forceinline std::size_t dec(std::size_t volatile *ptr) {
-        return __atomic_sub_fetch(ptr, 1, __ATOMIC_RELEASE);
-    }
+	__forceinline std::size_t inc(std::size_t volatile *ptr) {
+		return __atomic_add_fetch(ptr, 1, __ATOMIC_RELAXED);
+	}
+	__forceinline std::size_t dec(std::size_t volatile *ptr) {
+		return __atomic_sub_fetch(ptr, 1, __ATOMIC_RELEASE);
+	}
 } // atomic_traits
 
 } // namespace detail

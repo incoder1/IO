@@ -18,6 +18,12 @@ namespace xml {
 static const char* PROLOGUE_FMT = "<?xml version=\"%s\" encoding=\"%s\"%s?>";
 static const char* STANDALONE_ATTR = "standalone=\"yes\" ";
 
+#ifdef __IO_WINDOWS_BACKEND__
+static const char* WIDEN_ENDL = "\r\n";
+#else
+static const char* WIDEN_ENDL = "\n";
+#endif // __IO_WINDOWS_BACKEND__
+
 
 s_event_writer event_writer::open(std::error_code& ec, writer&& dst, bool format, const document_event& prologue) noexcept
 {
@@ -25,7 +31,7 @@ s_event_writer event_writer::open(std::error_code& ec, writer&& dst, bool format
 	const char* standalone = prologue.standalone() ? STANDALONE_ATTR : " ";
 	std::snprintf( tmp, sizeof(tmp), PROLOGUE_FMT, prologue.version().data(), prologue.encoding().data(), standalone);
 	if(format)
-        tmp[ io_strlen(tmp) ] = '\n';
+		tmp[ io_strlen(tmp) ] = '\n';
 	if(!dst) {
 		ec = dst.last_error();
 		return s_event_writer();
@@ -128,11 +134,12 @@ void event_writer::add(const start_element_event& ev) noexcept
 	}
 	if( ev.empty_element() ) {
 		print("/>");
-	} else {
+	}
+	else {
 		print('>');
 		if(format_) {
 			++nesting_level_;
-			print("\r\n");
+			print(WIDEN_ENDL);
 		}
 	}
 }
@@ -141,7 +148,7 @@ void event_writer::add(const end_element_event& ev) noexcept
 {
 	if(format_) {
 		--nesting_level_;
-		print("\r\n");
+		print(WIDEN_ENDL);
 		independent();
 	}
 	print("</");
@@ -163,8 +170,9 @@ void event_writer::add_chars(const char* str) noexcept
 	// TODO: characters validation
 	// for CDATA
 	if(format_) {
-		print("\r\n");
-	independent();
+		print(WIDEN_ENDL);
+		std::endl;
+		independent();
 	}
 	print(str);
 }

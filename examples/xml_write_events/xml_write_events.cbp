@@ -35,6 +35,8 @@
 		</Build>
 		<Compiler>
 			<Add option="-Wall" />
+			<Add option="-std=gnu++20" />
+			<Add option="-fchar8_t" />
 			<Add option="-fexceptions" />
 			<Add directory="../../include" />
 		</Compiler>
