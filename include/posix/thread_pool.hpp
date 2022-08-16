@@ -45,7 +45,8 @@ public:
 	async_task poll();
 
 	void offer(async_task&& el) noexcept;
-
+private:
+	void push(async_task&& el) noexcept;
 private:
 	::pthread_mutex_t mtx_;
 	::pthread_cond_t cv_;
@@ -67,8 +68,8 @@ private:
 
 /// !\brief Executes each submitted task using one of possibly several pooled threads
 class IO_PUBLIC_SYMBOL thread_pool:public io::object {
-    thread_pool(const thread_pool&) = delete;
-    thread_pool operator=(const thread_pool&) = delete;
+	thread_pool(const thread_pool&) = delete;
+	thread_pool operator=(const thread_pool&) = delete;
 public:
 
 	/// Creates new pool
@@ -80,18 +81,18 @@ public:
 	virtual ~thread_pool() noexcept override;
 
 	/// Return maximum threads count int this pool
-    inline unsigned int max_threads() noexcept
-    {
-        return max_threads_;
-    }
+	inline unsigned int max_threads() noexcept
+	{
+		return max_threads_;
+	}
 
-    /// Submit an asynchronous task to be executed in a pool thread
-    /// \param ec operation error code
+	/// Submit an asynchronous task to be executed in a pool thread
+	/// \param ec operation error code
 	/// \param task a task
-    void sumbmit(std::error_code& ec,async_task&& task) noexcept;
+	void sumbmit(std::error_code& ec,async_task&& task) noexcept;
 
-    /// Sends stop signal for all pool threads, and waits until all pending operations done
-    void join() noexcept;
+	/// Sends stop signal for all pool threads, and waits until all pending operations done
+	void join() noexcept;
 
 private:
 	thread_pool(std::size_t max_threads) noexcept;

@@ -4,7 +4,7 @@
 #include <files.hpp>
 #include <stream.hpp>
 
-#include "stubs.hpp"
+//#include "stubs.hpp"
 
 #include <xml_event_writer.hpp>
 
@@ -55,31 +55,7 @@ void generate_xsd(app_settings& root, std::ostream& cout) {
 
 int main()
 {
-	try {
-		std::error_code ec;
-		// create_file_channel("app-config-.xml")
 
-		io::s_write_channel dst = create_file_channel("test.xml");
-		io::check_error_code(ec);
-		io::xml::s_event_writer safe_ew = io::xml::event_writer::open( ec, std::move(dst) );
-		io::check_error_code(ec);
-		io::unsafe<io::xml::event_writer> xew( std::move(safe_ew) );
-
-		xew.add_coment("Test event writer");
-		io::xml::start_element_event sev( io::xml::qname("tst","test"), false );
-		// TODO: handle name spaces
-		sev.add_attribute(io::xml::attribute( io::xml::qname("xmlns","xsi"), "http://www.w3.org/2001/XMLSchema-instance"));
-		sev.add_attribute(io::xml::attribute( io::xml::qname("xmlns","tst"), "https://github.com/incoder1/IO"));
-
-		xew.add(sev);
-		xew.add(io::xml::start_element_event(io::xml::qname("tst","cdata_chars"), false));
-		xew.add_cdata("<Test CDATA >");
-		xew.add(io::xml::end_element_event(io::xml::qname("tst","cdata_chars")));
-		xew.add_chars("Test characters");
-		xew.add(io::xml::end_element_event(io::xml::qname("tst","test")));
-	} catch(std::exception& exc) {
-		std::cerr << exc.what() << std::endl;
-	}
 
 //	std::ostream& cout = io::console::out_stream();
 

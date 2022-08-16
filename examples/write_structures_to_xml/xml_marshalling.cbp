@@ -12,7 +12,6 @@
 				<Option type="1" />
 				<Option compiler="gcc" />
 				<Compiler>
-					<Add option="-std=c++11" />
 					<Add option="-pg" />
 					<Add option="-Og" />
 					<Add option="-g" />
@@ -35,7 +34,6 @@
 					<Add option="-pedantic" />
 					<Add option="-Wextra" />
 					<Add option="-Wall" />
-					<Add option="-std=c++14" />
 					<Add option="-mtune=native" />
 					<Add option="-DNDEBUG" />
 				</Compiler>
@@ -50,6 +48,7 @@
 		<Compiler>
 			<Add option="-Wall" />
 			<Add option="-fexceptions" />
+			<Add option="-std=gnu++20" />
 			<Add directory="../../include" />
 		</Compiler>
 		<Linker>
@@ -58,9 +57,6 @@
 		<Unit filename="main.cpp" />
 		<Unit filename="stubs.hpp" />
 		<Extensions>
-			<code_completion />
-			<envvars />
-			<debugger />
 			<lib_finder disable_auto="1" />
 		</Extensions>
 	</Project>

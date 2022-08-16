@@ -102,6 +102,32 @@ converrc engine::convert(uint8_t** src,std::size_t& size, uint8_t** dst, std::si
 
 } // namesapase detail
 
+namespace utf8 {
+
+const char* IO_PUBLIC_SYMBOL mbtochar32(char32_t& dst, const char* src) noexcept
+{
+	switch( mblen(src) ) {
+	case 1:
+		dst = static_cast<char32_t>( *src );
+		return U'0' != dst ? src + 1: nullptr;
+	case 2:
+		dst = decode2( src );
+		return src + 2;
+	case 3:
+		dst = decode3( src );
+		return src + 3;
+	case 4:
+		dst = decode4( src );
+		return src + 4;
+	default:
+		break;
+	}
+	dst = U'\0';
+	return nullptr;
+}
+
+} // namespace utf8
+
 // chconv_error_category
 
 const chconv_error_category* chconv_error_category::instance()

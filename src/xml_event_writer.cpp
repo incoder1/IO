@@ -19,20 +19,18 @@ static const char* PROLOGUE_FMT = "<?xml version=\"%s\" encoding=\"%s\"%s?>";
 static const char* STANDALONE_ATTR = "standalone=\"yes\" ";
 
 
-s_event_writer event_writer::open(std::error_code& ec, s_write_channel&& to, bool format, const document_event& prologue) noexcept
+s_event_writer event_writer::open(std::error_code& ec, writer&& dst, bool format, const document_event& prologue) noexcept
 {
 	char tmp[64] = {'\0'};
 	const char* standalone = prologue.standalone() ? STANDALONE_ATTR : " ";
 	std::snprintf( tmp, sizeof(tmp), PROLOGUE_FMT, prologue.version().data(), prologue.encoding().data(), standalone);
 	if(format)
         tmp[ io_strlen(tmp) ] = '\n';
-	writer dst( std::move(to) );
-	dst.write(tmp);
 	if(!dst) {
 		ec = dst.last_error();
 		return s_event_writer();
 	}
-	event_writer *ret = new (std::nothrow) event_writer(format, std::move(dst) );
+	event_writer *ret = new (std::nothrow) event_writer(format, std::forward<writer&&>(dst) );
 	if(nullptr == ret) {
 		ec = std::make_error_code(std::errc::not_enough_memory);
 		return s_event_writer();
@@ -40,16 +38,16 @@ s_event_writer event_writer::open(std::error_code& ec, s_write_channel&& to, boo
 	return s_event_writer(ret);
 }
 
-s_event_writer event_writer::open(std::error_code& ec,s_write_channel&& to, bool format, const version& v,const charset& encoding, bool standalone) noexcept
+s_event_writer event_writer::open(std::error_code& ec,writer&& dst, bool format, const version& v,const charset& encoding, bool standalone) noexcept
 {
 	char vstr[8] = {'\0'};
 	std::snprintf(vstr, sizeof(vstr), "%d.%d", v.major, v.minor);
-	return open(ec, std::forward<s_write_channel>(to), format, io::xml::document_event(vstr, encoding.name(), standalone) );
+	return open(ec, std::forward<writer&&>(dst), format, io::xml::document_event(vstr, encoding.name(), standalone) );
 }
 
-s_event_writer event_writer::open(std::error_code& ec, s_write_channel&& to) noexcept
+s_event_writer event_writer::open(std::error_code& ec, writer&& dst) noexcept
 {
-	return open(ec, std::forward<s_write_channel>(to), true, {1,0}, code_pages::UTF_8, false );
+	return open(ec, std::forward<writer&&>(dst), true, {1,0}, code_pages::UTF_8, false );
 }
 
 event_writer::event_writer(bool format, writer&& to) noexcept:
@@ -113,12 +111,12 @@ void event_writer::independent() noexcept
 
 void event_writer::add(const start_element_event& ev) noexcept
 {
-    // TODO: state check's must present
-  	if(format_)
-    	independent();
+	// TODO: state check's must present
+	if(format_)
+		independent();
 	print('<');
 	print(ev.name());
-    if( !ec_ && ev.has_attributes() ) {
+	if( !ec_ && ev.has_attributes() ) {
 		for( auto it = ev.attr_begin(); !ec_ && it != ev.attr_end(); ++it ) {
 			print(' ');
 			print(it->name());
@@ -126,25 +124,25 @@ void event_writer::add(const start_element_event& ev) noexcept
 			print(it->value());
 			print('"');
 		}
-    }
-    if( ev.empty_element() ) {
-    	print("/>");
-    } else {
+	}
+	if( ev.empty_element() ) {
+		print("/>");
+	} else {
 		print('>');
 		if(format_) {
 			++nesting_level_;
 			print("\r\n");
 		}
-    }
+	}
 }
 
 void event_writer::add(const end_element_event& ev) noexcept
 {
-  	if(format_) {
+	if(format_) {
 		--nesting_level_;
 		print("\r\n");
-    	independent();
-  	}
+		independent();
+	}
 	print("</");
 	print(ev.name());
 	print('>');
@@ -153,7 +151,7 @@ void event_writer::add(const end_element_event& ev) noexcept
 void event_writer::add_cdata(const char* str) noexcept
 {
 	if(format_)
-    	independent();
+		independent();
 	print("<![CDATA[");
 	print(str);
 	print("]]>");
@@ -163,23 +161,23 @@ void event_writer::add_chars(const char* str) noexcept
 {
 	// TODO: characters validation
 	// for CDATA
-  	if(format_) {
+	if(format_) {
 		print("\r\n");
-    	independent();
-  	}
+	independent();
+	}
 	print(str);
 }
 
 void event_writer::add_coment(const char* str) noexcept
 {
 	// TODO: validate for double -- inside the comment
-  	if(format_)
-    	independent();
-    print("<!--");
-    print(str);
-    print("-->");
-    if(format_)
-    	print("\r\n");
+	if(format_)
+		independent();
+	print("<!--");
+	print(str);
+	print("-->");
+	if(format_)
+		print("\r\n");
 }
 
 } // namespace xml

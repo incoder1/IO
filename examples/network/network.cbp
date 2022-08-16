@@ -53,7 +53,7 @@
 				<Option compiler="gcc" />
 				<Compiler>
 					<Add option="-flto" />
-					<Add option="-std=c++20" />
+					<Add option="-std=gnu++20" />
 					<Add option="-mtune=native" />
 					<Add option="-DNDEBUG" />
 					<Add option="-DIO_SHARED_LIB" />

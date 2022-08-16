@@ -35,11 +35,27 @@ struct version {
 class IO_PUBLIC_SYMBOL event_writer final: public io::object {
 public:
 
-	static s_event_writer open(std::error_code& ec,s_write_channel&& to,bool format,const document_event& prologue) noexcept;
 
-	static s_event_writer open(std::error_code& ec,s_write_channel&& to, bool format, const version& v,const charset& encoding, bool standalone) noexcept;
+    static s_event_writer open(std::error_code& ec,writer&& to,bool format,const document_event& prologue) noexcept;
 
-	static s_event_writer open(std::error_code& ec, s_write_channel&& to) noexcept;
+	static s_event_writer open(std::error_code& ec,writer&& to, bool format, const version& v,const charset& encoding, bool standalone) noexcept;
+
+	static s_event_writer open(std::error_code& ec,writer&& to) noexcept;
+
+	static s_event_writer open(std::error_code& ec,const s_write_channel& to,bool format,const document_event& prologue) noexcept
+	{
+        return open(ec, writer(to), format, prologue);
+	}
+
+	static s_event_writer open(std::error_code& ec,const s_write_channel& to, bool format, const version& v,const charset& encoding, bool standalone) noexcept
+	{
+        return open(ec, writer(to), format, v, encoding, standalone);
+	}
+
+	static s_event_writer open(std::error_code& ec,const s_write_channel& to) noexcept
+	{
+        return open(ec, writer(to));
+	}
 
 	~event_writer() noexcept override;
 	void add(const start_element_event& ev) noexcept;

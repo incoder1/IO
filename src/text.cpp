@@ -22,7 +22,7 @@ std::size_t IO_PUBLIC_SYMBOL utf16_buff_size(const char* b, std::size_t size) no
 	std::size_t ret = 0;
 	const char *c = b;
 	while( (b < end) && '\0' != *c) {
-		unsigned int mblen = u8_mblen(c);
+		unsigned int mblen = utf8::mblen(c);
 		ret = ret > 2 ? ret + 2 : ret + 1;
 		c = c + mblen;
 	}
@@ -35,12 +35,21 @@ std::size_t IO_PUBLIC_SYMBOL utf32_buff_size(const char* b, std::size_t size) no
 	std::size_t ret = 0;
 	const char *c = b;
 	while( (b < end) && '\0' != *c) {
-		unsigned int mblen = u8_mblen(c);
+		unsigned int mblen = utf8::mblen(c);
 		ret += mblen;
 		c = c + mblen;
 	}
 	return ret;
 }
+
+static bool is_surogate_word(uint16_t ch) noexcept
+{
+	return (ch - 0xDC00) < ( (0xDF00 - 0xDC00) + 1);
+}
+
+static constexpr uint16_t LATIN1_MAX = 0x80;
+static constexpr uint16_t TWOB_MAX = 0x800;
+static constexpr uint32_t THREEB_MAX = 0x10000;
 
 std::size_t IO_PUBLIC_SYMBOL utf8_buff_size(const char16_t* ustr, std::size_t size) noexcept
 {
@@ -78,7 +87,6 @@ std::size_t IO_PUBLIC_SYMBOL utf8_buff_size(const char32_t* ustr, std::size_t si
 	}
 	return ret;
 }
-
 
 } // namesapce detail
 
@@ -182,18 +190,18 @@ std::size_t conv_write_channel::write(std::error_code& ec, const uint8_t* buff,s
 	if( cnvbuflen <= MAX_CONVB_STACK_SIZE ) {
 		cnvbuff = static_cast<uint8_t*>( io_alloca( cnvbuflen ) );
 	} else {
-	   cnvbuff = memory_traits::calloc_temporary<uint8_t>( cnvbuflen );
-	   if(nullptr == cnvbuff) {
+		cnvbuff = memory_traits::calloc_temporary<uint8_t>( cnvbuflen );
+		if(nullptr == cnvbuff) {
 			ec = std::make_error_code(std::errc::not_enough_memory);
 			return 0;
-	   }
+		}
 	}
 
-    std::size_t unconv_left = bytes;
-   	std::size_t to_write = convert_some(ec, buff, unconv_left, cnvbuff);
-   	// check for the transcoding error
+	std::size_t unconv_left = bytes;
+	std::size_t to_write = convert_some(ec, buff, unconv_left, cnvbuff);
+	// check for the transcoding error
 	std::size_t ret = io_unlikely( ec ) ? 0 : (bytes - unconv_left);
-   	if( ret > 0 ) {
+	if( ret > 0 ) {
 		// write all converted bytes to the destination stream
 		uint8_t *wpos = cnvbuff;
 		std::size_t written;
@@ -204,7 +212,7 @@ std::size_t conv_write_channel::write(std::error_code& ec, const uint8_t* buff,s
 		} while( to_write > 0 && !ec );
 		if( ec )
 			ret = 0;
-   	}
+	}
 
 	if(cnvbuflen > MAX_CONVB_STACK_SIZE)
 		memory_traits::free_temporary( cnvbuff );

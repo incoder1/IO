@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes" ?>
+<CodeBlocks_project_file>
+	<FileVersion major="1" minor="6" />
+	<Project>
+		<Option title="xml_write_events" />
+		<Option pch_mode="2" />
+		<Option compiler="gcc" />
+		<Build>
+			<Target title="debug-ming64">
+				<Option output="bin/debug-ming64/xml_write_events" prefix_auto="1" extension_auto="1" />
+				<Option object_output="obj/debug-ming64/" />
+				<Option type="1" />
+				<Option compiler="gcc" />
+				<Compiler>
+					<Add option="-g" />
+				</Compiler>
+				<Linker>
+					<Add library="iconv.dll" />
+					<Add directory="../../bin/debug-win-gcc-static-x64" />
+				</Linker>
+			</Target>
+			<Target title="release-ming64">
+				<Option output="bin/release-ming64/xml_write_events" prefix_auto="1" extension_auto="1" />
+				<Option object_output="obj/release-ming64/" />
+				<Option type="1" />
+				<Option compiler="gcc" />
+				<Compiler>
+					<Add option="-O2" />
+				</Compiler>
+				<Linker>
+					<Add option="-s" />
+					<Add directory="../../bin/release-win-gcc-dll-x64" />
+				</Linker>
+			</Target>
+		</Build>
+		<Compiler>
+			<Add option="-Wall" />
+			<Add option="-fexceptions" />
+			<Add directory="../../include" />
+		</Compiler>
+		<Linker>
+			<Add library="io" />
+		</Linker>
+		<Unit filename="main.cpp" />
+		<Extensions>
+			<lib_finder disable_auto="1" />
+		</Extensions>
+	</Project>
+</CodeBlocks_project_file>

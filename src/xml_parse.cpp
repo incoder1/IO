@@ -47,7 +47,12 @@ static char* skip_spaces(const char* s) noexcept
 
 static bool start_with(const char* s,const char* pattern,const std::size_t size) noexcept
 {
-    return 0 == io_memcmp( static_cast<const void*>(s), static_cast<const void*>(pattern), size);
+	return 0 ==  std::char_traits<char>::compare( s, pattern, size );
+}
+
+static char* strchrn(const char* s,const char c,const std::size_t max_len) noexcept
+{
+	return const_cast<char*>( std::char_traits<char>::find(s, max_len, c) );
 }
 
 static std::size_t str_size(const char* b, const char* e) noexcept
@@ -183,29 +188,29 @@ static constexpr bool between(char32_t ch) noexcept {
 static constexpr bool is_xml_name_start_char(char32_t ch) noexcept
 {
 	// Compiler optimize it better then search array
-	return is_xml_name_start_char_lo(ch) ||
-		   between<0xC0,0xD6>(ch)     ||
-		   between<0xD8,0xF6>(ch)     ||
-		   between<0xF8,0x2FF>(ch)    ||
-		   between<0x370,0x37D>(ch)   ||
-		   between<0x37F,0x1FFF>(ch)  ||
-		   between<0x200C,0x200D>(ch) ||
-		   between<0x2070,0x218F>(ch) ||
-		   between<0x2C00,0x2FEF>(ch) ||
-		   between<0x3001,0xD7FF>(ch) ||
-		   between<0xF900,0xFDCF>(ch) ||
-		   between<0xFDF0,0xFFFD>(ch)  ||
-		   between<0x10000,0xEFFFF>(ch);
+	return	is_xml_name_start_char_lo(ch)	||
+			between<0xC0,0xD6>(ch)	||
+			between<0xD8,0xF6>(ch)	||
+			between<0xF8,0x2FF>(ch)	||
+			between<0x370,0x37D>(ch)	||
+			between<0x37F,0x1FFF>(ch)	||
+			between<0x200C,0x200D>(ch)	||
+			between<0x2070,0x218F>(ch)	||
+			between<0x2C00,0x2FEF>(ch)	||
+			between<0x3001,0xD7FF>(ch)	||
+			between<0xF900,0xFDCF>(ch)	||
+			between<0xFDF0,0xFFFD>(ch)	||
+			between<0x10000,0xEFFFF>(ch);
 }
 
 static constexpr bool is_xml_name_char(char32_t ch) noexcept
 {
 	return is_digit(ch) ||
-		   // - (U+002D) | . (U+002E) | · (U+00B7)
-		   is_one_of<0x2D,0x2E,0xB7>(ch) ||
-		   is_xml_name_start_char(ch) ||
-		   between<0x0300,0x036F>(ch)  ||
-		   between<0x203F,0x2040>(ch);
+			// - (U+002D) | . (U+002E) | · (U+00B7)
+			is_one_of<0x2D,0x2E,0xB7>(ch) ||
+			is_xml_name_start_char(ch) ||
+			between<0x0300,0x036F>(ch)  ||
+			between<0x203F,0x2040>(ch);
 }
 
 #endif // __GNUG__
@@ -457,7 +462,7 @@ document_event event_stream_parser::parse_start_doc() noexcept
 	if(nullptr != j) {
 		i =  j + 9;
 		sep =  *i;
-		if( !is_one_of<QNM,APH>(sep) ) {
+		if( is_none_of<QNM,APH>(sep) ) {
 			assign_error(error::illegal_prologue);
 			return document_event();
 		}
@@ -481,7 +486,7 @@ document_event event_stream_parser::parse_start_doc() noexcept
 		// j + strlen(STANDALONE)
 		i =  j + 11;
 		sep = std::char_traits<char>::to_int_type( *i );
-		if( !is_one_of<QNM,APH>(sep) ) {
+		if( is_none_of<QNM,APH>(sep) ) {
 			assign_error(error::illegal_prologue);
 			return document_event();
 		}

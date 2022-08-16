@@ -352,7 +352,6 @@ std::size_t IO_PUBLIC_SYMBOL transmit(
 	const s_write_channel& dst,
 	unsigned long buff_size) noexcept;
 
-
 } // namespace io
 
 #endif // __CHANNELS_HPP_INCLUDED__

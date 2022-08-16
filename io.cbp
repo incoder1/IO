@@ -157,6 +157,7 @@
 		<Unit filename="include/hashing.hpp" />
 		<Unit filename="include/memory_channel.hpp" />
 		<Unit filename="include/net/http_client.hpp" />
+		<Unit filename="include/net/http_error.hpp" />
 		<Unit filename="include/net/security.hpp" />
 		<Unit filename="include/net/uri.hpp" />
 		<Unit filename="include/network.hpp" />
@@ -286,6 +287,7 @@
 		<Unit filename="src/hashing.cpp" />
 		<Unit filename="src/memory_channel.cpp" />
 		<Unit filename="src/net/http_client.cpp" />
+		<Unit filename="src/net/http_error.cpp" />
 		<Unit filename="src/net/uri.cpp" />
 		<Unit filename="src/posix/console.cpp">
 			<Option target="debug-unix-gcc-static-64bit" />

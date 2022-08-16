@@ -280,9 +280,9 @@ private:
 
 	inline bool ptr_equal(const const_string& rhs) const noexcept {
 		return (this == std::addressof(rhs)) ||
-			   (
-				!sso() && (data_.long_buf.char_buf == rhs.data_.long_buf.char_buf)
-			   );
+				(
+					!sso() && (data_.long_buf.char_buf == rhs.data_.long_buf.char_buf)
+				);
 	}
 
 	int compare(const const_string& rhs) const noexcept {

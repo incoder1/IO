@@ -135,27 +135,7 @@ using detail::decode4;
 /// \param dst destination UTF-32 character, or U'\0' when end of line reached or invalid source character value
 /// \param src pointer to the UTF-8 character value
 /// \return string position after src UTF-8 or nullptr when end of line reached or decoding failed
-inline const char* mbtochar32(char32_t& dst, const char* src) noexcept
-{
-	switch( mblen(src) ) {
-	case 1:
-		dst = static_cast<char32_t>( *src );
-		return U'0' != dst ? src + 1: nullptr;
-	case 2:
-		dst = decode2( src );
-		return src + 2;
-	case 3:
-		dst = decode3( src );
-		return src + 3;
-	case 4:
-		dst = decode4( src );
-		return src + 4;
-	default:
-		break;
-	}
-	dst = U'\0';
-	return nullptr;
-}
+const char* IO_PUBLIC_SYMBOL mbtochar32(char32_t& dst, const char* src) noexcept;
 
 
 /// Returns UTF-8 string length in logical UNICODE characters

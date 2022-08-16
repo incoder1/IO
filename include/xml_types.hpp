@@ -303,10 +303,12 @@ public:
 	{}
 	void marshal(writer& to,uint8_t shift) const noexcept
 	{
-		write_begin(to, name_, is_attribute, shift);
-		std::time_t tm = std::chrono::system_clock::to_time_t(v_);
-		to << std::put_time( std::gmtime(&tm), "%Y-%m-%dT%H:%M:%SZ");
-		write_end(to, name_, is_attribute, shift);
+		// write_begin(to, name_, is_attribute, shift);
+		const std::time_t tm = std::chrono::system_clock::to_time_t(v_);
+		char tmp[128] = {'\0'};
+		std::strftime(tmp, sizeof(tmp), "%Y-%m-%dT%H:%M:%SZ", std::localtime(&tm) );
+		to.write( tmp );
+		// write_end(to, name_, is_attribute, shift);
 	}
 
 #ifdef IO_XML_HAS_TO_XSD
@@ -314,9 +316,13 @@ public:
 
 	inline void to_xsd(writer& to) const
 	{
-		to << (is_attribute ? "<xs:attribute" : "<xs:element" );
-		to << " name=\"" << name_;
-		to <<  "\" type=\"xs:time\" />";
+//	    if(is_attribute)
+//            to.write("<xs:attribute");
+//        else
+//            to.write("<xs:element");
+//		to.write(" name=\"");
+//		to.write(name_.data(), name.size() );
+//		to.write("\" type=\"xs:time\" />" );
 	}
 #endif // IO_XML_HAS_TO_XSD
 

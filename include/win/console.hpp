@@ -24,9 +24,6 @@
 #include <text.hpp>
 #include <stream.hpp>
 
-#include <istream>
-#include <ostream>
-
 #include <wincon.h>
 #include <tchar.h>
 
@@ -45,57 +42,50 @@ namespace win {
 
 inline ::WORD prev_attr(::HANDLE hcons) noexcept
 {
-	::CONSOLE_SCREEN_BUFFER_INFO info;
-	::GetConsoleScreenBufferInfo(hcons,&info);
-	return info.wAttributes;
+    ::CONSOLE_SCREEN_BUFFER_INFO info;
+    ::GetConsoleScreenBufferInfo(hcons,&info);
+    return info.wAttributes;
 }
 
 class IO_PUBLIC_SYMBOL console_channel final: public read_write_channel {
-	console_channel(const console_channel&) = delete;
-	console_channel& operator=(const console_channel&) = delete;
-	console_channel(console_channel&&) = delete;
-	console_channel& operator=(console_channel&&) = delete;
+    console_channel(const console_channel&) = delete;
+    console_channel& operator=(const console_channel&) = delete;
+    console_channel(console_channel&&) = delete;
+    console_channel& operator=(console_channel&&) = delete;
 public:
-	console_channel(::HANDLE hcons, ::WORD orig, ::WORD attr) noexcept;
-	virtual ~console_channel() noexcept override;
-	virtual std::size_t read(std::error_code& err,uint8_t* const buff, std::size_t bytes) const noexcept override;
-	virtual std::size_t write(std::error_code& err, const uint8_t* buff,std::size_t size) const noexcept override;
+    console_channel(::HANDLE hcons, ::WORD orig, ::WORD attr) noexcept;
+    virtual ~console_channel() noexcept override;
+    virtual std::size_t read(std::error_code& err,uint8_t* const buff, std::size_t bytes) const noexcept override;
+    virtual std::size_t write(std::error_code& err, const uint8_t* buff,std::size_t size) const noexcept override;
 private:
-	friend class io::console;
+    friend class io::console;
 
-	void change_color(::WORD attr) noexcept;
+    void change_color(::WORD attr) noexcept;
 
-	::HANDLE hcons_;
-	::WORD orig_attr_;
-	::WORD attr_;
+    ::HANDLE hcons_;
+    ::WORD orig_attr_;
+    ::WORD attr_;
 };
 
 } // namesapce win
 
 enum class text_color: uint8_t {
-	navy_blue    = 0x01,
-	navy_green   = 0x02,
-	navy_aqua    = 0x03,
-	navy_red     = 0x04,
-	magenta      = 0x05,
-	brown        = 0x06,
-	white        = 0x07,
-	gray         = 0x08,
-	light_blue   = 0x09,
-	light_green  = 0x0A,
-	light_aqua   = 0x0B,
-	light_red    = 0x0C,
-	light_purple = 0x0D,
-	yellow       = 0x0E,
-	bright_white = 0x0F
+    navy_blue    = 0x01,
+    navy_green   = 0x02,
+    navy_aqua    = 0x03,
+    navy_red     = 0x04,
+    magenta      = 0x05,
+    brown        = 0x06,
+    white        = 0x07,
+    gray         = 0x08,
+    light_blue   = 0x09,
+    light_green  = 0x0A,
+    light_aqua   = 0x0B,
+    light_red    = 0x0C,
+    light_purple = 0x0D,
+    yellow       = 0x0E,
+    bright_white = 0x0F
 };
-
-inline std::ostream& operator<<(std::ostream& to, text_color clr)
-{
-    ::SetConsoleTextAttribute( ::GetStdHandle(STD_OUTPUT_HANDLE), static_cast<::DWORD>(clr) );
-    return to;
-}
-
 
 /// \brief System console (terminal window) low level access API.
 /// Windows based implementation based on
@@ -104,95 +94,88 @@ inline std::ostream& operator<<(std::ostream& to, text_color clr)
 /// Console is UNICODE only! I.e. supports multi-languages text at time
 /// Non whide characters expected to be in UTF-8 (or compatiable) code page
 class IO_PUBLIC_SYMBOL console {
-	console(const console&) = delete;
-	console operator=(const console&) = delete;
+    console(const console&) = delete;
+    console operator=(const console&) = delete;
 public:
-	typedef ::HANDLE native_id;
-	typedef channel_ostream<char> cons_ostream;
-	typedef channel_ostream<wchar_t> cons_wostream;
-	typedef channel_istream<wchar_t> cons_wistream;
+    typedef ::HANDLE native_id;
+    typedef channel_ostream<char> cons_ostream;
+    typedef channel_istream<char> cons_istream;
 private:
-	console();
 
-	static const console* get();
-	static void release_console() noexcept;
-
-	static s_write_channel conv_channel(const s_write_channel& ch);
-
-	/// Releases allocated console, and returns original console codepage
-	~console() noexcept;
+    static s_write_channel conv_w_channel(const s_write_channel& ch);
+    static s_read_channel conv_r_channel(const s_read_channel& ch);
 
 public:
+    /// Opens or connect to existing Windows console
+    /// console will be switched to UTF_16LE code page if not yet
+    /// WARN! Standard stream redirections, i.e. pipes like my.exe >> ret.log is not going to work unless
+    /// console holding strams
+    console();
 
-	/// Reset default console output colors
-	/// \param in color for input stream
-	/// \param out color for output stream
-	/// \param err color for error stream
-	static void reset_colors(const text_color in,const text_color out,const text_color err) noexcept;
+    /// Releases allocated console, and returns original console codepage
+    ~console() noexcept;
 
-	/// Reset input stream console output color
-	/// \param clr new color
-	static void reset_in_color(const text_color clr) noexcept;
+    /// Reset default console output colors
+    /// \param in color for input stream
+    /// \param out color for output stream
+    /// \param err color for error stream
+    void reset_colors(const text_color in,const text_color out,const text_color err) noexcept;
 
-	/// Reset stdout stream console output color
-	/// \param clr new color
-	static void reset_out_color(const text_color clr) noexcept;
+    /// Reset input stream console output color
+    /// \param clr new color
+    void reset_in_color(const text_color clr) noexcept;
 
-	/// Reset stderr stream console output color
-	/// \param clr new color
-	static void reset_err_color(const text_color crl) noexcept;
+    /// Reset stdout stream console output color
+    /// \param clr new color
+    void reset_out_color(const text_color clr) noexcept;
 
-	/// Returns console input channel
-	/// \return console input channel
-	/// \throw can throw std::bad_alloc, when out of memory
-	static inline s_read_channel in()
-	{
-		return s_read_channel( get()->cin_, true );
-	}
+    /// Reset stderr stream console output color
+    /// \param clr new color
+    void reset_err_color(const text_color crl) noexcept;
 
-	/// Returns console output channel
-	/// \throw can throw std::bad_alloc, when out of memory
-	static inline s_write_channel out()
-	{
-		return s_write_channel( get()->cout_, true );
-	}
 
-	static inline s_write_channel err()
-	{
-		return s_write_channel( get()->cerr_, true );
-	}
+    /// Returns console output stream writer, UTF-8 will be auto-converted to UTF-16LE
+    /// \return out writer
+    inline writer out() const
+    {
+        return writer( conv_w_channel( out_ ) );
+    }
 
-	/// Returns std::basic_stream<char> with auto-reconverting
-	/// UTF-8 multibyte characters into console default UTF-16LE
-	static std::ostream& out_stream();
+    /// Returns std::basic_stream<char> with auto-reconverting UTF-8 multibyte characters into console default UTF-16LE
+    /// \return cout
+    inline cons_ostream out_stream() const
+    {
+        return cons_ostream( conv_w_channel( out_ ) );
+    }
 
-	/// Returns std::basic_stream<char> with ato-reconverting
-	/// UTF-8 multibyte characters into console default UTF-16LE
-	static std::ostream& error_stream();
+    /// Returns error stream to with auto-reconverting UTF-8 multibyte characters into console default UTF-16LE
+    /// \return console error stream
+    inline cons_ostream error_stream() const
+    {
+        return cons_ostream( conv_w_channel( err_ ) );
+    }
 
-	/// Returns std::basic_stream<wchar_t> stream to constole output stream
-	static std::wostream& out_wstream();
+    /// Returns console input steam with auto-reconverting UTF16-LE to UTF-8
+    /// \return console input stream
+    inline cons_istream in_stream() const
+    {
+        return cons_istream( conv_r_channel( in_ ) );
+    }
 
-	/// Returns std::basic_stream<wchar_t> stream to constole error stream
-	static std::wostream& error_wstream();
+    /// Returns console character set, always UTF-16LE for Windows
+    /// \return current console character set
+    /// \throw never throws
+    static inline const charset& charset() noexcept
+    {
+        return code_pages::UTF_16LE;
+    }
 
-	static std::wistream& in_wstream();
-
-	/// Returns console character set, always UTF-16LE for Windows
-	/// \return current console character set
-	/// \throw never throws
-	static inline const charset& charset() noexcept
-	{
-		return code_pages::UTF_16LE;
-	}
 private:
-	static std::atomic<console*> _instance;
-	static io::critical_section _cs;
-	bool need_release_;
-	::UINT prev_charset_;
-	win::console_channel *cin_;
-	win::console_channel *cout_;
-	win::console_channel *cerr_;
+    s_read_channel in_;
+    s_write_channel out_;
+    s_write_channel err_;
+    ::UINT prev_charset_;
+    bool need_release_;
 };
 
 } // namesapce io

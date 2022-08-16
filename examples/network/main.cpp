@@ -19,7 +19,7 @@ int main(int argc, const char** argv)
 	io::check_error_code(ec);
 
 
-    std::ios::sync_with_stdio(false);
+	std::ios::sync_with_stdio(false);
 	std::cout << "Connecting to: " <<  url->host().data() << std::endl;
 
 	// IO context, entry point to network and asynchronous input oputput
@@ -31,12 +31,12 @@ int main(int argc, const char** argv)
 	io::check_error_code(ec);
 
 	// Construct TLS secured channel;
-    io::s_read_write_channel sch = secure_ctx->client_blocking_connect(ec, url->host().data(), url->port());
-    io::check_error_code(ec);
+	io::s_read_write_channel sch = secure_ctx->client_blocking_connect(ec, url->host().data(), url->port());
+	io::check_error_code(ec);
 
-    // Construct reader and writer to communicate with service over HTTP 1.1
-    io::reader httpr(sch);
-    io::writer httpw(sch);
+	// Construct reader and writer to communicate with service over HTTP 1.1
+	io::reader httpr(sch);
+	io::writer httpw(sch);
 
 	// Construct new HTTP GET requests
 	http::s_request rq = http::new_get_request( ec, url );
@@ -47,10 +47,11 @@ int main(int argc, const char** argv)
 	io::check_error_code( ec );
 
 	// Read HTTP response from server
-    io::scoped_arr<char> buff( io::memory_traits::page_size() * 2 );
+	io::scoped_arr<char> buff( io::memory_traits::page_size() * 2 );
 	std::size_t read;
 	do {
 		read = httpr.read(ec, buff.begin(), buff.len() );
+		io::check_error_code(ec);
 		if(read > 0) {
 			std::cout.write(buff.begin(), read);
 			buff[0] = '\0';
@@ -63,5 +64,5 @@ int main(int argc, const char** argv)
 		return ec.value();
 	}
 
-    return 0;
+	return 0;
 }

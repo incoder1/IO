@@ -228,22 +228,4 @@ static s_read_channel conv_r_channel(const s_read_channel& ch)
 	return result;
 }
 
-std::wostream& console::out_wstream()
-{
-	static io::channel_ostream<wchar_t> _wcout( conv_w_channel( get()->out_ ) );
-	return _wcout;
-}
-
-std::wostream& console::error_wstream()
-{
-	static io::channel_ostream<wchar_t> _wcerr( conv_w_channel( get()->err_ ) );
-	return _wcerr;
-}
-
-std::wistream& console::in_wstream()
-{
-	static io::channel_istream<wchar_t> _wcins( conv_r_channel( get()->in_ ) );
-	return _wcins;
-}
-
 } // namespace io
