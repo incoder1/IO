@@ -1,12 +1,11 @@
 /**
  * This example shows ho to write any kind of XML using IO streaming event API
  */
-#include <iostream>
-
 // IO library
+#include <console.hpp>
+#include <char_cast.hpp>
 #include <files.hpp>
 #include <xml_event_writer.hpp>
-#include <console.hpp>
 
 namespace xml = io::xml;
 
@@ -37,6 +36,11 @@ int main(int argc, const char** argv)
 	xew.add_cdata("<Test CDATA >");
 	xew.add(io::xml::end_element_event(xml::qname("tst","cdata_chars")));
 	xew.add_chars("Test characters");
+
+	io::const_string fmt = io::to_string(ec,123.456e+02f);
+	io::check_error_code(ec);
+	xew.add_chars( fmt.data() );
+
 	xew.add(xml::end_element_event(xml::qname("tst","test")));
 
 

@@ -171,7 +171,6 @@ void event_writer::add_chars(const char* str) noexcept
 	// for CDATA
 	if(format_) {
 		print(WIDEN_ENDL);
-		std::endl;
 		independent();
 	}
 	print(str);
