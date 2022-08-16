@@ -341,7 +341,7 @@ public:
                 result = chars;
                 rb_.move( result * char_width );
             }
-            else if(available <= chars) {
+            else {
                 result = available;
                 char_traits::copy(to, px, result);
                 rb_.clear();
@@ -365,7 +365,7 @@ class basic_writer<C, typename std::enable_if< is_charcter< C >::value >::type >
     basic_writer operator=(const basic_writer&) = delete;
 public:
 
-	typedef C char_type;
+    typedef C char_type;
     typedef std::char_traits<char_type> char_traits;
     static constexpr std::size_t char_width = sizeof(char_type);
     typedef typename std::basic_string<char_type> string;

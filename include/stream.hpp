@@ -164,7 +164,7 @@ public:
 
 
 template<typename __char_type>
-class channel_ostream final:public std::basic_ostream<__char_type, std::char_traits<__char_type> > {
+class channel_ostream :public std::basic_ostream<__char_type, std::char_traits<__char_type> > {
 	channel_ostream(const channel_ostream&) = delete;
 	channel_ostream& operator=(const channel_ostream&) = delete;
 private:
@@ -176,9 +176,9 @@ public:
 	explicit channel_ostream(s_write_channel&& ch):
 		super_type( nullptr ),
 		sb_( new streambuf_type(
-		         std::forward<s_write_channel>(ch),
-		         memory_traits::page_size() )
-		   )
+					std::forward<s_write_channel>(ch),
+					memory_traits::page_size() )
+				)
 	{
 		this->init( sb_.get() );
 	}
@@ -269,7 +269,7 @@ public:
 
 	virtual ~ichannel_streambuf() override
 	{
-        char_type *buff = this->eback();
+		char_type *buff = this->eback();
 		if(nullptr != buff )
 			delete [] buff;
 	}
@@ -305,7 +305,7 @@ private:
 };
 
 template<typename _char_type>
-class channel_istream final:public std::basic_istream<_char_type, std::char_traits<_char_type> >
+class channel_istream :public std::basic_istream<_char_type, std::char_traits<_char_type> >
 {
 	channel_istream(const channel_istream&) = delete;
 	channel_istream& operator=(const channel_istream&) = delete;

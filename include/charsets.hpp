@@ -142,6 +142,11 @@ public:
 	DECLARE_CHARSET(CP_1257)
 	DECLARE_CHARSET(CP_1258)
 
+	/// System wide character set represented by wchar_t,
+	/// i.e. UTF-16 for Windows
+	/// and UTF-32LE or UTF-32BE for POSIX systems depending on CPU arch
+	DECLARE_CHARSET(SYSTEM_WIDE)
+
 	/// Returns a character set for a iconv name
 	static std::pair<bool, charset> for_name(const char* name) noexcept;
 
@@ -154,6 +159,7 @@ public:
 	/// i.e. current locale character set
 	/// \return current locale charter set
 	static charset platform_current() noexcept;
+
 private:
 	constexpr code_pages() noexcept
 	{}

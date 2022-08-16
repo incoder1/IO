@@ -66,75 +66,87 @@ DECLARE_CHARSET(CP_1258,1258,"CP1258",1,false) // ANSI/OEM Vietnamese; Vietnames
 
 #undef DECLARE_CHARSET
 
+#if	defined(__IO_POSIX_BACKEND__) && defined(IO_IS_LITTLE_ENDIAN)
+const charset code_pages::SYSTEM_WIDE = UTF_32LE;
+#endif
+
+#if	defined(__IO_POSIX_BACKEND__) && !defined(IO_IS_LITTLE_ENDIAN)
+const charset code_pages::SYSTEM_WIDE = UTF_32BE;
+#endif
+
+#ifdef __IO_WINDOWS_BACKEND__
+const charset code_pages::SYSTEM_WIDE = UTF_16LE;
+#endif // __IO_WINDOWS_BACKEND__
+
 static constexpr std::size_t MAX_SUPPORTED = 35;
 
 const charset* ALL_SUPPORTED[MAX_SUPPORTED] =
 {
-    // unicode
-    &code_pages::UTF_8,
-    &code_pages::UTF_16LE,
-    &code_pages::UTF_16BE,
-    &code_pages::UTF_32LE,
-    &code_pages::UTF_32BE,
-    &code_pages::UTF_7,
-    // one byte code pages
-    &code_pages::ASCII,
-    &code_pages::KOI8_R,
-    &code_pages::KOI8_U,
-    &code_pages::KOI8_RU,
-    // iso
-    &code_pages::ISO_8859_1,
-    &code_pages::ISO_8859_2,
-    &code_pages::ISO_8859_3,
-    &code_pages::ISO_8859_4,
-    &code_pages::ISO_8859_5,
-    &code_pages::ISO_8859_6,
-    &code_pages::ISO_8859_7,
-    &code_pages::ISO_8859_8,
-    &code_pages::ISO_8859_9,
-    &code_pages::ISO_8859_10,
-    &code_pages::ISO_8859_11,
-    &code_pages::ISO_8859_12,
-    &code_pages::ISO_8859_13,
-    &code_pages::ISO_8859_14,
-    &code_pages::ISO_8859_15,
-    &code_pages::ISO_8859_16,
-    // windows
-    &code_pages::CP_1250,
-    &code_pages::CP_1251,
-    &code_pages::CP_1252,
-    &code_pages::CP_1253,
-    &code_pages::CP_1254,
-    &code_pages::CP_1255,
-    &code_pages::CP_1256,
-    &code_pages::CP_1257,
-    &code_pages::CP_1258
+	// UNICODE
+	&code_pages::UTF_8,
+	&code_pages::UTF_16LE,
+	&code_pages::UTF_16BE,
+	&code_pages::UTF_32LE,
+	&code_pages::UTF_32BE,
+	&code_pages::UTF_7,
+	// one byte code pages
+	&code_pages::ASCII,
+	&code_pages::KOI8_R,
+	&code_pages::KOI8_U,
+	&code_pages::KOI8_RU,
+	// iso
+	&code_pages::ISO_8859_1,
+	&code_pages::ISO_8859_2,
+	&code_pages::ISO_8859_3,
+	&code_pages::ISO_8859_4,
+	&code_pages::ISO_8859_5,
+	&code_pages::ISO_8859_6,
+	&code_pages::ISO_8859_7,
+	&code_pages::ISO_8859_8,
+	&code_pages::ISO_8859_9,
+	&code_pages::ISO_8859_10,
+	&code_pages::ISO_8859_11,
+	&code_pages::ISO_8859_12,
+	&code_pages::ISO_8859_13,
+	&code_pages::ISO_8859_14,
+	&code_pages::ISO_8859_15,
+	&code_pages::ISO_8859_16,
+	// windows
+	&code_pages::CP_1250,
+	&code_pages::CP_1251,
+	&code_pages::CP_1252,
+	&code_pages::CP_1253,
+	&code_pages::CP_1254,
+	&code_pages::CP_1255,
+	&code_pages::CP_1256,
+	&code_pages::CP_1257,
+	&code_pages::CP_1258
 };
 
 /// Returns a character set for a name
 std::pair<bool, charset> code_pages::for_name(const char* name) noexcept
 {
 	static constexpr std::size_t MAX_LEN = 11;
-    if(nullptr != name && '\0' != *name) {
-    	char tmp[MAX_LEN] = {'\0'};
-    	for(std::size_t i=0; i < MAX_LEN && name[i] != '\0'; i++) {
+	if(nullptr != name && '\0' != *name) {
+		char tmp[MAX_LEN] = {'\0'};
+		for(std::size_t i=0; i < MAX_LEN && name[i] != '\0'; i++) {
 			tmp[i] = io_toupper(name[i]);
-    	}
-    	for(std::size_t i=0; i < MAX_SUPPORTED; i++) {
-        	if( 0 == io_strncmp(ALL_SUPPORTED[i]->name(), tmp, MAX_LEN) )
+		}
+		for(std::size_t i=0; i < MAX_SUPPORTED; i++) {
+			if( 0 == io_strncmp(ALL_SUPPORTED[i]->name(), tmp, MAX_LEN) )
 				return std::make_pair(false, *ALL_SUPPORTED[i] );
-    	}
-    }
-    return std::make_pair( false, charset() );
+		}
+	}
+	return std::make_pair( false, charset() );
 }
 
 const charset& code_pages::platform_default() noexcept {
-	#ifndef __IO_WINDOWS_BACKEND__
+	#if defined(__IO_WINDOWS_BACKEND__)
 		return UTF_16LE;
-	#elif __IO_POSIX_BACKED__
+	#elif defined(__IO_POSIX_BACKED__)
 		return UTF_8;
 	#else
-		return UTF_8;
+		return ASCII;
 	#endif
 }
 
@@ -163,7 +175,7 @@ charset code_pages::platform_current() noexcept {
 				return UTF_32LE;
 			case 65001:
 				return UTF_8;
-            case 1200:
+			case 1200:
 			default:
 				return UTF_16LE;
 		}

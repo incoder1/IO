@@ -267,10 +267,10 @@ static uint64_t hash(const uint8_t* s, std::size_t count) noexcept
         return hash_over_64(s, count);
 #endif // non GCC
 }
-
+#endif // IO_CPU_BITS_64
 
 // CityHash32
-#elif
+#ifdef IO_CPU_BITS_32
 
 static uint32_t fmix(uint32_t h)
 {
@@ -409,16 +409,16 @@ static uint32_t hash(const uint8_t *s, std::size_t len) noexcept
     return hash_over_24(s,len);
 }
 
-#endif // IO_CPU_BITS_64
+#endif // City32
 
 } // namespace cityhash
 
 
 std::size_t IO_PUBLIC_SYMBOL hash_bytes(const uint8_t* bytes, std::size_t count) noexcept
 {
-    if( io_unlikely( nullptr == bytes || 0 == count ) )
-        return 0;
-    return cityhash::hash( bytes, count );
+	if( io_unlikely( nullptr == bytes || 0 == count ) )
+		return 0;
+	return cityhash::hash( bytes, count );
 }
 
 } // namespace io

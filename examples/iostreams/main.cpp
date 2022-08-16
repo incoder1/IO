@@ -28,7 +28,7 @@ io::s_write_channel prepare_file() {
 	fch->write(ec, utf8_bom::data(), utf8_bom::len());
 	io::check_error_code(ec);
 	// open converting write channel, and stream on top of it
-	s_code_cnvtr cvt = code_cnvtr::open(ec, IO_SYS_UNICODE, code_pages::UTF_8,
+	s_code_cnvtr cvt = code_cnvtr::open(ec, code_pages::SYSTEM_WIDE , code_pages::UTF_8,
 										cnvrt_control::failure_on_failing_chars);
 	io::check_error_code(ec);
 	s_write_channel ret= conv_write_channel::open(ec, fch, cvt);
@@ -51,53 +51,31 @@ int main(int argc, const char** argv)
 	<< std::hex << 0xCAFEBABE
 	<< std::endl;
 
-	io::console::reset_colors( io::text_color::yellow, io::text_color::light_green,  io::text_color::light_red );
 
-	// take a console direct output stream
-	std::ostream& cout = io::console::out_stream();
-	cout << "You can found the same message in result.txt file " << std::endl;
-	// in case of Windows, this will be transcoded int UTF-16LE automatically
+	// Now we can use stream manipulators for colored output
+	// this cout supports UF-8 UNICODE on Windows and colored output
 	// make sure your console uses some FreeType font for better result
-	cout << umessage
-	<< 1234567890ull << '\n'
-	<< 123456.78e+09 << '\n'
-	<< 12356.789e+10L << '\n'
-	<< std::hex << 0xCAFEBABE
-	<< std::endl;
+	io::console cons;
+	io::console_output_stream cout(cons);
+	io::console_error_stream cerr(cons);
 
-	std::wostream& wcout = io::console::out_wstream();
-	std::wostream& wcerr = io::console::error_wstream();
-	io::console::reset_out_color(io::text_color::white);
-	wcout << L"Wide version: " << std::endl;
-	io::console::reset_out_color(io::text_color::light_blue);
-	// in case of Linux/Unix this will transcoded to UTF-8 automatically
-	wcout << wmessage
-	<< 1234567890ull << L'\n'
-	<< 123456.78e+09 << L'\n'
-	<< 12356.789e+10L << L'\n'
-	<< std::hex << 0xCAFEBABE
-	<< std::endl;
+	// stream manipulators used for colors
+	cout << io::cclr::yellow << "This console streams supports UNICODE output, including Windows backend, and colored output" << std::endl;;
+	cout << io::cclr::white << "You can found test output in result.txt file, it is converted from system wide wchar_t UNICODE representation to UTF-8" << std::endl;
 
-	io::console::reset_err_color(io::text_color::yellow);
-	wcerr << L"No errors so far" << std::endl;
+	//
+	cerr << io::cclr::brown << "Test output: "  << std::endl;
 
-	wcout << L"Type something please: ";
-	wcout.flush();
+	cout <<  io::cclr::light_aqua << umessage;
+	cout <<  io::cclr::gray << 1234567890ull << '\n';
+	cout <<  io::cclr::light_green << 123456.78e+09 << '\n';
+	cout <<  io::cclr::navy_green << 12356.789e+10L << '\n';
+	cout << io::cclr::magenta << std::hex << 0xCAFEBABE << std::endl;
 
+	cerr << io::cclr::light_red << "No errors so far"  << std::endl;
 
-	wchar_t str[256];
-	io_zerro_mem(str, 256 * sizeof(wchar_t) );
-    std::wistream& wcin = io::console::in_wstream();
+	// reset color to original
+	cout << io::cclr::reset <<  "Thank you, Goodbye!" << std::endl;
 
-	wcin >> str;
-
-	wcout <<L"Echo: ";
-	io::console::reset_out_color(io::text_color::white);
-
-	wcout << str << std::endl;
-
-	io::console::reset_out_color(io::text_color::light_purple);
-	wcout << L"Thank you, Goodbye!" << std::endl;
-
-    return 0;
+	return 0;
 }

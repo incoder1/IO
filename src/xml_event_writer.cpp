@@ -30,6 +30,7 @@ s_event_writer event_writer::open(std::error_code& ec, writer&& dst, bool format
 		ec = dst.last_error();
 		return s_event_writer();
 	}
+	dst.write(tmp);
 	event_writer *ret = new (std::nothrow) event_writer(format, std::forward<writer&&>(dst) );
 	if(nullptr == ret) {
 		ec = std::make_error_code(std::errc::not_enough_memory);

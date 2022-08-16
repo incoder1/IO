@@ -11,6 +11,10 @@
 #include "stdafx.hpp"
 #include "security_context.hpp"
 
+#ifndef NDEBUG
+
+#endif // NDEBUG
+
 namespace io {
 
 namespace net {
@@ -37,9 +41,9 @@ s_security_context security_context::create(std::error_code& ec,const io::s_io_c
         ec = std::make_error_code(std::errc::io_error);
     }
     else {
-//#ifndef NDEBUG
-//       set_tls_debug_log();
-//#endif // NDEBUG
+#ifndef NDEBUG
+       set_tls_debug_log();
+#endif // NDEBUG
         auto xcred = credentials::system_trust_creds(ec);
         if(!ec) {
             security_context *raw = new (std::nothrow) security_context( ioc, std::move(xcred) );

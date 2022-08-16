@@ -165,8 +165,10 @@ int main(int argc, const char** argv)
 
 // Unicode console for Windows (not needed for MSYS2/Cygwin or UNIX)
 #ifdef NEED_UNICODE_CONSOLE
-	std::ostream& cout = io::console::out_stream();
-	std::ostream& cerr = io::console::error_stream();
+	io::console cons;
+	//cons.change_out_color( io::text_color::navy_green );
+	io::console_output_stream cout(cons);
+	io::console_error_stream cerr(cons);
 #else
 	std::ios::sync_with_stdio(false);
 	std::ostream& cout = std::cout;
@@ -174,7 +176,7 @@ int main(int argc, const char** argv)
 #endif
 	// take program arguments
 	if(argc < 2) {
-		cout<< "XML parsing example\n Usage:\t xmlparse <xmlfile>[.xml]" << std::endl;
+		cout << "XML parsing example\n Usage:\t xmlparse <xmlfile>[.xml]" << std::endl;
 		return 0;
 	}
 	// error code variable
@@ -185,7 +187,7 @@ int main(int argc, const char** argv)
 		cerr << sf.path() << " can not be found" << std::endl;
 		return ec.value();
 	} else {
-		cout <<  " Parsing " << sf.path() << ' ' << sf.size() << " bytes" << std::endl;
+		cout << "Parsing " << sf.path()  << ' ' << sf.size() << " bytes" << std::endl;
 	}
 	// Construct XML source
 	// Source will auto-detect XML file encoding, i.e. UTF-8, UTF-16[LE|BE] etc.

@@ -136,10 +136,15 @@ public:
 
 	/// Movement constructor, default movement semantic
 	const_string(const_string&& other) noexcept:
+#ifdef __HAS_CPP_14
+		data_( std::exchange(other.data_, {false,0,nullptr}) )
+	{}
+#else
 		data_(other.data_)
 	{
 		other.data_ = {false,0,nullptr};
 	}
+#endif // __HAS_CPP_14
 
 	/// Movement assignment operator, default movement semantic
 	const_string& operator=(const_string&& other) noexcept {
