@@ -82,15 +82,15 @@ constexpr uint32_t decode2(const char* mb2) noexcept
 inline constexpr char32_t decode3(const char* mb3) noexcept
 {
 	return make_char32( (uint32_t(make_byte(mb3[0]) & B3_MASK) << SH3)  +
-		   (tail(mb3[1]) << SH2) + tail(mb3[2]) );
+			(tail(mb3[1]) << SH2) + tail(mb3[2]) );
 }
 
 constexpr char32_t decode4(const char* mb4) noexcept
 {
 	return make_char32( (uint32_t(make_byte(mb4[0] & B4_MASK)) << SH4) +
-		   ( tail(mb4[1]) << SH3) +
-		   ( tail(mb4[2]) << SH2) +
-		   tail( mb4[3]) );
+			( tail(mb4[1]) << SH3) +
+			( tail(mb4[2]) << SH2) +
+			tail( mb4[3]) );
 }
 
 constexpr uint8_t OBMAX = 0x80;
@@ -101,7 +101,7 @@ constexpr uint8_t RS = CHAR_BIT - 3; //
 
 
 /// Checks a byte is UTF-8 single byte character
-constexpr bool isonebyte(const char c)
+constexpr bool isonebyte(const char c) noexcept
 {
 	return detail::make_byte(c) < detail::OBMAX;
 }
@@ -126,8 +126,33 @@ inline unsigned int mblen(const char* mb) noexcept
 #endif // IO_IS_LITTLE_ENDIAN
 }
 
+#ifdef IO_HAS_CHAR8_T
+
+#ifdef __GNUG__
+constexpr unsigned int mblen(const char8_t* mb) noexcept
+#else
+inline unsigned int mblen(const char8_t* mb) noexcept
+#endif // __GNUG__
+{
+	return isonebyte( static_cast<const char>(*mb) )
+	? 1
+	:
+	// bit scan forward on inverted value gives number of leading multibyte bits
+	// works much faster then mask check series on CPU which supports clz or bt instruction
+	// (most of CPU supporting it)
+#ifdef IO_IS_LITTLE_ENDIAN
+	detail::make_uint( io_clz( ~( detail::make_uint(*mb) << detail::MBSHIFT  ) ) );
+#else
+	detail::make_uint( io_clz( ~detail::make_uint(*mb) ) );
+#endif // IO_IS_LITTLE_ENDIAN
+}
+#endif // IO_HAS_CHAR8_T
+
+/// Decode UTF-8 2 bytes multi-byte sequence to full char32_t UNICODE representation
 using detail::decode2;
+/// Decode UTF-8 3 bytes multi-byte sequence to full char32_t UNICODE representation
 using detail::decode3;
+/// Decode UTF-8 4 bytes multi-byte sequence to full char32_t UNICODE representation
 using detail::decode4;
 
 /// Converts a UTF-8 single/multibyte character to full UNICODE UTF-32 value,
@@ -272,7 +297,7 @@ public:
 	void convert(std::error_code& ec, const uint8_t* src,const std::size_t src_size, byte_buffer& dst) const noexcept;
 
 private:
-    friend class nobadalloc<code_cnvtr>;
+	friend class nobadalloc<code_cnvtr>;
 	code_cnvtr(detail::engine&& eng) noexcept;
 public:
 	static s_code_cnvtr open(std::error_code& ec,const charset& from,const charset& to, cnvrt_control conrol) noexcept;
