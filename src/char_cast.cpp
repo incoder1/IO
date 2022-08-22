@@ -124,7 +124,7 @@ static const u_char * conv_num(const unsigned char *buf, int *dest, unsigned int
 
 	ch = *buf;
 	if (ch < '0' || ch > '9')
-		return NULL;
+		return nullptr;
 
 	do {
 		result *= 10;
@@ -135,7 +135,7 @@ static const u_char * conv_num(const unsigned char *buf, int *dest, unsigned int
 	while ((result * 10 <= ulim) && rulim && ch >= '0' && ch <= '9');
 
 	if (result < llim || result > ulim)
-	  return NULL;
+	  return nullptr;
 
 	*dest = result;
 	return buf;
@@ -143,21 +143,18 @@ static const u_char * conv_num(const unsigned char *buf, int *dest, unsigned int
 
 static const u_char *find_string(const u_char *bp, int *tgt, const char * const *n1, const char * const *n2, int c)
 {
-	int i;
-	size_t len;
-
 	/* check full name - then abbreviated ones */
-	for (; n1 != NULL; n1 = n2, n2 = NULL) {
-		 for (i = 0; i < c; i++, n1++) {
-			len = strlen(*n1);
-			if (strncasecmp(*n1, (const char *)bp, len) == 0) {
+	for (; n1 != nullptr; n1 = n2, n2 = nullptr) {
+		 for (int i = 0; i < c; i++, n1++) {
+			size_t len = io_strlen(*n1);
+			if (0 == io_memcmp(*n1, bp, len) ) {
 				*tgt = i;
 				return bp + len;
 			}
 		}
 	}
 	/* Nothing matched */
-	return NULL;
+	return nullptr;
 }
 
 char *strptime(const char *buf, const char *fmt, struct tm *tm)
@@ -209,8 +206,8 @@ literal:
 
 		/*
 		* "Complex" conversion rules, implemented through recursion.
-		/
-		/* we do not need 'c'
+		 we do not need 'c'
+
 		case 'c': Date and time, using the locale's format.
 			new_fmt = _ctloc(d_t_fmt);
 			goto recurse;
@@ -479,7 +476,7 @@ recurse:
 				* [N-Y]  = +1 ... +12
 				*/
 				while (io_isspace(*bp))
-					bp++;
+					++bp;
 
 				switch (*bp++) {
 				case 'G':
@@ -712,9 +709,9 @@ to_chars_result IO_PUBLIC_SYMBOL float_to_chars(char* const first, char* const l
 	else {
 		char buff[ FLOAT_MAX_DIGITS ] = {'\0'};
 #ifdef __GNUG__
-		__builtin_snprintf(buff, FLOAT_MAX_DIGITS, "%G", value);
+		__builtin_snprintf(buff, FLOAT_MAX_DIGITS, "%e", value);
 #else
-		std::snprintf(buff, FLOAT_MAX_DIGITS, "%G", value);
+		std::snprintf(buff, FLOAT_MAX_DIGITS, "%e", value);
 #endif // __GNUG__
 		std::size_t len = io_strlen(buff);
 		if( len > buf_size ) {
@@ -738,9 +735,9 @@ to_chars_result IO_PUBLIC_SYMBOL float_to_chars(char* const first, char* const l
 	else {
 		char buff[ DOUBLE_MAX_DIGITS ] = {'\0'};
 #ifdef __GNUG__
-		__builtin_snprintf(buff, DOUBLE_MAX_DIGITS, "%G", value);
+		__builtin_snprintf(buff, DOUBLE_MAX_DIGITS, "%e", value);
 #else
-		std::snprintf(buff, DOUBLE_MAX_DIGITS, "%G", value);
+		std::snprintf(buff, DOUBLE_MAX_DIGITS, "%e", value);
 #endif // __GNUG__
 		std::size_t len = io_strlen(buff);
 		if( len > buf_size ) {
@@ -764,9 +761,9 @@ to_chars_result IO_PUBLIC_SYMBOL float_to_chars(char* const first, char* const l
 	else {
 		char buff[ LONG_DOUBLE_MAX_DIGITS ] = {'\0'};
 #if defined(__GNUG__) && !defined(__MINGW32__) && !defined(__MINGW64__)
-		__builtin_snprintf(buff, LONG_DOUBLE_MAX_DIGITS, "%LG", value);
+		__builtin_snprintf(buff, LONG_DOUBLE_MAX_DIGITS, "%Le", value);
 #else
-		std::snprintf(buff, LONG_DOUBLE_MAX_DIGITS, "%LG", value);
+		std::snprintf(buff, LONG_DOUBLE_MAX_DIGITS, "%Le", value);
 #endif // __GNUG__
 		std::size_t len = io_strlen(buff);
 		if( len > buf_size ) {

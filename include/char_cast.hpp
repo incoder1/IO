@@ -89,13 +89,13 @@ to_chars_result to_chars(char* const first, char* const last, T value) noexcept
 		ret.ptr = first + 1;
 	}
 	else {
-		char* result[limits::digits10] = {'\0'};
-		char *s = &result[limits::digits10];
-		std::size_t len = 1;
+		std::size_t len = 0;
+		char result[limits::digits10] = {'\0'};
+		char *s = result + limits::digits10-1;
 		do {
+			++len;
 			*s = '0' + (value % 10);
 			value /= 10;
-			++len;
 			--s;
 		}
 		while( 0 != value );
@@ -104,7 +104,7 @@ to_chars_result to_chars(char* const first, char* const last, T value) noexcept
 			len = memory_traits::distance(first,last);
 		}
 		else {
-			io_memmove(first, s, len);
+			io_memmove(first, s+1, len);
 			ret.ptr = first + len;
 		}
 	}
@@ -122,9 +122,8 @@ template<
 		>::type* = nullptr
 	>
 #endif
-to_chars_result to_chars(char* const first, char* const last, T value) noexcept
+to_chars_result to_chars(char* const first, char* const last,const T value) noexcept
 {
-	typedef std::numeric_limits<T> limits;
 	to_chars_result ret = {nullptr, std::errc()};
 	if( first >= last ) {
 		ret.ec = std::errc::no_buffer_space;
@@ -134,21 +133,21 @@ to_chars_result to_chars(char* const first, char* const last, T value) noexcept
 		ret.ptr = first + 1;
 	}
 	else {
-		bool sign = value < 0;
-		char* result[limits::digits10] = {'\0'};
-		char *s = &result[limits::digits10];
-		std::size_t len = 1;
+		static constexpr std::size_t buff_size = 24;
+		char tmp[ buff_size ] = { '\0' };
+		char *s = tmp + buff_size-1;
 		typedef typename std::make_unsigned<T>::type uint_type;
-		uint_type uv = sign ? static_cast<uint_type>(-value) : static_cast<uint_type>(value);
+		uint_type uv = (value < 0) ? static_cast<uint_type>(-value) : static_cast<uint_type>(value);
+		std::size_t len = 0;
 		do {
+			++len;
 			*s = '0' + (uv % 10);
 			uv /= 10;
-			++len;
 			--s;
 		}
 		while( 0 != uv );
-		if(sign) {
-			s = '-';
+		if(value < 0) {
+			*s = '-';
 			++len;
 			--s;
 		}
@@ -157,7 +156,7 @@ to_chars_result to_chars(char* const first, char* const last, T value) noexcept
 			len = memory_traits::distance(first,last);
 		}
 		else {
-			io_memmove(first, s, len);
+			io_memmove(first, s+1, len);
 			ret.ptr = first + len;
 		}
 	}

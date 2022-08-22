@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes" ?>
+<CodeBlocks_project_file>
+	<FileVersion major="1" minor="6" />
+	<Project>
+		<Option title="test" />
+		<Option compiler="gcc" />
+		<Build>
+			<Target title="debug-ming64">
+				<Option output="bin/debug-ming64/test" prefix_auto="1" extension_auto="1" />
+				<Option object_output="obj/debug-ming64/" />
+				<Option type="1" />
+				<Option compiler="gcc" />
+				<Compiler>
+					<Add option="-g" />
+					<Add directory="../test" />
+				</Compiler>
+				<Linker>
+					<Add library="iconv" />
+					<Add directory="../bin/debug-win-gcc-static-x64" />
+				</Linker>
+			</Target>
+			<Target title="release-ming64">
+				<Option output="bin/release-ming64/test" prefix_auto="1" extension_auto="1" />
+				<Option object_output="obj/release-ming64/" />
+				<Option type="1" />
+				<Option compiler="gcc" />
+				<Compiler>
+					<Add option="-flto" />
+					<Add option="-DIO_SHARED_LIB" />
+					<Add directory="../test" />
+				</Compiler>
+				<Linker>
+					<Add option="-O3" />
+					<Add option="-flto" />
+					<Add option="-s" />
+					<Add directory="../bin/release-win-gcc-dll-x64" />
+				</Linker>
+			</Target>
+		</Build>
+		<Compiler>
+			<Add option="-Wall" />
+			<Add option="-fexceptions" />
+			<Add directory="include" />
+			<Add directory="../include" />
+		</Compiler>
+		<Linker>
+			<Add library="io" />
+			<Add library="gtest" />
+		</Linker>
+		<Unit filename="char_cast_test.cpp" />
+		<Unit filename="char_cast_test.hpp" />
+		<Unit filename="main.cpp" />
+		<Unit filename="stdafx.cpp" />
+		<Unit filename="stdafx.hpp">
+			<Option compile="1" />
+			<Option weight="0" />
+		</Unit>
+		<Extensions>
+			<lib_finder disable_auto="1" />
+		</Extensions>
+	</Project>
+</CodeBlocks_project_file>

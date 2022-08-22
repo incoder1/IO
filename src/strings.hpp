@@ -315,12 +315,12 @@ constexpr char latin1_to_upper(const char ch) noexcept
 
 constexpr bool is_endl(const char ch) noexcept
 {
-	return '\0' == ch;
+	return cheq('\0',ch);
 }
 
 constexpr bool not_endl(const char ch) noexcept
 {
-	return '\0' != ch;
+	return chnoteq('\0', ch);
 }
 
 constexpr uint16_t pack_word(uint16_t w, char c) noexcept
