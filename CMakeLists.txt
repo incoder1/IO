@@ -7,21 +7,21 @@ include_directories(include/net)
 # for pre-compiled headers
 include_directories(src)
 
-
 file(GLOB PROJECT_SOURCE_PATH ${PROJECT_SOURCE_DIR}/src)
 file(GLOB COMMON_SRC ${PROJECT_SOURCE_PATH}/*.cpp ${PROJECT_SOURCE_PATH}/net/*.cpp)
+file(GLOB TLS_SRC "")
 
 # set type of OCCT libraries
 if (NOT BUILD_LIBRARY_TYPE)
-  set (BUILD_LIBRARY_TYPE "Shared" CACHE STRING "${BUILD_LIBRARY_TYPE_DESCR}" FORCE)
-  SET_PROPERTY(CACHE BUILD_LIBRARY_TYPE PROPERTY STRINGS Shared Static)
+	set (BUILD_LIBRARY_TYPE "Shared" CACHE STRING "${BUILD_LIBRARY_TYPE_DESCR}" FORCE)
+	SET_PROPERTY(CACHE BUILD_LIBRARY_TYPE PROPERTY STRINGS Shared Static)
 endif()
 
 if ("${BUILD_LIBRARY_TYPE}" STREQUAL "Shared")
-  set (BUILD_SHARED_LIBS ON)
+	set (BUILD_SHARED_LIBS ON)
 else()
-  unset (BUILD_SHARED_LIBS)
-  unset (BUILD_SHARED_LIBRARY_NAME_POSTFIX)
+	unset (BUILD_SHARED_LIBS)
+	unset (BUILD_SHARED_LIBRARY_NAME_POSTFIX)
 endif()
 
 set(EXTRA_LIBS)
@@ -31,11 +31,11 @@ if( WIN32 OR MSYS OR CYGWIN)
 	message( STATUS "Building IO for Microsoft Windows")
 	include_directories(include/win)
 	file(GLOB PLATFORM_SRC ${PROJECT_SOURCE_PATH}/win/*.cpp)
-	add_definitions(-D_WIN32_WINNT=0x0601)
+	add_definitions(-D_WIN32_WINNT=0x0A00)
 	if(MSYS OR CYGWIN)
 		set(THREADING threadwin)
 	endif()
-	list(APPEND EXTRA_LIBS Ws2_32)
+	list(APPEND EXTRA_LIBS Ws2_32)	
 elseif( UNIX AND NOT WIN32 AND NOT MSYS AND NOT CYGWIN)
 	message( STATUS "Building IO for UNIX/POSIX ")
 	include_directories(include/posix)
@@ -56,21 +56,14 @@ endif()
 
 # Dependencies
 #GnuTLS is not exist for MS VC++
-if( NOT MSVC )
-	find_package(GnuTLS 3.6.5)
-	if(GNUTLS_FOUND)
-		add_definitions(-DIO_TLS_PROVIDER_GNUTSL ${GNUTLS_DEFINITIONS} )
-		include_directories(${GNUTLS_INCLUDE_DIR})
-		list(APPEND EXTRA_LIBS ${GNUTLS_LIBRARIES})
-		include_directories(include/tls)
-		file(GLOB TLS_SRC ${PROJECT_SOURCE_PATH}/tls/*.cpp)
-	endif(GNUTLS_FOUND) # GNU TLS
-else()
-	list(APPEND EXTRA_LIBS kernel32.lib)
-	list(APPEND EXTRA_LIBS user32.lib)
-	list(APPEND EXTRA_LIBS Ws2_32.lib)
-	file(GLOB TLS_SRC "")
-endif()
+find_package(GnuTLS 3.6.5)
+if(GNUTLS_FOUND)
+	include_directories(${GNUTLS_INCLUDE_DIR})
+	list(APPEND EXTRA_LIBS ${GNUTLS_LIBRARIES})
+	include_directories(include/tls)
+	file(GLOB TLS_SRC ${PROJECT_SOURCE_PATH}/tls/*.cpp)
+endif(GNUTLS_FOUND) # GNU TLS
+
 
 if(NOT MSVC)
 	find_package(Iconv REQUIRED)
@@ -85,7 +78,7 @@ list(APPEND EXTRA_LIBS ${Iconv_LIBRARY})
 
 if( ${CMAKE_BUILD_TYPE} STREQUAL "Release" )
 	add_definitions(-DNDEBUG)
-	set(LIBRARY_OUTPUT_PATH ${CMAKE_BINARY_DIR}/Release/lib)
+	set(LIBRARY_OUTPUT_PATH ${CMAKE_BINARY_DIR}/Release/lib)	
 elseif(${CMAKE_BUILD_TYPE} STREQUAL "Debug")
 	set(LIBRARY_OUTPUT_PATH ${CMAKE_BINARY_DIR}/Debug/lib)
 endif()
@@ -96,7 +89,13 @@ else()
 	add_library(io STATIC ${COMMON_SRC} ${TLS_SRC} ${PLATFORM_SRC})
 endif()
 
+enable_testing(test)
+add_subdirectory(test)
+
 if( CMAKE_COMPILER_IS_GNUCXX )
+	
+	set(CMAKE_CXX_EXTENSIONS ON)
+	
 	target_link_libraries(io ${EXTRA_LIBS})
 	target_precompile_headers(io PRIVATE ${PROJECT_SOURCE_PATH}/stdafx.hpp)
 
@@ -144,10 +143,13 @@ if( CMAKE_COMPILER_IS_GNUCXX )
 	set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS} -g -Og")
 
 elseif(MSVC)
-
-	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /c /nologo /utf-8 /std:c++latest")
-	add_definitions(/DUNICODE)
+	target_precompile_headers(io PRIVATE ${PROJECT_SOURCE_PATH}/stdafx.hpp)
+	
+	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /c /nologo /utf-8 /std:c++latest")	
 	set(CMAKE_CXX_FLAGS_RELEASE  "${CMAKE_CXX_FLAGS} /O2 /Oi /Gw /Zc:wchar_t")
+	
+	add_definitions(/DUNICODE)
+	
 	if(BUILD_SHARED_LIBS)
 		set(CMAKE_WINDOWS_EXPORT_ALL_SYMBOLS ON)
 		add_definitions(/DIO_SHARED_LIB)
@@ -161,14 +163,18 @@ elseif(MSVC)
 		set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /MD")
 		target_link_libraries(io ${EXTRA_LIBS})
 	endif()
+	
 	if(NOT NO_EXCEPTIONS OR BUILD_SHARED_LIBS)
 		if(BUILD_SHARED_LIBS AND NO_EXCEPTIONS)
 			message(SEND_ERROR "Could not build no exceptions DLL from Cmake, use nmake -f NMakefile-msvcx64-dll.mak instead")
 		endif()
 		set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /EHsc")
 	endif()
+	
 	if(NOT NO_RTTI)
 		set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /GR")
 	endif()
+	
 	set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS} /ZI")
+	
 endif()

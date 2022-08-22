@@ -79,7 +79,6 @@ template<
 #endif // IO_HAS_CONNCEPTS
 to_chars_result to_chars(char* const first, char* const last, T value) noexcept
 {
-	typedef std::numeric_limits<T> limits;
 	to_chars_result ret = {nullptr, std::errc()};
 	if( first >= last ) {
 		ret.ec = std::errc::no_buffer_space;
@@ -89,9 +88,10 @@ to_chars_result to_chars(char* const first, char* const last, T value) noexcept
 		ret.ptr = first + 1;
 	}
 	else {
+		static constexpr std::size_t buff_size = 32;
+		char tmp[ buff_size ] = { '\0' };
+		char *s = tmp + buff_size-1;
 		std::size_t len = 0;
-		char result[limits::digits10] = {'\0'};
-		char *s = result + limits::digits10-1;
 		do {
 			++len;
 			*s = '0' + (value % 10);
@@ -133,7 +133,7 @@ to_chars_result to_chars(char* const first, char* const last,const T value) noex
 		ret.ptr = first + 1;
 	}
 	else {
-		static constexpr std::size_t buff_size = 24;
+		static constexpr std::size_t buff_size = 32;
 		char tmp[ buff_size ] = { '\0' };
 		char *s = tmp + buff_size-1;
 		typedef typename std::make_unsigned<T>::type uint_type;

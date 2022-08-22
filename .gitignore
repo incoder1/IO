@@ -4,7 +4,11 @@
 CMakeCache.txt
 cmake_install.cmake
 CMakeFiles/
+Testing/
 Makefile
+.ninja_deps
+.ninja_log
+CTestTestfile.cmake
 */**/obj
 */**/bin
 */**/tmp
@@ -19,4 +23,6 @@ Makefile
 **.out
 **.depend
 **.layout
+**.ninja
 **/**/result.txt
+
