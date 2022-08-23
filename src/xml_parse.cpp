@@ -135,9 +135,9 @@ static std::size_t extract_local_name(std::size_t& start,const char* str) noexce
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wpedantic"
 
-static bool is_xml_name_char(uint32_t ch) noexcept
+static bool is_xml_name_char(char32_t ch) noexcept
 {
-	switch( ch ) {
+	switch( static_cast< std::make_unsigned<char32_t>::type >(ch) ) {
 	case 0x5F:
 	case 0x3A:
 	case 0x2D:
@@ -227,7 +227,7 @@ static error check_xml_name(const char* tn) noexcept
 		// decode UTF-8 symbol to UTF-32 to check name
 		switch( utf8::mblen(tn) ) {
 		case io_likely(1):
-			utf32c = static_cast<uint32_t>( *tn );
+			utf32c = detail::unsign( *tn );
 			++tn;
 			break;
 		case 2:
@@ -400,10 +400,10 @@ byte_buffer event_stream_parser::read_entity() noexcept
 	}
 
 #define check_event_parser_state( _EVENT_TYPE, _EMPTY_RET_TYPE )\
-    if(state_type::event != state_.current || current_ != _EVENT_TYPE ) { \
-        assign_error(error::invalid_state); \
-        return _EMPTY_RET_TYPE(); \
-    }
+	if(state_type::event != state_.current || current_ != _EVENT_TYPE ) { \
+		assign_error(error::invalid_state); \
+		return _EMPTY_RET_TYPE(); \
+	}
 
 document_event event_stream_parser::parse_start_doc() noexcept
 {

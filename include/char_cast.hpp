@@ -22,6 +22,7 @@
 #include <cstdlib>
 #include <ctime>
 #include <time.h>
+#include <chrono>
 
 #include "conststring.hpp"
 #include "type_traits_ext.hpp"
@@ -48,8 +49,11 @@ struct from_chars_result {
 
 namespace detail {
 
-from_chars_result IO_PUBLIC_SYMBOL unsigned_from_chars(const char* first, const char* last, std::size_t& value) noexcept;
-from_chars_result IO_PUBLIC_SYMBOL signed_from_chars(const char* first, const char* last, ssize_t& value) noexcept;
+
+char* IO_PUBLIC_SYMBOL uintmax_to_chars_reverse(char* const last, uintmax_t value) noexcept;
+
+from_chars_result IO_PUBLIC_SYMBOL unsigned_from_chars(const char* first, const char* last, uintmax_t& value) noexcept;
+from_chars_result IO_PUBLIC_SYMBOL signed_from_chars(const char* first, const char* last, intmax_t& value) noexcept;
 
 to_chars_result IO_PUBLIC_SYMBOL float_to_chars(char* const first, char* const last, float value) noexcept;
 to_chars_result IO_PUBLIC_SYMBOL float_to_chars(char* const first, char* const last, double value) noexcept;
@@ -90,21 +94,13 @@ to_chars_result to_chars(char* const first, char* const last, T value) noexcept
 	else {
 		static constexpr std::size_t buff_size = 32;
 		char tmp[ buff_size ] = { '\0' };
-		char *s = tmp + buff_size-1;
-		std::size_t len = 0;
-		do {
-			++len;
-			*s = '0' + (value % 10);
-			value /= 10;
-			--s;
-		}
-		while( 0 != value );
+		char *s = detail::uintmax_to_chars_reverse( (tmp + buff_size-1), static_cast<uintmax_t>(value) );
+		const std::size_t len = memory_traits::distance( s, (tmp + buff_size) );
 		if( len > memory_traits::distance(first,last)) {
 			ret.ec = std::errc::no_buffer_space;
-			len = memory_traits::distance(first,last);
 		}
 		else {
-			io_memmove(first, s+1, len);
+			io_memmove(first, s, len);
 			ret.ptr = first + len;
 		}
 	}
@@ -122,41 +118,31 @@ template<
 		>::type* = nullptr
 	>
 #endif
-to_chars_result to_chars(char* const first, char* const last,const T value) noexcept
+to_chars_result to_chars(char* const first, char* const last, T value) noexcept
 {
 	to_chars_result ret = {nullptr, std::errc()};
 	if( first >= last ) {
 		ret.ec = std::errc::no_buffer_space;
-	}
-	else if(0 == value) {
-		*first = '0';
-		ret.ptr = first + 1;
-	}
-	else {
+	} else {
 		static constexpr std::size_t buff_size = 32;
+
 		char tmp[ buff_size ] = { '\0' };
-		char *s = tmp + buff_size-1;
-		typedef typename std::make_unsigned<T>::type uint_type;
-		uint_type uv = (value < 0) ? static_cast<uint_type>(-value) : static_cast<uint_type>(value);
-		std::size_t len = 0;
-		do {
-			++len;
-			*s = '0' + (uv % 10);
-			uv /= 10;
+		intmax_t sv = static_cast<intmax_t>(value);
+		uintmax_t uv = (sv < 0) ? static_cast<uintmax_t>(-sv) : static_cast<uintmax_t>(sv);
+
+		char *s = detail::uintmax_to_chars_reverse( (tmp + buff_size-1), uv );
+		if(sv < 0) {
 			--s;
-		}
-		while( 0 != uv );
-		if(value < 0) {
 			*s = '-';
-			++len;
-			--s;
 		}
-		if( len > memory_traits::distance(first,last)) {
+
+		const std::size_t len =  memory_traits::distance(s, (tmp + buff_size) );
+		const std::size_t out_buff = memory_traits::distance(first,last);
+		if( len > out_buff ) {
 			ret.ec = std::errc::no_buffer_space;
-			len = memory_traits::distance(first,last);
 		}
 		else {
-			io_memmove(first, s+1, len);
+			io_memmove(first, s, len);
 			ret.ptr = first + len;
 		}
 	}
@@ -224,7 +210,7 @@ inline to_chars_result to_chars(char* const first, char* const last, const long 
 	return detail::float_to_chars(first, last, value);
 }
 
-// inline to_chars_result to_chars(char )
+
 
 
 #ifdef IO_HAS_CONNCEPTS

@@ -14,12 +14,13 @@
 				<Option compiler="gcc" />
 				<Option parameters="test.xml" />
 				<Compiler>
-					<Add option="-std=gnu++20" />
 					<Add option="-pg" />
 					<Add option="-Og" />
 					<Add option="-g" />
+					<Add option="-std=gnu++20" />
 					<Add option="-fexceptions" />
 					<Add option="-DUNICODE" />
+					<Add directory="../../bin/debug-win-gcc-static-x64" />
 				</Compiler>
 				<Linker>
 					<Add option="-pg -lgmon" />
@@ -90,11 +91,7 @@
 		</Linker>
 		<Unit filename="main.cpp" />
 		<Extensions>
-			<code_completion />
-			<envvars />
-			<debugger />
 			<lib_finder disable_auto="1" />
-			<fortran_project />
 		</Extensions>
 	</Project>
 </CodeBlocks_project_file>

@@ -218,4 +218,3 @@ TEST_F(char_cast_fixture,boolean_to_chars)
 }
 
 
-
