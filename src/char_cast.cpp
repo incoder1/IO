@@ -679,7 +679,7 @@ from_chars_result IO_PUBLIC_SYMBOL unsigned_from_chars(const char* first, const 
 #	else
 		value = std::strtoul(first, &endp, 10);
 #	endif // IO_CPU_BITS_64
-		typedef std::numeric_limits<std::size_t> limits;
+		typedef std::numeric_limits<uintmax_t> limits;
 		if ( (limits::max() == value) && (ERANGE == errno) ) {
 			ret.ptr = nullptr;
 			ret.ec = std::errc::result_out_of_range;
@@ -704,7 +704,7 @@ from_chars_result IO_PUBLIC_SYMBOL signed_from_chars(const char* first, const ch
 #	else
 		value = std::strtol(first, &endp, 10);
 #	endif // IO_CPU_BITS_64
-		typedef std::numeric_limits<ssize_t> limits;
+		typedef std::numeric_limits<intmax_t> limits;
 		if ( ( (limits::max() == value) || (limits::min() == value) )  && (ERANGE == errno) ) {
 			ret.ptr = nullptr;
 			ret.ec = std::errc::result_out_of_range;
@@ -790,11 +790,7 @@ to_chars_result IO_PUBLIC_SYMBOL float_to_chars(char* const first, char* const l
 	}
 	else {
 		char buff[ LONG_DOUBLE_MAX_DIGITS ] = {'\0'};
-#if defined(__GNUG__) && !defined(__MINGW32__) && !defined(__MINGW64__)
-		__builtin_snprintf(buff, LONG_DOUBLE_MAX_DIGITS, "%Le", value);
-#else
 		std::snprintf(buff, LONG_DOUBLE_MAX_DIGITS, "%Le", value);
-#endif // __GNUG__
 		std::size_t len = io_strlen(buff);
 		if( len > buf_size ) {
 			ret.ec = std::errc::no_buffer_space;
@@ -898,7 +894,7 @@ to_chars_result IO_PUBLIC_SYMBOL time_from_chars(const char* first,const char* l
 	}
 	else {
 		tm t;
-		ret.ptr = strptime( first, format, &t );
+		ret.ptr = ::strptime( first, format, &t );
 		value = std::mktime(&t);
 	}
 	return ret;
