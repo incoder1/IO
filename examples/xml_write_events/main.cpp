@@ -37,12 +37,7 @@ int main(int argc, const char** argv)
 	xew.add(io::xml::end_element_event(xml::qname("tst","cdata_chars")));
 	xew.add_chars("Test characters");
 
-	io::const_string fmt = io::to_string(ec,123.456e+02f);
-	io::check_error_code(ec);
-	xew.add_chars( fmt.data() );
-
 	xew.add(xml::end_element_event(xml::qname("tst","test")));
-
 
 	return 0;
 }

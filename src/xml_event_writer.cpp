@@ -16,7 +16,7 @@ namespace io {
 namespace xml {
 
 static const char* PROLOGUE_FMT = "<?xml version=\"%s\" encoding=\"%s\"%s?>";
-static const char* STANDALONE_ATTR = "standalone=\"yes\" ";
+static const char* STANDALONE_ATTR = " standalone=\"yes\" ";
 
 #ifdef __IO_WINDOWS_BACKEND__
 static const char* WIDEN_ENDL = "\r\n";
@@ -185,7 +185,7 @@ void event_writer::add_coment(const char* str) noexcept
 	print(str);
 	print("-->");
 	if(format_)
-		print("\r\n");
+		print(WIDEN_ENDL);
 }
 
 } // namespace xml

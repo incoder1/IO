@@ -290,9 +290,9 @@ inline io::const_string to_string(std::error_code& ec, T value) noexcept
 	typedef std::numeric_limits<T> limits;
 	constexpr std::size_t buff_size = limits::digits10 + 1;
 	char tmp[ buff_size ] = {'\0'};
-	to_chars_result tch_ret = io::to_chars(tmp, buff_size, value);
-	if(nullptr == tch_ret.ptr) {
-		ec = std::make_error_code( tch_ret.ec );
+	auto ret = io::to_chars(tmp, (tmp+buff_size), value);
+	if( 0 != static_cast<unsigned int>(ret.ec) ) {
+ 		ec = std::make_error_code( ret.ec );
 		return io::const_string();
 	}
 	return io::const_string(tmp);
@@ -305,18 +305,17 @@ requires( std::is_floating_point_v<T> )
 template<
 	typename T,
 	typename std::enable_if<
-		std::is_floating_point<T>::value
+		std::is_floating_point_v<T>
 		>::type* = nullptr
 	>
 #endif // IO_HAS_CONNCEPTS
 inline io::const_string to_string(std::error_code& ec, const T& value) noexcept
 {
-	typedef std::numeric_limits<T> limits;
-	constexpr std::size_t buff_size = limits::digits10 + 1;
+	static constexpr std::size_t buff_size = 32;
 	char tmp[ buff_size ] = {'\0'};
-	to_chars_result tch_ret = detail::float_to_chars(tmp, tmp+buff_size, value);
-	if(nullptr == tch_ret.ptr) {
-		ec = std::make_error_code( tch_ret.ec );
+	auto ret = to_chars(tmp, (tmp+buff_size), value);
+	if( 0 != static_cast<unsigned int>(ret.ec) ) {
+ 		ec = std::make_error_code( ret.ec );
 		return io::const_string();
 	}
 	return io::const_string(tmp);
