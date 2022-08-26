@@ -19,8 +19,8 @@ s_string_pool string_pool::create(std::error_code& ec) noexcept
 {
 	string_pool* result = new (std::nothrow) string_pool();
 	if(nullptr == result) {
-        ec = std::make_error_code( std::errc::not_enough_memory );
-        return s_string_pool();
+		ec = std::make_error_code( std::errc::not_enough_memory );
+		return s_string_pool();
 	}
 	return s_string_pool(result);
 }
@@ -37,16 +37,15 @@ string_pool::~string_pool() noexcept
 
 const const_string string_pool::get(const char* s, std::size_t count) noexcept
 {
-	typedef pool_type::value_type pair_type;
 	if( io_unlikely( (nullptr == s || '\0' == *s || count == 0 ) ) )
 		return const_string();
 
-	// no problem on SSO string
+	// no problem on small string optimized strings
 	// no any heap memory allocation happing for character array
 	// i.e. string array is less then
 	// sizeof of struct like { char* cstr; size_t len}
-	// and wee need pool nothing
- 	if( count <= detail::SSO_MAX ) {
+	// and wee don't need pooling
+	if( io_likely(count <= detail::SSO_MAX) ) {
 		return const_string(s, count);
 	}
 
@@ -62,30 +61,19 @@ const const_string string_pool::get(const char* s, std::size_t count) noexcept
 			auto its = pool_.equal_range( str_hash );
 			// find string by comparing memory
 			// more likely never going to happen
-			it = std::find_if(its.first, its.second, [s,count] (const pair_type& entry) {
+			it = std::find_if(its.first, its.second, [s,count] (const auto& entry) {
 				return entry.second.equal(s, count);
 			} );
 		}
 		return it->second;
 	}
-	// string is not found in hash table, construct and insert it
-#ifndef IO_NO_EXCEPTIONS
-	try {
-#endif // IO_NO_EXCEPTIONS
-		auto ret =
-			pool_.emplace(
-					std::piecewise_construct,
-					std::forward_as_tuple(str_hash),
-					std::forward_as_tuple(s, count)
-				);
-		return ret.first->second;
-#ifndef IO_NO_EXCEPTIONS
-	}
-	catch(std::exception&) {
-	  // seems like we are out of memory, return empty string
-	   return const_string();
-	}
-#endif // IO_NO_EXCEPTIONS
+	auto ret =
+		pool_.emplace(
+			std::piecewise_construct,
+			std::forward_as_tuple(str_hash),
+			std::forward_as_tuple(s, count)
+		);
+	return ret.first->second;
 }
 
 } // namespace io

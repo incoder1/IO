@@ -72,7 +72,7 @@ to_chars_result IO_PUBLIC_SYMBOL time_from_chars(const char* first,const char* l
 
 #ifdef IO_HAS_CONNCEPTS
 template<typename T>
-requires( is_unsigned_integer_v<T> )
+	requires( is_unsigned_integer_v<T> )
 #else
 template<
 	typename T,

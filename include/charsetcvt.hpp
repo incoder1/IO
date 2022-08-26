@@ -179,7 +179,7 @@ inline unsigned int mblen(const char8_t* mb) noexcept
 #endif // IO_IS_LITTLE_ENDIAN
 }
 
-inline const char8_t* IO_PUBLIC_SYMBOL mbtochar32(char32_t& dst, const char8_t* src) noexcept
+inline const char8_t* mbtochar32(char32_t& dst, const char8_t* src) noexcept
 {
 	return reinterpret_cast<const char8_t*>( mbtochar32(dst, reinterpret_cast<const char*>(src) ) );
 }

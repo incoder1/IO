@@ -13,11 +13,11 @@
 
 #include "config.hpp"
 
-#include <utility>
-
 #ifdef HAS_PRAGMA_ONCE
 #pragma once
 #endif // HAS_PRAGMA_ONCE
+
+#include "type_traits_ext.hpp"
 
 namespace io {
 
@@ -28,18 +28,28 @@ namespace io {
 /// \return hash value
 std::size_t IO_PUBLIC_SYMBOL hash_bytes(const uint8_t* bytes, std::size_t count) noexcept;
 
+
+#ifdef IO_HAS_CONNCEPTS
+template<typename _Tp>
+concept fundamental_hashable_type = std::is_integral_v<_Tp> || std::is_floating_point_v<_Tp>;
+
 template<typename T>
+	requires( fundamental_hashable_type<T> )
+#else
+template<typename T,
+	typename std::enable_if<
+		std::is_integral<T>::value || std::is_floating_point<T>::value
+		>::type* = nullptr
+	>
+#endif // IO_HAS_CONNCEPTS
 inline std::size_t hash_bytes(const T* bytes,std::size_t count) noexcept {
 	return hash_bytes( reinterpret_cast<const uint8_t*>(bytes), (count*sizeof(T)) );
 }
 
-template <typename T>
-constexpr inline void hash_combine(std::size_t& seed,const T& v) noexcept
-{
-	static_assert(std::is_arithmetic<T>::value && !std::is_pointer<T>::value, " Only arithmetic non pointers");
-	const constexpr std::size_t PRIME =  0x9E3779B9;
-	seed ^= v + PRIME + ( seed << 6 ) + ( seed >> 2);
-}
+/// Combine two hashes
+/// \param seed basic hashing value
+/// \param next a hash to combine with seed
+void IO_PUBLIC_SYMBOL hash_combine(std::size_t& seed,const std::size_t next) noexcept;
 
 } // namespace io
 

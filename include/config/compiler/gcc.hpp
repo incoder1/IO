@@ -43,9 +43,15 @@
 
 #ifndef __GXX_RTTI
 #	ifndef IO_NO_RTTI
-#		define IO_NO_RTTI
+#		define IO_NO_RTTI 1
 #	endif
 #endif
+
+#ifndef __EXCEPTIONS
+#	ifndef IO_NO_EXCEPTIONS
+#		define IO_NO_EXCEPTIONS 1
+#	endif
+#endif // exception
 
 #ifndef IO_NO_INLINE
 #	define IO_NO_INLINE __attribute__ ((noinline))
@@ -55,9 +61,6 @@
 #define IO_IS_LITTLE_ENDIAN  1
 #endif // __ORDER_LITTLE_ENDIAN__
 
-#ifndef  __EXCEPTIONS
-#	define IO_NO_EXCEPTIONS 1
-#endif // exception
 
 #if defined(__i386__) || defined(__i486__) || defined(__i586__) || defined(__i686__) || defined(__x86_64__)
 #	define IO_CPU_INTEL
@@ -80,7 +83,7 @@
 #	define io_size_t_abs(__x) __builtin_labs( (__x) )
 #endif
 
-#define io_alloca(__x) __builtin_alloca_with_align( (__x), sizeof(size_t) )
+#define io_alloca(__x) __builtin_alloca( (__x) )
 
 #define io_memmove(__dst, __src, __bytes) __builtin_memmove( (__dst), (__src), (__bytes) )
 

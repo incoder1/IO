@@ -637,28 +637,31 @@ static char* fmt_yes_no(char* to, std::size_t buf_size, bool value) noexcept
 	return nullptr;
 }
 
-char* IO_PUBLIC_SYMBOL uintmax_to_chars_reverse(char* const last, uintmax_t value) noexcept
-{
-	static constexpr char _digits[201] =
+
+static constexpr char DIGITS_LUT[201] =
 		"0001020304050607080910111213141516171819"
 		"2021222324252627282930313233343536373839"
 		"4041424344454647484950515253545556575859"
 		"6061626364656667686970717273747576777879"
 		"8081828384858687888990919293949596979899";
+
+
+char* IO_PUBLIC_SYMBOL uintmax_to_chars_reverse(char* const last, uintmax_t value) noexcept
+{
 	char* ret = last;
 	while (value >= 100) {
 		std::size_t idx = (value % 100) << 1;
 		value /= 100;
-		*ret = _digits[idx + 1];
+		*ret = DIGITS_LUT[idx + 1];
 		--ret;
-		*ret = _digits[idx];
+		*ret = DIGITS_LUT[idx];
 		--ret;
 	}
 	if (value >= 10) {
 		std::size_t idx = value << 1;
-		*ret = _digits[idx + 1];
+		*ret = DIGITS_LUT[idx + 1];
 		--ret;
-		*ret = _digits[idx];
+		*ret = DIGITS_LUT[idx];
 	}
 	else {
 		*ret = '0' + value;
