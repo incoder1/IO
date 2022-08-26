@@ -68,9 +68,9 @@
 					<Add option="-flto" />
 					<Add option="-s" />
 					<Add option="-fwhole-program" />
+					<Add option="-Wl,-allow-multiple-definition" />
 					<Add option="-fdeclone-ctor-dtor" />
 					<Add option="-fdevirtualize-at-ltrans" />
-					<Add option="-Wl,-allow-multiple-definition" />
 					<Add option="-mtune=generic" />
 					<Add option="-minline-stringops-dynamically" />
 					<Add option="-mavx" />

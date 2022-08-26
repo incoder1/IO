@@ -705,14 +705,7 @@ from_chars_result IO_PUBLIC_SYMBOL signed_from_chars(const char* first, const ch
 #	else
 		value = std::strtol(first, &endp, 10);
 #	endif // IO_CPU_BITS_64
-		typedef std::numeric_limits<intmax_t> limits;
-		if ( ( (limits::max() == value) || (limits::min() == value) )  && (ERANGE == errno) ) {
-			ret.ptr = nullptr;
-			ret.ec = std::errc::result_out_of_range;
-		}
-		else {
-			ret.ptr = endp;
-		}
+		ret.ptr = endp;
 	}
 	return ret;
 }
@@ -950,26 +943,26 @@ from_chars_result  from_chars(const char* first,const char* last, bool& value) n
 		ret.ec = std::errc::invalid_argument;
 	}
 	else {
-		std::size_t buf_size = memory_traits::distance(first,last);
+		std::size_t buf_size = memory_traits::distance(s,last);
 		char tmp[8] = { '\0' };
 		const std::size_t max_len = buf_size > 5 ? 5 : buf_size;
-		io_memmove(tmp, first, max_len);
+		io_memmove(tmp, s, max_len);
 		downcase_latin1(tmp);
 		if( cmp_no(tmp) ) {
 			value = false;
-			ret.ptr = first + 2;
+			ret.ptr = s + 2;
 		}
 		else if(cmp_yes(tmp)) {
 			value = true;
-			ret.ptr = first + 3;
+			ret.ptr = s + 3;
 		}
 		else if(cmp_true(tmp)) {
 			value = true;
-			ret.ptr = first + 4;
+			ret.ptr = s + 4;
 		}
 		else if(cmp_false(tmp)) {
 			value = false;
-			ret.ptr = first + 5;
+			ret.ptr = s + 5;
 		}
 		else {
 			ret.ec = std::errc::result_out_of_range;

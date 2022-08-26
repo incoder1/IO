@@ -185,14 +185,15 @@ template<
 #endif // IO_HAS_CONNCEPTS
 from_chars_result from_chars(const char* first, const char* last, T& value) noexcept
 {
-	ssize_t v;
+	intmax_t v;
 	from_chars_result ret = detail::signed_from_chars(first, last, v);
 	typedef std::numeric_limits<T> limits;
-	if( v > limits::max() || v < limits::min() ) {
+	if( v < limits::min() || v > limits::max() ) {
 		ret.ptr = nullptr;
 		ret.ec = std::errc::result_out_of_range;
 	}
-	return static_cast<T>(v);
+	value = static_cast<T>(v);
+	return ret;
 }
 
 inline to_chars_result to_chars(char* const first, char* const last, float value) noexcept
@@ -210,9 +211,6 @@ inline to_chars_result to_chars(char* const first, char* const last, const long 
 	return detail::float_to_chars(first, last, value);
 }
 
-
-
-
 #ifdef IO_HAS_CONNCEPTS
 template<typename T>
 requires( std::is_floating_point_v<T> )
@@ -224,7 +222,7 @@ template<
 		>::type* = nullptr
 	>
 #endif // IO_HAS_CONNCEPTS
-to_chars_result from_chars(const char* first,const char* last, T& value) noexcept
+from_chars_result from_chars(const char* first,const char* last, T& value) noexcept
 {
 	return detail::float_from_chars(first, last, value);
 }

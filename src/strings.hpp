@@ -337,14 +337,15 @@ constexpr bool is_none_of(char32_t c) noexcept
 
 static constexpr const unsigned int BITS = sizeof(unsigned int) * CHAR_BIT;
 static constexpr const unsigned int ALBT_SIZE = 26;
-static constexpr const unsigned int LAT_A = detail::unsign('a');
-static constexpr const unsigned int LAT_A_CAP = detail::unsign('A');
-static constexpr const unsigned int ZERRO = detail::unsign('0');
-static constexpr const unsigned int SPACE = detail::unsign(' ');
-static constexpr const unsigned int TAB = detail::unsign('\t');
+static constexpr const unsigned int LAT_A = detail::unsign(U'a');
+static constexpr const unsigned int LAT_A_CAP = detail::unsign(U'A');
+static constexpr const unsigned int ZERRO = detail::unsign(U'0');
+static constexpr const unsigned int SPACE = detail::unsign(U' ');
+static constexpr const unsigned int TAB = detail::unsign(U'\t');
 static constexpr const unsigned int WHITE_SPACES_COUNT = 5;
 
-static constexpr const char UPPER_LOWER_MASK = 0x5F;
+static constexpr const unsigned int LOWER_MASK = 32;
+static constexpr const unsigned int UPPER_MASK = 0x5F;
 
 #ifdef IO_HAS_CONNCEPTS
 template<typename char_t>
@@ -489,7 +490,7 @@ template<
 #endif // IO_HAS_CONNCEPTS
 constexpr char_t latin1_to_lower(const char_t ch) noexcept
 {
-	return is_uppercase_latin1( ch ) ? ( static_cast<const char>(ch) & UPPER_LOWER_MASK) : ch;
+	return is_uppercase_latin1( ch ) ? static_cast<char_t>( detail::unsign(ch) | LOWER_MASK ) : ch;
 }
 
 /// Converts the given character to upper case if it is UNICODE-latin1
@@ -508,7 +509,7 @@ template<
 #endif // IO_HAS_CONNCEPTS
 constexpr char_t latin1_to_upper(const char_t ch) noexcept
 {
-	return is_lowercase_latin1( ch ) ? char_t( static_cast<const char>(ch) & UPPER_LOWER_MASK) : ch;
+	return is_lowercase_latin1( ch ) ? char_t( static_cast<const char>(ch) & UPPER_MASK) : ch;
 }
 
 /// Checks given character is string ending character i.e. '\0'
