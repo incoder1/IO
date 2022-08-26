@@ -198,7 +198,29 @@ TEST_F(char_cast_fixture,long_double_to_char)
 	ASSERT_STREQ(first,expected);
 }
 
-TEST_F(char_cast_fixture,boolean_to_chars)
+TEST_F(char_cast_fixture,boolean_to_chars_fromat_yes_no)
+{
+	char buff[8] = {'\0'};
+	char* first= buff;
+	char* last = first + sizeof(buff);
+	static const char* expected_positive = "yes";
+
+	auto ret = io::to_chars(first, last, true, io::str_bool_format::yes_no);
+	ASSERT_FALSE( std::make_error_code(ret.ec) );
+	ASSERT_EQ( ret.ptr, first+io_strlen(expected_positive) );
+	ASSERT_STREQ(first,expected_positive);
+
+	io_zerro_mem(buff,sizeof(buff));
+
+	static const char* expected_negative = "no";
+	ret = io::to_chars(first, last, false, io::str_bool_format::yes_no);
+	ASSERT_FALSE( std::make_error_code(ret.ec) );
+	ASSERT_EQ( ret.ptr, first+io_strlen(expected_negative) );
+	ASSERT_STREQ(first,expected_negative);
+}
+
+
+TEST_F(char_cast_fixture,boolean_to_chars_fromat_true_false)
 {
 	char buff[8] = {'\0'};
 	char* first= buff;
@@ -209,6 +231,8 @@ TEST_F(char_cast_fixture,boolean_to_chars)
 	ASSERT_FALSE( std::make_error_code(ret.ec) );
 	ASSERT_EQ( ret.ptr, first+io_strlen(expected_positive) );
 	ASSERT_STREQ(first,expected_positive);
+
+	io_zerro_mem(buff,sizeof(buff));
 
 	static const char* expected_negative = "false";
 	ret = io::to_chars(first, last, false);

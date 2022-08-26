@@ -39,12 +39,6 @@ static constexpr const char ES = 61 ; // '='
 static constexpr const char QM = 63; // '?'
 
 
-static char* skip_spaces(const char* s) noexcept
-{
-    constexpr const char* SPACE = "\t\n\v\f\r ";
-    return const_cast<char*>(s) + io_strspn(s, SPACE);
-}
-
 static bool start_with(const char* s,const char* pattern,const std::size_t size) noexcept
 {
 	return 0 ==  std::char_traits<char>::compare( s, pattern, size );
@@ -957,7 +951,7 @@ void event_stream_parser::s_comment_cdata_or_dtd() noexcept
 void event_stream_parser::s_entity() noexcept
 {
 	scan_buf_[1] = next();
-	const int second = std::char_traits<char>::to_int_type( scan_buf_[1] );
+	char second = scan_buf_[1];
 	// scan on exact entity type
 	switch( second ) {
 	case SOLIDUS:
@@ -975,13 +969,12 @@ void event_stream_parser::s_entity() noexcept
 		break;
 	default:
 		// <foo
-		if( io_likely( !is_space(second) ) ) {
+		if( !is_space(second) ) {
 			state_.current = state_type::event;
 			current_ = event_type::start_element;
 		}
-		else {
+		else
 			assign_error( error::illegal_markup );
-		}
 	}
 }
 

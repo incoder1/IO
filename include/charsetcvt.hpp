@@ -166,7 +166,7 @@ constexpr unsigned int mblen(const char8_t* mb) noexcept
 inline unsigned int mblen(const char8_t* mb) noexcept
 #endif // __GNUG__
 {
-	return isonebyte( static_cast<const char>(*mb) )
+	return isonebyte( *mb)
 	? 1
 	:
 	// bit scan forward on inverted value gives number of leading multibyte bits

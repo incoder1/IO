@@ -11,6 +11,7 @@
 #include "stdafx.hpp"
 
 #include "char_cast.hpp"
+#include "strings.hpp"
 
 
 #if defined(__WIN32) && ( defined(__MINGW32__) || defined(__MINGW64__) )
@@ -173,8 +174,7 @@ char *strptime(const char *buf, const char *fmt, struct tm *tm)
 
 		/* Eat up white-space. */
 		if (io_isspace(c)) {
-			while (io_isspace(*bp))
-				bp++;
+			bp = io::skip_spaces(bp);
 			continue;
 		}
 
@@ -476,8 +476,7 @@ recurse:
 			* [A-IL-M] = -1 ... -9 (J not used)
 			* [N-Y]  = +1 ... +12
 			*/
-			while (io_isspace(*bp))
-				++bp;
+			bp = io::skip_spaces(bp);
 
 			switch (*bp++) {
 			case 'G':
@@ -591,8 +590,7 @@ recurse:
 		*/
 		case 'n':	/* Any kind of white-space. */
 		case 't':
-			while (io_isspace(*bp))
-				bp++;
+			bp = io::skip_spaces(bp);
 			LEGAL_ALT(0);
 			continue;
 
@@ -628,11 +626,11 @@ static char* fmt_yes_no(char* to, std::size_t buf_size, bool value) noexcept
 {
 	if(value && buf_size >= 3) {
 		io_memmove(to, "yes", 3);
-		return to+4;
+		return to+3;
 	}
 	else if(!value && buf_size >= 2) {
 		io_memmove(to, "no", 2);
-		return to+5;
+		return to+2;
 	}
 	return nullptr;
 }
@@ -672,7 +670,7 @@ char* IO_PUBLIC_SYMBOL uintmax_to_chars_reverse(char* const last, uintmax_t valu
 from_chars_result IO_PUBLIC_SYMBOL unsigned_from_chars(const char* first, const char* last, uintmax_t& value) noexcept
 {
 	from_chars_result ret = {nullptr, std::errc()};
-	if(0 == memory_traits::distance(first,last) ) {
+	if( first >= last ) {
 		ret.ec = std::errc::invalid_argument;
 	}
 	else {
@@ -697,7 +695,7 @@ from_chars_result IO_PUBLIC_SYMBOL unsigned_from_chars(const char* first, const 
 from_chars_result IO_PUBLIC_SYMBOL signed_from_chars(const char* first, const char* last, intmax_t& value) noexcept
 {
 	from_chars_result ret = {nullptr, std::errc()};
-	if(0 == memory_traits::distance(first,last) ) {
+	if( first >= last ) {
 		ret.ec = std::errc::invalid_argument;
 	}
 	else {
@@ -735,8 +733,7 @@ to_chars_result IO_PUBLIC_SYMBOL float_to_chars(char* const first, char* const l
 {
 
 	to_chars_result ret = {nullptr, std::errc()};
-	std::size_t buf_size = memory_traits::distance(first,last);
-	if( 0 == buf_size ) {
+	if( first >= last ) {
 		ret.ec = std::errc::no_buffer_space;
 	}
 	else {
@@ -747,7 +744,7 @@ to_chars_result IO_PUBLIC_SYMBOL float_to_chars(char* const first, char* const l
 		std::snprintf(buff, FLOAT_MAX_DIGITS, "%e", value);
 #endif // __GNUG__
 		std::size_t len = io_strlen(buff);
-		if( len > buf_size ) {
+		if( len > memory_traits::distance(first,last) ) {
 			ret.ec = std::errc::no_buffer_space;
 		}
 		else {
@@ -761,8 +758,7 @@ to_chars_result IO_PUBLIC_SYMBOL float_to_chars(char* const first, char* const l
 to_chars_result IO_PUBLIC_SYMBOL float_to_chars(char* const first, char* const last, double value) noexcept
 {
 	to_chars_result ret = {nullptr, std::errc()};
-	std::size_t buf_size = memory_traits::distance(first,last);
-	if( 0 == buf_size ) {
+	if( first >= last ) {
 		ret.ec = std::errc::no_buffer_space;
 	}
 	else {
@@ -773,7 +769,7 @@ to_chars_result IO_PUBLIC_SYMBOL float_to_chars(char* const first, char* const l
 		std::snprintf(buff, DOUBLE_MAX_DIGITS, "%e", value);
 #endif // __GNUG__
 		std::size_t len = io_strlen(buff);
-		if( len > buf_size ) {
+		if( len > memory_traits::distance(first,last) ) {
 			ret.ec = std::errc::no_buffer_space;
 		}
 		else {
@@ -787,15 +783,14 @@ to_chars_result IO_PUBLIC_SYMBOL float_to_chars(char* const first, char* const l
 to_chars_result IO_PUBLIC_SYMBOL float_to_chars(char* const first, char* const last, const long double& value) noexcept
 {
 	to_chars_result ret = {nullptr, std::errc()};
-	std::size_t buf_size = memory_traits::distance(first,last);
-	if( 0 == buf_size ) {
+	if( first >= last ) {
 		ret.ec = std::errc::no_buffer_space;
 	}
 	else {
 		char buff[ LONG_DOUBLE_MAX_DIGITS ] = {'\0'};
 		std::snprintf(buff, LONG_DOUBLE_MAX_DIGITS, "%Le", value);
 		std::size_t len = io_strlen(buff);
-		if( len > buf_size ) {
+		if( len >  memory_traits::distance(first,last) ) {
 			ret.ec = std::errc::no_buffer_space;
 		}
 		else {
@@ -809,7 +804,7 @@ to_chars_result IO_PUBLIC_SYMBOL float_to_chars(char* const first, char* const l
 from_chars_result IO_PUBLIC_SYMBOL float_from_chars(const char* first, const char* last, float& value) noexcept
 {
 	from_chars_result ret = {nullptr, std::errc()};
-	if(0 == memory_traits::distance(first,last) ) {
+	if( first >= last ) {
 		ret.ec = std::errc::invalid_argument;
 	}
 	else {
@@ -829,7 +824,7 @@ from_chars_result IO_PUBLIC_SYMBOL float_from_chars(const char* first, const cha
 from_chars_result IO_PUBLIC_SYMBOL float_from_chars(const char* first, const char* last, double& value) noexcept
 {
 	from_chars_result ret = {nullptr, std::errc()};
-	if(0 == memory_traits::distance(first,last) ) {
+	if( first >= last ) {
 		ret.ec = std::errc::invalid_argument;
 	}
 	else {
@@ -849,7 +844,7 @@ from_chars_result IO_PUBLIC_SYMBOL float_from_chars(const char* first, const cha
 from_chars_result IO_PUBLIC_SYMBOL float_from_chars(const char* first, const char* last, long double& value) noexcept
 {
 	from_chars_result ret = {nullptr, std::errc()};
-	if(0 == memory_traits::distance(first,last) ) {
+	if( first >= last ) {
 		ret.ec = std::errc::invalid_argument;
 	}
 	else {
@@ -869,12 +864,11 @@ from_chars_result IO_PUBLIC_SYMBOL float_from_chars(const char* first, const cha
 to_chars_result IO_PUBLIC_SYMBOL time_to_chars(char* const first, char* const last, const char* format, const std::time_t& value) noexcept
 {
 	to_chars_result ret = {nullptr, std::errc()};
-	std::size_t aprox_buff_size = 2 * io_strlen(format);
-	if( (first+aprox_buff_size) > last ) {
+	if( (first+io_strlen(format)) >= last ) {
 		ret.ec = std::errc::no_buffer_space;
 	}
 	else {
-		const std::size_t buff_size = aprox_buff_size + 1;
+		const std::size_t buff_size = (2 * io_strlen(format) ) + 1;
 		char* buff = static_cast<char*> ( io_alloca(  buff_size ) );
 		io_zerro_mem(buff, buff_size );
 		const std::size_t len = std::strftime(buff, buff_size, format, std::localtime(std::addressof(value)) );
@@ -928,41 +922,52 @@ to_chars_result IO_PUBLIC_SYMBOL to_chars(char* first, char* last, bool value, s
 	return ret;
 }
 
-from_chars_result IO_PUBLIC_SYMBOL from_chars(const char* first,const char* last, bool& value) noexcept
+static bool cmp_no(const char* s) noexcept
+{
+	return 0 == io_memcmp(s,"no",2);
+}
+
+static bool cmp_yes(const char* s) noexcept
+{
+	return 0 == io_memcmp(s,"yes",3);
+}
+
+static bool cmp_true(const char* s) noexcept
+{
+	return 0 == io_memcmp(s, "true", 4);
+}
+
+static bool cmp_false(const char* s) noexcept
+{
+	return 0 == io_memcmp(s, "false", 5);
+}
+
+from_chars_result  from_chars(const char* first,const char* last, bool& value) noexcept
 {
 	from_chars_result ret = {nullptr, std::errc()};
-	if( (first+1) >= last ) {
-		ret.ec = std::errc::no_buffer_space;
+	const char* s = skip_spaces_r(first, last);
+	if( (s+1) >= last ) {
+		ret.ec = std::errc::invalid_argument;
 	}
 	else {
 		std::size_t buf_size = memory_traits::distance(first,last);
 		char tmp[8] = { '\0' };
-		const char* s = first;
-		while( io_isspace(*s) && (s < last+1) ) {
-			++s;
-			if(last == s) {
-				ret.ec = std::errc::illegal_byte_sequence;
-				return ret;
-			}
-		}
-		std::size_t max_len = buf_size > 5 ? 5 : buf_size;
-		for(std::size_t i=0; i < max_len; i++) {
-			tmp[i] = io_tolower(*s);
-			++s;
-		}
-		if( 0 == io_memcmp(tmp,"no",2) ) {
+		const std::size_t max_len = buf_size > 5 ? 5 : buf_size;
+		io_memmove(tmp, first, max_len);
+		downcase_latin1(tmp);
+		if( cmp_no(tmp) ) {
 			value = false;
 			ret.ptr = first + 2;
 		}
-		else if(0 == io_memcmp(tmp,"yes",3)) {
+		else if(cmp_yes(tmp)) {
 			value = true;
 			ret.ptr = first + 3;
 		}
-		else if(0 == io_memcmp(tmp,"true",4)) {
+		else if(cmp_true(tmp)) {
 			value = true;
 			ret.ptr = first + 4;
 		}
-		else if(0 == io_memcmp(tmp,"false",5) ) {
+		else if(cmp_false(tmp)) {
 			value = false;
 			ret.ptr = first + 5;
 		}
@@ -972,5 +977,6 @@ from_chars_result IO_PUBLIC_SYMBOL from_chars(const char* first,const char* last
 	}
 	return ret;
 }
+
 
 } // namespace io

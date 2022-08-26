@@ -13,11 +13,13 @@
 
 #include "config.hpp"
 
-#include "charsetcvt.hpp"
 
 #ifdef HAS_PRAGMA_ONCE
 #pragma once
 #endif // HAS_PRAGMA_ONCE
+
+#include <string>
+#include "type_traits_ext.hpp"
 
 namespace io {
 
@@ -37,14 +39,42 @@ constexpr unsigned int unsign(const int ch) noexcept
 } // namespace detail
 
 /// Compares two character code points
+/// \param lhs compare left hand statement code point
+/// \param rhs compare right hand statement code point
+/// \return whether code-points equals
+#ifdef IO_HAS_CONNCEPTS
 template<typename lhs_ch_t, typename rhs_ch_t>
+	requires( is_charater_v<lhs_ch_t>, is_charater_v<rhs_ch_t> )
+#else
+template<
+	typename lhs_ch_t,
+	typename rhs_ch_t,
+	typename std::enable_if<
+		is_charater_v<lhs_ch_t>, is_charater_v<rhs_ch_t>
+	>::type* = nullptr
+>
+#endif // IO_HAS_CONNCEPTS
 constexpr bool cheq(const lhs_ch_t lhs,const rhs_ch_t rhs) noexcept
 {
 	return detail::unsign(lhs) == detail::unsign(rhs);
 }
 
 /// Compares two character code points
+/// \param lhs compare left hand statement code point
+/// \param rhs compare right hand statement code point
+/// \return whether code-points not equals
+#ifdef IO_HAS_CONNCEPTS
 template<typename lhs_ch_t, typename rhs_ch_t>
+	requires( is_charater_v<lhs_ch_t>, is_charater_v<rhs_ch_t> )
+#else
+template<
+	typename lhs_ch_t,
+	typename rhs_ch_t,
+	typename std::enable_if<
+		is_charater_v<lhs_ch_t>, is_charater_v<rhs_ch_t>
+	>::type* = nullptr
+>
+#endif // IO_HAS_CONNCEPTS
 constexpr bool chnoteq(const lhs_ch_t lhs,const rhs_ch_t rhs) noexcept
 {
 	return detail::unsign(lhs) != detail::unsign(rhs);
@@ -60,38 +90,97 @@ constexpr bool chnoteq(char lhs, char rhs) noexcept
 	return lhs != rhs;
 }
 
+#ifdef IO_HAS_CONNCEPTS
 template<typename __CharType, __CharType __A, __CharType __B>
+	requires( is_charater_v<__CharType> )
+#else
+template<
+	typename __CharType, __CharType __A, __CharType __B,
+	typename std::enable_if<
+		is_charater_v<__CharType>
+	>::type* = nullptr
+>
+#endif // IO_HAS_CONNCEPTS
 constexpr bool is_one_of(__CharType c) noexcept
 {
 	return cheq(__A,c) || cheq(__B,c);
 }
 
+#ifdef IO_HAS_CONNCEPTS
 template<typename __CharType, __CharType __A, __CharType __B>
+	requires( is_charater_v<__CharType> )
+#else
+template<
+	typename __CharType, __CharType __A, __CharType __B,
+	typename std::enable_if<
+		is_charater_v<__CharType>
+	>::type* = nullptr
+>
+#endif // IO_HAS_CONNCEPTS
 constexpr bool is_none_of(__CharType c) noexcept
 {
 	return chnoteq(__A, c) && chnoteq(__B, c);
 }
 
-
-template<typename __CharType, __CharType __A,__CharType __B, __CharType __C>
+#ifdef IO_HAS_CONNCEPTS
+template<typename __CharType, __CharType __A, __CharType __B, __CharType __C>
+	requires( is_charater_v<__CharType> )
+#else
+template<
+	typename __CharType, __CharType __A, __CharType __B, __CharType __C,
+	typename std::enable_if<
+		is_charater_v<__CharType>
+	>::type* = nullptr
+>
+#endif // IO_HAS_CONNCEPTS
 constexpr bool is_one_of(__CharType c) noexcept
 {
 	return cheq(__A, c) || cheq(__B, c) || cheq(__C, c);
 }
 
+#ifdef IO_HAS_CONNCEPTS
 template<typename __CharType, __CharType __A, __CharType __B, __CharType __C>
+	requires( is_charater_v<__CharType> )
+#else
+template<
+	typename __CharType, __CharType __A, __CharType __B, __CharType __C,
+	typename std::enable_if<
+		is_charater_v<__CharType>
+	>::type* = nullptr
+>
+#endif // IO_HAS_CONNCEPTS
 constexpr bool is_none_of(__CharType c) noexcept
 {
 	return chnoteq(__A, c) && chnoteq(__B, c) && chnoteq(__C, c);
 }
 
-template<typename __CharType, __CharType __A,__CharType __B,__CharType __C,__CharType __D>
+#ifdef IO_HAS_CONNCEPTS
+template<typename __CharType, __CharType __A, __CharType __B, __CharType __C, __CharType __D>
+	requires( is_charater_v<__CharType> )
+#else
+template<
+	typename __CharType, __CharType __A, __CharType __B, __CharType __C, __CharType __D,
+	typename std::enable_if<
+		is_charater_v<__CharType>
+	>::type* = nullptr
+>
+#endif // IO_HAS_CONNCEPTS
 constexpr bool is_one_of(__CharType c) noexcept
 {
 	return cheq(__A, c) || cheq(__B, c) || cheq(__C, c) || cheq(__D, c);
 }
 
-template<typename __CharType, __CharType __A,__CharType __B,__CharType __C,__CharType __D>
+#ifdef IO_HAS_CONNCEPTS
+template<typename __CharType, __CharType __A, __CharType __B, __CharType __C, __CharType __D>
+	requires( is_charater_v<__CharType> )
+#else
+template<
+	typename __CharType, __CharType __A, __CharType __B, __CharType __C, __CharType __D,
+	typename std::enable_if<
+		is_charater_v<__CharType>
+	>::type* = nullptr
+>
+#endif // IO_HAS_CONNCEPTS
 constexpr bool is_none_of(__CharType c) noexcept
 {
 	return chnoteq(__A, c) && chnoteq(__B, c) && chnoteq(__C, c) && chnoteq(__D, c);
@@ -257,70 +346,249 @@ static constexpr const unsigned int WHITE_SPACES_COUNT = 5;
 
 static constexpr const char UPPER_LOWER_MASK = 0x5F;
 
+#ifdef IO_HAS_CONNCEPTS
 template<typename char_t>
+	requires( is_charater_v<char_t> )
+#else
+template<
+	typename char_t,
+	typename std::enable_if<
+		is_charater_v<char_t>
+	>::type* = nullptr
+>
+#endif // IO_HAS_CONNCEPTS
 constexpr bool is_alpha(const char_t ch) noexcept
 {
 	return ( (detail::unsign(ch) | BITS ) - LAT_A) < ALBT_SIZE;
 }
 
+#ifdef IO_HAS_CONNCEPTS
 template<typename char_t>
+	requires( is_charater_v<char_t> )
+#else
+template<
+	typename char_t,
+	typename std::enable_if<
+		is_charater_v<char_t>
+	>::type* = nullptr
+>
+#endif // IO_HAS_CONNCEPTS
 constexpr bool is_digit(const char_t ch) noexcept
 {
 	return (detail::unsign(ch)-ZERRO) < 10;
 }
 
+/// Checks given character is an alphanumeric character
+/// \param ch a character
+/// \return whether ch is an alphanumeric character
+#ifdef IO_HAS_CONNCEPTS
 template<typename char_t>
+	requires( is_charater_v<char_t> )
+#else
+template<
+	typename char_t,
+	typename std::enable_if<
+		is_charater_v<char_t>
+	>::type* = nullptr
+>
+#endif // IO_HAS_CONNCEPTS
 constexpr bool is_alnum(const char_t ch) noexcept
 {
 	return is_alpha(ch) || is_digit(ch);
 }
 
+/// Checks given character is space character [\t\n\v\f\r ]
+/// \param ch a character
+/// \return whether ch is a space character
+#ifdef IO_HAS_CONNCEPTS
 template<typename char_t>
+	requires( is_charater_v<char_t> )
+#else
+template<
+	typename char_t,
+	typename std::enable_if<
+		is_charater_v<char_t>
+	>::type* = nullptr
+>
+#endif // IO_HAS_CONNCEPTS
 constexpr bool is_space(const char_t ch) noexcept
 {
 	return SPACE == detail::unsign(ch) || (detail::unsign(ch) - TAB) < WHITE_SPACES_COUNT;
 }
 
-// capital  unicode-ASCII-latin1 [A-Z]
+/// Checks given character is UNICODE-latin1 upper case [A-Z] space character
+/// \param ch a character
+/// \return whether ch is a latin1 upper case
+#ifdef IO_HAS_CONNCEPTS
 template<typename char_t>
+	requires( is_charater_v<char_t> )
+#else
+template<
+	typename char_t,
+	typename std::enable_if<
+		is_charater_v<char_t>
+	>::type* = nullptr
+>
+#endif // IO_HAS_CONNCEPTS
 static constexpr bool is_uppercase_latin1(const char_t ch) noexcept
 {
 	return  (detail::unsign(ch)-LAT_A_CAP) < ALBT_SIZE;
 }
 
-// unicode-ASCII-latin1 [a-z]
+/// Checks given character is from UNICODE-latin1 lower case [a-z] space
+/// \param ch a character
+/// \return whether ch is a latin1 lower case
+#ifdef IO_HAS_CONNCEPTS
 template<typename char_t>
+	requires( is_charater_v<char_t> )
+#else
+template<
+	typename char_t,
+	typename std::enable_if<
+		is_charater_v<char_t>
+	>::type* = nullptr
+>
+#endif // IO_HAS_CONNCEPTS
 static constexpr bool is_lowercase_latin1(const char_t ch) noexcept
 {
 	return (detail::unsign(ch)-LAT_A) < ALBT_SIZE;
 }
 
-// [A-Z,a-z]
+/// Checks given character is from UNICODE-latin1  [A-Z,a-z] space character
+/// \param ch a character
+/// \return whether ch is a UNICODE-latin1 character
+#ifdef IO_HAS_CONNCEPTS
 template<typename char_t>
+	requires( is_charater_v<char_t> )
+#else
+template<
+	typename char_t,
+	typename std::enable_if<
+		is_charater_v<char_t>
+	>::type* = nullptr
+>
+#endif // IO_HAS_CONNCEPTS
 constexpr bool is_latin1(const char_t ch) noexcept
 {
 	return is_lowercase_latin1( ch ) || is_uppercase_latin1( ch );
 }
 
-constexpr char latin1_to_lower(const char ch) noexcept
+/// Converts the given character to lower case if it is UNICODE-latin1
+/// \param ch a character
+/// \return a lower case result or same character if ch is not a latin1 upper case character
+#ifdef IO_HAS_CONNCEPTS
+template<typename char_t>
+	requires( is_charater_v<char_t> )
+#else
+template<
+	typename char_t,
+	typename std::enable_if<
+		is_charater_v<char_t>
+	>::type* = nullptr
+>
+#endif // IO_HAS_CONNCEPTS
+constexpr char_t latin1_to_lower(const char_t ch) noexcept
 {
-	return is_uppercase_latin1( ch ) ? (ch & UPPER_LOWER_MASK) : ch;
+	return is_uppercase_latin1( ch ) ? ( static_cast<const char>(ch) & UPPER_LOWER_MASK) : ch;
 }
 
-constexpr char latin1_to_upper(const char ch) noexcept
+/// Converts the given character to upper case if it is UNICODE-latin1
+/// \param ch a character
+/// \return a lower case result or same character if ch is not a latin1 lower case character
+#ifdef IO_HAS_CONNCEPTS
+template<typename char_t>
+	requires( is_charater_v<char_t> )
+#else
+template<
+	typename char_t,
+	typename std::enable_if<
+		is_charater_v<char_t>
+	>::type* = nullptr
+>
+#endif // IO_HAS_CONNCEPTS
+constexpr char_t latin1_to_upper(const char_t ch) noexcept
 {
-	return is_lowercase_latin1( ch ) ? (ch & UPPER_LOWER_MASK) : ch;
+	return is_lowercase_latin1( ch ) ? char_t( static_cast<const char>(ch) & UPPER_LOWER_MASK) : ch;
 }
 
-
-constexpr bool is_endl(const char ch) noexcept
+/// Checks given character is string ending character i.e. '\0'
+/// \param ch a character
+/// \return whether ch equaling to '\0'
+#ifdef IO_HAS_CONNCEPTS
+template<typename char_t>
+	requires( is_charater_v<char_t> )
+#else
+template<
+	typename char_t,
+	typename std::enable_if<
+		is_charater_v<char_t>
+	>::type* = nullptr
+>
+#endif // IO_HAS_CONNCEPTS
+constexpr bool is_endl(const char_t ch) noexcept
 {
-	return cheq('\0',ch);
+	return cheq(0,ch);
 }
 
-constexpr bool not_endl(const char ch) noexcept
+/// Checks given character is string not ending no character i.e. '\0'
+/// \param ch a character
+/// \return whether ch not equaling to '\0'
+#ifdef IO_HAS_CONNCEPTS
+template<typename char_t>
+	requires( is_charater_v<char_t> )
+#else
+template<
+	typename char_t,
+	typename std::enable_if<
+		is_charater_v<char_t>
+	>::type* = nullptr
+>
+#endif // IO_HAS_CONNCEPTS
+constexpr bool not_endl(const char_t ch) noexcept
 {
-	return chnoteq('\0', ch);
+	return chnoteq(0, ch);
+}
+
+/// Converts given 0-ro ending character array string UNICODE-latin1 symbols to upper case
+/// \param str a string to modify
+#ifdef IO_HAS_CONNCEPTS
+template<typename char_t>
+	requires( is_charater_v<char_t> )
+#else
+template<
+	typename char_t,
+	typename std::enable_if<
+		is_charater_v<char_t>
+	>::type* = nullptr
+>
+#endif // IO_HAS_CONNCEPTS
+inline void upcase_latin1(char_t* str) noexcept
+{
+	while( not_endl( *str ) ) {
+		*str = latin1_to_upper(*str);
+		++str;
+	}
+}
+
+/// Converts given 0-ro ending character array string UNICODE-latin1 symbols to lower case
+/// \param str a string to modify
+#ifdef IO_HAS_CONNCEPTS
+template<typename char_t>
+	requires( is_charater_v<char_t> )
+#else
+template<
+	typename char_t,
+	typename std::enable_if<
+		is_charater_v<char_t>
+	>::type* = nullptr
+>
+#endif // IO_HAS_CONNCEPTS
+inline void downcase_latin1(char_t* str) noexcept
+{
+	while( not_endl( *str ) ) {
+		*str = latin1_to_lower(*str);
+		++str;
+	}
 }
 
 constexpr uint16_t pack_word(uint16_t w, char c) noexcept
@@ -330,6 +598,34 @@ constexpr uint16_t pack_word(uint16_t w, char c) noexcept
 #else
 	return (w >> CHAR_BIT) | static_cast<uint16_t>(c);
 #endif // IO_IS_LITTLE_ENDIAN
+}
+
+static constexpr const char* SPACES = "\t\n\v\f\r ";
+
+inline const char* skip_spaces(const char *str) noexcept
+{
+	return str + io_strspn(str, SPACES);
+}
+
+inline char* skip_spaces(char *str) noexcept
+{
+	return str + io_strspn(str, SPACES);
+}
+
+inline const unsigned char* skip_spaces(const unsigned char *str) noexcept
+{
+	return reinterpret_cast<const unsigned char*>( skip_spaces( reinterpret_cast<const char*>(str) ) );
+}
+
+inline const char* skip_spaces_n(const char *str, std::size_t n) noexcept
+{
+	std::size_t offset = io_strspn(str, SPACES);
+	return (offset < n) ? (str+offset) : str;
+}
+
+inline const char* skip_spaces_r(const char *str, const char *end) noexcept
+{
+	return skip_spaces_n(str, static_cast<std::size_t>(end-str) );
 }
 
 } // namespace io

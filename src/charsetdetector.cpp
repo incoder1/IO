@@ -371,7 +371,7 @@ byte_buffer prober::filter_without_english_letters(std::error_code& ec, const ui
 			meet_MSB = false;
 			continue;
 		}
-		if ( is_latin1(*cur_ptr) ) {
+		if ( is_latin1( static_cast<char>(*cur_ptr) ) ) {
 			//current char is a symbol, most likely a punctuation. we treat it as segment delimiter
 			if (meet_MSB && (cur_ptr > prev_ptr) ) {
 				// this segment contains more than single symbol, and it has upper ASCII, we need to keep it
@@ -406,7 +406,7 @@ byte_buffer prober::filter_with_english_letters(std::error_code& ec, const uint8
 	    } else if( cheq('>',*next) ) {
 	    	inside_tag = false;
 	    }
-		if( ! (*next & 0x80) && is_latin1(*next) ) {
+		if( ! (*next & 0x80) && is_latin1( static_cast<char>(*next) ) ) {
 			// Current segment contains more than just a symbol
 			// and it is not inside a tag, keep it.
 			if (next > prev && !inside_tag) {
