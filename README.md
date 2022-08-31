@@ -107,13 +107,10 @@ Library supports Windows 7+ and GNU Linux Operating systems With GCC 10+ or MS V
 OS | Compiler | Version | Arhitecture
 --- | --- | --- | ---
 **Windows** | | |
- Windows 7  | GCC/G++ | 11.2.0 MinGW64 (MSYS2 build) | x86_64
- Windows 10 | GCC/G++ | 11.2.0 MinGW64 (MSYS2 build) | x86_64
+ Windows 10 | GCC/G++ | 12.1.0 MinGW64 (MSYS2 build) | x86_64
  Windows 10 | MS Visual C++ | 19 | x64 
 **GNU/Lunux** | | | 
- Fedora 30 | GCC/G++ | 9.1.0 | x86_64
- Fedora 32 | GCC/G++ | 10.1.2 | x86_64
- Fedora 35 | GCC/G++ | 11.1.3 |  x86_64
+ Fedora 36 | GCC/G++ | 12.1.0 |  x86_64
 
 ## BUILDING
 

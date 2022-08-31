@@ -10,6 +10,7 @@
 				<Option object_output="obj/debug-ming64/" />
 				<Option type="1" />
 				<Option compiler="gcc" />
+				<Option parameters="--gtest_color=yes" />
 				<Compiler>
 					<Add option="-g" />
 					<Add directory="../test" />
@@ -24,6 +25,7 @@
 				<Option object_output="obj/release-ming64/" />
 				<Option type="1" />
 				<Option compiler="gcc" />
+				<Option parameters="--gtest_color=yes" />
 				<Compiler>
 					<Add option="-flto" />
 					<Add option="-DIO_SHARED_LIB" />
