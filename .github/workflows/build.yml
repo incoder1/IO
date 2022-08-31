@@ -21,16 +21,15 @@ jobs:
         run: cmake . -DCMAKE_BUILD_TYPE=Release -DBUILD_LIBRARY_TYPE=Static -D${{matrix.defines}}=ON -A ${{matrix.arch}}
       - name: cmake build
         run: cmake --build .
-
-windows:
-  runs-on: windows-latest
-  strategy:
-    matrix:
-      arch: [Win32, x64]
-      defines: [_WIN32_WINNT=0x0A00, NDEBUG]
+  windows:
+    runs-on: windows-latest
+    strategy:
+      matrix:
+        arch: [Win32, x64]
+        defines: [_WIN32_WINNT=0x0A00, NDEBUG]
     steps:
-    - uses: actions/checkout@v1
-    - name: cmake configure
-      run: cmake . -DCMAKE_BUILD_TYPE=Release -DBUILD_LIBRARY_TYPE=Static -D${{matrix.defines}}=ON -A ${{matrix.arch}}
-    - name: cmake build
-      run: MSBuild io.sln /p:Configuration=Release
+      - uses: actions/checkout@v1
+      - name: cmake configure
+        run: cmake . -DCMAKE_BUILD_TYPE=Release -DBUILD_LIBRARY_TYPE=Static -D${{matrix.defines}}=ON -A ${{matrix.arch}}
+      - name: cmake build
+        run: MSBuild io.sln /p:Configuration=Release
