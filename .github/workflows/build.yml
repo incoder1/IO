@@ -12,7 +12,8 @@ jobs:
     strategy:
       matrix:
         os: [ubuntu]
-      compiler: [g++, clang++]
+        compiler: [g++, clang++]
+        defines: [NDEBUG]
     name: ${{matrix.os}} (${{matrix.compiler}}, ${{matrix.defines}})
     steps:
       - uses: actions/checkout@v1
@@ -26,7 +27,7 @@ windows:
   strategy:
     matrix:
       arch: [Win32, x64]
-      defines: [_WIN32_WINNT=0x0A00]
+      defines: [_WIN32_WINNT=0x0A00, NDEBUG]
     steps:
     - uses: actions/checkout@v1
     - name: cmake configure
