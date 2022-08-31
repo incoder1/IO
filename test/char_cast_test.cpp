@@ -35,7 +35,7 @@ TEST_F(char_cast_fixture, unsingned_8bit_to_char)
 
 TEST_F(char_cast_fixture, unsingned_8bit_from_char)
 {
-	const char* src = "128";
+	const char* src = "\t\n\v\f\r 128";
 	const char* endp = src + io_strlen(src);
 	const uint8_t expected = 128;
 	uint8_t actual;
@@ -61,7 +61,7 @@ TEST_F(char_cast_fixture, unsingned_16bit_to_char)
 
 TEST_F(char_cast_fixture, unsingned_16bit_from_char)
 {
-	const char* src = "65535";
+	const char* src = "\t\n\v\f\r 65535";
 	const char* endp = src + io_strlen(src);
 	const uint16_t expected = 0xFFFF;
 	uint16_t actual;
@@ -87,7 +87,7 @@ TEST_F(char_cast_fixture, unsingned_32bit_to_char)
 
 TEST_F(char_cast_fixture, unsingned_32bit_from_char)
 {
-	const char* src = "4294967295";
+	const char* src = "\t\n\v\f\r 4294967295";
 	const char* endp = src + io_strlen(src);
 	const uint32_t expected = 0xFFFFFFFF;
 	uint32_t actual;
@@ -112,7 +112,7 @@ TEST_F(char_cast_fixture, unsingned_64bit_to_char)
 
 TEST_F(char_cast_fixture, unsingned_64bit_from_char)
 {
-	const char* src = "18446744073709551615";
+	const char* src = "\t\n\v\f\r 18446744073709551615";
 	const char* endp = src + io_strlen(src);
 	const uint64_t expected = 0xFFFFFFFFFFFFFFFF;
 	uint64_t actual;
@@ -144,7 +144,7 @@ TEST_F(char_cast_fixture,singned_8bit_to_char)
 
 TEST_F(char_cast_fixture, singned_8bit_from_char)
 {
-	const char* src_min = "-128";
+	const char* src_min = "\t\n\v\f\r -128";
 	const char* endp_min = src_min + io_strlen(src_min);
 	const int8_t expected_min = -128;
 
@@ -155,7 +155,7 @@ TEST_F(char_cast_fixture, singned_8bit_from_char)
 	ASSERT_FALSE( std::make_error_code(ret.ec) );
 	ASSERT_EQ( ret.ptr, endp_min );
 
-	const char* src_max = "127";
+	const char* src_max = "\t\n\v\f\r 127";
 	const char* endp_max = src_max + io_strlen(src_max);
 	const uint8_t expected_max = 127;
 
@@ -187,7 +187,7 @@ TEST_F(char_cast_fixture,singned_16bit_to_char)
 
 TEST_F(char_cast_fixture, singned_16bit_from_char)
 {
-	const char* src_min = "-32768";
+	const char* src_min = "\t\n\v\f\r -32768";
 	const char* endp_min = src_min + io_strlen(src_min);
 	const int16_t expected_min = -32768;
 
@@ -198,7 +198,7 @@ TEST_F(char_cast_fixture, singned_16bit_from_char)
 	ASSERT_FALSE( std::make_error_code(ret.ec) );
 	ASSERT_EQ( ret.ptr, endp_min );
 
-	const char* src_max = "32767";
+	const char* src_max = "\t\n\v\f\r 32767";
 	const char* endp_max = src_max + io_strlen(src_max);
 	int16_t expected_max = 32767;
 
@@ -231,7 +231,7 @@ TEST_F(char_cast_fixture,singned_32bit_to_char)
 
 TEST_F(char_cast_fixture, singned_32bit_from_char)
 {
-	const char* src_min = "-2147483648";
+	const char* src_min = "\t\n\v\f\r -2147483648";
 	const char* endp_min = src_min + io_strlen(src_min);
 	const int32_t expected_min = -2147483648;
 
@@ -242,7 +242,7 @@ TEST_F(char_cast_fixture, singned_32bit_from_char)
 	ASSERT_FALSE( std::make_error_code(ret.ec) );
 	ASSERT_EQ( ret.ptr, endp_min );
 
-	const char* src_max = "2147483647";
+	const char* src_max = "\t\n\v\f\r 2147483647";
 	const char* endp_max = src_max + io_strlen(src_max);
 	int32_t expected_max = 2147483647;
 
@@ -274,7 +274,7 @@ TEST_F(char_cast_fixture,singned_64bit_to_char)
 
 TEST_F(char_cast_fixture, singned_64bit_from_char)
 {
-	const char* src_min = "-9223372036854775808";
+	const char* src_min = "\t\n\v\f\r -9223372036854775808";
 	const char* endp_min = src_min + io_strlen(src_min);
 	const int64_t expected_min = std::numeric_limits<int64_t>::min();
 
@@ -285,7 +285,7 @@ TEST_F(char_cast_fixture, singned_64bit_from_char)
 	ASSERT_FALSE( std::make_error_code(ret.ec) );
 	ASSERT_EQ( ret.ptr, endp_min );
 
-	const char* src_max = "9223372036854775807";
+	const char* src_max = "\t\n\v\f\r 9223372036854775807";
 	const char* endp_max = src_max + io_strlen(src_max);
 	int64_t expected_max = std::numeric_limits<int64_t>::max();
 
@@ -311,7 +311,7 @@ TEST_F(char_cast_fixture,float_to_char)
 
 TEST_F(char_cast_fixture,float_from_char)
 {
-	const char* src  = "\r\n\t\v -12345678.9";
+	const char* src  = "\t\n\v\f\r -12345678.9";
 	const char* endp  = src + io_strlen(src);
 
 	const float expected = -12345678.9F;
@@ -341,7 +341,7 @@ TEST_F(char_cast_fixture,double_to_char)
 
 TEST_F(char_cast_fixture,double_from_char)
 {
-	const char* src  = "\r\n\t\v -12345678.9";
+	const char* src  = "\t\n\v\f\r -12345678.9";
 	const char* endp  = src + io_strlen(src);
 
 	const double expected = -12345678.9;
@@ -370,7 +370,7 @@ TEST_F(char_cast_fixture,long_double_to_char)
 
 TEST_F(char_cast_fixture,long_double_from_char)
 {
-	const char* src  = "\r\n\t\v -12345678.9";
+	const char* src  = "\t\n\v\f\r -12345678.9";
 	const char* endp  = src + io_strlen(src);
 
 	const long double expected = -12345678.9L;
@@ -429,7 +429,7 @@ TEST_F(char_cast_fixture,boolean_to_chars_fromat_true_false)
 
 TEST_F(char_cast_fixture,boolean_from_chars)
 {
-	const char* src_true  = "\r\n\t\v True";
+	const char* src_true  = "\t\n\v\f\r True";
 	const char* endp_true  = src_true + io_strlen(src_true);
 
 	bool actual;
@@ -439,7 +439,7 @@ TEST_F(char_cast_fixture,boolean_from_chars)
 	ASSERT_EQ( ret.ptr, endp_true );
 	ASSERT_TRUE(actual);
 
-	const char* src_false  = "\r\n\t\v FaLsE";
+	const char* src_false  = "\t\n\v\f\r FaLsE";
 	const char* endp_false  = src_false + io_strlen(src_false);
 
 	ret = io::from_chars(src_false, endp_false, actual);
@@ -447,7 +447,7 @@ TEST_F(char_cast_fixture,boolean_from_chars)
 	ASSERT_EQ( ret.ptr, endp_false );
 	ASSERT_FALSE(actual);
 
-	const char* src_yes  = "\r\n\t\v yEs";
+	const char* src_yes  = "\t\n\v\f\r yEs";
 	const char* endp_yes  = src_yes + io_strlen(src_yes);
 	ret = io::from_chars(src_yes, endp_yes, actual);
 
@@ -455,7 +455,7 @@ TEST_F(char_cast_fixture,boolean_from_chars)
 	ASSERT_EQ( ret.ptr, endp_yes );
 	ASSERT_TRUE(actual);
 
-	const char* src_no  = "\r\n\t\v nO";
+	const char* src_no  = "\t\n\v\f\r nO";
 	const char* endp_no  = src_no + io_strlen(src_no);
 
 	ret = io::from_chars(src_no, endp_no, actual);
