@@ -128,7 +128,7 @@ to_chars_result to_chars(char* const first, char* const last, T value) noexcept
 
 		char tmp[ buff_size ] = { '\0' };
 		intmax_t sv = static_cast<intmax_t>(value);
-		uintmax_t uv = (sv < 0) ? static_cast<uintmax_t>(-sv) : static_cast<uintmax_t>(sv);
+		uintmax_t uv = (sv < 0) ? static_cast<uintmax_t>(~sv + 1) : static_cast<uintmax_t>(sv);
 
 		char *s = detail::uintmax_to_chars_reverse( (tmp + buff_size-1), uv );
 		if(sv < 0) {

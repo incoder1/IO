@@ -13,13 +13,14 @@ jobs:
       matrix:
         os: [ubuntu]
         compiler: [g++, clang++]
+        arch: [i686,x86_64]
         defines: [NDEBUG]
     name: ${{matrix.os}} (${{matrix.compiler}}, ${{matrix.defines}})
     runs-on: ${{matrix.os}}-latest
     steps:
       - uses: actions/checkout@v1
       - name: cmake configure
-        run: cmake . -DCMAKE_BUILD_TYPE=Release -DBUILD_LIBRARY_TYPE=Static -D${{matrix.defines}}=ON -A ${{matrix.arch}}
+        run: cmake . -DCMAKE_BUILD_TYPE=Release -DBUILD_LIBRARY_TYPE=Static -D${{matrix.defines}}
       - name: cmake build
         run: cmake --build .
   windows:
@@ -31,6 +32,6 @@ jobs:
     steps:
       - uses: actions/checkout@v1
       - name: cmake configure
-        run: cmake . -DCMAKE_BUILD_TYPE=Release -DBUILD_LIBRARY_TYPE=Static -D${{matrix.defines}}=ON -A ${{matrix.arch}}
+        run: cmake . -DCMAKE_BUILD_TYPE=Release -DBUILD_LIBRARY_TYPE=Static -D${{matrix.defines}}
       - name: cmake build
         run: MSBuild io.sln /p:Configuration=Release

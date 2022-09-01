@@ -636,33 +636,174 @@ static char* fmt_yes_no(char* to, std::size_t buf_size, bool value) noexcept
 }
 
 
-static constexpr char DIGITS_LUT[201] =
-		"0001020304050607080910111213141516171819"
-		"2021222324252627282930313233343536373839"
-		"4041424344454647484950515253545556575859"
-		"6061626364656667686970717273747576777879"
-		"8081828384858687888990919293949596979899";
+// Brached LUT constants
+static constexpr char DIGITS[201] =
+	"0001020304050607080910111213141516171819"
+	"2021222324252627282930313233343536373839"
+	"4041424344454647484950515253545556575859"
+	"6061626364656667686970717273747576777879"
+	"8081828384858687888990919293949596979899";
 
+
+static uintmax_t BRANCH_1  = 10;
+static uintmax_t BRANCH_2  = 100;
+static uintmax_t BRANCH_3  = 1000;
+static uintmax_t BRANCH_4  = 10000;
+static uintmax_t BRANCH_5  = 100000;
+static uintmax_t BRANCH_6  = 1000000;
+static uintmax_t BRANCH_7  = 10000000;
+static uintmax_t BRANCH_8  = 100000000;
+static uintmax_t BRANCH_9  = 1000000000UL;
+static uintmax_t BRANCH_10 = 10000000000UL;
+static uintmax_t BRANCH_11 = 100000000000UL;
+static uintmax_t BRANCH_12 = 1000000000000UL;
+static uintmax_t BRANCH_13 = 10000000000000UL;
+static uintmax_t BRANCH_14 = 100000000000000UL;
+static uintmax_t BRANCH_15 = 1000000000000000UL;
+static uintmax_t BRANCH_16 = 10000000000000000UL;
+
+static char* copy_one(char* s, const uint32_t i) noexcept
+{
+	*s = DIGITS[ i ];
+	return --s;
+}
+
+static char* copy_two(char* s, const uint32_t i) noexcept
+{
+	return copy_one( copy_one(s, (i + 1) ), i );
+}
 
 char* IO_PUBLIC_SYMBOL uintmax_to_chars_reverse(char* const last, uintmax_t value) noexcept
 {
 	char* ret = last;
-	while (value >= 100) {
-		std::size_t idx = (value % 100) << 1;
-		value /= 100;
-		*ret = DIGITS_LUT[idx + 1];
-		--ret;
-		*ret = DIGITS_LUT[idx];
-		--ret;
+	if (value < BRANCH_8) {
+		uint32_t v = static_cast<uint32_t>(value);
+		if(v < BRANCH_4) {
+			const uint32_t d1 = (v / BRANCH_2) << 1;
+			const uint32_t d2 = (v % BRANCH_2) << 1;
+			ret = copy_one(ret, d2 + 1);
+			if (v >= BRANCH_1)
+				ret = copy_one(ret, d2);
+			if (v >= BRANCH_2)
+				ret = copy_one(ret, d1 + 1);
+			if (v >= BRANCH_3)
+				ret = copy_one(ret, d1);
+			++ret;
+		}
+		else {
+			const uint32_t b = v / BRANCH_4;
+			const uint32_t c = v % BRANCH_4;
+
+			const uint32_t d1 = (b / BRANCH_2) << 1;
+			const uint32_t d2 = (b % BRANCH_2) << 1;
+			const uint32_t d3 = (c / BRANCH_2) << 1;
+			const uint32_t d4 = (c % BRANCH_2) << 1;
+
+			ret = copy_two(ret, d4);
+			ret = copy_two(ret, d3);
+			ret = copy_one(ret, d2 + 1);
+
+			if (value >= BRANCH_5)
+				ret = copy_one(ret, d2);
+			if (value >= BRANCH_6)
+				ret = copy_one(ret, d1 + 1);
+			if (value >= BRANCH_7)
+				ret = copy_one(ret, d1);
+			++ret;
+		}
 	}
-	if (value >= 10) {
-		std::size_t idx = value << 1;
-		*ret = DIGITS_LUT[idx + 1];
-		--ret;
-		*ret = DIGITS_LUT[idx];
+	else if(value < BRANCH_16) {
+		const uint32_t v0 = static_cast<uint32_t>(value / BRANCH_8);
+		const uint32_t b0 = v0 / BRANCH_4;
+		const uint32_t c0 = v0 % BRANCH_4;
+
+		const uint32_t v1 = static_cast<uint32_t>(value % BRANCH_8);
+		const uint32_t b1 = v1 / BRANCH_4;
+		const uint32_t c1 = v1 % BRANCH_4;
+
+		const uint32_t d1 = (b0 / BRANCH_2) << 1;
+		const uint32_t d2 = (b0 % BRANCH_2) << 1;
+		const uint32_t d3 = (c0 / BRANCH_2) << 1;
+		const uint32_t d4 = (c0 % BRANCH_2) << 1;
+		const uint32_t d5 = (b1 / BRANCH_2) << 1;
+		const uint32_t d6 = (b1 % BRANCH_2) << 1;
+		const uint32_t d7 = (c1 / BRANCH_2) << 1;
+		const uint32_t d8 = (c1 % BRANCH_2) << 1;
+
+		ret = copy_two(ret, d8);
+		ret = copy_two(ret, d7);
+		ret = copy_two(ret, d6);
+		ret = copy_two(ret, d5);
+		if (value >= BRANCH_8)
+			ret = copy_one(ret, d4 + 1);
+		if (value >= BRANCH_9)
+			ret = copy_one(ret, d4);
+		if (value >= BRANCH_10)
+			ret = copy_one(ret, d3 + 1);
+		if (value >= BRANCH_11)
+			ret = copy_one(ret, d3);
+		if (value >= BRANCH_12)
+			ret = copy_one(ret, d2 + 1);
+		if (value >= BRANCH_13)
+			ret = copy_one(ret, d2);
+		if (value >= BRANCH_14)
+			ret = copy_one(ret, d1 + 1);
+		if (value >= BRANCH_15)
+			ret = copy_one(ret, d1);
+		++ret;
 	}
 	else {
-		*ret = '0' + value;
+
+		const uint32_t a = static_cast<uint32_t>(value / BRANCH_16); // 1 to 1844
+		value %= BRANCH_16;
+
+		const uint32_t v0 = static_cast<uint32_t>(value / BRANCH_8);
+		const uint32_t b0 = v0 / BRANCH_4;
+		const uint32_t c0 = v0 % BRANCH_4;
+
+		const uint32_t v1 = static_cast<uint32_t>(value % BRANCH_8);
+		const uint32_t b1 = v1 / BRANCH_4;
+		const uint32_t c1 = v1 % BRANCH_4;
+
+		const uint32_t d1 = (b0 / BRANCH_2) << 1;
+		const uint32_t d2 = (b0 % BRANCH_2) << 1;
+		const uint32_t d3 = (c0 / BRANCH_2) << 1;
+		const uint32_t d4 = (c0 % BRANCH_2) << 1;
+		const uint32_t d5 = (b1 / BRANCH_2) << 1;
+		const uint32_t d6 = (b1 % BRANCH_2) << 1;
+		const uint32_t d7 = (c1 / BRANCH_2) << 1;
+		const uint32_t d8 = (c1 % BRANCH_2) << 1;
+
+		ret = copy_two(ret, d8);
+		ret = copy_two(ret, d7);
+		ret = copy_two(ret, d6);
+		ret = copy_two(ret, d5);
+		ret = copy_two(ret, d4);
+		ret = copy_two(ret, d3);
+		ret = copy_two(ret, d2);
+		ret = copy_two(ret, d1);
+
+		if (a < BRANCH_1) {
+			*ret = '0' + static_cast<char>(a);
+			--ret;
+		}
+		else if(a < BRANCH_2) {
+			const uint32_t i = a << 1;
+			ret = copy_two(ret, i);
+		}
+		else if (a < BRANCH_3) {
+			const uint32_t i = (a % BRANCH_2) << 1;
+			ret = copy_two(ret, i);
+			*ret = '0' + static_cast<char>(a / BRANCH_2);
+			--ret;
+		}
+		else {
+			const uint32_t i = (a / BRANCH_2) << 1;
+			const uint32_t j = (a % BRANCH_2) << 1;
+			ret = copy_two(ret, j);
+			ret = copy_two(ret, i);
+		}
+		++ret;
 	}
 	return ret;
 }
@@ -973,3 +1114,4 @@ from_chars_result  from_chars(const char* first,const char* last, bool& value) n
 
 
 } // namespace io
+

@@ -76,7 +76,6 @@ TEST_F(char_cast_fixture, unsingned_32bit_to_char)
 	char buff[16] = {'\0'};
 	char* first= buff;
 	char* last = first + sizeof(buff);
-
 	uint32_t u32bit = 0xFFFFFFFF;
 	auto ret = io::to_chars(first, last, u32bit);
 	ASSERT_FALSE( std::make_error_code(ret.ec) );
