@@ -30,7 +30,6 @@
 				</Linker>
 			</Target>
 			<Target title="release-win-gcc-x64">
-				<Option platforms="Windows;" />
 				<Option output="bin/release-win-gcc-x64/xmlparse" prefix_auto="1" extension_auto="1" />
 				<Option object_output="obj/release-win-gcc-x64/" />
 				<Option type="1" />
@@ -69,17 +68,28 @@
 				<Option compiler="gcc" />
 				<Option parameters="test.xml" />
 				<Compiler>
+					<Add option="-flto" />
 					<Add option="-Weffc++" />
 					<Add option="-pedantic" />
 					<Add option="-Wextra" />
 					<Add option="-Wall" />
 					<Add option="-std=gnu++20" />
-					<Add option="-pg" />
-					<Add option="-g" />
+					<Add option="-fno-exceptions" />
+					<Add option="-fno-rtti" />
+					<Add option="-DNDEBUG" />
+					<Add option="-DUNICODE" />
+					<Add option="-DIO_SHARED_LIB" />
 				</Compiler>
 				<Linker>
-					<Add option="-pg" />
-					<Add directory="../../bin/debug-unix-gcc-x86_64" />
+					<Add option="-O3" />
+					<Add option="-flto" />
+					<Add option="-s" />
+					<Add option="-mtune=native" />
+					<Add option="-fwhole-program" />
+					<Add option="-minline-stringops-dynamically" />
+					<Add option="-fno-set-stack-executable" />
+					<Add library="iconv.dll" />
+					<Add directory="../../bin/release-win-gcc-dll-x64" />
 				</Linker>
 			</Target>
 		</Build>

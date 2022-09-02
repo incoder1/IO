@@ -15,12 +15,12 @@
 #include <type_traits>
 
 // Unicode console, if not supported by runtime
-#if defined(__IO_WINDOWS_BACKEND__) && defined(UNICODE)
+//#if defined(__IO_WINDOWS_BACKEND__) && defined(UNICODE)
 #	include <console.hpp>
-#	define NEED_UNICODE_CONSOLE 1
-# else
-#	include <iostream>
-#endif
+//#	define NEED_UNICODE_CONSOLE 1
+//# else
+//#	include <iostream>
+//#endif
 
 
 using namespace io;
@@ -32,10 +32,10 @@ void print_start_doc(std::ostream& stm,const xml::s_event_stream_parser& s)
 	xml::document_event e = s->parse_start_doc();
 	// check parsing was success
 	if( !s->is_error() ) {
-	    stm << "start document:\n";
-	    stm << "\tversion: " << e.version();
-	    stm << " encoding: " << e.encoding();
-	    stm << " standalone: " << (e.standalone() ? "yes" : "no") << std::endl;
+	    stm << io::cclr::navy_green << "start document:\n";
+	    stm << io::cclr::navy_aqua << "\tversion:" << io::cclr::reset << e.version();
+	    stm << io::cclr::magenta <<  " encoding: " << io::cclr::reset << e.encoding();
+	    stm << io::cclr::navy_blue << " standalone: " << io::cclr::reset << (e.standalone() ? "yes" : "no") << std::endl;
 	}
 }
 
@@ -46,9 +46,9 @@ static void print_instr(std::ostream& stm, const xml::s_event_stream_parser& s)
 	xml::instruction_event e = s->parse_processing_instruction();
 	// check parsing was success
 	if( !s->is_error() ) {
-		stm<<"processing instruction:\n";
-		stm<<"\ttarget:" <<e.target();
-		stm<<"\n\tdata: " << e.data() << std::endl;
+		stm << io::cclr::navy_green << "processing instruction:\n";
+		stm << io::cclr::yellow << "\ttarget: " << io::cclr::reset << e.target();
+		stm << io::cclr::yellow << "\n\tdata: " << io::cclr::reset << e.data() << std::endl;
 	}
 }
 
@@ -59,26 +59,26 @@ static void print_start_element(std::ostream& stm, const xml::s_event_stream_par
 	xml::start_element_event e = s->parse_start_element();
 	// check parsing was success
 	if( !s->is_error() ) {
-		stm << "Start element:\n";
+		stm << io::cclr::navy_green << "Start element:\n";
 
 		if( e.name().has_prefix() )
-			stm << "\tprefix:"<<e.name().prefix();
+			stm << io::cclr::yellow << "\tprefix:"<< io::cclr::reset << e.name().prefix();
 
-		stm << " name:"<< e.name().local_name();
+		stm << io::cclr::light_purple << " name:" << io::cclr::reset << e.name().local_name();
 		// show whether  <tag attr="att"/> or <tag></tag>
 		// parser not generating end element events for
 		// self closing tags
-		stm <<" empty element:" << ( e.empty_element() ? " yes" : " no") <<  '\n';
+		stm << io::cclr::yellow << " empty element:" << io::cclr::reset << ( e.empty_element() ? " yes" : " no") <<  '\n';
 		// loop over the XML attributes if any
 		if( e.has_attributes() ) {
-			stm<<"\tattributes:\n";
+			stm << io::cclr::navy_aqua << "\tattributes:\n" << io::cclr::reset;
 			std::for_each(e.attr_begin(), e.attr_end(), [&stm] (const xml::attribute& attr) {
 				io::xml::qname attr_name = attr.name();
 				stm << "\t\t";
 				if( attr_name.has_prefix() )
-					stm << "prefix: " << attr_name.prefix() << ' ';
-				stm << "name: " << attr_name.local_name();
-				stm << " value: " << attr.value() << '\n';
+					stm << io::cclr::yellow << "prefix: " << io::cclr::reset << attr_name.prefix() << ' ';
+				stm << io::cclr::light_aqua << "name: " << io::cclr::reset << attr_name.local_name();
+				stm << io::cclr::light_purple << " value: " << io::cclr::reset << attr.value() << '\n';
 			} );
 		}
 		// flush to console
@@ -93,11 +93,11 @@ static void print_end_element(std::ostream& stm, const xml::s_event_stream_parse
 	if(!s->is_error()) {
 		io::xml::qname el_name = e.name();
 
-		stm << "End element:\n";
+		stm << io::cclr::navy_green << "End element:\n" << io::cclr::reset ;
 		if( el_name.has_prefix() )
-			stm << " prefix:" << el_name.prefix();
+			stm << io::cclr::yellow << " prefix:" << io::cclr::reset << el_name.prefix();
 
-		stm << " name:" << el_name.local_name() << std::endl;
+		stm << io::cclr::yellow<< " name:" << io::cclr::reset << el_name.local_name() << std::endl;
 	}
 }
 
@@ -127,7 +127,7 @@ static void print_event(std::ostream& stm,const xml::s_event_stream_parser& s)
 // output a string into a stream
 static void log_chars(std::ostream& strm,const char* msg, const const_string& chars)
 {
-	strm << msg << '\n' << chars << '\n';
+	strm << io::cclr::navy_green << msg << io::cclr::reset << '\n' << chars << '\n';
 	if(chars.size() > 80)
 		strm.flush();
 }
@@ -164,16 +164,15 @@ int main(int argc, const char** argv)
 #endif // IO_NO_EXCEPTIONS
 
 // Unicode console for Windows (not needed for MSYS2/Cygwin or UNIX)
-#ifdef NEED_UNICODE_CONSOLE
+//#ifdef NEED_UNICODE_CONSOLE
 	io::console cons;
-	//cons.change_out_color( io::text_color::navy_green );
 	io::console_output_stream cout(cons);
 	io::console_error_stream cerr(cons);
-#else
-	std::ios::sync_with_stdio(false);
-	std::ostream& cout = std::cout;
-	std::ostream& cerr = std::cerr;
-#endif
+//#else
+//	std::ios::sync_with_stdio(false);
+//	std::ostream& cout = std::cout;
+//	std::ostream& cerr = std::cerr;
+//#endif
 	// take program arguments
 	if(argc < 2) {
 		cout << "XML parsing example\n Usage:\t xmlparse <xmlfile>[.xml]" << std::endl;
@@ -249,8 +248,8 @@ int main(int argc, const char** argv)
 	}
 	// Parsing is done
 	if( xs->row() > 1 )
-		cout << "End of document\n\t" <<  xs->row() << " rows processed" << std::endl;
+		cout << io::cclr::yellow << "End of document\t" << io::cclr::reset <<  xs->row() << io::cclr::yellow << " rows processed" << io::cclr::reset << std::endl;
 	else
-		cout << "End of document\n\t" <<  xs->col() << " symbols processed" << std::endl;
+		cout << io::cclr::yellow << "End of document\t" << io::cclr::reset <<  xs->col() << io::cclr::yellow << " symbols processed" << io::cclr::reset << std::endl;
 	return 0;
 }
