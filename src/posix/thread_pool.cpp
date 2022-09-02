@@ -22,11 +22,11 @@ public:
 	strick_lock(::pthread_mutex_t &mtx) noexcept:
 		mtx_(mtx)
 	{
-		::pthread_mutex_lock(mtx_);
+		::pthread_mutex_lock( std::addressof(mtx_) );
 	}
 	~strick_lock() noexcept
 	{
-		::pthread_mutex_unlock(mtx_);
+		::pthread_mutex_unlock( std::addressof(mtx_) );
 	}
 private:
 	::pthread_mutex_t &mtx_;
@@ -34,7 +34,8 @@ private:
 
 blocking_queue::blocking_queue() noexcept:
 	mtx_(),
-	cv_()
+	cv_(),
+    queue_()
 {
 	::pthread_mutex_init( &mtx_, nullptr );
 	::pthread_cond_init( &cv_, nullptr);
@@ -48,7 +49,7 @@ blocking_queue::~blocking_queue() noexcept
 
 async_task blocking_queue::poll()
 {
-	strick_lock(&mtx_);
+	strick_lock lock(mtx_);
 	while( queue_.empty() ) {
 		::pthread_cond_wait( &cv_, &mtx_ );
 	}
@@ -59,7 +60,7 @@ async_task blocking_queue::poll()
 
 void blocking_queue::push(async_task&& el) noexcept
 {
-	strick_lock(&mtx_);
+	strick_lock lock(mtx_);
 	queue_.emplace_back( std::forward<async_task&&>(el) );
 }
 

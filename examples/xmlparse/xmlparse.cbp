@@ -30,6 +30,7 @@
 				</Linker>
 			</Target>
 			<Target title="release-win-gcc-x64">
+				<Option platforms="Windows;" />
 				<Option output="bin/release-win-gcc-x64/xmlparse" prefix_auto="1" extension_auto="1" />
 				<Option object_output="obj/release-win-gcc-x64/" />
 				<Option type="1" />

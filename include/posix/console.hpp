@@ -1,6 +1,6 @@
 /*
  *
- * Copyright (c) 2016-2020
+ * Copyright (c) 2016-2022
  * Viktor Gubin
  *
  * Use, modification and distribution are subject to the
@@ -17,13 +17,9 @@
 #pragma once
 #endif // HAS_PRAGMA_ONCE
 
-#include <atomic>
-#include <memory>
-
 #include <channels.hpp>
 #include <stream.hpp>
 
-#include "criticalsection.hpp"
 #include "files.hpp"
 
 namespace io
@@ -41,7 +37,7 @@ enum class text_color
 	gray,
 	light_blue,
 	light_green,
-	light_aqu,
+	light_aqua,
 	light_red,
 	light_purple,
 	yellow,
@@ -63,8 +59,6 @@ public:
 	void change_color(text_color attr) noexcept;
 private:
 	fd_t stream_;
-	const uint8_t* color_;
-	std::size_t color_len_;
 };
 
 DECLARE_IPTR(console_channel);
@@ -74,72 +68,68 @@ DECLARE_IPTR(console_channel);
 class IO_PUBLIC_SYMBOL console
 {
 private:
-	console();
-	static const console* get();
-	static void release_console() noexcept;
-public:
+	friend class console_input_stream;
+	friend class console_output_stream;
+	friend class console_error_stream;
 
-	/// Reset default console output colors
+	friend class console_out_writer;
+public:
+	console();
+
+	/// Changes default console output colors
 	/// \param in color for input stream
 	/// \param out color for output stream
 	/// \param err color for error stream
-	static void reset_colors(const text_color in,const text_color out,const text_color err) noexcept;
+	void change_colors(const text_color in,const text_color out,const text_color err) noexcept;
 
-	/// Reset input stream console output color
+	/// Changes input stream console output color
 	/// \param clr new color
-	static void reset_in_color(const text_color clr) noexcept;
+	void change_in_color(const text_color clr) noexcept;
 
-	/// Reset stdout stream console output color
+	/// Changes stdout stream console output color
 	/// \param clr new color
-	static void reset_out_color(const text_color clr) noexcept;
+	void change_out_color(const text_color clr) noexcept;
 
-	/// Reset stderr stream console output color
+	/// Changes stderr stream console output color
 	/// \param clr new color
-	static void reset_err_color(const text_color crl) noexcept;
+	static void change_err_color(const text_color crl) noexcept;
 
-	/// Returns console input channel
-	/// \return console input channel
-	/// \throw can throw std::bad_alloc, when out of memory
-	static inline s_read_channel in()
-	{
-		return s_read_channel( get()->in_ );
-	}
+    void reset_in_color() noexcept;
 
-	/// Returns console output channel
-	/// \throw can throw std::bad_alloc, when out of memory
-	static inline s_write_channel out()
-	{
-		return s_write_channel( get()->out_ );
-	}
+	void reset_out_color() noexcept;
 
-	static inline s_write_channel err()
-	{
-		return s_write_channel( get()->err_ );
-	}
+	void reset_err_color() noexcept;
 
-	/// Returns std::basic_stream<char> with ato-reconverting
-	/// UTF-8 multibyte characters into console default UTF-16LE
-	static std::ostream& out_stream();
-
-	/// Returns std::basic_stream<char> with ato-reconverting
-	/// UTF-8 multibyte characters into console default UTF-16LE
-	static std::ostream& error_stream();
-
-	/// Returns std::basic_stream<wchar_t> stream to constole output stream
-	static std::wostream& out_wstream();
-
-	/// Returns std::basic_stream<wchar_t> stream to constole error stream
-	static std::wostream& error_wstream();
-
-	static std::wistream& in_wstream();
 
 private:
 	posix::s_console_channel in_;
 	posix::s_console_channel out_;
 	posix::s_console_channel err_;
-	static std::atomic<console*> _instance;
-	static critical_section _cs;
 };
+
+class console_out_writer: public writer {
+public:
+	explicit console_out_writer(console& cons):
+		writer( cons.out_ )
+	{}
+};
+
+class console_input_stream: public cnl_istream {
+public:
+	explicit console_input_stream(console& cons):
+		cnl_istream(  cons.in_  )
+	{}
+};
+
+class base_console_out_stream: public cnl_ostream {
+public:
+	base_console_out_stream(const s_write_channel& fb):
+		cnl_ostream( fb )
+	{}
+	virtual void change_color(text_color clr) const = 0;
+	virtual void reset_color() const = 0;
+};
+
 
 } // namespace io
 

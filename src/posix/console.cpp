@@ -15,217 +15,122 @@ namespace io {
 
 namespace posix {
 
-//text_color
+//text color
 
-#define DECLARE_COLOR( _C_NAME, __attr) \
-	static const uint8_t* _C_NAME = reinterpret_cast<const uint8_t*>( __attr )
+static const char* NAVY_BLUE = "\033[22;34m";
+static const char* NAVY_GREEN = "\033[22;32m";
+static const char* NAVY_AQUA = "\033[22;36m";
+static const char* NAVY_RED = "\033[22;31m";
+static const char* MAGENTA = "\033[22;35m";
+static const char* BROWN = "\033[22;33m";
+static const char* WHITE = "\033[22;37m";
+static const char* GRAY = "\033[01;30m";
+static const char* LIGHT_BLUE = "\033[01;34m";
+static const char* LIGHT_GREEN = "\033[01;32m";
+static const char* LIGHT_AQUA = "\033[01;36m";
+static const char* LIGHT_RED = "\033[01;31m";
+static const char* PURPLE = "\033[01;35m";
+static const char* YELLOW = "\033[01;33m";
+static const char* BRIGHT_WHITE = "\033[01;37m";
+static const char* RESET = "\033[0m";
 
-DECLARE_COLOR(NAVY_BLUE,"\033[22;34m");
-DECLARE_COLOR(NAVY_GREEN,"\033[22;32m");
-DECLARE_COLOR(NAVY_AQUA, "\033[22;36m");
-DECLARE_COLOR(NAVY_RED,"\033[22;31m");
-DECLARE_COLOR(MAGENTA,"\033[22;35m");
-DECLARE_COLOR(BROWN,"\033[22;33m");
-DECLARE_COLOR(WHITE,"\033[22;37m");
-DECLARE_COLOR(GRAY,"\033[01;30m");
-DECLARE_COLOR(LIGHT_BLUE,"\033[01;34m");
-DECLARE_COLOR(LIGHT_GREEN,"\033[01;32m");
-DECLARE_COLOR(LIGHT_AQUA,"\033[01;36m");
-DECLARE_COLOR(LIGHT_RED,"\033[01;31m");
-DECLARE_COLOR(PURPLE,"\033[01;35m");
-DECLARE_COLOR(YELLOW,"\033[01;33m");
-DECLARE_COLOR(BRIGHT_WHITE,"\033[01;37m");
-DECLARE_COLOR(RESET,"\033[0m");
-#undef DECLARE_COLOR
+static const std::size_t RESET_LEN = io_strlen( RESET );
 
-static const std::size_t RESET_LEN = io_strlen( reinterpret_cast<const char*>(RESET) );
-
-static const  uint8_t* COLOR_TABLE[15] = {
-	NAVY_BLUE,
-	NAVY_GREEN,
-	NAVY_AQUA,
-	NAVY_RED,
-	MAGENTA,
-	BROWN,
-	WHITE,
-	GRAY,
-	LIGHT_BLUE,
-	LIGHT_GREEN,
-	LIGHT_AQUA,
-	LIGHT_RED,
-	PURPLE,
-	YELLOW,
-	BRIGHT_WHITE
+static const  std::pair<const char*, std::size_t> COLOR_TABLE[15] =
+{
+	std::make_pair(NAVY_BLUE,io_strlen(NAVY_BLUE)),
+	std::make_pair(NAVY_GREEN,io_strlen(NAVY_GREEN)),
+	std::make_pair(NAVY_AQUA,io_strlen(NAVY_AQUA)),
+	std::make_pair(NAVY_RED,io_strlen(NAVY_RED)),
+	std::make_pair(MAGENTA,io_strlen(MAGENTA)),
+	std::make_pair(BROWN,io_strlen(BROWN)),
+	std::make_pair(WHITE,io_strlen(WHITE)),
+	std::make_pair(GRAY,io_strlen(GRAY)),
+	std::make_pair(LIGHT_BLUE,io_strlen(LIGHT_BLUE)),
+	std::make_pair(LIGHT_GREEN,io_strlen(LIGHT_GREEN)),
+	std::make_pair(LIGHT_AQUA,io_strlen(LIGHT_AQUA)),
+	std::make_pair(LIGHT_RED,io_strlen(LIGHT_RED)),
+	std::make_pair(PURPLE,io_strlen(PURPLE)),
+	std::make_pair(YELLOW,io_strlen(YELLOW)),
+	std::make_pair(BRIGHT_WHITE,io_strlen(BRIGHT_WHITE))
 };
 
+void change_color(int fileno, text_color cl) noexcept
+{
+	auto clr = COLOR_TABLE[ static_cast<std::size_t>(cl) ];
+	::write(fileno, clr.first, clr.second );
+}
+
+//  console_channel
 console_channel::console_channel(const fd_t stream) noexcept:
 	read_write_channel(),
-	stream_(stream),
-	color_(RESET),
-	color_len_( RESET_LEN )
+	stream_(stream)
 {}
 
 std::size_t console_channel::read(std::error_code& ec,uint8_t* const buff, std::size_t bytes) const noexcept
 {
-	std::size_t ret;
-	if(RESET != color_) {
-		if( !::write(STDOUT_FILENO, color_, color_len_) ) {
-			ec.assign(errno, std::system_category() );
-			return 0;
-		}
-	}
-	::ssize_t result = ::read(stream_, static_cast<void*>(buff), bytes);
-	if(result < 0)
+	::ssize_t ret = ::read(stream_, static_cast<void*>(buff), bytes);
+	if(ret < 0) {
+        ret = 0;
 		ec.assign(errno, std::system_category() );
-	ret = static_cast<size_t>(result);
-	if(RESET != color_) {
-		if(! ::write(STDOUT_FILENO, RESET, RESET_LEN ) ) {
-			ec.assign(errno, std::system_category() );
-			return 0;
-		}
-	}
-	return ret;
+    }
+	return static_cast<std::size_t>(ret);
 }
 
 std::size_t console_channel::write(std::error_code& ec, const uint8_t* buff,std::size_t size) const noexcept
 {
-	if(RESET != color_) {
-		if( !::write(stream_, color_, color_len_) ) {
-			ec.assign(errno, std::system_category() );
-			return 0;
-		}
-	}
-	::ssize_t result = ::write(stream_, buff, size);
-	if(result < 0) {
+	::ssize_t ret = ::write(stream_, buff, size);
+	if(ret < 0) {
+        ret = 0;
 		ec.assign(errno, std::system_category() );
-		return 0;
 	}
-	if(RESET != color_) {
-		if(! ::write(stream_, RESET, RESET_LEN ) ) {
-			ec.assign(errno, std::system_category() );
-			return 0;
-		}
-	}
-	return static_cast<std::size_t>(result);
+	return static_cast<std::size_t>(ret);
 }
-
-void console_channel::change_color(text_color cl) noexcept
-{
-	color_ = COLOR_TABLE[ static_cast<std::size_t>(cl) ];
-	color_len_ = io_strlen( reinterpret_cast<const char*>( color_ ) );
-}
-
 
 } // namespace posix
 
-
 // console
-std::atomic<console*> console::_instance(nullptr);
-critical_section console::_cs;
-
-void console::release_console() noexcept
-{
-	console* inst = _instance.load( std::memory_order_seq_cst );
-	if(nullptr != inst)
-		delete inst;
-}
-
-const console* console::get()
-{
-	console *tmp = _instance.load( std::memory_order_consume );
-	if( nullptr == tmp ) {
-		lock_guard lock(_cs);
-		tmp = _instance.load( std::memory_order_consume );
-		if( nullptr == tmp ) {
-			std::atexit( &console::release_console );
-			tmp = new (std::nothrow) console();
-			_instance.store( tmp, std::memory_order_release );
-		}
-	}
-	return tmp;
-}
-
 console::console():
 	in_( new posix::console_channel(STDIN_FILENO) ),
 	out_( new posix::console_channel(STDOUT_FILENO) ),
 	err_( new posix::console_channel(STDERR_FILENO) )
 {}
 
-void console::reset_colors(const text_color in,const text_color out,const text_color err) noexcept
+void console::change_colors(const text_color in,const text_color out,const text_color err) noexcept
 {
-	console *con = const_cast<console*>( get() );
-	lock_guard lock(_cs);
-	posix::s_console_channel cch = con->in_;
-	cch->change_color(in);
-	cch = con->out_;
-	cch->change_color(out);
-	cch = con->err_;
-	cch->change_color(err);
+    posix::change_color(STDIN_FILENO,in);
+    posix::change_color(STDOUT_FILENO,out);
+    posix::change_color(STDERR_FILENO,err);
 }
 
-void console::reset_in_color(const text_color clr) noexcept
+void console::change_in_color(const text_color clr) noexcept
 {
-	console *con = const_cast<console*>( get() );
-	lock_guard lock(_cs);
-	con->in_->change_color(clr);
+    posix::change_color(STDIN_FILENO,clr);
 }
 
-void console::reset_out_color(const text_color clr) noexcept
+void console::change_out_color(const text_color clr) noexcept
 {
-	console *con = const_cast<console*>( get() );
-	lock_guard lock(_cs);
-	con->out_->change_color(clr);
+    posix::change_color(STDOUT_FILENO,clr);
 }
 
-void console::reset_err_color(const text_color clr) noexcept
+void console::change_err_color(const text_color clr) noexcept
 {
-	console *con = const_cast<console*>( get() );
-	lock_guard lock(_cs);
-	con->err_->change_color(clr);
+    posix::change_color(STDERR_FILENO,clr);
 }
 
-std::ostream& console::out_stream()
+void console::reset_in_color() noexcept
 {
-	static io::channel_ostream<char> _cout( get()->out_ );
-	return _cout;
+    ::write(STDIN_FILENO, posix::RESET, posix::RESET_LEN);
 }
 
-std::ostream& console::error_stream()
+void console::reset_out_color() noexcept
 {
-	static io::channel_ostream<char> _cout( get()->err_ );
-	return _cout;
+    ::write(STDOUT_FILENO, posix::RESET, posix::RESET_LEN);
 }
 
-#ifdef IO_IS_LITTLE_ENDIAN
-	static const charset SYSTEM_WIDE = code_pages::UTF_32LE;
-#else
-	static const charset SYSTEM_WIDE = code_pages::UTF_32BE;
-#endif // IO_IS_LITTLE_ENDIAN
-
-static s_write_channel conv_w_channel(const s_write_channel& ch)
+void console::reset_err_color() noexcept
 {
-	std::error_code ec;
-	s_code_cnvtr conv = code_cnvtr::open(ec,
-										SYSTEM_WIDE,
-										code_pages::UTF_8,
-										cnvrt_control::discard_on_failing_chars);
-	io::check_error_code( ec );
-	s_write_channel result = conv_write_channel::open(ec, ch, conv);
-	io::check_error_code( ec );
-	return result;
-}
-
-static s_read_channel conv_r_channel(const s_read_channel& ch)
-{
-    std::error_code ec;
-	s_code_cnvtr conv = code_cnvtr::open(ec,
-                                        code_pages::UTF_8,
-										SYSTEM_WIDE,
-										cnvrt_control::discard_on_failing_chars);
-	io::check_error_code( ec );
-    s_read_channel result = conv_read_channel::open(ec, ch, conv);
-	io::check_error_code( ec );
-	return result;
+    ::write(STDERR_FILENO, posix::RESET, posix::RESET_LEN);
 }
 
 } // namespace io

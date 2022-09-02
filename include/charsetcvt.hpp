@@ -306,7 +306,7 @@ private:
 class IO_PUBLIC_SYMBOL code_cnvtr;
 DECLARE_IPTR(code_cnvtr);
 
-/// \brief character set conversation (transcoding) interface
+/// \brief Character set conversation (transcoding) interface
 class IO_PUBLIC_SYMBOL code_cnvtr final: public object {
 public:
 	/// Cursor character transcoding API, direct access to conversation engine

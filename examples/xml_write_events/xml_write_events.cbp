@@ -3,10 +3,10 @@
 	<FileVersion major="1" minor="6" />
 	<Project>
 		<Option title="xml_write_events" />
-		<Option pch_mode="2" />
 		<Option compiler="gcc" />
 		<Build>
 			<Target title="debug-ming64">
+				<Option platforms="Windows;" />
 				<Option output="bin/debug-ming64/xml_write_events" prefix_auto="1" extension_auto="1" />
 				<Option object_output="obj/debug-ming64/" />
 				<Option type="1" />
@@ -21,6 +21,7 @@
 				</Linker>
 			</Target>
 			<Target title="release-ming64">
+				<Option platforms="Windows;" />
 				<Option output="bin/release-ming64/xml_write_events" prefix_auto="1" extension_auto="1" />
 				<Option object_output="obj/release-ming64/" />
 				<Option type="1" />
@@ -31,6 +32,22 @@
 				<Linker>
 					<Add option="-s" />
 					<Add directory="../../bin/release-win-gcc-dll-x64" />
+				</Linker>
+			</Target>
+			<Target title="debug-unix-gcc-x86_64">
+				<Option platforms="Unix;" />
+				<Option output="bin/release-unix-gcc-x86_64/xml_write_events" prefix_auto="1" extension_auto="1" />
+				<Option object_output="obj/debug-unix-gcc-x86_64/" />
+				<Option type="1" />
+				<Option compiler="gcc" />
+				<Compiler>
+					<Add option="-pg" />
+					<Add option="-Og" />
+					<Add option="-g" />
+				</Compiler>
+				<Linker>
+					<Add option="-pg" />
+					<Add directory="../../bin/debug-unix-gcc-x86_64" />
 				</Linker>
 			</Target>
 		</Build>

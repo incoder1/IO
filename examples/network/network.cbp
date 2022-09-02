@@ -3,7 +3,6 @@
 	<FileVersion major="1" minor="6" />
 	<Project>
 		<Option title="network" />
-		<Option pch_mode="2" />
 		<Option compiler="gcc" />
 		<Build>
 			<Target title="debug-win-gcc-x64">
@@ -62,9 +61,8 @@
 					<Add option="-O3" />
 					<Add option="-flto" />
 					<Add option="-s" />
-					<Add library="iconv.dll" />
-					<Add library="gnutls.dll" />
-					<Add directory="../../bin/release-win-gcc-dll-x64" />
+					<Add option="`pkg-config --libs gnutls`" />
+					<Add directory="../../bin/debug-unix-gcc-x86_64" />
 				</Linker>
 			</Target>
 		</Build>
