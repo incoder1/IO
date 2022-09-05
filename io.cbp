@@ -323,7 +323,6 @@
 		</Unit>
 		<Unit filename="src/stringpool.cpp" />
 		<Unit filename="src/strings.hpp" />
-		<Unit filename="src/text.cpp" />
 		<Unit filename="src/tls/blocking_channel.cpp" />
 		<Unit filename="src/tls/credentials.cpp" />
 		<Unit filename="src/tls/security_context.cpp" />

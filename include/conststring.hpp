@@ -17,8 +17,9 @@
 #pragma once
 #endif // HAS_PRAGMA_ONCE
 
-#include "text.hpp"
+#include "charsetcvt.hpp"
 #include "hashing.hpp"
+
 
 #include <cstring>
 #include <cctype>
@@ -38,7 +39,7 @@ namespace detail {
 #if defined(__HAS_CPP_17) && defined(__cpp_char8_t)
 typedef char8_t utf8char;
 #else
-typedef char utf8char;
+typedef unsigned char utf8char;
 #endif // defined
 
 struct long_char_buf_t {
@@ -70,26 +71,30 @@ union sso_variant_t {
 	short_char_buf_t short_buf;
 };
 
-constexpr bool is_short(const sso_variant_t& v) noexcept
+__forceinline bool is_short(const sso_variant_t& v) noexcept
 {
 	return v.short_buf.sso;
 }
 
-constexpr std::size_t short_size(const sso_variant_t& v) noexcept
+__forceinline std::size_t short_size(const sso_variant_t& v) noexcept
 {
 	return v.short_buf.size;
 }
 
-inline const char* short_str(const sso_variant_t& v) noexcept
+__forceinline const char* short_str(const sso_variant_t& v) noexcept
 {
 	return reinterpret_cast<const char*>(v.short_buf.char_buf);
 }
 
-inline const char* long_str(const sso_variant_t& v) noexcept
+__forceinline const char* long_str(const sso_variant_t& v) noexcept
 {
-	return reinterpret_cast<char*>(v.long_buf.char_buf) + sizeof(std::size_t);
+	return reinterpret_cast<const char*>(v.long_buf.char_buf) + sizeof(std::size_t);
 }
 
+__forceinline std::size_t long_size(const sso_variant_t& v) noexcept
+{
+	return v.long_buf.size;
+}
 
 } // namespace detail
 
@@ -187,21 +192,19 @@ public:
 	/// Returns whether this string is pointing on nullptr
 	/// \return whether nullptr string
 	inline bool empty() const noexcept {
-		return !sso() && 0 == data_.long_buf.size;
-	}
-
-	/// Checks whether this string empty or contains only whitespace characters
-	/// \return whether this string is blank
-	inline bool blank() const noexcept {
-		constexpr const char* WS = "\t\n\v\f\r ";
-		return empty() ? true : size() == io_strspn(data(), WS);
+		// small string optimized value can't be empty
+		return !sso() && 0 == detail::long_size(data_);
 	}
 
 	/// Returns raw C-style zero ending string
 	/// \return C-style string, "" if string is empty
 	const char* data() const noexcept {
-		return empty() ? "" : sso() ? detail::short_str(data_) : detail::long_str(data_);
+		return empty() ? "" : sso() ?  detail::short_str(data_) : detail::long_str(data_);
 	}
+
+	/// Checks whether this string empty or contains only whitespace characters
+	/// \return whether this string is blank
+	bool blank() const noexcept;
 
 	/// Returns mutable std::string by deep copying underlying character array, i.e. copy on write
 	/// \return mutable string in UTF-8 code character set
@@ -233,17 +236,29 @@ public:
 		return empty() ? 0 : utf8::strlength( data() );
 	}
 
-
 	/// Returns string size in bytes
 	/// \return string size in bytes
 	inline std::size_t size() const noexcept {
-		return empty() ? 0 : sso() ? detail::short_size(data_) : data_.long_buf.size;
+		return empty() ? 0 : sso() ? detail::short_size(data_) : detail::long_size(data_);
 	}
 
 	/// Calculates non cryptographic hash value for this string bytes
 	/// \return string content hash
 	inline std::size_t hash() const noexcept {
 		return empty() ? 0 : io::hash_bytes( data(), size() );
+	}
+
+	/// Check this string lexicographically equals to a raw char array
+	/// \param rhs char array to compare
+	/// \param len rhs length in characters
+	/// \return whether this string background char array equals to argement
+	bool equal(const char* rhs, const std::size_t len) const noexcept;
+
+	/// Check this string lexicographically equals to a raw C zero ending char array
+	/// \param rhs char array to compare
+	/// \return whether this string background char array equals to argument
+	bool equal(const char* rhs) const noexcept {
+		return equal( rhs, nullptr != rhs ? traits_type::length(rhs) : 0 );
 	}
 
 	/// Lexicographically compare the string with another
@@ -261,45 +276,11 @@ public:
 		return compare( rhs ) > 0;
 	}
 
-	/// Check this string lexicographically equals to a raw C zero ending char array
-	/// \param rhs char array to compare
-	/// \return whether this string background char array equals to argument
-	bool equal(const char* rhs) const noexcept {
-		return equal( rhs, nullptr != rhs ? traits_type::length(rhs) : 0 );
-	}
-
-	/// Check this string lexicographically equals to a raw char array
-	/// \param rhs char array to compare
-	/// \param len rhs length in characters
-	/// \return whether this string background char array equals to argement
-	bool equal(const char* rhs, const std::size_t len) const noexcept {
-		if(carr_empty(rhs, len) && empty() )
-			return true;
-		else if( !empty() && !carr_empty(rhs, len) && len == size() )
-			return 0 == traits_type::compare( data(), rhs, len );
-		else
-			return false;
-	}
-
 private:
 
-	inline bool ptr_equal(const const_string& rhs) const noexcept {
-		return (this == std::addressof(rhs)) ||
-				(
-					!sso() && (data_.long_buf.char_buf == rhs.data_.long_buf.char_buf)
-				);
-	}
+	bool ptr_equal(const const_string& rhs) const noexcept;
 
-	int compare(const const_string& rhs) const noexcept {
-		int ret = 1;
-		if( ( empty() && rhs.empty() ) || ptr_equal(rhs) ) {
-			ret = 0;
-		} else {
-			const std::size_t byte_size = size();
-			ret = byte_size < rhs.size() ? -1 : traits_type::compare( data(), rhs.data(), byte_size );
-		}
-		return ret;
-	}
+	int compare(const const_string& rhs) const noexcept;
 
 private:
 	detail::sso_variant_t data_;
@@ -309,7 +290,7 @@ private:
 class const_string_hash {
 public:
 	typedef io::const_string argument_type;
-    typedef std::size_t result_type;
+	typedef std::size_t result_type;
 	inline std::size_t operator()(const io::const_string& str) const noexcept {
 		return str.hash();
 	}

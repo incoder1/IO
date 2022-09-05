@@ -12,16 +12,7 @@
 
 // C++ standard library
 #include <algorithm>
-#include <type_traits>
-
-// Unicode console, if not supported by runtime
-//#if defined(__IO_WINDOWS_BACKEND__) && defined(UNICODE)
-#	include <console.hpp>
-//#	define NEED_UNICODE_CONSOLE 1
-//# else
-//#	include <iostream>
-//#endif
-
+#include <console.hpp>
 
 using namespace io;
 
@@ -32,10 +23,10 @@ void print_start_doc(std::ostream& stm,const xml::s_event_stream_parser& s)
 	xml::document_event e = s->parse_start_doc();
 	// check parsing was success
 	if( !s->is_error() ) {
-	    stm << io::cclr::navy_green << "start document:\n";
-	    stm << io::cclr::navy_aqua << "\tversion:" << io::cclr::reset << e.version();
-	    stm << io::cclr::magenta <<  " encoding: " << io::cclr::reset << e.encoding();
-	    stm << io::cclr::navy_blue << " standalone: " << io::cclr::reset << (e.standalone() ? "yes" : "no") << std::endl;
+		stm << io::cclr::navy_green << "start document:\n";
+		stm << io::cclr::navy_aqua << "\tversion:" << io::cclr::reset << e.version();
+		stm << io::cclr::magenta <<  " encoding: " << io::cclr::reset << e.encoding();
+		stm << io::cclr::navy_blue << " standalone: " << io::cclr::reset << (e.standalone() ? "yes" : "no") << std::endl;
 	}
 }
 
@@ -163,16 +154,10 @@ int main(int argc, const char** argv)
 	std::set_terminate( on_terminate );
 #endif // IO_NO_EXCEPTIONS
 
-// Unicode console for Windows (not needed for MSYS2/Cygwin or UNIX)
-//#ifdef NEED_UNICODE_CONSOLE
 	io::console cons;
 	io::console_output_stream cout(cons);
 	io::console_error_stream cerr(cons);
-//#else
-//	std::ios::sync_with_stdio(false);
-//	std::ostream& cout = std::cout;
-//	std::ostream& cerr = std::cerr;
-//#endif
+
 	// take program arguments
 	if(argc < 2) {
 		cout << "XML parsing example\n Usage:\t xmlparse <xmlfile>[.xml]" << std::endl;

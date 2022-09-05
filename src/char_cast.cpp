@@ -14,14 +14,13 @@
 #include "strings.hpp"
 
 
-#if defined(__WIN32) && ( defined(__MINGW32__) || defined(__MINGW64__) )
+#if defined(__MINGW32__) || defined(__MINGW64__)
 
 // TODO: review implementation found at
 // https://github.com/msys2/MINGW-packages/blob/master/mingw-w64-libkml/strptime.c
 
 typedef unsigned char u_char;
 typedef unsigned int uint;
-typedef unsigned __int64 uint64_t;
 
 #define	_ctloc(x)		(_CurrentTimeLocale->x)
 
@@ -637,7 +636,7 @@ static char* fmt_yes_no(char* to, std::size_t buf_size, bool value) noexcept
 
 
 // Brached LUT constants
-static constexpr char DIGITS[201] =
+static char DIGITS[201] =
 	"0001020304050607080910111213141516171819"
 	"2021222324252627282930313233343536373839"
 	"4041424344454647484950515253545556575859"
@@ -645,14 +644,14 @@ static constexpr char DIGITS[201] =
 	"8081828384858687888990919293949596979899";
 
 
-static uintmax_t BRANCH_1  = 10;
-static uintmax_t BRANCH_2  = 100;
-static uintmax_t BRANCH_3  = 1000;
-static uintmax_t BRANCH_4  = 10000;
-static uintmax_t BRANCH_5  = 100000;
-static uintmax_t BRANCH_6  = 1000000;
-static uintmax_t BRANCH_7  = 10000000;
-static uintmax_t BRANCH_8  = 100000000;
+static uintmax_t BRANCH_1  = 10U;
+static uintmax_t BRANCH_2  = 100U;
+static uintmax_t BRANCH_3  = 1000U;
+static uintmax_t BRANCH_4  = 10000U;
+static uintmax_t BRANCH_5  = 100000U;
+static uintmax_t BRANCH_6  = 1000000U;
+static uintmax_t BRANCH_7  = 10000000U;
+static uintmax_t BRANCH_8  = 100000000U;
 static uintmax_t BRANCH_9  = 1000000000UL;
 static uintmax_t BRANCH_10 = 10000000000UL;
 static uintmax_t BRANCH_11 = 100000000000UL;

@@ -20,7 +20,6 @@ class char_cast_fixture: public testing::Test
 {
 public:
 	char_cast_fixture();
-	virtual void SetUp() override;
 };
 
 

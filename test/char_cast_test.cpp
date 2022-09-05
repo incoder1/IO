@@ -15,10 +15,6 @@ char_cast_fixture::char_cast_fixture():
 	testing::Test()
 {}
 
-void char_cast_fixture::SetUp()
-{
-}
-
 TEST_F(char_cast_fixture, unsingned_8bit_to_char)
 {
 	char buff[4] = {'\0'};

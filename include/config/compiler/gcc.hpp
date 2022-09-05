@@ -177,7 +177,6 @@
 
 #endif // __HAS_CPP_20
 
-
 namespace io {
 namespace detail {
 
@@ -186,16 +185,24 @@ namespace detail {
 // A size_t for reference counter and another std::atomic<size_t>* this
 // should not be used with any non dynamically allocated memory,
 // otherwise can bring to undefined results
+// use std::atomic in normal case, this one is for const_string sso tricks
+// to save additional 4/8 bytes of memory
 namespace atomic_traits {
-	__forceinline std::size_t inc(std::size_t volatile *ptr) {
+
+	__forceinline std::size_t inc(std::size_t volatile *ptr) noexcept
+	{
 		return __atomic_add_fetch(ptr, 1, __ATOMIC_RELAXED);
 	}
-	__forceinline std::size_t dec(std::size_t volatile *ptr) {
+
+	__forceinline std::size_t dec(std::size_t volatile *ptr) noexcept
+	{
 		return __atomic_sub_fetch(ptr, 1, __ATOMIC_RELEASE);
 	}
+
 } // atomic_traits
 
 } // namespace detail
+
 } // namespace io
 
 #endif // __COMPILLER_CONFIG_GCC_HPP_INCLUDED__

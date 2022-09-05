@@ -51,7 +51,10 @@ void const_string::long_buf_release(detail::sso_variant_t& var) noexcept
 }
 
 const_string::const_string(const char* str, std::size_t length) noexcept:
-	data_( {false,0,nullptr} )
+	data_(
+{
+	false,0,nullptr
+} )
 {
 	assert(nullptr != str &&  length > 0  && length < SIZE_MAX );
 	std::size_t new_size = length;
@@ -67,6 +70,44 @@ const_string::~const_string() noexcept
 {
 	if( !empty() && !sso() )
 		long_buf_release(data_);
+}
+
+bool const_string::blank() const noexcept
+{
+	static const char* WS = "\t\n\v\f\r ";
+	return empty() ? true : size() == io_strspn(data(), WS);
+}
+
+bool const_string::ptr_equal(const const_string& rhs) const noexcept
+{
+	return (this == std::addressof(rhs)) ||
+			( !sso() &&
+			 (data_.long_buf.char_buf == rhs.data_.long_buf.char_buf)
+			);
+}
+
+int const_string::compare(const const_string& rhs) const noexcept
+{
+	int ret = 1;
+	if( ( empty() && rhs.empty() ) || ptr_equal(rhs) ) {
+		ret = 0;
+	}
+	else {
+		const std::size_t byte_size = size();
+		ret = byte_size < rhs.size() ? -1 : traits_type::compare( data(), rhs.data(), byte_size );
+	}
+	return ret;
+}
+
+bool const_string::equal(const char* rhs, const std::size_t len) const noexcept
+{
+	bool ret = false;
+	if(carr_empty(rhs, len) && empty() )
+		ret = true;
+	else
+		if( !empty() && !carr_empty(rhs, len) && len <= size() )
+			ret = ( 0 == traits_type::compare( data(), rhs, len ) );
+	return ret;
 }
 
 } // namespace io
