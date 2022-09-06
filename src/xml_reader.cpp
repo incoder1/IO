@@ -121,7 +121,7 @@ start_element_event reader::next_expected_tag_begin(std::error_code& ec, const c
 {
 	start_element_event ret = next_tag_begin(ec);
 	if(!ec && !is_element(ret, nsp, local_name) ) {
-		ec = std::make_error_code(error::invalid_state);
+		ec = make_error_code(error::invalid_state);
 	}
 	return ret;
 }
@@ -130,11 +130,10 @@ end_element_event reader::next_expected_tag_end(std::error_code& ec, const char*
 {
 	end_element_event ret = next_tag_end(ec);
 	if(!ec && !is_element(ret, nsp, local_name) ) {
-		ec = std::make_error_code(error::invalid_state);
+		ec = make_error_code(error::invalid_state);
 	}
 	return ret;
 }
-
 
 const_string reader::next_characters(std::error_code& ec) noexcept
 {

@@ -18,7 +18,7 @@
 #include "charsets.hpp"
 #include "charsetcvt.hpp"
 #include "conststring.hpp"
-#include "strings.hpp"
+#include "string_algs.hpp"
 #include "text.hpp"
 #include "threading.hpp"
 

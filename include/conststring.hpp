@@ -208,7 +208,7 @@ public:
 
 	/// Returns mutable std::string by deep copying underlying character array, i.e. copy on write
 	/// \return mutable string in UTF-8 code character set
-	inline std::string get_mutable() const {
+	inline std::string clone() const {
 		return empty() ? std::string() : std::string( data(), size() );
 	}
 

@@ -11,7 +11,7 @@
 #include "stdafx.hpp"
 
 #include "char_cast.hpp"
-#include "strings.hpp"
+#include "string_algs.hpp"
 
 
 #if defined(__MINGW32__) || defined(__MINGW64__)
@@ -157,7 +157,7 @@ static const u_char *find_string(const u_char *bp, int *tgt, const char * const 
 	return nullptr;
 }
 
-char *strptime(const char *buf, const char *fmt, struct tm *tm)
+char *strptime(const char *buf, const char *fmt, struct tm *tm) noexcept
 {
 	unsigned char c;
 	const unsigned char *bp, *ep;
@@ -672,6 +672,13 @@ static char* copy_two(char* s, const uint32_t i) noexcept
 	return copy_one( copy_one(s, (i + 1) ), i );
 }
 
+static char* copy_four(char* s, const uint32_t i, const uint32_t j) noexcept
+{
+	char* ret = copy_two(s, j);
+	ret = copy_two(ret, i);
+	return ret;
+}
+
 char* IO_PUBLIC_SYMBOL uintmax_to_chars_reverse(char* const last, uintmax_t value) noexcept
 {
 	char* ret = last;
@@ -799,8 +806,7 @@ char* IO_PUBLIC_SYMBOL uintmax_to_chars_reverse(char* const last, uintmax_t valu
 		else {
 			const uint32_t i = (a / BRANCH_2) << 1;
 			const uint32_t j = (a % BRANCH_2) << 1;
-			ret = copy_two(ret, j);
-			ret = copy_two(ret, i);
+			ret = copy_four(ret, i, j);
 		}
 		++ret;
 	}
@@ -809,9 +815,9 @@ char* IO_PUBLIC_SYMBOL uintmax_to_chars_reverse(char* const last, uintmax_t valu
 
 from_chars_result IO_PUBLIC_SYMBOL unsigned_from_chars(const char* first, const char* last, uintmax_t& value) noexcept
 {
-	from_chars_result ret = {nullptr, std::errc()};
+	from_chars_result ret = {nullptr, {} };
 	if( first >= last ) {
-		ret.ec = std::errc::invalid_argument;
+		ret.ec = std::errc::no_buffer_space;
 	}
 	else {
 		char *endp;
@@ -834,9 +840,9 @@ from_chars_result IO_PUBLIC_SYMBOL unsigned_from_chars(const char* first, const 
 
 from_chars_result IO_PUBLIC_SYMBOL signed_from_chars(const char* first, const char* last, intmax_t& value) noexcept
 {
-	from_chars_result ret = {nullptr, std::errc()};
+	from_chars_result ret = {nullptr, {}};
 	if( first >= last ) {
-		ret.ec = std::errc::invalid_argument;
+		ret.ec = std::errc::no_buffer_space;
 	}
 	else {
 		char *endp;
@@ -866,7 +872,7 @@ to_chars_result IO_PUBLIC_SYMBOL float_to_chars(char* const first, char* const l
 {
 
 	to_chars_result ret = {nullptr, std::errc()};
-	if( first >= last ) {
+	if( io_unlikely(first >= last) ) {
 		ret.ec = std::errc::no_buffer_space;
 	}
 	else {
@@ -891,7 +897,7 @@ to_chars_result IO_PUBLIC_SYMBOL float_to_chars(char* const first, char* const l
 to_chars_result IO_PUBLIC_SYMBOL float_to_chars(char* const first, char* const last, double value) noexcept
 {
 	to_chars_result ret = {nullptr, std::errc()};
-	if( first >= last ) {
+	if( io_unlikely(first >= last) ) {
 		ret.ec = std::errc::no_buffer_space;
 	}
 	else {
@@ -916,7 +922,7 @@ to_chars_result IO_PUBLIC_SYMBOL float_to_chars(char* const first, char* const l
 to_chars_result IO_PUBLIC_SYMBOL float_to_chars(char* const first, char* const last, const long double& value) noexcept
 {
 	to_chars_result ret = {nullptr, std::errc()};
-	if( first >= last ) {
+	if( io_unlikely(first >= last) ) {
 		ret.ec = std::errc::no_buffer_space;
 	}
 	else {
@@ -937,7 +943,7 @@ to_chars_result IO_PUBLIC_SYMBOL float_to_chars(char* const first, char* const l
 from_chars_result IO_PUBLIC_SYMBOL float_from_chars(const char* first, const char* last, float& value) noexcept
 {
 	from_chars_result ret = {nullptr, std::errc()};
-	if( first >= last ) {
+	if( io_unlikely(first >= last) ) {
 		ret.ec = std::errc::invalid_argument;
 	}
 	else {
@@ -957,7 +963,7 @@ from_chars_result IO_PUBLIC_SYMBOL float_from_chars(const char* first, const cha
 from_chars_result IO_PUBLIC_SYMBOL float_from_chars(const char* first, const char* last, double& value) noexcept
 {
 	from_chars_result ret = {nullptr, std::errc()};
-	if( first >= last ) {
+	if( io_unlikely(first >= last) ) {
 		ret.ec = std::errc::invalid_argument;
 	}
 	else {
@@ -977,7 +983,7 @@ from_chars_result IO_PUBLIC_SYMBOL float_from_chars(const char* first, const cha
 from_chars_result IO_PUBLIC_SYMBOL float_from_chars(const char* first, const char* last, long double& value) noexcept
 {
 	from_chars_result ret = {nullptr, std::errc()};
-	if( first >= last ) {
+	if( io_unlikely(first >= last) ) {
 		ret.ec = std::errc::invalid_argument;
 	}
 	else {
@@ -997,7 +1003,7 @@ from_chars_result IO_PUBLIC_SYMBOL float_from_chars(const char* first, const cha
 to_chars_result IO_PUBLIC_SYMBOL time_to_chars(char* const first, char* const last, const char* format, const std::time_t& value) noexcept
 {
 	to_chars_result ret = {nullptr, std::errc()};
-	if( (first+io_strlen(format)) >= last ) {
+	if( io_unlikely( (first+io_strlen(format)) >= last ) ) {
 		ret.ec = std::errc::no_buffer_space;
 	}
 	else {
@@ -1019,7 +1025,7 @@ to_chars_result IO_PUBLIC_SYMBOL time_to_chars(char* const first, char* const la
 to_chars_result IO_PUBLIC_SYMBOL time_from_chars(const char* first,const char* last,const char* format, std::time_t& value) noexcept
 {
 	to_chars_result ret = {nullptr, std::errc()};
-	if( (first+io_strlen(format)) >= last ) {
+	if( io_unlikely( (first+io_strlen(format)) >= last ) ) {
 		ret.ec = std::errc::no_buffer_space;
 	}
 	else {
@@ -1033,10 +1039,10 @@ to_chars_result IO_PUBLIC_SYMBOL time_from_chars(const char* first,const char* l
 } // namespace detail
 
 
-to_chars_result IO_PUBLIC_SYMBOL to_chars(char* first, char* last, bool value, str_bool_format fmt) noexcept
+IO_PUBLIC_SYMBOL to_chars_result to_chars(char* first, char* last, bool value, str_bool_format fmt) noexcept
 {
 	to_chars_result ret = {nullptr, std::errc()};
-	if( first >= last ) {
+	if( io_unlikely(first >= last) ) {
 		ret.ec = std::errc::no_buffer_space;
 	}
 	else {
@@ -1057,28 +1063,28 @@ to_chars_result IO_PUBLIC_SYMBOL to_chars(char* first, char* last, bool value, s
 
 static bool cmp_no(const char* s) noexcept
 {
-	return 0 == io_memcmp(s,"no",2);
+	return start_with(s,"no",2);
 }
 
 static bool cmp_yes(const char* s) noexcept
 {
-	return 0 == io_memcmp(s,"yes",3);
+	return start_with(s,"yes",3);
 }
 
 static bool cmp_true(const char* s) noexcept
 {
-	return 0 == io_memcmp(s, "true", 4);
+	return start_with(s, "true", 4);
 }
 
 static bool cmp_false(const char* s) noexcept
 {
-	return 0 == io_memcmp(s, "false", 5);
+	return start_with(s, "false", 5);
 }
 
-from_chars_result  from_chars(const char* first,const char* last, bool& value) noexcept
+IO_PUBLIC_SYMBOL from_chars_result from_chars(const char* first,const char* last, bool& value) noexcept
 {
-	from_chars_result ret = {nullptr, std::errc()};
-	const char* s = skip_spaces_r(first, last);
+	from_chars_result ret = {nullptr, {}};
+	const char* s = skip_spaces_ranged(first, last);
 	if( (s+1) >= last ) {
 		ret.ec = std::errc::invalid_argument;
 	}

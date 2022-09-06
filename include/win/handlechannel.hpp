@@ -23,11 +23,6 @@ namespace win {
 
 namespace detail {
 
-constexpr void* void_cast(const uint8_t* ptr)
-{
-	return const_cast<void*>( static_cast<const void*>(ptr) );
-}
-
 enum class whence_type: ::DWORD {
 	current = FILE_CURRENT,
 	begin = FILE_BEGIN,
@@ -39,19 +34,23 @@ class handle_channel {
 	handle_channel& operator=(handle_channel&) = delete;
 public:
 
+	handle_channel(handle_channel&&) = default;
+	handle_channel& operator=(handle_channel&&) = default;
+
 	constexpr explicit handle_channel(::HANDLE hnd) noexcept:
 		hnd_(hnd)
 	{}
 
 	~handle_channel() noexcept
 	{
+		::FlushFileBuffers(hnd_);
 		::CloseHandle(hnd_);
 	}
 
     std::size_t read(std::error_code& err, uint8_t* const buff, std::size_t bytes) const noexcept
 	{
 		::DWORD result;
-		if( ! ::ReadFile(hnd_, void_cast(buff), static_cast<DWORD>(bytes), &result, nullptr) )
+		if( ! ::ReadFile(hnd_, static_cast<void*>(buff), static_cast<DWORD>(bytes), &result, nullptr) )
 			err.assign(::GetLastError(), std::system_category() );
 		return result;
 	}
@@ -59,7 +58,7 @@ public:
 	std::size_t write(std::error_code& err, const uint8_t* buff,std::size_t size) const noexcept
 	{
 		::DWORD result;
-		if ( ! ::WriteFile(hnd_, void_cast(buff), static_cast<::DWORD>(size), &result, nullptr) )
+		if ( ! ::WriteFile(hnd_, static_cast<const void*>(buff), static_cast<::DWORD>(size), &result, nullptr) )
 			err.assign(::GetLastError(), std::system_category() );
 		return result;
 	}

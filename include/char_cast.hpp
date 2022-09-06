@@ -49,6 +49,25 @@ struct from_chars_result {
 
 namespace detail {
 
+#ifdef _MSC_VER
+
+IO_PUBLIC_SYMBOL char* uintmax_to_chars_reverse(char* const last, uintmax_t value) noexcept;
+
+IO_PUBLIC_SYMBOL from_chars_result unsigned_from_chars(const char* first, const char* last, uintmax_t& value) noexcept;
+IO_PUBLIC_SYMBOL from_chars_result signed_from_chars(const char* first, const char* last, intmax_t& value) noexcept;
+
+IO_PUBLIC_SYMBOL to_chars_result float_to_chars(char* const first, char* const last, float value) noexcept;
+IO_PUBLIC_SYMBOL to_chars_result float_to_chars(char* const first, char* const last, double value) noexcept;
+IO_PUBLIC_SYMBOL to_chars_result float_to_chars(char* const first, char* const last, const long double& value) noexcept;
+
+IO_PUBLIC_SYMBOL from_chars_result float_from_chars(const char* first, const char* last, float& value) noexcept;
+IO_PUBLIC_SYMBOL from_chars_result float_from_chars(const char* first, const char* last, double& value) noexcept;
+IO_PUBLIC_SYMBOL from_chars_result float_from_chars(const char* first, const char* last, long double& value) noexcept;
+
+IO_PUBLIC_SYMBOL to_chars_result time_to_chars(char* first, char* last, const char* format, const std::time_t& value) noexcept;
+IO_PUBLIC_SYMBOL to_chars_result time_from_chars(const char* first,const char* last, const char* format, std::time_t& value) noexcept;
+
+#else
 
 char* IO_PUBLIC_SYMBOL uintmax_to_chars_reverse(char* const last, uintmax_t value) noexcept;
 
@@ -65,6 +84,8 @@ from_chars_result IO_PUBLIC_SYMBOL float_from_chars(const char* first, const cha
 
 to_chars_result IO_PUBLIC_SYMBOL time_to_chars(char* first, char* last, const char* format, const std::time_t& value) noexcept;
 to_chars_result IO_PUBLIC_SYMBOL time_from_chars(const char* first,const char* last, const char* format, std::time_t& value) noexcept;
+
+#endif // _MSC_VER
 
 
 } // namespace detail
@@ -83,7 +104,7 @@ template<
 #endif // IO_HAS_CONNCEPTS
 to_chars_result to_chars(char* const first, char* const last, T value) noexcept
 {
-	to_chars_result ret = {nullptr, std::errc()};
+	to_chars_result ret = {nullptr, {}};
 	if( first >= last ) {
 		ret.ec = std::errc::no_buffer_space;
 	}
@@ -120,7 +141,7 @@ template<
 #endif
 to_chars_result to_chars(char* const first, char* const last, T value) noexcept
 {
-	to_chars_result ret = {nullptr, std::errc()};
+	to_chars_result ret = {nullptr, {}};
 	if( first >= last ) {
 		ret.ec = std::errc::no_buffer_space;
 	} else {
@@ -147,6 +168,23 @@ to_chars_result to_chars(char* const first, char* const last, T value) noexcept
 		}
 	}
 	return ret;
+}
+
+
+#ifdef IO_HAS_CONNCEPTS
+template<typename T>
+requires( std::is_floating_point_v<T> )
+#else
+template<
+	typename T,
+	typename std::enable_if<
+		std::is_floating_point<T>::value
+		>::type* = nullptr
+	>
+#endif // IO_HAS_CONNCEPTS
+to_chars_result to_chars(char* const first, char* const last,const T& value) noexcept
+{
+	return detail::float_to_chars(first, last, value);
 }
 
 #ifdef IO_HAS_CONNCEPTS
@@ -196,21 +234,6 @@ from_chars_result from_chars(const char* first, const char* last, T& value) noex
 	return ret;
 }
 
-inline to_chars_result to_chars(char* const first, char* const last, float value) noexcept
-{
-	return detail::float_to_chars(first, last, value);
-}
-
-inline to_chars_result to_chars(char* const first, char* const last, double value) noexcept
-{
-	return detail::float_to_chars(first, last, value);
-}
-
-inline to_chars_result to_chars(char* const first, char* const last, const long double& value) noexcept
-{
-	return detail::float_to_chars(first, last, value);
-}
-
 #ifdef IO_HAS_CONNCEPTS
 template<typename T>
 requires( std::is_floating_point_v<T> )
@@ -232,24 +255,53 @@ enum class str_bool_format {
 	yes_no
 };
 
+#ifdef _MSC_VER
 to_chars_result IO_PUBLIC_SYMBOL to_chars(char* first, char* last, bool value, str_bool_format fmt = str_bool_format::true_false) noexcept;
 from_chars_result IO_PUBLIC_SYMBOL from_chars(const char* first,const char* last, bool& value) noexcept;
+#else
+IO_PUBLIC_SYMBOL to_chars_result to_chars(char* first, char* last, bool value, str_bool_format fmt = str_bool_format::true_false) noexcept;
+IO_PUBLIC_SYMBOL from_chars_result from_chars(const char* first,const char* last, bool& value) noexcept;
+#endif // _MSC_VER
 
 #ifdef IO_HAS_CONNCEPTS
 template<typename T>
-requires( std::is_integral_v<T> || std::is_floating_point_v<T> )
+requires( std::is_integral_v<T>)
 #else
 template<
 	typename T,
 	typename std::enable_if<
-		std::is_integral<T>::value ||
+		std::is_integral<T>::value
+		>::type* = nullptr
+	>
+#endif // IO_HAS_CONNCEPTS
+inline void from_string(std::error_code& ec, const io::const_string& str, T& value) noexcept
+{
+	auto fch_ret = from_chars<T>( str.data(), str.data()+str.size(), value);
+	if(nullptr == fch_ret.ptr)
+		ec = std::make_error_code( fch_ret.ec );
+}
+
+inline void from_string(std::error_code& ec, const io::const_string& str, bool& value) noexcept
+{
+	auto fch_ret = from_chars( str.data(), str.data()+str.size(), value);
+	if(nullptr == fch_ret.ptr)
+		ec = std::make_error_code( fch_ret.ec );
+}
+
+#ifdef IO_HAS_CONNCEPTS
+template<typename T>
+requires( std::is_floating_point_v<T> )
+#else
+template<
+	typename T,
+	typename std::enable_if<
 		std::is_floating_point<T>::value
 		>::type* = nullptr
 	>
 #endif // IO_HAS_CONNCEPTS
 inline void from_string(std::error_code& ec, const io::const_string& str, T& value) noexcept
 {
-	io::from_chars_result fch_ret = io::from_chars( str.data(), str.data()+str.size(), value);
+	auto fch_ret = from_chars<T>( str.data(), str.data()+str.size(), value);
 	if(nullptr == fch_ret.ptr)
 		ec = std::make_error_code( fch_ret.ec );
 }
@@ -275,21 +327,21 @@ inline void from_string(const io::const_string& str, T& value)
 
 #ifdef IO_HAS_CONNCEPTS
 template<typename T>
-requires( is_signed_integer_v<T> || is_unsigned_integer_v<T>  )
+requires( is_signed_integer_v<T> || is_unsigned_integer_v<T> || std::is_floating_point_v<T> )
 #else
 template<
 	typename T,
 	typename std::enable_if<
 		is_signed_integer<T>::value ||
-		is_unsigned_integer<T>::value
+		is_unsigned_integer<T>::value ||
+		std::is_floating_point<T>::value
 		>::type* = nullptr
 	>
 #endif // IO_HAS_CONNCEPTS
-inline io::const_string to_string(std::error_code& ec, T value) noexcept
+inline io::const_string to_string(std::error_code& ec, const T value) noexcept
 {
-	typedef std::numeric_limits<T> limits;
-	constexpr std::size_t buff_size = limits::digits10 + 1;
-	char tmp[ buff_size ] = {'\0'};
+	static constexpr std::size_t buff_size = 32;
+	char tmp[buff_size] = {'\0'};
 	auto ret = io::to_chars(tmp, (tmp+buff_size), value);
 	if( 0 != static_cast<unsigned int>(ret.ec) ) {
  		ec = std::make_error_code( ret.ec );
@@ -298,27 +350,23 @@ inline io::const_string to_string(std::error_code& ec, T value) noexcept
 	return io::const_string(tmp);
 }
 
-#ifdef IO_HAS_CONNCEPTS
-template<typename T>
-requires( std::is_floating_point_v<T> )
-#else
-template<
-	typename T,
-	typename std::enable_if<
-		std::is_floating_point_v<T>
-		>::type* = nullptr
-	>
-#endif // IO_HAS_CONNCEPTS
-inline io::const_string to_string(std::error_code& ec, const T& value) noexcept
+inline io::const_string to_string(std::error_code& ec, const bool value, str_bool_format fmt = str_bool_format::true_false) noexcept
 {
-	static constexpr std::size_t buff_size = 32;
-	char tmp[ buff_size ] = {'\0'};
-	auto ret = to_chars(tmp, (tmp+buff_size), value);
+	char tmp[6] = {'\0'};
+	auto ret = to_chars(tmp, tmp+sizeof(tmp), value, fmt);
 	if( 0 != static_cast<unsigned int>(ret.ec) ) {
  		ec = std::make_error_code( ret.ec );
 		return io::const_string();
 	}
 	return io::const_string(tmp);
+}
+
+inline io::const_string to_string(const bool value, str_bool_format fmt = str_bool_format::true_false)
+{
+	std::error_code ec;
+	auto ret = to_string(ec, value, fmt);
+	io::check_error_code(ec);
+	return ret;
 }
 
 } // namespace io

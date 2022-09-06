@@ -10,12 +10,11 @@
  */
 #include "stdafx.hpp"
 #include "xml_source.hpp"
-#include "strings.hpp"
+#include "string_algs.hpp"
 
 namespace io {
 
 namespace xml {
-
 
 const std::size_t source::READ_BUFF_INITIAL_SIZE = memory_traits::page_size(); // 4k in most cases
 const std::size_t source::READ_BUFF_MAXIMAL_SIZE = source::READ_BUFF_INITIAL_SIZE * source::READ_BUFF_INITIAL_SIZE; // about 16 mb
@@ -204,14 +203,17 @@ char source::next() noexcept
 	if( io_unlikely(0 != mb_state_) ) {
 		ret = *pos_++;
 		--mb_state_;
-	} else {
+	}
+	else {
 		unsigned int len = utf8::mblen( pos_ );
 		ret = *pos_++;
 		switch( len ) {
 		case io_likely(1):
 			ret = normalize_line_endings( ret );
 			break;
-		case 2: case 3: case 4:
+		case 2:
+		case 3:
+		case 4:
 			mb_state_ = static_cast<uint8_t>(len - 1);
 			++col_;
 			break;
@@ -224,10 +226,15 @@ char source::next() noexcept
 	return ret;
 }
 
-void source::read_until_char(byte_buffer& to,const char lookup,const char illegal) noexcept
+void source::read_until_char(byte_buffer& to,const char lookup,const char* illegals) noexcept
 {
+	const std::size_t illegals_len = io_strlen(illegals);
+	const std::size_t stops_size = illegals_len + 2;
+	char stops[ 16 ] = {'\0'};
+	stops[0] = lookup;
+	// we need '\0' from illegals
+	io_memmove(stops+1, illegals, illegals_len);
 	char c;
-	char stops[3] = {lookup, illegal, EOF};
 	do {
 		c = next();
 		if( !to.put(c) ) {
@@ -240,12 +247,26 @@ void source::read_until_char(byte_buffer& to,const char lookup,const char illega
 			}
 		}
 	}
-	while( nullptr == io_memchr(stops, static_cast<int>(c), 3) );
+	while( nullptr == strchrn(stops, c, stops_size) );
 	if( lookup != c ) {
 		if( cheq(c,EOF) )
 			last_ = error::illegal_markup;
 		to.clear();
 	}
+	to.flip();
+}
+
+constexpr uint16_t pack_word(char w, char c) noexcept
+{
+#ifdef IO_IS_LITTLE_ENDIAN
+	const uint16_t h = static_cast<uint16_t>(w);
+	const uint16_t l = static_cast<uint16_t>(c);
+	return (h << CHAR_BIT) | l;
+#else
+	const uint16_t h = static_cast<uint16_t>(c);
+	const uint16_t l = static_cast<uint16_t>(w);
+	return (l >> CHAR_BIT) | h;
+#endif // IO_IS_LITTLE_ENDIAN
 }
 
 void source::read_until_double_char(byte_buffer& to, const char ch) noexcept
@@ -271,6 +292,20 @@ void source::read_until_double_char(byte_buffer& to, const char ch) noexcept
 	while( i != pattern);
 	if( error::ok != last_ || cheq(c,EOF) )
 		to.clear();
+}
+
+void source::skip_until_dobule_char(const char ch) noexcept
+{
+	const uint16_t pattern = pack_word(static_cast<uint16_t>(ch), ch);
+	char c;
+	uint16_t i = 0;
+	do {
+		c = next();
+		if( io_unlikely( cheq(c,EOF) ) )
+			break;
+		i = pack_word(i,c);
+	}
+	while( i != pattern);
 }
 
 } // namespace xml

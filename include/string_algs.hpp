@@ -8,11 +8,10 @@
  * LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
  *
  */
-#ifndef __IO_STRINGS_HPP_INCLUDED__
-#define __IO_STRINGS_HPP_INCLUDED__
+#ifndef __IO_STRING_ALGS_HPP_INCLUDED__
+#define __IO_STRING_ALGS_HPP_INCLUDED__
 
 #include "config.hpp"
-
 
 #ifdef HAS_PRAGMA_ONCE
 #pragma once
@@ -592,13 +591,23 @@ inline void downcase_latin1(char_t* str) noexcept
 	}
 }
 
-constexpr uint16_t pack_word(uint16_t w, char c) noexcept
-{
-#ifdef IO_IS_LITTLE_ENDIAN
-	return (w << CHAR_BIT) | static_cast<uint16_t>(c);
+/// Checks given character is string ending character i.e. '\0'
+/// \param ch a character
+/// \return whether ch equaling to '\0'
+#ifdef IO_HAS_CONNCEPTS
+template<typename char_t>
+	requires( is_charater_v<char_t> )
 #else
-	return (w >> CHAR_BIT) | static_cast<uint16_t>(c);
-#endif // IO_IS_LITTLE_ENDIAN
+template<
+	typename char_t,
+	typename std::enable_if<
+		is_charater_v<char_t>
+	>::type* = nullptr
+>
+#endif // IO_HAS_CONNCEPTS
+inline const char_t* strchrn(const char_t* s,const char_t c,const std::size_t max_len) noexcept
+{
+	return const_cast<const char_t*>( std::char_traits<char_t>::find(s, max_len, c) );
 }
 
 static constexpr const char* SPACES = "\t\n\v\f\r ";
@@ -624,11 +633,26 @@ inline const char* skip_spaces_n(const char *str, std::size_t n) noexcept
 	return (offset < n) ? (str+offset) : str;
 }
 
-inline const char* skip_spaces_r(const char *str, const char *end) noexcept
+inline const char* skip_spaces_ranged(const char *str, const char *end) noexcept
 {
 	return skip_spaces_n(str, static_cast<std::size_t>(end-str) );
 }
 
+inline bool start_with(const char* s,const char* pattern,const std::size_t size) noexcept
+{
+	return 0 == std::char_traits<char>::compare( s, pattern, size );
+}
+
+inline bool start_with(const char* s,const char* pattern) noexcept
+{
+	return start_with( s, pattern, std::char_traits<char>::length(pattern) );
+}
+
+inline std::size_t str_size(const char* b, const char* e) noexcept
+{
+    return memory_traits::distance(b, e);
+}
+
 } // namespace io
 
-#endif // __IO_STRINGS_HPP_INCLUDED__
+#endif // __IO_STRING_ALGS_HPP_INCLUDED__

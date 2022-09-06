@@ -10,7 +10,7 @@
  */
 #include "stdafx.hpp"
 #include "xml_parse.hpp"
-#include "strings.hpp"
+#include "string_algs.hpp"
 
 namespace io {
 namespace xml {
@@ -39,20 +39,7 @@ static constexpr const char ES = 61 ; // '='
 static constexpr const char QM = 63; // '?'
 
 
-static bool start_with(const char* s,const char* pattern,const std::size_t size) noexcept
-{
-	return 0 ==  std::char_traits<char>::compare( s, pattern, size );
-}
 
-static char* strchrn(const char* s,const char c,const std::size_t max_len) noexcept
-{
-	return const_cast<char*>( std::char_traits<char>::find(s, max_len, c) );
-}
-
-static std::size_t str_size(const char* b, const char* e) noexcept
-{
-    return memory_traits::distance(b, e);
-}
 
 static bool is_prologue(const char *s) noexcept
 {
@@ -378,12 +365,11 @@ byte_buffer event_stream_parser::read_entity() noexcept
 	}
 	ret.put( scan_buf_ );
 	sb_clear();
-	src_->read_until_char( ret, static_cast<char>(RIGHTB), static_cast<char>(LEFTB) );
+	src_->read_until_char( ret, RIGHTB, "<");
 	if( src_->eof() ) {
 		assign_error( src_->last_error() );
 		return byte_buffer();
 	}
-	ret.flip();
 	return ret;
 }
 
@@ -602,14 +588,7 @@ void event_stream_parser::skip_comment() noexcept
 		return;
 	}
 	sb_clear();
-	constexpr const uint16_t double_hyphen = pack_word( static_cast<uint16_t>('-'), '-');
-	uint16_t hw = 0;
-	char c;
-	do {
-		c = next();
-		hw = pack_word(hw, c);
-	}
-	while( double_hyphen != hw && io_likely( !is_eof(c) && error_state_ok() ) );
+	src_->skip_until_dobule_char('-');
 	if( chnoteq(RIGHTB, next() ) )
 		assign_error(error::illegal_commentary);
 }
@@ -678,7 +657,7 @@ const_string event_stream_parser::read_chars() noexcept
 	else
 		ret.put( c );
 
-	src_->read_until_char(ret, '<', '>');
+	src_->read_until_char(ret, LEFTB, ">");
 	error errc = src_->last_error();
 	if( io_unlikely( error::ok != errc  ) ) {
 		if(error::illegal_markup == errc)
@@ -688,7 +667,6 @@ const_string event_stream_parser::read_chars() noexcept
 	}
 	else if( !ret.empty() ) {
 		io_memmove(scan_buf_, "<", 2);
-		ret.flip();
 		// don't add last <
 		return const_string( ret.position().cdata(), ret.length()-1 );
 	}
@@ -748,7 +726,7 @@ attribute event_stream_parser::extract_attribute(const char* from, std::size_t& 
 	const_string np;
 	const_string ln;
 	// find prefix if any, ans split onto qualified name
-	char *tmp = strchrn( start, COLON, str_size(start,i) );
+	const char *tmp = strchrn( start, COLON, str_size(start,i) );
 	if(nullptr != tmp) {
 		np = pool_->get( start,  str_size(start, tmp) );
 		start = tmp + 1;

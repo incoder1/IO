@@ -13,6 +13,7 @@
 				<Option parameters="--gtest_color=yes" />
 				<Compiler>
 					<Add option="-g" />
+					<Add option="-fexceptions" />
 					<Add directory="../test" />
 				</Compiler>
 				<Linker>
@@ -28,6 +29,8 @@
 				<Option parameters="--gtest_color=yes" />
 				<Compiler>
 					<Add option="-flto" />
+					<Add option="-fno-exceptions" />
+					<Add option="-fno-rtti" />
 					<Add option="-DIO_SHARED_LIB" />
 					<Add directory="../test" />
 				</Compiler>
@@ -41,7 +44,6 @@
 		</Build>
 		<Compiler>
 			<Add option="-Wall" />
-			<Add option="-fexceptions" />
 			<Add option="-std=gnu++20" />
 			<Add directory="include" />
 			<Add directory="../include" />

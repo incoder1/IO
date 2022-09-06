@@ -13,10 +13,10 @@
 				<Option type="1" />
 				<Option compiler="gcc" />
 				<Compiler>
-					<Add option="-std=gnu++11" />
 					<Add option="-pg" />
 					<Add option="-Og" />
 					<Add option="-g" />
+					<Add option="-fexceptions" />
 				</Compiler>
 				<Linker>
 					<Add option="-pg -lgmon" />
@@ -31,8 +31,11 @@
 				<Option type="1" />
 				<Option compiler="gcc" />
 				<Compiler>
-					<Add option="-O2" />
-					<Add option="-std=gnu++20" />
+					<Add option="-O3" />
+					<Add option="-fno-rtti" />
+					<Add option="-fno-exceptions"/>
+					<Add option="-DNDEBUG" />
+					<Add option="-DUNICODE" />
 					<Add option="-DIO_SHARED_LIB" />
 				</Compiler>
 				<Linker>
@@ -47,21 +50,21 @@
 				<Option type="1" />
 				<Option compiler="gcc" />
 				<Compiler>
-					<Add option="-std=c++11" />
 					<Add option="-pg" />
-					<Add option="-g" />
 					<Add option="-Og" />
+					<Add option="-g" />
+					<Add option="-fexceptions" />
 				</Compiler>
 				<Linker>
-					<Add option="-pg" />
+					<Add option="-s" />
 					<Add library="pthread" />
-					<Add directory="../../bin/debug-unix-gcc-x86_64" />
+					<Add directory="../../bin/debug-unix-gcc-static-64bit" />
 				</Linker>
 			</Target>
 		</Build>
 		<Compiler>
 			<Add option="-Wall" />
-			<Add option="-fexceptions" />
+			<Add option="-std=gnu++20" />
 			<Add directory="../../include" />
 		</Compiler>
 		<Linker>

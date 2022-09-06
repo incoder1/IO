@@ -13,6 +13,7 @@
 // C++ standard library
 #include <algorithm>
 #include <console.hpp>
+#include <char_cast.hpp>
 
 using namespace io;
 
@@ -24,9 +25,10 @@ void print_start_doc(std::ostream& stm,const xml::s_event_stream_parser& s)
 	// check parsing was success
 	if( !s->is_error() ) {
 		stm << io::cclr::navy_green << "start document:\n";
-		stm << io::cclr::navy_aqua << "\tversion:" << io::cclr::reset << e.version();
-		stm << io::cclr::magenta <<  " encoding: " << io::cclr::reset << e.encoding();
-		stm << io::cclr::navy_blue << " standalone: " << io::cclr::reset << (e.standalone() ? "yes" : "no") << std::endl;
+		stm << io::cclr::navy_aqua  << "\tversion: " << io::cclr::reset << e.version();
+		stm << io::cclr::navy_aqua  << " encoding: " << io::cclr::reset << e.encoding();
+		stm << io::cclr::navy_aqua << " standalone: " << io::cclr::reset << io::to_string(e.standalone(), io::str_bool_format::yes_no);
+		stm << std::endl;
 	}
 }
 

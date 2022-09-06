@@ -41,7 +41,7 @@ struct configuration {
 
 std::ostream& operator<<(std::ostream& s, const configuration& cnd)
 {
-	s << "configuration id: " << cnd.id << " enabled: " << (cnd.enabled ? "yes" : "no ")  << " name: " << cnd.name;
+	s << "configuration id: " << cnd.id << " enabled: " <<  io::to_string(cnd.enabled, io::str_bool_format::yes_no)  << " name: " << cnd.name;
 	return s;
 }
 
@@ -53,31 +53,23 @@ static configuration read_config(io::unsafe<io::xml::reader>& rd)
 	io::xml::start_element_event sev = rd.next_expected_tag_begin("configuration");
 	// obtain id="123" attribute value
 	io::const_string tmp = sev.get_attribute("","id").first;
-	io::from_string(tmp, ret.id);
+
+	char *endp;
+	std::strtoull(tmp.data(), &endp, ret.id);
+
+	//io::from_chars(tmp.data(), tmp.data()+tmp.size(), ret.id);
+
 	// obtain enabled="true|false" attribute value
 	tmp = sev.get_attribute("","enabled").first;
 	io::from_string(tmp, ret.enabled);
 	// read nesting <name>name</name> tag value
 	rd.next_expected_tag_begin("name");
-		ret.name = std::string( rd.next_characters().data() );
+	ret.name = rd.next_characters().clone();
 	rd.next_expected_tag_end("name");
 	// check next is </configuration> tag end
 	rd.next_expected_tag_end("configuration");
 	return ret;
 }
-
-#ifdef IO_NO_EXCEPTIONS
-// handle unexpected error if any
-// current implementation
-// print last error (errno for UNIX or GetLastError for Windows) message into
-// standard error stream and calls for std::exit with error number as a process
-// execution result
-static void on_terminate() noexcept
-{
-	io::exit_with_current_error();
-}
-#endif // IO_NO_EXCEPTIONS
-
 
 int main(int argc, const char** argv)
 {
@@ -93,39 +85,25 @@ int main(int argc, const char** argv)
 
 	std::cout<< "Configurations read from XML\n" << std::endl;
 
-#ifndef IO_NO_EXCEPTIONS
-	try {
-#else
-    // set terminate handler for unexpected errors if any
-	std::set_terminate( on_terminate );
-#endif // IO_NO_EXCEPTIONS
-		io::unsafe<io::xml::reader> rd( std::move(psr) );
-		// goto <configurations>
-		rd.next_expected_tag_begin("","configurations");
+	io::unsafe<io::xml::reader> rd( std::move(psr) );
+	// goto <configurations>
+	rd.next_expected_tag_begin("","configurations");
 
-		std::vector<configuration> configurations;
+	std::vector<configuration> configurations;
 
-		// De-serialize configurations
+	// De-serialize configurations
+	rd.to_next_state();
+	while( rd.is_tag_begin_next() ) {
+		configurations.emplace_back( read_config(rd) );
 		rd.to_next_state();
-		while( rd.is_tag_begin_next() ) {
-			configurations.emplace_back( read_config(rd) );
-			rd.to_next_state();
-		}
-		// check end element event
-		rd.next_expected_tag_end("","configurations");
-
-		// Display results
-		for(configuration cnf: configurations) {
-			std::cout << '\t' << cnf << std::endl;
-		}
-
-#ifndef IO_NO_EXCEPTIONS
 	}
-	catch(std::exception& exc) {
-		std::cerr << exc.what() << std::endl;
-		return -1;
+	// check end element event
+	rd.next_expected_tag_end("","configurations");
+
+	// Display results
+	for(configuration cnf: configurations) {
+		std::cout << '\t' << cnf << std::endl;
 	}
-#endif // IO_NO_EXCEPTIONS
 
 	return 0;
 }

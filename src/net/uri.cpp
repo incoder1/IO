@@ -9,7 +9,7 @@
  *
  */
 #include "stdafx.hpp"
-#include "strings.hpp"
+#include "string_algs.hpp"
 #include "net/uri.hpp"
 
 #include <cstdlib>

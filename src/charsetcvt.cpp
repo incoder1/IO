@@ -10,7 +10,7 @@
  */
 #include "stdafx.hpp"
 #include "charsetcvt.hpp"
-#include "strings.hpp"
+#include "string_algs.hpp"
 
 #include <iconv.h>
 
@@ -161,7 +161,7 @@ std::size_t IO_PUBLIC_SYMBOL utf8_buff_size(const char16_t* ustr, std::size_t si
 std::size_t IO_PUBLIC_SYMBOL utf8_buff_size(const char32_t* ustr, std::size_t size) noexcept
 {
 	std::size_t ret = 0;
-    const uint32_t* c = reinterpret_cast<const uint32_t*>(ustr);
+	const uint32_t* c = reinterpret_cast<const uint32_t*>(ustr);
 	for(std::size_t i = 0; *c && (i < size); i++, c++) {
 		if(*c < LATIN1_MAX)
 			++ret;

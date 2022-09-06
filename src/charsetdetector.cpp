@@ -10,7 +10,8 @@
  */
 #include "stdafx.hpp"
 #include "charsetdetector.hpp"
-#include "strings.hpp"
+#include "string_algs.hpp"
+
 /*
  This is C++ 11 minimal port of Mozilla universal character set detector
  FIXME: Those state machines is over-complicated, an performance un-effective

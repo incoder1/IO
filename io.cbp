@@ -25,17 +25,15 @@
 					<Add option="-mlzcnt" />
 					<Add option="-mmovbe" />
 					<Add option="-D_WIN32_WINNT=0x0A00" />
-					<Add directory="include" />
 					<Add directory="include/net" />
-					<Add directory="include/win" />
-					<Add directory="$(#msys2.include)" />
 					<Add directory="include/tls" />
+					<Add directory="include/win" />
 				</Compiler>
 				<Linker>
 					<Add library="iconv.dll" />
 					<Add library="Ws2_32" />
 					<Add library="gnutls.dll" />
-					<Add directory="$(#msys2.lib)" />
+					<Add directory="bin/debug-win-gcc-static-x64" />
 				</Linker>
 			</Target>
 			<Target title="release-win-gcc-dll-x64">
@@ -57,11 +55,9 @@
 					<Add option="-D_WIN32_WINNT=0x0A00" />
 					<Add option="-DNDEBUG" />
 					<Add option="-DIO_SHARED_LIB" />
-					<Add directory="include" />
 					<Add directory="include/net" />
-					<Add directory="include/win" />
-					<Add directory="$(#msys2.include)" />
 					<Add directory="include/tls" />
+					<Add directory="include/win" />
 				</Compiler>
 				<Linker>
 					<Add option="-O3" />
@@ -80,7 +76,7 @@
 					<Add library="iconv.dll" />
 					<Add library="Ws2_32" />
 					<Add library="gnutls.dll" />
-					<Add directory="$(#msys2.lib)" />
+					<Add directory="bin/release-win-gcc-dll-x64" />
 				</Linker>
 			</Target>
 			<Target title="debug-unix-gcc-static-64bit">
@@ -133,8 +129,6 @@
 			<Add option="-fchar8_t" />
 			<Add option="-DIO_BUILD" />
 			<Add directory="include" />
-			<Add directory="include/net" />
-			<Add directory="src" />
 		</Compiler>
 		<Unit filename="CMakeLists.txt">
 			<Option target="&lt;{~None~}&gt;" />
@@ -197,6 +191,7 @@
 		</Unit>
 		<Unit filename="include/scoped_array.hpp" />
 		<Unit filename="include/stream.hpp" />
+		<Unit filename="include/string_algs.hpp" />
 		<Unit filename="include/stringpool.hpp" />
 		<Unit filename="include/text.hpp" />
 		<Unit filename="include/threading.hpp" />
@@ -322,7 +317,6 @@
 			<Option weight="0" />
 		</Unit>
 		<Unit filename="src/stringpool.cpp" />
-		<Unit filename="src/strings.hpp" />
 		<Unit filename="src/tls/blocking_channel.cpp" />
 		<Unit filename="src/tls/credentials.cpp" />
 		<Unit filename="src/tls/security_context.cpp" />
