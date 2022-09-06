@@ -20,7 +20,6 @@
 #include "charsetcvt.hpp"
 #include "hashing.hpp"
 
-
 #include <cstring>
 #include <cctype>
 #include <functional>
@@ -296,30 +295,27 @@ public:
 	}
 };
 
-inline std::ostream& operator<<(std::ostream& os, const const_string& cstr)
+inline std::basic_ostream<char>& operator<<(std::basic_ostream<char>& os, const const_string& cstr)
 {
-	os.write( cstr.data(), cstr.size() );
+	os << cstr.data();
 	return os;
 }
 
-inline std::wostream& operator<<(std::wostream& os, const const_string& cstr)
+inline std::basic_ostream<wchar_t>& operator<<(std::basic_ostream<wchar_t>& os, const const_string& cstr)
 {
-	std::wstring conv = cstr.convert_to_ucs();
-	os.write(conv.data(), conv.size() );
+	os << cstr.convert_to_ucs();
 	return os;
 }
 
 inline std::basic_ostream<char16_t>& operator<<(std::basic_ostream<char16_t>& os, const const_string& cstr)
 {
-	std::u16string conv = cstr.convert_to_u16();
-	os.write( conv.data(), conv.size() );
+	os << cstr.convert_to_u16();
 	return os;
 }
 
 inline std::basic_ostream<char32_t>& operator<<(std::basic_ostream<char32_t>& os, const const_string& cstr)
 {
-	std::u32string conv = cstr.convert_to_u32();
-	os.write( conv.data(), conv.size() );
+	os << cstr.convert_to_u32();
 	return os;
 }
 

@@ -49,7 +49,7 @@ template<
 	typename lhs_ch_t,
 	typename rhs_ch_t,
 	typename std::enable_if<
-		is_charater_v<lhs_ch_t>, is_charater_v<rhs_ch_t>
+		is_charater<lhs_ch_t>::value && is_charater<rhs_ch_t>::value
 	>::type* = nullptr
 >
 #endif // IO_HAS_CONNCEPTS
@@ -70,7 +70,7 @@ template<
 	typename lhs_ch_t,
 	typename rhs_ch_t,
 	typename std::enable_if<
-		is_charater_v<lhs_ch_t>, is_charater_v<rhs_ch_t>
+		is_charater<lhs_ch_t>::value && is_charater<rhs_ch_t>::value
 	>::type* = nullptr
 >
 #endif // IO_HAS_CONNCEPTS
@@ -96,7 +96,7 @@ template<typename __CharType, __CharType __A, __CharType __B>
 template<
 	typename __CharType, __CharType __A, __CharType __B,
 	typename std::enable_if<
-		is_charater_v<__CharType>
+		is_charater<__CharType>::value
 	>::type* = nullptr
 >
 #endif // IO_HAS_CONNCEPTS
@@ -112,7 +112,7 @@ template<typename __CharType, __CharType __A, __CharType __B>
 template<
 	typename __CharType, __CharType __A, __CharType __B,
 	typename std::enable_if<
-		is_charater_v<__CharType>
+		is_charater<__CharType>::value
 	>::type* = nullptr
 >
 #endif // IO_HAS_CONNCEPTS
@@ -128,7 +128,7 @@ template<typename __CharType, __CharType __A, __CharType __B, __CharType __C>
 template<
 	typename __CharType, __CharType __A, __CharType __B, __CharType __C,
 	typename std::enable_if<
-		is_charater_v<__CharType>
+		is_charater<__CharType>::value
 	>::type* = nullptr
 >
 #endif // IO_HAS_CONNCEPTS
@@ -144,7 +144,7 @@ template<typename __CharType, __CharType __A, __CharType __B, __CharType __C>
 template<
 	typename __CharType, __CharType __A, __CharType __B, __CharType __C,
 	typename std::enable_if<
-		is_charater_v<__CharType>
+		is_charater<__CharType>::value
 	>::type* = nullptr
 >
 #endif // IO_HAS_CONNCEPTS
@@ -160,7 +160,7 @@ template<typename __CharType, __CharType __A, __CharType __B, __CharType __C, __
 template<
 	typename __CharType, __CharType __A, __CharType __B, __CharType __C, __CharType __D,
 	typename std::enable_if<
-		is_charater_v<__CharType>
+		is_charater<__CharType>::value
 	>::type* = nullptr
 >
 #endif // IO_HAS_CONNCEPTS
@@ -176,7 +176,7 @@ template<typename __CharType, __CharType __A, __CharType __B, __CharType __C, __
 template<
 	typename __CharType, __CharType __A, __CharType __B, __CharType __C, __CharType __D,
 	typename std::enable_if<
-		is_charater_v<__CharType>
+		is_charater<__CharType>::value
 	>::type* = nullptr
 >
 #endif // IO_HAS_CONNCEPTS
@@ -353,7 +353,7 @@ template<typename char_t>
 template<
 	typename char_t,
 	typename std::enable_if<
-		is_charater_v<char_t>
+		is_charater<char_t>::value
 	>::type* = nullptr
 >
 #endif // IO_HAS_CONNCEPTS
@@ -369,7 +369,7 @@ template<typename char_t>
 template<
 	typename char_t,
 	typename std::enable_if<
-		is_charater_v<char_t>
+		is_charater<char_t>::value
 	>::type* = nullptr
 >
 #endif // IO_HAS_CONNCEPTS
@@ -388,7 +388,7 @@ template<typename char_t>
 template<
 	typename char_t,
 	typename std::enable_if<
-		is_charater_v<char_t>
+		is_charater<char_t>::value
 	>::type* = nullptr
 >
 #endif // IO_HAS_CONNCEPTS
@@ -407,7 +407,7 @@ template<typename char_t>
 template<
 	typename char_t,
 	typename std::enable_if<
-		is_charater_v<char_t>
+		is_charater<char_t>::value
 	>::type* = nullptr
 >
 #endif // IO_HAS_CONNCEPTS
@@ -426,7 +426,7 @@ template<typename char_t>
 template<
 	typename char_t,
 	typename std::enable_if<
-		is_charater_v<char_t>
+		is_charater<char_t>::value
 	>::type* = nullptr
 >
 #endif // IO_HAS_CONNCEPTS
@@ -445,7 +445,7 @@ template<typename char_t>
 template<
 	typename char_t,
 	typename std::enable_if<
-		is_charater_v<char_t>
+		is_charater<char_t>::value
 	>::type* = nullptr
 >
 #endif // IO_HAS_CONNCEPTS
@@ -464,7 +464,7 @@ template<typename char_t>
 template<
 	typename char_t,
 	typename std::enable_if<
-		is_charater_v<char_t>
+		is_charater<char_t>::value
 	>::type* = nullptr
 >
 #endif // IO_HAS_CONNCEPTS
@@ -483,7 +483,7 @@ template<typename char_t>
 template<
 	typename char_t,
 	typename std::enable_if<
-		is_charater_v<char_t>
+		is_charater<char_t>::value
 	>::type* = nullptr
 >
 #endif // IO_HAS_CONNCEPTS
@@ -502,7 +502,7 @@ template<typename char_t>
 template<
 	typename char_t,
 	typename std::enable_if<
-		is_charater_v<char_t>
+		is_charater<char_t>::value
 	>::type* = nullptr
 >
 #endif // IO_HAS_CONNCEPTS
@@ -521,7 +521,7 @@ template<typename char_t>
 template<
 	typename char_t,
 	typename std::enable_if<
-		is_charater_v<char_t>
+		is_charater<char_t>::value
 	>::type* = nullptr
 >
 #endif // IO_HAS_CONNCEPTS
@@ -540,7 +540,7 @@ template<typename char_t>
 template<
 	typename char_t,
 	typename std::enable_if<
-		is_charater_v<char_t>
+		is_charater<char_t>::value
 	>::type* = nullptr
 >
 #endif // IO_HAS_CONNCEPTS
@@ -558,7 +558,7 @@ template<typename char_t>
 template<
 	typename char_t,
 	typename std::enable_if<
-		is_charater_v<char_t>
+		is_charater<char_t>::value
 	>::type* = nullptr
 >
 #endif // IO_HAS_CONNCEPTS
@@ -579,7 +579,7 @@ template<typename char_t>
 template<
 	typename char_t,
 	typename std::enable_if<
-		is_charater_v<char_t>
+		is_charater<char_t>::value
 	>::type* = nullptr
 >
 #endif // IO_HAS_CONNCEPTS
@@ -601,7 +601,7 @@ template<typename char_t>
 template<
 	typename char_t,
 	typename std::enable_if<
-		is_charater_v<char_t>
+		is_charater<char_t>::value
 	>::type* = nullptr
 >
 #endif // IO_HAS_CONNCEPTS

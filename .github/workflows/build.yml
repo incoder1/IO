@@ -12,7 +12,7 @@ jobs:
     strategy:
       matrix:
         os: [ubuntu]
-        compiler: [g++, clang++]
+        compiler: [g++]
         arch: [i686,x86_64]
     name: ${{matrix.os}} (${{matrix.compiler}}
     runs-on: ${{matrix.os}}-latest
@@ -21,7 +21,7 @@ jobs:
       - name: install dependencies
         run: sudo apt-get install -y gnutls-dev libboost-all-dev
       - name: cmake configure
-        run: cmake . -DCMAKE_BUILD_TYPE=Release -DBUILD_LIBRARY_TYPE=Static
+        run: cmake . -DCMAKE_BUILD_TYPE=Release -DBUILD_LIBRARY_TYPE=Shared
       - name: cmake build
         run: cmake --build .
 # windows:    
