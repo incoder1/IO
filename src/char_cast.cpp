@@ -1117,6 +1117,17 @@ IO_PUBLIC_SYMBOL from_chars_result from_chars(const char* first,const char* last
 	return ret;
 }
 
+io::const_string IO_PUBLIC_SYMBOL to_string(std::error_code& ec, const bool value, str_bool_format fmt) noexcept
+{
+	char tmp[6] = {'\0'};
+	auto ret = to_chars(tmp, tmp+sizeof(tmp), value, fmt);
+	if( 0 != static_cast<unsigned int>(ret.ec) ) {
+ 		ec = std::make_error_code( ret.ec );
+		return io::const_string();
+	}
+	return io::const_string(tmp);
+}
+
 
 } // namespace io
 

@@ -15,6 +15,7 @@
 					<Add option="-g" />
 					<Add option="-fexceptions" />
 					<Add directory="../test" />
+					<Add directory="include" />
 				</Compiler>
 				<Linker>
 					<Add library="iconv" />
@@ -33,6 +34,7 @@
 					<Add option="-fno-rtti" />
 					<Add option="-DIO_SHARED_LIB" />
 					<Add directory="../test" />
+					<Add directory="include" />
 				</Compiler>
 				<Linker>
 					<Add option="-O3" />
@@ -52,14 +54,15 @@
 			<Add library="io" />
 			<Add library="gtest" />
 		</Linker>
-		<Unit filename="char_cast_test.cpp" />
-		<Unit filename="char_cast_test.hpp" />
-		<Unit filename="main.cpp" />
-		<Unit filename="stdafx.cpp" />
 		<Unit filename="stdafx.hpp">
 			<Option compile="1" />
 			<Option weight="0" />
 		</Unit>
+		<Unit filename="fixtures.hpp" />
+		<Unit filename="stdafx.cpp" />
+		<Unit filename="char_cast_test.cpp" />
+		<Unit filename="string_cast.cpp" />
+		<Unit filename="main.cpp" />
 		<Extensions>
 			<lib_finder disable_auto="1" />
 		</Extensions>

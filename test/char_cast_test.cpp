@@ -9,7 +9,8 @@
  *
  */
 #include "stdafx.hpp"
-#include "char_cast_test.hpp"
+
+#include <char_cast.hpp>
 
 char_cast_fixture::char_cast_fixture():
 	testing::Test()
@@ -21,19 +22,19 @@ TEST_F(char_cast_fixture, unsingned_8bit_to_char)
 	char* first= buff;
 	char* last = first + sizeof(buff);
 
-	uint8_t u8bit = 128;
+	uint8_t u8bit = 0xFF;
 	io_zerro_mem(buff,sizeof(buff));
 	auto ret = io::to_chars(first, last, u8bit);
 	ASSERT_FALSE( std::make_error_code(ret.ec) );
 	ASSERT_EQ( ret.ptr, (buff+3) );
-	ASSERT_STREQ(first,"128");
+	ASSERT_STREQ(first,"255");
 }
 
 TEST_F(char_cast_fixture, unsingned_8bit_from_char)
 {
-	const char* src = "\t\n\v\f\r 128";
+	const char* src = "\t\n\v\f\r 255";
 	const char* endp = src + io_strlen(src);
-	const uint8_t expected = 128;
+	const uint8_t expected = 0xFF;
 	uint8_t actual;
 	auto ret = io::from_chars(src, endp, actual );
 	ASSERT_EQ(actual, expected);

@@ -9,7 +9,7 @@
  *
  */
 #include "stdafx.hpp"
-#include "char_cast_test.hpp"
+#include "fixtures.hpp"
 
 int main(int argc,char* argv[])
 {

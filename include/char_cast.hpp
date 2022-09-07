@@ -265,23 +265,19 @@ IO_PUBLIC_SYMBOL from_chars_result from_chars(const char* first,const char* last
 
 #ifdef IO_HAS_CONNCEPTS
 template<typename T>
-requires( std::is_integral_v<T>)
+requires( is_signed_integer_v<T> || is_unsigned_integer_v<T> || std::is_floating_point_v<T> || std::is_same_v<bool,T> )
 #else
 template<
 	typename T,
 	typename std::enable_if<
-		std::is_integral<T>::value
+		is_signed_integer<T>::value ||
+		is_unsigned_integer<T>::value ||
+		std::is_floating_point<T>::value ||
+		std::is_same<bool,T>::value
 		>::type* = nullptr
 	>
 #endif // IO_HAS_CONNCEPTS
 inline void from_string(std::error_code& ec, const io::const_string& str, T& value) noexcept
-{
-	auto fch_ret = from_chars<T>( str.data(), str.data()+str.size(), value);
-	if(nullptr == fch_ret.ptr)
-		ec = std::make_error_code( fch_ret.ec );
-}
-
-inline void from_string(std::error_code& ec, const io::const_string& str, bool& value) noexcept
 {
 	auto fch_ret = from_chars( str.data(), str.data()+str.size(), value);
 	if(nullptr == fch_ret.ptr)
@@ -290,34 +286,18 @@ inline void from_string(std::error_code& ec, const io::const_string& str, bool& 
 
 #ifdef IO_HAS_CONNCEPTS
 template<typename T>
-requires( std::is_floating_point_v<T> )
+requires( is_signed_integer_v<T> || is_unsigned_integer_v<T> || std::is_floating_point_v<T> || std::is_same_v<bool,T>)
 #else
 template<
 	typename T,
 	typename std::enable_if<
+		is_signed_integer<T>::value ||
+		is_unsigned_integer<T>::value ||
 		std::is_floating_point<T>::value
+		std::is_same<bool,T>::value
 		>::type* = nullptr
 	>
 #endif // IO_HAS_CONNCEPTS
-inline void from_string(std::error_code& ec, const io::const_string& str, T& value) noexcept
-{
-	auto fch_ret = from_chars<T>( str.data(), str.data()+str.size(), value);
-	if(nullptr == fch_ret.ptr)
-		ec = std::make_error_code( fch_ret.ec );
-}
-
-#ifdef IO_HAS_CONNCEPTS
-template<typename T>
-requires( std::is_integral_v<T> || std::is_floating_point_v<T> )
-#else
-template<
-	typename T,
-	typename std::enable_if<
-		std::is_integral<T>::value ||
-		std::is_floating_point<T>::value
-		>::type* = nullptr
-	>
-#endif
 inline void from_string(const io::const_string& str, T& value)
 {
 	std::error_code ec;
@@ -350,16 +330,11 @@ inline io::const_string to_string(std::error_code& ec, const T value) noexcept
 	return io::const_string(tmp);
 }
 
-inline io::const_string to_string(std::error_code& ec, const bool value, str_bool_format fmt = str_bool_format::true_false) noexcept
-{
-	char tmp[6] = {'\0'};
-	auto ret = to_chars(tmp, tmp+sizeof(tmp), value, fmt);
-	if( 0 != static_cast<unsigned int>(ret.ec) ) {
- 		ec = std::make_error_code( ret.ec );
-		return io::const_string();
-	}
-	return io::const_string(tmp);
-}
+#ifdef _MSC_VER
+IO_PUBLIC_SYMBOL io::const_string to_string(std::error_code& ec, const bool value, str_bool_format fmt = str_bool_format::true_false) noexcept;
+#else
+io::const_string IO_PUBLIC_SYMBOL to_string(std::error_code& ec, const bool value, str_bool_format fmt = str_bool_format::true_false) noexcept;
+#endif // _MSC_VER
 
 inline io::const_string to_string(const bool value, str_bool_format fmt = str_bool_format::true_false)
 {

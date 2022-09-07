@@ -11,7 +11,6 @@
 #ifndef __IO_TEST_STDAFX_HPP_INCLUDED__
 #define __IO_TEST_STDAFX_HPP_INCLUDED__
 
-#include <gtest/gtest.h>
-#include <gtest/gtest-matchers.h>
+#include "fixtures.hpp"
 
 #endif // __IO_TEST_STDAFX_HPP_INCLUDED__
