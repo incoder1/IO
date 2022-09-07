@@ -293,7 +293,7 @@ template<
 	typename std::enable_if<
 		is_signed_integer<T>::value ||
 		is_unsigned_integer<T>::value ||
-		std::is_floating_point<T>::value
+		std::is_floating_point<T>::value ||
 		std::is_same<bool,T>::value
 		>::type* = nullptr
 	>

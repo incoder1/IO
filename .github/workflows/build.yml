@@ -13,21 +13,21 @@ jobs:
       matrix:
         os: [ubuntu]
         compiler: [g++]
-    name: ${{matrix.os}} (${{matrix.compiler}}
+    name: ${{matrix.os}} ${{matrix.compiler}}
     runs-on: ${{matrix.os}}-latest
     steps:
       - uses: actions/checkout@v1
       - name: install dependencies
-        run: sudo apt-get install -y gnutls-dev
-      - name: cmake configure
-        run: cmake IO -DCMAKE_BUILD_TYPE=Release -DBUILD_LIBRARY_TYPE=Shared
-      - name: cmake build
-        run: cmake IO --build
-# windows:    
+        run: sudo apt-get install -y gnutls-dev libgtest-dev
+      - name: configure
+        run: cmake -S . -B CBuild -DCMAKE_CXX_COMPILER=${{matrix.compiler}} -DCMAKE_BUILD_TYPE=Release -DBUILD_LIBRARY_TYPE=Shared -DRUN_TESTS=ON
+      - name: build-and-test
+        run: cmake --build CBuild
+# windows:
 #   strategy:
 #      matrix:
 #        arch: [Win32, x64]
-#    name: windows ${{matrix.arch}}   
+#    name: windows ${{matrix.arch}}
 #    runs-on: windows-latest
 #    steps:
 #      - uses: actions/checkout@v1

@@ -329,7 +329,7 @@ enum class cnvrt_control
 namespace detail {
 
 // iconv engine wrapper
-class engine {
+class IO_PUBLIC_SYMBOL engine {
 public:
 	engine(const engine&) = delete;
 	engine& operator=(const engine&) = delete;

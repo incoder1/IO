@@ -2,6 +2,9 @@ cmake_minimum_required(VERSION 3.4)
 
 project(io CXX)
 
+include(CMakeDependentOption)
+include(CTest)
+
 include_directories(include)
 include_directories(include/net)
 # for pre-compiled headers
@@ -19,9 +22,6 @@ endif()
 
 if ("${BUILD_LIBRARY_TYPE}" STREQUAL "Shared")
 	set (BUILD_SHARED_LIBS ON)
-else()
-	unset (BUILD_SHARED_LIBS)
-	unset (BUILD_SHARED_LIBRARY_NAME_POSTFIX)
 endif()
 
 set(EXTRA_LIBS)
@@ -31,11 +31,15 @@ if( WIN32 OR MSYS OR CYGWIN)
 	message( STATUS "Building IO for Microsoft Windows")
 	include_directories(include/win)
 	file(GLOB PLATFORM_SRC ${PROJECT_SOURCE_PATH}/win/*.cpp)
-	add_definitions(-D_WIN32_WINNT=0x0A00)
+	if(MSVC)
+		add_definitions(/D_WIN32_WINNT=0x0A00)
+	else()
+		add_definitions(-D_WIN32_WINNT=0x0A00)
+	endif()
 	if(MSYS OR CYGWIN)
 		set(THREADING threadwin)
 	endif()
-	list(APPEND EXTRA_LIBS Ws2_32)	
+	list(APPEND EXTRA_LIBS Ws2_32)
 elseif( UNIX AND NOT WIN32 AND NOT MSYS AND NOT CYGWIN)
 	message( STATUS "Building IO for UNIX/POSIX ")
 	include_directories(include/posix)
@@ -55,7 +59,6 @@ if(Boost_FOUND)
 endif()
 
 # Dependencies
-#GnuTLS is not exist for MS VC++
 find_package(GnuTLS 3.6.5)
 if(GNUTLS_FOUND)
 	include_directories(${GNUTLS_INCLUDE_DIR})
@@ -77,8 +80,12 @@ include_directories(${Iconv_INCLUDE_DIR})
 list(APPEND EXTRA_LIBS ${Iconv_LIBRARY})
 
 if( ${CMAKE_BUILD_TYPE} STREQUAL "Release" )
-	add_definitions(-DNDEBUG)
-	set(LIBRARY_OUTPUT_PATH ${CMAKE_BINARY_DIR}/Release/lib)	
+	if(MSVC)
+		add_definitions(/DNDEBUG)
+	else()
+		add_definitions(-DNDEBUG)
+	endif()
+	set(LIBRARY_OUTPUT_PATH ${CMAKE_BINARY_DIR}/Release/lib)
 elseif(${CMAKE_BUILD_TYPE} STREQUAL "Debug")
 	set(LIBRARY_OUTPUT_PATH ${CMAKE_BINARY_DIR}/Debug/lib)
 endif()
@@ -89,19 +96,16 @@ else()
 	add_library(io STATIC ${COMMON_SRC} ${TLS_SRC} ${PLATFORM_SRC})
 endif()
 
-enable_testing(test)
-add_subdirectory(test)
-
 if( CMAKE_COMPILER_IS_GNUCXX )
-	
+
 	set(CMAKE_CXX_EXTENSIONS ON)
-	
+
 	target_link_libraries(io ${EXTRA_LIBS})
 	target_precompile_headers(io PRIVATE ${PROJECT_SOURCE_PATH}/stdafx.hpp)
+	set_target_properties(io PROPERTIES LINKER_LANGUAGE CXX)
 
 	if(BUILD_SHARED_LIBS)
 		add_definitions(-DIO_SHARED_LIB -DIO_BUILD)
-		set_target_properties(io PROPERTIES LINKER_LANGUAGE CXX)
 	endif()
 
 	if( ${CMAKE_SYSTEM_PROCESSOR} STREQUAL "x86_64")
@@ -110,7 +114,7 @@ if( CMAKE_COMPILER_IS_GNUCXX )
 		set(CPU_SPECIFIC_FLAGS "")
 	endif()
 
-	set(RELEASE_OPTIMIZE_FLAGS "-mtune=generic -s -O3 -fdeclone-ctor-dtor -fdevirtualize-at-ltrans -fwhole-program ${CPU_SPECIFIC_FLAGS}")
+	set(RELEASE_OPTIMIZE_FLAGS "-mtune=generic -O3 -fdeclone-ctor-dtor -fdevirtualize-at-ltrans -fwhole-program ${CPU_SPECIFIC_FLAGS}")
 
 	if(NO_EXCEPTIONS)
 		set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fno-exceptions")
@@ -135,21 +139,21 @@ if( CMAKE_COMPILER_IS_GNUCXX )
 		set(LTO_FLAGS "-flto -Wl,-allow-multiple-definition")
 		set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS} ${LTO_FLAGS}")
 		set(CMAKE_SHARED_LINKER_FLAGS_RELEASE "${CMAKE_SHARED_LINKER_FLAGS} -s ${LTO_FLAGS} ${RELEASE_OPTIMIZE_FLAGS}")
+		set(CMAKE_EXE_LINKER_FLAGS_RELEASE "${CMAKE_EXE_LINKER_FLAGS_RELEASE} ${LTO_FLAGS} ${RELEASE_OPTIMIZE_FLAGS}")
 	else()
 		set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS} ${RELEASE_OPTIMIZE_FLAGS}" )
-		set(CMAKE_SHARED_LINKER_FLAGS_RELEASE "${CMAKE_SHARED_LINKER_FLAGS}")
 	endif()
 
 	set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS} -g -Og")
 
 elseif(MSVC)
 	target_precompile_headers(io PRIVATE ${PROJECT_SOURCE_PATH}/stdafx.hpp)
-	
-	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /c /nologo /utf-8 /std:c++latest")	
+
+	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /c /nologo /utf-8 /std:c++latest")
 	set(CMAKE_CXX_FLAGS_RELEASE  "${CMAKE_CXX_FLAGS} /O2 /Oi /Gw /Zc:wchar_t")
-	
+
 	add_definitions(/DUNICODE)
-	
+
 	if(BUILD_SHARED_LIBS)
 		set(CMAKE_WINDOWS_EXPORT_ALL_SYMBOLS ON)
 		add_definitions(/DIO_SHARED_LIB)
@@ -163,18 +167,62 @@ elseif(MSVC)
 		set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /MD")
 		target_link_libraries(io ${EXTRA_LIBS})
 	endif()
-	
+
 	if(NOT NO_EXCEPTIONS OR BUILD_SHARED_LIBS)
 		if(BUILD_SHARED_LIBS AND NO_EXCEPTIONS)
 			message(SEND_ERROR "Could not build no exceptions DLL from Cmake, use nmake -f NMakefile-msvcx64-dll.mak instead")
 		endif()
 		set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /EHsc")
 	endif()
-	
+
 	if(NOT NO_RTTI)
 		set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /GR")
 	endif()
-	
+
 	set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS} /ZI")
-	
+
+endif()
+
+if(RUN_TESTS)
+	# Locate GTest
+	find_package(GTest REQUIRED)
+	include_directories(${GTest_INCLUDE_DIRS})
+	if(IO_SHARED_LIB)
+		if(MSVC)
+			add_definitions(/DIO_SHARED_LIB)
+			add_definitions(/DUNICODE)
+		else()
+			add_definitions(-DIO_SHARED_LIB)
+			add_definitions(-DUNICODE)
+		endif()
+		if(WIN32)
+			set(RUNTIME_PATH "$ENV{PATH};${LIBRARY_OUTPUT_PATH}")
+			set_tests_properties(io_gtests PROPERTIES ENVIRONMENT  "PATH=${RUNTIME_PATH}")
+		elseif(UNIX)
+			set(RUNTIME_PATH "$ENV{LD_LIBRARY_PATH};${SO_DIR}")
+			set_tests_properties(io_gtests PROPERTIES ENVIRONMENT "LD_LIBRARY_PATH=${RUNTIME_PATH}")
+		endif()
+	endif()
+	if( ${CMAKE_BUILD_TYPE} STREQUAL "Release" )
+		if(MSVC)
+			add_definitions(/DNDEBUG)
+		else()
+			add_definitions(-DNDEBUG)
+		endif()
+	endif()
+	link_directories(${LIBRARY_OUTPUT_PATH})
+	file(GLOB TEST_SRC ${PROJECT_SOURCE_DIR}/test/*.cpp)
+	add_executable(io-gtest-suite ${TEST_SRC})
+	target_link_libraries(io-gtest-suite PRIVATE io  ${GTEST_BOTH_LIBRARIES})
+	set_target_properties(io-gtest-suite PROPERTIES LINKER_LANGUAGE CXX)
+	enable_testing()
+  	add_test(NAME io-check
+    	COMMAND io-gtest-suite
+    	WORKING_DIRECTORY ${LIBRARY_OUTPUT_PATH})
+
+	add_custom_command(
+				   TARGET io-gtest-suite
+				   COMMENT "Run tests"
+                   POST_BUILD
+                   COMMAND ${CMAKE_CTEST_COMMAND} --output-on-failure )
 endif()

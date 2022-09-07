@@ -1,6 +1,7 @@
 /bin
 /obj
 /target
+CBuild/
 CMakeCache.txt
 cmake_install.cmake
 CMakeFiles/
@@ -8,7 +9,6 @@ Testing/
 Makefile
 .ninja_deps
 .ninja_log
-CTestTestfile.cmake
 */**/obj
 */**/bin
 */**/tmp
@@ -24,5 +24,7 @@ CTestTestfile.cmake
 **.depend
 **.layout
 **.ninja
+**.tcl
+**.cmake
 **/**/result.txt
 
