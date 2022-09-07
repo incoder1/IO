@@ -3,31 +3,32 @@
 [![Build Status](https://travis-ci.org/incoder1/IO.svg?branch=master)](https://travis-ci.org/incoder1/IO)
 [![bs1-1.0](https://img.shields.io/badge/license-boost-blue.svg)](https://www.boost.org/LICENSE_1_0.txt)
 
-# NOTE:
-This branch in development
-Road map by the priority:
+# WARNING!
+This branch in active development and not stabile
 
-Version 1.0.0:
-	- Updates for C++ 20 standard, backward compatibility for C++11 for release 1.0	
-	- Simplify some APIs and implemations i.e. console, network, etc lecal casting for work with text data formats
-	- Test over Google Test and cmake/ctest
-	- Make files must be obsolite and removed complitelly, Cmake build only
-	- Gith hub actions CI instead of Travis
-	- Asynchronous IO for network with TLS security support		
-	- HTTP client, use (preffered) libnghttp2 or create own libnghttp2 like implementaton, need proff of concept
-	- Fix character set detection lib for full fertured, need proff of concept
-	- Tutorial over the examples	
+## Road map by the priority
+
+### Version 1.0.0:
+1. Updates for C++ 20 standard, backward compatibility for C++11 for release 1.0	
+2. Simplify some APIs and implemations i.e. console, network, etc lecal casting for work with text data formats
+3. Test over Google Test and cmake/ctest
+4. Make files must be obsolite and removed complitelly, Cmake build only
+5. Gith hub actions CI instead of Travis
+6. Asynchronous IO for network with TLS security support		
+7. HTTP client, use (preffered) libnghttp2 or create own libnghttp2 like implementaton, need proff of concept
+8. Fix character set detection lib for full fertured, need proff of concept
+9 Tutorial over the examples	
 	
-Deep backlog i.e. for version 1.0.1 etc: 	
-	- YAML data format streaming API
-	- Named pipes sources
-	- Support for clang compiller
-	- Support for FreeBSD, Mac OS X Android and iOS	
-	- JSON data format sreaming like Boost JSON
-	- ASN 1.0 data format streaming 
-	- BSON data format streaming
-	- Extend COLLADA demo viewer with glTF add pathes support with geometry/calc shaders
-	- Support for Intel compiller
+### Deep backlog i.e. for version 1.0.1 etc: 	
+* YAML data format streaming API
+* Named pipes sources
+* Support for clang compiller
+* Support for FreeBSD, Mac OS X Android and iOS	
+* JSON data format sreaming like Boost JSON
+* ASN 1.0 data format streaming 
+* BSON data format streaming
+* Extend COLLADA demo viewer with glTF add pathes support with geometry/calc shaders
+* Support for Intel compiller
 			
 IO is modern C++ (std 11 +) library for general propose input/output library read and write binary and textual common data formats
 
