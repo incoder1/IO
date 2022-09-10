@@ -43,10 +43,10 @@ random_access_channel::~random_access_channel() noexcept
 
 // asynch_completion_routine
 
-void asynch_completion_routine::received(std::error_code& ec, const s_asynch_channel& source,byte_buffer&& data) noexcept
+void asynch_completion_routine::received(std::error_code&, const s_asynch_channel&,byte_buffer&&) noexcept
 {}
 
-void asynch_completion_routine::sent(std::error_code& ec, const s_asynch_channel& source,byte_buffer&& data) noexcept
+void asynch_completion_routine::sent(std::error_code&, const s_asynch_channel&,byte_buffer&&) noexcept
 {}
 
 // asynch_channel
@@ -81,7 +81,7 @@ std::size_t IO_PUBLIC_SYMBOL transmit_buffer(std::error_code& ec,
 	return ret;
 }
 
-std::size_t IO_PUBLIC_SYMBOL transmit(std::error_code& ec,const s_read_channel& src, const s_write_channel& dst, unsigned long buff_size) noexcept
+std::size_t IO_PUBLIC_SYMBOL transmit(std::error_code& ec,const s_read_channel& src, const s_write_channel& dst, std::size_t buff_size) noexcept
 {
 	if( io_unlikely(!src || !dst || buff_size < 2 ) )  {
 		ec = std::make_error_code( std::errc::invalid_argument );

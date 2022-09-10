@@ -88,7 +88,8 @@ stored inside the class, therwise all equal instatnces of const_string sharing t
 Background data array is considered to be always in UFT-8 UNICODE, and there are utility functions for trans-coding for char16_t,
 char32_t or wchar_t std::basic_string. const_string can count UNICODE character lenght as well as provide bytes size.
 
-const_string provides MurMur3 hash function for 32 bit instruction set and Google CityHash function for 64 bit CPUS.
+IO implements [Google CityHash](https://github.com/google/cityhash) for const_sting as well as you can use this hasing with any
+cind of data needs to be caches, as well as combine hahes with inspired CityHash algorytm.
 
 #### LECICAL CASTING  
 A common implemetion for lexical casting with the similar to to_chars/from_char to_string/from_string design. 
@@ -134,15 +135,13 @@ Tested implementations:
 
 #### Windows
    Compiler | instruction
-    MSYS2 | install developement package i.e. `pacman -S libgnutls-devel`
-    MS Visual C++ | Download a release built from [ShiftMediaProject/gnutls](https://github.com/ShiftMediaProject/gnutls) and put it to deps/msvc sub folder
+    MSYS2 | install developement package i.e. `pacman -S libgnutls-devel` (or mingw-w64-x86_64-gnutls, mingw-w64-ucrt-x86_64-gnutls etc)
+    MS Visual C++ | Download a release built from [ShiftMediaProject/gnutls](https://github.com/ShiftMediaProject/gnutls) extract deps/msvc into sub folder
 
 - [Goole Test](https://github.com/google/googletest) 
-	Optional if you'd like to run tests
+  Optionaly if you'd like to run tests
 
-## SUPPORTED OPERATING SYSTEMS AND COMPILERS
-
-Library tested on next configuratons
+## TESTED OPERATING SYSTEMS AND COMPILERS MATRIX
 
 // TODO: insert build status to this marix when on github actions
 // and move on the file header to check status
@@ -150,8 +149,8 @@ Library tested on next configuratons
 OS | Compiler | Version | Arhitecture
 --- | --- | --- | ---
 **Windows** | | |
- Windows 10 | GCC/G++ | 12.1.0 MinGW64 (MSYS2 build) | x86_64
- Windows 10 | MS Visual C++ | 19 | x64 
+ Windows 10 | GCC/G++ | 12.1.0 MinGW64 (MSYS2 build) | [x86_64 | UCRT64] 
+ Windows 10 | MS Visual C++ | 22 | x64
 **GNU/Lunux** | | | 
  Fedora 36 | GCC/G++ | 12.1.0 |  x86_64
 
@@ -174,48 +173,35 @@ cmake --build CBuild
 
 Build result can be found at _CBuild/target/<Release|Debug>/lib_ sub-folder, if you don't whant to install libary with cmake.
 
-When you whant to build with MS VC++ solution as the Cmake output and d;like to build from command line e.g. the CI/CD build
+When you whant to build with MS VC++ solution as the Cmake output and d'like to build from command line e.g. the CI/CD build
 ```bash
-cmake . -G "Visual Studio 17 2022" 
+cmake -S . -B CBuild -G "Visual Studio 17 2022" -A <x86|x64> -DBUILD_LIBRARY_TYPE=<Shared|Static> [-DNO_EXCEPTIONS=ON] [-DNO_RTTI=ON] [-DRUN_TESTS=ON]
 ```
-you can goto target sub floder and build with next command, instead of `cmake --build .`
+you can open Power Shell for visual studio or run vcvars64.bat from console, cd to CBuild directory  
+and then use MSBuild instead of `cmake --build .` like:
 ```bash
-MSBuild io.sln /p:Configuration=[Release|Debug]
+MSBuild io.sln /p:Configuration=Release
 ```
 Otherwise simply build solution with IDE. 
 
-#### Windows with Microsoft VC++ and NMake
-
-TODO: make files must be obsolite and removed complitelly, Cmake build only
-
-You need Visual Studio or Visual Studio BuildTools version 15+
-Source tree cont pre-build gnu iconv MS VC++ binaries with import librarian x64 (amd64|x86_64) in deps sub folder, in case of
-x32 or arm/arm64 build this library first. 
-
-To build the DLL, open command prompt execute [vcvars64.bat](https://docs.microsoft.com/en-us/dotnet/framework/tools/developer-command-prompt-for-vs) from visual studio. 
-
-Then goto IO source code root directory and execute
-```bash
-nmake -f NMakefile-msvcx64-dll.mak
-```
-
-Build result can be foound in _target/release-win-msvc-dll-x64_ sub folder
-
-### Building with Code::Blocks IDE
-
-Code::Blocks IDE project files bundled. There are predefined configurations for GCC. 
+##IDE
 
 #### Windows GCC MinGW64
 
 Preferable MinGW64 distribution is [MSYS2 MinGW64](https://www.msys2.org/).
-When you are using Msys2 make sure that Code::Blocks using [MSYS GCC](https://www.youtube.com/watch?v=G3QguXOVJM4) rather then any another compiler.
-Make sure that you have dependencies installed, install them if not yet
+When you are using Msys2 make sure that Code::Blocks using [MSYS2 GCC](https://www.youtube.com/watch?v=G3QguXOVJM4) rather then any another compiler.
+Make sure that you have dependencies installed, install them if not yet i.e.
 ```bash
-pacman -S libiconv-devel mingw-w64-x86_64-gnutls
+pacman -S mingw-w64-x86_64-libiconv mingw-w64-x86_64-gnutls
 ```
+or
+```bash
+pacman -S mingw-w64-ucrt-x86_64-libiconv mingw-w64-ucrt-x86_64-gnutls
+```
+if you d'like to link with [universal CRT](https://www.msys2.org/docs/environments/)
 
 #### Linux/Unix
-Chekc that you have dependencies installed, install them if not yet with your package manager i.e. dnf, apt, pacman, port etc.Choose UNIX configration in Code::Blocks, and build the library.
+Check that you have dependencies installed, install them if not yet with your package manager i.e. dnf, apt, pacman, port etc.Choose UNIX configration in Code::Blocks, and build the library.
 
 ### EXAMPLES
 Code examples can be found examples sub-folder. 

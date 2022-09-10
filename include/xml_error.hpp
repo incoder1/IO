@@ -52,7 +52,7 @@ private:
 	}
 	const char* cstr_message(int err_code) const noexcept;
 public:
-	constexpr error_category() noexcept:
+	error_category() noexcept:
 		std::error_category()
 	{}
 	virtual ~error_category() = default;

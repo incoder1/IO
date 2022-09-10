@@ -312,7 +312,7 @@ public:
         return !name_.local_name().empty();
     }
 
-    bool add_attribute(attribute&& attr) noexcept;
+    bool add_attribute(const attribute& attr) noexcept;
 
     inline bool empty_element() const noexcept
     {

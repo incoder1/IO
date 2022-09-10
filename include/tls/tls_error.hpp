@@ -30,7 +30,7 @@ namespace tls {
 class IO_PUBLIC_SYMBOL error_category final: public std::error_category
 {
 public:
-	constexpr error_category() noexcept:
+	error_category() noexcept:
 		std::error_category()
 	{}
 	virtual const char* name() const noexcept override;

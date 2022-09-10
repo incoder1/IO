@@ -139,8 +139,8 @@ std::size_t session::read(std::error_code& ec, uint8_t * const data, std::size_t
     } while( (ret == GNUTLS_E_AGAIN || ret == GNUTLS_E_INTERRUPTED) && !::gnutls_record_get_direction(peer_));
     if( ret < 0 ) {
 		ec = connection_->last_error();
-		if(!ec && ::gnutls_error_is_fatal(ret) )
-			ec = make_error_code( ret );
+		if(!ec && ::gnutls_error_is_fatal( static_cast<int>(ret) ) )
+			ec = make_error_code( static_cast<int>(ret) );
         return 0;
     }
     return static_cast<std::size_t>( ret );
@@ -155,8 +155,8 @@ std::size_t session::write(std::error_code& ec, const uint8_t *data, std::size_t
     }
     if( ret < 0 ) {
 		ec = connection_->last_error();
-		if(!ec && ::gnutls_error_is_fatal(ret) )
-			ec = make_error_code( ret );
+		if(!ec && ::gnutls_error_is_fatal( static_cast<int>(ret) ) )
+			ec = make_error_code( static_cast<int>(ret) );
         return 0;
     }
     return static_cast<std::size_t>( ret );

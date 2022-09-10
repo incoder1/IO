@@ -88,20 +88,9 @@ static s_uri return_error(std::error_code& ec, std::errc code)
 
 static const char* str_to_lower_a(char* const dst, const char* src) noexcept
 {
-	const char *c = src;
-	char *d = dst;
-	while( '\0' != *c) {
-		*d = io_tolower( *c );
-		++c;
-		++d;
-	}
-	*d = '\0';
+	io_memmove(dst, src, io_strlen(src) );
+	downcase_latin1(dst);
 	return dst;
-}
-
-static bool strneq(const char* lsh, const char* rhs, std::size_t l) noexcept
-{
-	return 0 == io_memcmp(lsh, rhs, l);
 }
 
 // uri
@@ -109,35 +98,35 @@ uint16_t IO_NO_INLINE uri::default_port_for_scheme(const char* scheme) noexcept
 {
 	char sch[8];
 	str_to_lower_a(sch, scheme);
-	if( strneq("echo", sch, 4) )
+	if(start_with("echo", sch, 4) )
 		return 7;
-	else if( strneq("daytime", sch, 7) )
+	else if( start_with("daytime", sch, 7) )
 		return 13;
-	else if( strneq("ftp", sch, 3) )
+	else if( start_with("ftp", sch, 3) )
 		return 21;
-	else if( strneq("ssh", sch, 3) )
+	else if(start_with("ssh", sch, 3) )
 		return 22;
-	else if( strneq("telnet",sch,6) )
+	else if(start_with("telnet",sch,6) )
 		return 23;
-	else if( strneq("mailto", sch, 6) )
+	else if(start_with("mailto", sch, 6) )
 		return 25;
-	else if(strneq("time", sch, 4 ) )
+	else if(start_with("time", sch, 4 ) )
 		return 37;
-	else if(strneq("name", sch, 4) )
+	else if(start_with("name", sch, 4) )
 		return 42;
-	else if(strneq("domain", sch, 6) )
+	else if(start_with("domain", sch, 6) )
 		return 53;
-	else if(strneq("gopher", sch, 6) )
+	else if(start_with("gopher", sch, 6) )
 		return 70;
-	else if(strneq("https", sch, 5 ) )
+	else if(start_with("https", sch, 5 ) )
 		return 443;
-	else if( strneq("http", sch, 4) )
+	else if(start_with("http", sch, 4) )
 		return 80;
-	else if( strneq("npp", sch, 3) )
+	else if(start_with("npp", sch, 3) )
 		return 92;
-	else if( strneq("sftp", sch, 4) )
+	else if(start_with("sftp", sch, 4) )
 		return 115;
-	else if( strneq("irc", sch, 3) )
+	else if(start_with("irc", sch, 3) )
 		return 6697;
 	return 0;
 }
@@ -146,13 +135,9 @@ uint16_t IO_NO_INLINE uri::default_port_for_scheme(const char* scheme) noexcept
 /// so parse it manually
 s_uri uri::parse(std::error_code& ec, const char* str) noexcept
 {
-	char *normalized;
 	const std::size_t len = io_strlen(str) + 1;
-	if(len <= UCHAR_MAX)
-		normalized = static_cast<char*>( io_alloca( len ) );
-	else
-		normalized = memory_traits::calloc_temporary<char>(len);
-	str_to_lower_a(normalized, str);
+	io::scoped_arr<char> normalized(len);
+	str_to_lower_a(normalized.begin(), str);
 
 	const_string scheme;
 	const_string host;
@@ -161,7 +146,7 @@ s_uri uri::parse(std::error_code& ec, const char* str) noexcept
 	const_string path;
 	const_string query;
 	const_string fragment;
-	const char *b = normalized;
+	const char *b = normalized.begin();
 	const char *e;
 	for(e = b; '\0' != *e && nullptr == io_memchr(":/", *e, 2); ++e);
 	if( cheq('\0',*e) )
@@ -262,9 +247,6 @@ s_uri uri::parse(std::error_code& ec, const char* str) noexcept
 		port = default_port_for_scheme( scheme.data() );
 	if(path.empty())
 		path = const_string("/");
-
-	if(len > UCHAR_MAX)
-		memory_traits::free_temporary(normalized);
 
 	uri *ret = nobadalloc<uri>::construct(ec,
 										  std::move(scheme),

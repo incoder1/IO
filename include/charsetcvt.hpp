@@ -128,17 +128,6 @@ constexpr bool isonebyte(const unsigned int c) noexcept
 	return c < detail::OBMAX;
 }
 
-/// Checks a byte is UTF-8 single byte character
-constexpr bool isonebyte(const char c) noexcept
-{
-	return isonebyte( detail::make_uint(c) );
-}
-
-/// Checks a byte is UTF-8 single byte character
-constexpr bool isonebyte(const u8char_t c) noexcept
-{
-	return isonebyte( detail::make_uint(c) );
-}
 
 /// Decode UTF-8 2 bytes multi-byte sequence to full char32_t UNICODE representation
 using detail::decode2;
@@ -154,7 +143,7 @@ constexpr unsigned int mblen(const u8char_t* mb) noexcept
 inline unsigned int mblen(const char8_t* mb) noexcept
 #endif // __GNUG__
 {
-	return isonebyte( *mb )
+	return isonebyte(detail::make_uint(*mb))
 	? 1
 	:
 	// bit scan forward on inverted value gives number of leading multibyte bits
@@ -186,6 +175,7 @@ inline unsigned int mblen(const char* mb)
 #endif // IO_IS_LITTLE_ENDIAN
 }
 
+#ifndef _MSC_VER
 /// Converts a UTF-8 single/multibyte character to full UNICODE UTF-32 value,
 /// endianes depends on current CPU
 /// \param dst destination UTF-32 character, or U'\0' when end of line reached or invalid source character value
@@ -194,7 +184,18 @@ inline unsigned int mblen(const char* mb)
 const char* IO_PUBLIC_SYMBOL mbtochar32(char32_t& dst, const char* src) noexcept;
 
 const u8char_t* IO_PUBLIC_SYMBOL mbtochar32(char32_t& dst, const u8char_t* src) noexcept;
+#else
 
+/// Converts a UTF-8 single/multibyte character to full UNICODE UTF-32 value,
+/// endianes depends on current CPU
+/// \param dst destination UTF-32 character, or U'\0' when end of line reached or invalid source character value
+/// \param src pointer to the UTF-8 character value
+/// \return string position after src UTF-8 or nullptr when end of line reached or decoding failed
+IO_PUBLIC_SYMBOL const char* mbtochar32(char32_t& dst, const char* src) noexcept;
+
+IO_PUBLIC_SYMBOL const u8char_t* mbtochar32(char32_t& dst, const u8char_t* src) noexcept;
+
+#endif
 
 /// Returns UTF-8 string length in logical UNICODE characters
 /// \param u8str source UTF-8 string
@@ -292,7 +293,7 @@ private:
 
 public:
 
-	constexpr chconv_error_category() noexcept:
+	chconv_error_category() noexcept:
 		std::error_category()
 	{}
 
@@ -388,15 +389,16 @@ static std::string transcode_small(const wchar_t* ucs_str, std::size_t len)
 {
 #ifdef __IO_WINDOWS_BACKEND__
 	const char16_t* ucs = reinterpret_cast<const char16_t*>(ucs_str);
+	uint8_t tmp[512] = { 0 };
 #else
 	const char32_t* ucs = reinterpret_cast<const char32_t*>(ucs_str);
+	uint8_t tmp[256] = { 0 };
 #endif // __IO_WINDOWS_BACKEND__
 	const std::size_t buff_size = utf8_buff_size(ucs, len);
-	uint8_t *tmp = static_cast<uint8_t*>( io_alloca( buff_size ) );
 	std::error_code ec;
-	std::size_t conv = transcode(ec, ucs, len, tmp, buff_size );
+	std::size_t conv = transcode(ec, ucs, len, tmp, buff_size);
 	check_error_code(ec);
-	return std::string( reinterpret_cast<const char*>(tmp), conv);
+	return std::string(reinterpret_cast<char*>(tmp), conv);
 }
 
 } // namespace detail

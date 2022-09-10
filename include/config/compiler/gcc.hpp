@@ -85,13 +85,16 @@
 
 #define io_alloca(__x) __builtin_alloca( (__x) )
 
+// infact this is dummy
+#define io_freea(__x) assert(nullptr != (__x))
+
 #define io_memmove(__dst, __src, __bytes) __builtin_memmove( (__dst), (__src), (__bytes) )
 
 #define io_memset(__p,__v,__bytes) __builtin_memset( (__p), (__v), (__bytes) )
 
 #define io_memcmp(__p1,__p2,__bytes) __builtin_memcmp((__p1),(__p2),(__bytes))
 
-#define io_zerro_mem(__p,__bytes) __builtin_memset( (__p), 0, (__bytes) )
+#define io_zerro_mem(__p,__bytes) __builtin_bzero( (__p), (__bytes) )
 
 #define io_memchr(__s,__c,__n) __builtin_memchr((__s),(__c),(__n))
 
@@ -118,14 +121,22 @@
 #define io_strchr(__s,__c) __builtin_strchr( (__s), (__c) )
 
 #define io_isalpha(__ch) __builtin_isalpha((__ch))
+
 #define io_isspace(__ch) __builtin_isspace((__ch))
+
 #define io_islower(__ch) __builtin_islower((__ch))
+
 #define io_isupper(__ch) __builtin_isupper((__ch))
+
 #define io_isdigit(__ch) __builtin_isdigit((__ch))
+
 #define io_tolower(__ch) __builtin_tolower((__ch))
+
 #define io_toupper(__ch) __builtin_toupper((__ch))
 
 #define io_bswap16(__x) __builtin_bswap16((__x))
+
+#define io_snprintf __builtin_snprintf
 
 // in case of intel compiler
 #ifdef __ICC

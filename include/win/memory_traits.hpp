@@ -26,16 +26,15 @@ namespace io {
 
 namespace win {
 
-#ifdef __GNUG__
-	void* IO_MALLOC_ATTR private_heap_alloc(std::size_t bytes) noexcept;
-	void* IO_MALLOC_ATTR private_heap_realoc(void* const ptr, const std::size_t new_size) noexcept;
-	void IO_PUBLIC_SYMBOL private_heap_free(void * const ptr) noexcept;
-#else
+#ifdef _MSC_VER
 	IO_PUBLIC_SYMBOL void* private_heap_alloc(std::size_t bytes) noexcept;
 	IO_PUBLIC_SYMBOL void* private_heap_realoc(void* const ptr, const std::size_t new_size) noexcept;
 	IO_PUBLIC_SYMBOL void private_heap_free(void * const ptr) noexcept;
-#endif
-
+#else
+	void* IO_MALLOC_ATTR private_heap_alloc(std::size_t bytes) noexcept;
+	void* IO_MALLOC_ATTR private_heap_realoc(void* const ptr, const std::size_t new_size) noexcept;
+	void IO_PUBLIC_SYMBOL private_heap_free(void * const ptr) noexcept;
+#endif // function export/import
 
 } // namesapce win
 
@@ -213,8 +212,9 @@ struct enclave_memory_traits {
 	   void *ret = base;
 	   if( io_unlikely(nullptr == (ret = win::private_heap_realoc(ret,new_size) ) ) ) {
             std::new_handler handler = std::get_new_handler();
-            if( nullptr == handler )
-            	handler();
+			if (nullptr != handler) {
+				handler();
+			}
 		}
         return ret;
 	}

@@ -26,10 +26,17 @@ class critical_section
 private:
 	static constexpr ::DWORD SPIN_COUNT = 4000;
 public:
-	critical_section() noexcept:
+	critical_section() noexcept :
 		cs_()
 	{
+#ifdef _MSC_VER
+#	pragma warning(disable:6031)
+#endif // _MSC_VER
+		// accordin to documentation starting from windows Vista this function always returns true
 		::InitializeCriticalSectionAndSpinCount(&cs_, SPIN_COUNT);
+#ifdef _MSC_VER
+#	pragma warning(default:6031) 
+#endif // _MSC_VER
 	}
 	__forceinline void lock() noexcept {
 		::EnterCriticalSection(&cs_);
@@ -40,7 +47,7 @@ public:
 	__forceinline bool try_lock() noexcept {
 		return TRUE == ::TryEnterCriticalSection(&cs_);
 	}
-	inline ~critical_section() noexcept
+	~critical_section() noexcept
 	{
 		::DeleteCriticalSection(&cs_);
 	}

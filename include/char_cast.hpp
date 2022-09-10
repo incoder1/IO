@@ -188,49 +188,51 @@ to_chars_result to_chars(char* const first, char* const last,const T& value) noe
 }
 
 #ifdef IO_HAS_CONNCEPTS
-template<typename T>
-requires( is_unsigned_integer_v<T> )
+template<typename _Tp>
+requires( is_unsigned_integer_v<_Tp> )
 #else
 template<
-	typename T,
+	typename _Tp,
 	typename std::enable_if<
-		is_unsigned_integer<T>::value
+		is_unsigned_integer<_Tp>::value
 		>::type* = nullptr
 	>
 #endif // IO_HAS_CONNCEPTS
-from_chars_result from_chars(const char* first, const char* last, T& value) noexcept
+from_chars_result from_chars(const char* first, const char* last, _Tp& value) noexcept
 {
 	std::size_t v;
 	from_chars_result ret = detail::unsigned_from_chars(first, last, v);
-	if( std::numeric_limits<T>::max() < v ) {
+	constexpr _Tp max_value = (std::numeric_limits< _Tp > ::max)();
+	if(max_value < v ) {
 		ret.ptr = nullptr;
 		ret.ec = std::errc::result_out_of_range;
 	}
-	value = static_cast<T>(v);
+	value = static_cast<_Tp>(v);
 	return ret;
 }
 
 #ifdef IO_HAS_CONNCEPTS
-template<typename T>
-requires( is_signed_integer_v<T> )
+template<typename _Tp>
+requires( is_signed_integer_v<_Tp> )
 #else
 template<
-	typename T,
+	typename _Tp,
 	typename std::enable_if<
-		is_signed_integer<T>::value
+		is_signed_integer<_Tp>::value
 		>::type* = nullptr
 	>
 #endif // IO_HAS_CONNCEPTS
-from_chars_result from_chars(const char* first, const char* last, T& value) noexcept
+from_chars_result from_chars(const char* first, const char* last, _Tp& value) noexcept
 {
 	intmax_t v;
 	from_chars_result ret = detail::signed_from_chars(first, last, v);
-	typedef std::numeric_limits<T> limits;
-	if( v < limits::min() || v > limits::max() ) {
+	const _Tp min_value = (std::numeric_limits< _Tp >::min)();
+	const _Tp max_value = (std::numeric_limits< _Tp >::max)();
+	if( v < min_value  || v > max_value ) {
 		ret.ptr = nullptr;
 		ret.ec = std::errc::result_out_of_range;
 	}
-	value = static_cast<T>(v);
+	value = static_cast<_Tp>(v);
 	return ret;
 }
 

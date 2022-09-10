@@ -129,7 +129,7 @@ static inline uint64_t hash_len16(const uint64_t u,const uint64_t v,const uint64
 	return ret;
 }
 
-static uint64_t hash_0_to_16(const uint8_t *s, std::size_t len) noexcept
+static uint64_t hash_0_to_16(const uint8_t *s, uint32_t len) noexcept
 {
 	if (len >= 8) {
 		uint64_t mul = K2 + len * 2;
@@ -155,7 +155,7 @@ static uint64_t hash_0_to_16(const uint8_t *s, std::size_t len) noexcept
 	return K2;
 }
 
-static uint64_t hash_17_to_32(const uint8_t *s, size_t len) noexcept
+static uint64_t hash_17_to_32(const uint8_t *s, uint32_t len) noexcept
 {
 	uint64_t mul = K2 + len * 2;
 	uint64_t a = fetch_64(s) * K1;
@@ -188,7 +188,7 @@ static ullpair weak_hash_len32_with_seeds(const uint8_t* s, uint64_t a, uint64_t
 					b);
 }
 
-static uint64_t hash_33_to_64(const uint8_t *s, size_t len) noexcept
+static uint64_t hash_33_to_64(const uint8_t *s, uint32_t len) noexcept
 {
 	uint64_t mul = K2 + len * 2;
 	uint64_t a = fetch_64(s) * K2;
@@ -247,11 +247,11 @@ static uint64_t hash(const uint8_t* s, std::size_t count) noexcept
 #pragma GCC diagnostic ignored "-Wpedantic"
 	switch( count ) {
 	case 0 ... 16:
-		return hash_0_to_16(s, count);
+		return hash_0_to_16(s, static_cast<uint32_t>(count) );
 	case 17 ... 32:
-		return hash_17_to_32(s, count);
+		return hash_17_to_32(s, static_cast<uint32_t>(count) );
 	case 33 ... 64:
-		return hash_33_to_64(s, count);
+		return hash_33_to_64(s, static_cast<uint32_t>(count) );
 	default:
 		return hash_over_64(s, count);
 	}
@@ -259,11 +259,11 @@ static uint64_t hash(const uint8_t* s, std::size_t count) noexcept
 
 #else // non GCC
 	if ( count <= 16 )
-		return hash_0_to_16(s, count);
+		return hash_0_to_16(s, static_cast<uint32_t>(count) );
 	else if ( count <= 32  )
-		return hash_17_to_32(s, count);
+		return hash_17_to_32(s, static_cast<uint32_t>(count) );
 	else if (count <= 64)
-		return hash_33_to_64(s, count);
+		return hash_33_to_64(s, static_cast<uint32_t>(count) );
 	else
 		return hash_over_64(s, count);
 #endif // non GCC

@@ -65,19 +65,21 @@ static void print_error_message(int errcode,const char* message) noexcept
 	len = ::StringCchPrintfW( msg, len, L"error code: %d %Z \n", errcode, message);
 #else
 	char* tmp = static_cast<char*> ( io_alloca( len ) );
-	io_memset( tmp, 0, len);
-	__builtin_snprintf(tmp, len, "error code: %d %s \n", errcode, message);
+	io_zerro_mem( tmp, len);
+	io_snprintf(tmp, len, "error code: %d %s \n", errcode, message);
 	std::size_t wlen = ::MultiByteToWideChar( CP_UTF8, 0, tmp, -1, NULL, 0 );
 	wchar_t *msg = static_cast<wchar_t*>( io_alloca( wlen ) );
-	io_memset( msg, 0, len);
+	io_zerro_mem( msg, len);
 	::MultiByteToWideChar( CP_UTF8, 0, tmp, -1, msg, wlen);
 	len = wlen;
+	io_freea(tmp);
 #endif
 	output_swap oswap;
 	::DWORD written;
 	if( ! ::WriteConsoleW( ::GetStdHandle(STD_ERROR_HANDLE), msg, static_cast<::DWORD>(len), &written, nullptr ) ) {
 		MessageBoxExW(NULL, msg, NULL, MB_OK | MB_ICONERROR, MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT) );
 	}
+	io_freea(msg);
 }
 
 extern "C" {

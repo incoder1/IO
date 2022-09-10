@@ -130,7 +130,7 @@ std::pair<bool, charset> code_pages::for_name(const char* name) noexcept
 	if(nullptr != name && '\0' != *name) {
 		char tmp[MAX_LEN] = {'\0'};
 		for(std::size_t i=0; i < MAX_LEN && name[i] != '\0'; i++) {
-			tmp[i] = io_toupper(name[i]);
+			tmp[i] = static_cast<char>( io_toupper(name[i]) );
 		}
 		for(std::size_t i=0; i < MAX_SUPPORTED; i++) {
 			if( 0 == io_strncmp(ALL_SUPPORTED[i]->name(), tmp, MAX_LEN) )

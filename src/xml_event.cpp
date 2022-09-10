@@ -33,11 +33,11 @@ start_element_event::start_element_event(qname&& name, bool empty_element) noexc
 	empty_element_(empty_element)
 {}
 
-bool start_element_event::add_attribute(attribute&& attr) noexcept
+bool start_element_event::add_attribute(const attribute& attr) noexcept
 {
 #ifndef IO_NO_EXCEPTIONS
 	try {
-		return attributes_.emplace( std::forward<attribute>( attr )  ).second;
+		return attributes_.insert( attr ).second;
 	} catch(...) {
 		return false;
 	}

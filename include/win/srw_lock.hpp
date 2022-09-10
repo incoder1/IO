@@ -11,7 +11,9 @@
 #ifndef __IO_SRW_LOCK_HPP_INCLUDED__
 #define __IO_SRW_LOCK_HPP_INCLUDED__
 
-#pragma once
+#ifdef HAS_PRAGMA_ONCE
+#	pragma once
+#endif // HAS_PRAGMA_ONCE
 
 #include "winconf.hpp"
 
@@ -24,31 +26,15 @@ class read_write_barrier
 	read_write_barrier& operator=(const read_write_barrier&) = delete;
 public:
 	read_write_barrier() noexcept:
-		barier_()
+		lock_()
 	{
-		::InitializeSRWLock(&barier_);
+		::InitializeSRWLock(&lock_);
 	}
-
 	~read_write_barrier() noexcept = default;
-
-	inline void read_lock() noexcept
-	{
-		::AcquireSRWLockShared(&barier_);
-	}
-	inline void read_unlock() noexcept
-	{
-		::ReleaseSRWLockShared(&barier_);
-	}
-	inline void write_lock() noexcept
-	{
-		::AcquireSRWLockExclusive(&barier_);
-	}
-	inline void write_unlock() noexcept
-	{
-        ::ReleaseSRWLockExclusive(&barier_);
-	}
 private:
-	::SRWLOCK barier_;
+	friend class read_lock;
+	friend class write_lock;
+	::SRWLOCK lock_;
 };
 
 class read_lock
@@ -59,11 +45,11 @@ public:
 	explicit read_lock(read_write_barrier& br) noexcept:
 		barrier_(br)
 	{
-		barrier_.read_lock();
+		::AcquireSRWLockShared(&barrier_.lock_);
 	}
 	~read_lock() noexcept
 	{
-		barrier_.read_unlock();
+		::ReleaseSRWLockShared(&barrier_.lock_);
 	}
 private:
 	read_write_barrier& barrier_;
@@ -77,11 +63,11 @@ public:
 	explicit write_lock(read_write_barrier& br) noexcept:
 		barrier_(br)
 	{
-		barrier_.write_lock();
+		::AcquireSRWLockExclusive(&barrier_.lock_);
 	}
 	~write_lock() noexcept
 	{
-		barrier_.write_unlock();
+		::ReleaseSRWLockExclusive(&barrier_.lock_);
 	}
 private:
 	read_write_barrier& barrier_;

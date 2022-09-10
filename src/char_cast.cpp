@@ -14,7 +14,7 @@
 #include "string_algs.hpp"
 
 
-#if defined(__MINGW32__) || defined(__MINGW64__)
+#ifdef __IO_WINDOWS_BACKEND__
 
 // TODO: review implementation found at
 // https://github.com/msys2/MINGW-packages/blob/master/mingw-w64-libkml/strptime.c
@@ -156,6 +156,17 @@ static const u_char *find_string(const u_char *bp, int *tgt, const char * const 
 	/* Nothing matched */
 	return nullptr;
 }
+
+#ifndef __GNUC__
+static int strncasecmp(const char* lhs, const char* rhs, std::size_t size) noexcept
+{
+	io::scoped_arr<char> l_lc( lhs, size );
+	io::scoped_arr<char> r_lc( rhs, size );
+	io::downcase_latin1(l_lc.begin());
+	io::downcase_latin1(l_lc.begin());
+	return io_memcmp(l_lc.begin(), r_lc.begin(), size);
+}
+#endif // __GNUC__
 
 char *strptime(const char *buf, const char *fmt, struct tm *tm) noexcept
 {
@@ -431,8 +442,8 @@ recurse:
 
 		case 'Z':
 			_tzset();
-			if (strncasecmp((const char *)bp, gmt, 3) == 0
-					|| strncasecmp((const char *)bp, utc, 3) == 0) {
+			if (io_strncmp((const char *)bp, gmt, 3) == 0
+					||  strncasecmp((const char *)bp, utc, 3) == 0) {
 				tm->tm_isdst = 0;
 #ifdef TM_GMTOFF
 				tm->TM_GMTOFF = 0;
@@ -443,7 +454,7 @@ recurse:
 				bp += 3;
 			}
 			else {
-				ep = find_string(bp, &i, (const char * const *)tzname, NULL, 2);
+				ep = find_string(bp, &i, (const char * const *)__tzname, NULL, 2);
 				if (ep != NULL) {
 					tm->tm_isdst = i;
 #ifdef TM_GMTOFF
@@ -644,14 +655,14 @@ static char DIGITS[201] =
 	"8081828384858687888990919293949596979899";
 
 
-static uintmax_t BRANCH_1  = 10U;
-static uintmax_t BRANCH_2  = 100U;
-static uintmax_t BRANCH_3  = 1000U;
-static uintmax_t BRANCH_4  = 10000U;
-static uintmax_t BRANCH_5  = 100000U;
-static uintmax_t BRANCH_6  = 1000000U;
-static uintmax_t BRANCH_7  = 10000000U;
-static uintmax_t BRANCH_8  = 100000000U;
+static uint32_t BRANCH_1  = 10U;
+static uint32_t BRANCH_2  = 100U;
+static uint32_t BRANCH_3  = 1000U;
+static uint32_t BRANCH_4  = 10000U;
+static uint32_t BRANCH_5  = 100000U;
+static uint32_t BRANCH_6  = 1000000U;
+static uint32_t BRANCH_7  = 10000000U;
+static uint32_t BRANCH_8  = 100000000U;
 static uintmax_t BRANCH_9  = 1000000000UL;
 static uintmax_t BRANCH_10 = 10000000000UL;
 static uintmax_t BRANCH_11 = 100000000000UL;
@@ -679,14 +690,18 @@ static char* copy_four(char* s, const uint32_t i, const uint32_t j) noexcept
 	return ret;
 }
 
+#ifdef _MSC_VER
+__declspec(dllexport) char* uintmax_to_chars_reverse(char* const last, uintmax_t value) noexcept
+#else
 char* IO_PUBLIC_SYMBOL uintmax_to_chars_reverse(char* const last, uintmax_t value) noexcept
+#endif // _MSC_VER
 {
 	char* ret = last;
 	if (value < BRANCH_8) {
 		uint32_t v = static_cast<uint32_t>(value);
 		if(v < BRANCH_4) {
-			const uint32_t d1 = (v / BRANCH_2) << 1;
-			const uint32_t d2 = (v % BRANCH_2) << 1;
+			const uint32_t d1 = static_cast<uint32_t>(v / BRANCH_2) << 1;
+			const uint32_t d2 = static_cast<uint32_t>(v % BRANCH_2) << 1;
 			ret = copy_one(ret, d2 + 1);
 			if (v >= BRANCH_1)
 				ret = copy_one(ret, d2);
@@ -697,13 +712,13 @@ char* IO_PUBLIC_SYMBOL uintmax_to_chars_reverse(char* const last, uintmax_t valu
 			++ret;
 		}
 		else {
-			const uint32_t b = v / BRANCH_4;
-			const uint32_t c = v % BRANCH_4;
+			const uint32_t b = static_cast<uint32_t>(v / BRANCH_4);
+			const uint32_t c = static_cast<uint32_t>(v % BRANCH_4);
 
-			const uint32_t d1 = (b / BRANCH_2) << 1;
-			const uint32_t d2 = (b % BRANCH_2) << 1;
-			const uint32_t d3 = (c / BRANCH_2) << 1;
-			const uint32_t d4 = (c % BRANCH_2) << 1;
+			const uint32_t d1 = static_cast<uint32_t>(b / BRANCH_2) << 1;
+			const uint32_t d2 = static_cast<uint32_t>(b % BRANCH_2) << 1;
+			const uint32_t d3 = static_cast<uint32_t>(c / BRANCH_2) << 1;
+			const uint32_t d4 = static_cast<uint32_t>(c % BRANCH_2) << 1;
 
 			ret = copy_two(ret, d4);
 			ret = copy_two(ret, d3);
@@ -720,12 +735,12 @@ char* IO_PUBLIC_SYMBOL uintmax_to_chars_reverse(char* const last, uintmax_t valu
 	}
 	else if(value < BRANCH_16) {
 		const uint32_t v0 = static_cast<uint32_t>(value / BRANCH_8);
-		const uint32_t b0 = v0 / BRANCH_4;
-		const uint32_t c0 = v0 % BRANCH_4;
+		const uint32_t b0 = (v0 / BRANCH_4);
+		const uint32_t c0 = (v0 % BRANCH_4);
 
 		const uint32_t v1 = static_cast<uint32_t>(value % BRANCH_8);
-		const uint32_t b1 = v1 / BRANCH_4;
-		const uint32_t c1 = v1 % BRANCH_4;
+		const uint32_t b1 = (v1 / BRANCH_4);
+		const uint32_t c1 = (v1 % BRANCH_4);
 
 		const uint32_t d1 = (b0 / BRANCH_2) << 1;
 		const uint32_t d2 = (b0 % BRANCH_2) << 1;
@@ -794,18 +809,18 @@ char* IO_PUBLIC_SYMBOL uintmax_to_chars_reverse(char* const last, uintmax_t valu
 			--ret;
 		}
 		else if(a < BRANCH_2) {
-			const uint32_t i = a << 1;
+			const uint32_t i = static_cast<uint32_t>(a << 1);
 			ret = copy_two(ret, i);
 		}
 		else if (a < BRANCH_3) {
-			const uint32_t i = (a % BRANCH_2) << 1;
+			const uint32_t i = static_cast<uint32_t>(a % BRANCH_2) << 1;
 			ret = copy_two(ret, i);
 			*ret = '0' + static_cast<char>(a / BRANCH_2);
 			--ret;
 		}
 		else {
-			const uint32_t i = (a / BRANCH_2) << 1;
-			const uint32_t j = (a % BRANCH_2) << 1;
+			const uint32_t i = static_cast<uint32_t>(a / BRANCH_2) << 1;
+			const uint32_t j = static_cast<uint32_t>(a % BRANCH_2) << 1;
 			ret = copy_four(ret, i, j);
 		}
 		++ret;
@@ -813,7 +828,11 @@ char* IO_PUBLIC_SYMBOL uintmax_to_chars_reverse(char* const last, uintmax_t valu
 	return ret;
 }
 
+#ifdef _MSC_VER
+__declspec(dllexport) from_chars_result unsigned_from_chars(const char* first, const char* last, uintmax_t& value) noexcept
+#else
 from_chars_result IO_PUBLIC_SYMBOL unsigned_from_chars(const char* first, const char* last, uintmax_t& value) noexcept
+#endif
 {
 	from_chars_result ret = {nullptr, {} };
 	if( first >= last ) {
@@ -826,8 +845,8 @@ from_chars_result IO_PUBLIC_SYMBOL unsigned_from_chars(const char* first, const 
 #	else
 		value = std::strtoul(first, &endp, 10);
 #	endif // IO_CPU_BITS_64
-		typedef std::numeric_limits<uintmax_t> limits;
-		if ( (limits::max() == value) && (ERANGE == errno) ) {
+
+		if ( ERANGE == errno ) {
 			ret.ptr = nullptr;
 			ret.ec = std::errc::result_out_of_range;
 		}
@@ -838,7 +857,11 @@ from_chars_result IO_PUBLIC_SYMBOL unsigned_from_chars(const char* first, const 
 	return ret;
 }
 
+#ifdef _MSC_VER
+__declspec(dllexport) from_chars_result signed_from_chars(const char* first, const char* last, intmax_t& value) noexcept
+#else
 from_chars_result IO_PUBLIC_SYMBOL signed_from_chars(const char* first, const char* last, intmax_t& value) noexcept
+#endif
 {
 	from_chars_result ret = {nullptr, {}};
 	if( first >= last ) {
@@ -868,7 +891,11 @@ static constexpr std::size_t FLOAT_MAX_DIGITS = float_max_digits<float>() + 1;
 static constexpr std::size_t DOUBLE_MAX_DIGITS = float_max_digits<double>() + 1;
 static constexpr std::size_t LONG_DOUBLE_MAX_DIGITS = float_max_digits<long double>() + 1;
 
+#ifdef _MSC_VER
+__declspec(dllexport) to_chars_result float_to_chars(char* const first, char* const last, float value) noexcept
+#else
 to_chars_result IO_PUBLIC_SYMBOL float_to_chars(char* const first, char* const last, float value) noexcept
+#endif
 {
 
 	to_chars_result ret = {nullptr, std::errc()};
@@ -877,11 +904,7 @@ to_chars_result IO_PUBLIC_SYMBOL float_to_chars(char* const first, char* const l
 	}
 	else {
 		char buff[ FLOAT_MAX_DIGITS ] = {'\0'};
-#ifdef __GNUG__
-		__builtin_snprintf(buff, FLOAT_MAX_DIGITS, "%e", value);
-#else
-		std::snprintf(buff, FLOAT_MAX_DIGITS, "%e", value);
-#endif // __GNUG__
+		io_snprintf(buff, FLOAT_MAX_DIGITS, "%e", value);
 		std::size_t len = io_strlen(buff);
 		if( len > memory_traits::distance(first,last) ) {
 			ret.ec = std::errc::no_buffer_space;
@@ -894,7 +917,11 @@ to_chars_result IO_PUBLIC_SYMBOL float_to_chars(char* const first, char* const l
 	return ret;
 }
 
+#ifdef _MSC_VER
+__declspec(dllexport) to_chars_result float_to_chars(char* const first, char* const last, double value) noexcept
+#else
 to_chars_result IO_PUBLIC_SYMBOL float_to_chars(char* const first, char* const last, double value) noexcept
+#endif
 {
 	to_chars_result ret = {nullptr, std::errc()};
 	if( io_unlikely(first >= last) ) {
@@ -902,11 +929,7 @@ to_chars_result IO_PUBLIC_SYMBOL float_to_chars(char* const first, char* const l
 	}
 	else {
 		char buff[ DOUBLE_MAX_DIGITS ] = {'\0'};
-#ifdef __GNUG__
-		__builtin_snprintf(buff, DOUBLE_MAX_DIGITS, "%e", value);
-#else
-		std::snprintf(buff, DOUBLE_MAX_DIGITS, "%e", value);
-#endif // __GNUG__
+		io_snprintf(buff, DOUBLE_MAX_DIGITS, "%e", value);
 		std::size_t len = io_strlen(buff);
 		if( len > memory_traits::distance(first,last) ) {
 			ret.ec = std::errc::no_buffer_space;
@@ -919,7 +942,11 @@ to_chars_result IO_PUBLIC_SYMBOL float_to_chars(char* const first, char* const l
 	return ret;
 }
 
+#ifdef _MSC_VER
+_declspec(dllexport) to_chars_result float_to_chars(char* const first, char* const last, const long double& value) noexcept
+#else
 to_chars_result IO_PUBLIC_SYMBOL float_to_chars(char* const first, char* const last, const long double& value) noexcept
+#endif
 {
 	to_chars_result ret = {nullptr, std::errc()};
 	if( io_unlikely(first >= last) ) {
@@ -940,7 +967,11 @@ to_chars_result IO_PUBLIC_SYMBOL float_to_chars(char* const first, char* const l
 	return ret;
 }
 
+#ifdef _MSC_VER
+__declspec(dllexport) from_chars_result float_from_chars(const char* first, const char* last, float& value) noexcept
+#else
 from_chars_result IO_PUBLIC_SYMBOL float_from_chars(const char* first, const char* last, float& value) noexcept
+#endif
 {
 	from_chars_result ret = {nullptr, std::errc()};
 	if( io_unlikely(first >= last) ) {
@@ -960,7 +991,11 @@ from_chars_result IO_PUBLIC_SYMBOL float_from_chars(const char* first, const cha
 	return ret;
 }
 
+#ifdef _MSC_VER
+__declspec(dllexport) from_chars_result float_from_chars(const char* first, const char* last, double& value) noexcept
+#else
 from_chars_result IO_PUBLIC_SYMBOL float_from_chars(const char* first, const char* last, double& value) noexcept
+#endif
 {
 	from_chars_result ret = {nullptr, std::errc()};
 	if( io_unlikely(first >= last) ) {
@@ -980,7 +1015,11 @@ from_chars_result IO_PUBLIC_SYMBOL float_from_chars(const char* first, const cha
 	return ret;
 }
 
+#ifdef _MSC_VER
+__declspec(dllexport) from_chars_result float_from_chars(const char* first, const char* last, long double& value) noexcept
+#else
 from_chars_result IO_PUBLIC_SYMBOL float_from_chars(const char* first, const char* last, long double& value) noexcept
+#endif
 {
 	from_chars_result ret = {nullptr, std::errc()};
 	if( io_unlikely(first >= last) ) {
@@ -1000,7 +1039,11 @@ from_chars_result IO_PUBLIC_SYMBOL float_from_chars(const char* first, const cha
 	return ret;
 }
 
+#ifdef _MSC_VER
+__declspec(dllexport) to_chars_result time_to_chars(char* const first, char* const last, const char* format, const std::time_t& value) noexcept
+#else
 to_chars_result IO_PUBLIC_SYMBOL time_to_chars(char* const first, char* const last, const char* format, const std::time_t& value) noexcept
+#endif
 {
 	to_chars_result ret = {nullptr, std::errc()};
 	if( io_unlikely( (first+io_strlen(format)) >= last ) ) {
@@ -1008,21 +1051,24 @@ to_chars_result IO_PUBLIC_SYMBOL time_to_chars(char* const first, char* const la
 	}
 	else {
 		const std::size_t buff_size = (2 * io_strlen(format) ) + 1;
-		char* buff = static_cast<char*> ( io_alloca(  buff_size ) );
-		io_zerro_mem(buff, buff_size );
-		const std::size_t len = std::strftime(buff, buff_size, format, std::localtime(std::addressof(value)) );
+		io::scoped_arr<char> buff(buff_size);
+		const std::size_t len = std::strftime(buff.begin(), buff_size, format, std::localtime(std::addressof(value)) );
 		if( (first+len) > last  ) {
 			ret.ec = std::errc::no_buffer_space;
 		}
 		else {
-			io_memmove(first, buff, len);
+			io_memmove(first, buff.begin(), len);
 			ret.ptr = first + len;
 		}
 	}
 	return ret;
 }
 
+#ifdef _MSC_VER
+__declspec(dllexport) to_chars_result time_from_chars(const char* first, const char* last, const char* format, std::time_t& value) noexcept
+#else
 to_chars_result IO_PUBLIC_SYMBOL time_from_chars(const char* first,const char* last,const char* format, std::time_t& value) noexcept
+#endif
 {
 	to_chars_result ret = {nullptr, std::errc()};
 	if( io_unlikely( (first+io_strlen(format)) >= last ) ) {
@@ -1038,8 +1084,11 @@ to_chars_result IO_PUBLIC_SYMBOL time_from_chars(const char* first,const char* l
 
 } // namespace detail
 
-
-IO_PUBLIC_SYMBOL to_chars_result to_chars(char* first, char* last, bool value, str_bool_format fmt) noexcept
+#ifdef _MSC_VER
+__declspec(dllexport) to_chars_result to_chars(char* first, char* last, bool value, str_bool_format fmt) noexcept
+#else
+to_chars_result IO_PUBLIC_SYMBOL to_chars(char* first, char* last, bool value, str_bool_format fmt) noexcept
+#endif
 {
 	to_chars_result ret = {nullptr, std::errc()};
 	if( io_unlikely(first >= last) ) {
@@ -1081,7 +1130,11 @@ static bool cmp_false(const char* s) noexcept
 	return start_with(s, "false", 5);
 }
 
-IO_PUBLIC_SYMBOL from_chars_result from_chars(const char* first,const char* last, bool& value) noexcept
+#ifdef _MSC_VER
+__declspec(dllexport) from_chars_result from_chars(const char* first, const char* last, bool& value) noexcept
+#else
+from_chars_result IO_PUBLIC_SYMBOL from_chars(const char* first,const char* last, bool& value) noexcept
+#endif
 {
 	from_chars_result ret = {nullptr, {}};
 	const char* s = skip_spaces_ranged(first, last);
@@ -1117,7 +1170,11 @@ IO_PUBLIC_SYMBOL from_chars_result from_chars(const char* first,const char* last
 	return ret;
 }
 
+#ifdef _MSC_VER
+__declspec(dllexport) io::const_string to_string(std::error_code& ec, const bool value, str_bool_format fmt) noexcept
+#else
 io::const_string IO_PUBLIC_SYMBOL to_string(std::error_code& ec, const bool value, str_bool_format fmt) noexcept
+#endif
 {
 	char tmp[6] = {'\0'};
 	auto ret = to_chars(tmp, tmp+sizeof(tmp), value, fmt);

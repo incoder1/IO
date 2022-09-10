@@ -31,7 +31,10 @@ memory_read_channel::~memory_read_channel()  noexcept
 std::size_t memory_read_channel::read(std::error_code& ec,uint8_t* const buff, std::size_t bytes) const noexcept
 {
     std::size_t ret = 0;
-	if( io_likely(!data_.empty()) ) {
+	if (io_unlikely(bytes == ULLONG_MAX)) {
+		ec = std::make_error_code(std::errc::invalid_argument);
+	} 
+	else if (io_likely(!data_.empty())) {
         lock_guard lock(mtx_);
         std::size_t available = data_.size();
         ret = (available >= bytes) ? bytes : available;

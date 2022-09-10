@@ -256,16 +256,12 @@ void source::read_until_char(byte_buffer& to,const char lookup,const char* illeg
 	to.flip();
 }
 
-constexpr uint16_t pack_word(char w, char c) noexcept
+constexpr uint16_t pack_word(uint16_t w, uint16_t c) noexcept
 {
 #ifdef IO_IS_LITTLE_ENDIAN
-	const uint16_t h = static_cast<uint16_t>(w);
-	const uint16_t l = static_cast<uint16_t>(c);
-	return (h << CHAR_BIT) | l;
+	return (w << CHAR_BIT) | c;
 #else
-	const uint16_t h = static_cast<uint16_t>(c);
-	const uint16_t l = static_cast<uint16_t>(w);
-	return (l >> CHAR_BIT) | h;
+	return (c >> CHAR_BIT) | w;
 #endif // IO_IS_LITTLE_ENDIAN
 }
 
@@ -287,7 +283,7 @@ void source::read_until_double_char(byte_buffer& to, const char ch) noexcept
 				break;
 			}
 		}
-		i = pack_word(i,c);
+		i = pack_word(i, static_cast<uint16_t>(c) );
 	}
 	while( i != pattern);
 	if( error::ok != last_ || cheq(c,EOF) )

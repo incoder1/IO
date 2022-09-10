@@ -350,7 +350,7 @@ std::size_t IO_PUBLIC_SYMBOL transmit(
 	std::error_code& ec,
 	const s_read_channel& src,
 	const s_write_channel& dst,
-	unsigned long buff_size) noexcept;
+	std::size_t buff_size) noexcept;
 
 } // namespace io
 

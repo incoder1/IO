@@ -93,8 +93,11 @@ typedef SSIZE_T ssize_t;
 #define io_bswap32 _byteswap_ulong
 #define io_bswap64 _byteswap_uint64
 
-#pragma intrinsic(_alloca,memset)
-#define io_alloca(x) _alloca((x))
+#pragma intrinsic(memset)
+
+#define io_alloca(__bytes) _malloca((__bytes))
+
+#define io_freea(__ptr) _freea((__ptr))
 
 #define io_memmove(__dst, __src, __bytes) memmove( (__dst), (__src), (__bytes) )
 
@@ -104,7 +107,7 @@ typedef SSIZE_T ssize_t;
 
 #define io_memcmp(__p1,__p2,__bytes) memcmp( (__p1), (__p2),(__bytes) )
 
-#define io_zerro_mem(__p,__bytes) memset( (__p), 0, (__bytes) )
+#define io_zerro_mem(__p,__bytes) RtlZeroMemory( (__p), (__bytes) )
 
 #define io_strcat(__dst,__src) strcat( (__dst) , (__src) )
 
@@ -127,13 +130,20 @@ typedef SSIZE_T ssize_t;
 #define io_strpbrk(__s, __p) strpbrk( (__s), (__p) )
 
 #define io_isalpha(__ch) isalpha((__ch))
+
 #define io_isspace(__ch) isspace((__ch))
+
 #define io_islower(__ch) islower((__ch))
+
 #define io_isupper(__ch) isupper((__ch))
+
 #define io_isdigit(__ch) isdigit((__ch))
+
 #define io_tolower(__ch) tolower((__ch))
+
 #define io_toupper(__ch) toupper((__ch))
 
+#define io_snprintf std::snprintf
 
 #ifndef IO_PUSH_IGNORE_UNUSED_PARAM
 

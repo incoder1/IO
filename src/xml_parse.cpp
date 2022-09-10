@@ -187,8 +187,8 @@ static constexpr bool is_xml_name_start_char(char32_t ch) noexcept
 static constexpr bool is_xml_name_char(char32_t ch) noexcept
 {
 	return is_digit(ch) ||
-			// - (U+002D) | . (U+002E) | · (U+00B7)
-			is_one_of<0x2D,0x2E,0xB7>(ch) ||
+		// - (U+002D) | . (U+002E) | · (U+00B7)
+		is_one_of < U'-', U'.', U'·'>(ch) ||
 			is_xml_name_start_char(ch) ||
 			between<0x0300,0x036F>(ch)  ||
 			between<0x203F,0x2040>(ch);
@@ -422,7 +422,7 @@ document_event event_stream_parser::parse_start_doc() noexcept
 	}
 	else
 		++i;
-	char *stop = io_strchr(i, sep);
+	const char *stop = io_strchr(i, sep);
 	if(nullptr == stop )  {
 		assign_error(error::illegal_prologue);
 		return document_event();
@@ -838,8 +838,10 @@ start_element_event event_stream_parser::parse_start_element() noexcept
 			// validate attribute name and check for
 			// double attributes with the same name check
 			// according to W3C XML spec
-			if( !validate_attr_name( attr.name() ) || !result.add_attribute( std::move(attr) ) ) {
-				assign_error( error::illegal_attribute );
+			auto attname = attr.name();
+			if( !validate_attr_name(attname) ) {
+				if(!result.add_attribute( attribute(attr) ) ) 
+					assign_error( error::illegal_attribute );
 			} else {
 				// extract next attribute if there were any
 				attr = extract_attribute( (left += offset) ,offset);

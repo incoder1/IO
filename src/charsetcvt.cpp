@@ -201,14 +201,22 @@ static void mbtochar32_noshift(char32_t& dst, const char* src,std::size_t& len)
 	}
 }
 
+#ifdef _MSC_VER
+__declspec(dllexport) const char* mbtochar32(char32_t& dst, const char* src) noexcept
+#else
 const char* IO_PUBLIC_SYMBOL mbtochar32(char32_t& dst, const char* src) noexcept
+#endif
 {
 	std::size_t shift;
 	mbtochar32_noshift(dst, src, shift);
 	return src+shift;
 }
 
+#ifdef _MSC_VER
+__declspec(dllexport) const u8char_t* mbtochar32(char32_t& dst, const u8char_t* src) noexcept
+#else
 const u8char_t* IO_PUBLIC_SYMBOL mbtochar32(char32_t& dst, const u8char_t* src) noexcept
+#endif
 {
 	std::size_t shift;
 	mbtochar32_noshift(dst, reinterpret_cast<const char*>(src), shift);
@@ -477,6 +485,8 @@ std::size_t conv_read_channel::read(std::error_code& ec,uint8_t* const buff, std
 	} while(left > 0);
 	if(rdbuflen > MAX_CONVB_STACK_SIZE)
 		memory_traits::free_temporary( rdbuf );
+	else
+		io_freea( rdbuf );
 	return bytes - left;
 }
 

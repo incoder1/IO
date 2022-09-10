@@ -11,29 +11,28 @@
 #ifndef __IO_WINCONG_HPP_INCLUDED__
 #define __IO_WINCONG_HPP_INCLUDED__
 
-#ifndef _WIN32_WINNT_WIN7
-#	define _WIN32_WINNT_WIN7                 0x0601 // Windows 7
-#endif // _WIN32_WINNT_VISTA
+#ifndef _WIN32_WINNT_WIN10
+#	define _WIN32_WINNT_WIN10                 0x0A00 // Windows 10
+#endif // _WIN10
 
-// Check for the default value, for MinGW is Windows XP
 #if defined(_WIN32_WINNT) && defined(IO_BUILD)
 
-#	if _WIN32_WINNT < _WIN32_WINNT_WIN7
+#	if _WIN32_WINNT < _WIN32_WINNT_WIN10
 #		undef  _WIN32_WINNT
-#		define WINVER _WIN32_WINNT_WIN7
-#		define _WIN32_WINNT _WIN32_WINNT_WIN7
+#		define WINVER _WIN32_WINNT_WIN10
+#		define _WIN32_WINNT _WIN32_WINNT_WIN10
 #	endif // _WIN32_WINNT
 
 #	define WIN32_LEAN_AND_MEAN
 
 #elif !defined(_WIN32_WINNT)
 
-#	define WINVER _WIN32_WINNT_WIN7
-#	define _WIN32_WINNT _WIN32_WINNT_WIN7
+#	define WINVER _WIN32_WINNT_WIN10
+#	define _WIN32_WINNT _WIN32_WINNT_WIN10
 
-#elif ( _WIN32_WINNT < _WIN32_WINNT_WIN7 )
+#elif ( _WIN32_WINNT < _WIN32_WINNT_WIN10 )
 
-#	error "Windows 7 is minimal supported Windows version, \
+#	error "Windows 10 is minimal supported Windows version, \
 			you mind fogot to define _WIN32_WINNT when on MinGW  \
 			or check your winver.h in visual studio project "
 

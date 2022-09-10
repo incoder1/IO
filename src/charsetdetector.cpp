@@ -99,7 +99,7 @@ public:
 		uint32_t byte_class = get_class( c, model_);
 		if(state_ == state_t::start) {
 			byte_pos_ = 0;
-			char_len_ = model_->char_len_table[ byte_class ];
+			char_len_ = static_cast<uint8_t>( model_->char_len_table[ byte_class ] );
 		}
 		//from byte's class and stateTable, we get its next state
 		uint32_t ind = static_cast<uint32_t>(state_) * (model_->class_factor) + byte_class;
@@ -608,6 +608,7 @@ public:
 				return true;
 			case coding::state_t::error:
 			default:
+				ec = std::make_error_code( std::errc::illegal_byte_sequence );
 				break;
 			}
 		}
