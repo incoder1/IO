@@ -23,8 +23,7 @@
 namespace io {
 
 /// \brief Memory buffer read channel
-class IO_PUBLIC_SYMBOL memory_read_channel final: public read_channel
-{
+class IO_PUBLIC_SYMBOL memory_read_channel final: public read_channel {
 private:
 	friend class nobadalloc<memory_read_channel>;
 	memory_read_channel(byte_buffer&& data) noexcept;
@@ -47,8 +46,7 @@ DECLARE_IPTR(memory_write_channel);
 
 /// \brief Memory buffer write channel.
 /// Buffer starts from the initial size and exponentially grow until memory available
-class IO_PUBLIC_SYMBOL memory_write_channel final:public write_channel
-{
+class IO_PUBLIC_SYMBOL memory_write_channel final:public write_channel {
 private:
 	friend class nobadalloc<memory_write_channel>;
 	memory_write_channel(byte_buffer&& data) noexcept;

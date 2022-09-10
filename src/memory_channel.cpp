@@ -30,16 +30,16 @@ memory_read_channel::~memory_read_channel()  noexcept
 
 std::size_t memory_read_channel::read(std::error_code& ec,uint8_t* const buff, std::size_t bytes) const noexcept
 {
-    std::size_t ret = 0;
+	std::size_t ret = 0;
 	if (io_unlikely(bytes == ULLONG_MAX)) {
 		ec = std::make_error_code(std::errc::invalid_argument);
-	} 
+	}
 	else if (io_likely(!data_.empty())) {
-        lock_guard lock(mtx_);
-        std::size_t available = data_.size();
-        ret = (available >= bytes) ? bytes : available;
-        io_memmove(buff, data_.position().get(), ret);
-        data_.shift(ret);
+		lock_guard lock(mtx_);
+		std::size_t available = data_.size();
+		ret = (available >= bytes) ? bytes : available;
+		io_memmove(buff, data_.position().get(), ret);
+		data_.shift(ret);
 	}
 	return ret;
 }
@@ -52,9 +52,9 @@ s_memory_write_channel memory_write_channel::open(std::error_code& ec, std::size
 	byte_buffer buff = byte_buffer::allocate(ec, initial_size);
 	if( io_likely(!ec) ) {
 		memory_write_channel *px = nobadalloc<memory_write_channel>::construct(ec, std::move(buff) );
-        if( nullptr != px ) {
-          ret = s_memory_write_channel(px);
-        }
+		if( nullptr != px ) {
+			ret = s_memory_write_channel(px);
+		}
 	}
 	return ret;
 }
@@ -75,7 +75,7 @@ std::size_t memory_write_channel::write(std::error_code& ec, const uint8_t* buff
 	if( size > data_.available() ) {
 		if( !data_.exp_grow() && !data_.extend(size) ) {
 			ec = std::make_error_code(std::errc::not_enough_memory);
-            return 0;
+			return 0;
 		}
 	}
 	return data_.put(buff, size);

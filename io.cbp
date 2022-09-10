@@ -55,6 +55,8 @@
 					<Add option="-D_WIN32_WINNT=0x0A00" />
 					<Add option="-DNDEBUG" />
 					<Add option="-DIO_SHARED_LIB" />
+					<Add option="-D_UNICODE" />
+					<Add option="-DUNICODE" />
 					<Add directory="include/net" />
 					<Add directory="include/tls" />
 					<Add directory="include/win" />

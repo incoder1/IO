@@ -839,10 +839,10 @@ start_element_event event_stream_parser::parse_start_element() noexcept
 			// double attributes with the same name check
 			// according to W3C XML spec
 			auto attname = attr.name();
-			if( !validate_attr_name(attname) ) {
-				if(!result.add_attribute( attribute(attr) ) ) 
-					assign_error( error::illegal_attribute );
-			} else {
+			if( !validate_attr_name(attname) || !result.add_attribute( attribute(attr) ) ) {
+				assign_error( error::illegal_attribute );
+			}
+			else {
 				// extract next attribute if there were any
 				attr = extract_attribute( (left += offset) ,offset);
 			}

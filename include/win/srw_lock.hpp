@@ -20,8 +20,7 @@
 namespace io {
 
 /// Windows SWR lock slim reader/writer barrier implementation
-class read_write_barrier
-{
+class read_write_barrier {
 	read_write_barrier(const read_write_barrier&) = delete;
 	read_write_barrier& operator=(const read_write_barrier&) = delete;
 public:
@@ -37,8 +36,7 @@ private:
 	::SRWLOCK lock_;
 };
 
-class read_lock
-{
+class read_lock {
 	read_lock(const read_lock&)	= delete;
 	read_lock& operator=(const read_lock&) = delete;
 public:
@@ -55,8 +53,7 @@ private:
 	read_write_barrier& barrier_;
 };
 
-class write_lock
-{
+class write_lock {
 	write_lock(const read_lock&)	= delete;
 	write_lock& operator=(const write_lock&) = delete;
 public:

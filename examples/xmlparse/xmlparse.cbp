@@ -19,7 +19,7 @@
 					<Add option="-g" />
 					<Add option="-std=gnu++20" />
 					<Add option="-fexceptions" />
-					<Add option="-DUNICODE" />
+					<Add option="-D_WIN32_WINNT=0x0A00" />
 					<Add directory="../../bin/debug-win-gcc-static-x64" />
 				</Compiler>
 				<Linker>
@@ -45,8 +45,10 @@
 					<Add option="-fno-exceptions" />
 					<Add option="-fno-rtti" />
 					<Add option="-DNDEBUG" />
-					<Add option="-DUNICODE" />
 					<Add option="-DIO_SHARED_LIB" />
+					<Add option="-D_WIN32_WINNT=0x0A00" />
+					<Add option="-D_UNICODE" />
+					<Add option="-DUNICODE" />
 				</Compiler>
 				<Linker>
 					<Add option="-O3" />

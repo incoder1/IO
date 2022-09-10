@@ -16,21 +16,17 @@
 #endif // _WIN10
 
 #if defined(_WIN32_WINNT) && defined(IO_BUILD)
-
 #	if _WIN32_WINNT < _WIN32_WINNT_WIN10
 #		undef  _WIN32_WINNT
 #		define WINVER _WIN32_WINNT_WIN10
 #		define _WIN32_WINNT _WIN32_WINNT_WIN10
 #	endif // _WIN32_WINNT
-
 #	define WIN32_LEAN_AND_MEAN
-
 #elif !defined(_WIN32_WINNT)
-
-#	define WINVER _WIN32_WINNT_WIN10
 #	define _WIN32_WINNT _WIN32_WINNT_WIN10
+#endif // defined
 
-#elif ( _WIN32_WINNT < _WIN32_WINNT_WIN10 )
+#if _WIN32_WINNT < _WIN32_WINNT_WIN10
 
 #	error "Windows 10 is minimal supported Windows version, \
 			you mind fogot to define _WIN32_WINNT when on MinGW  \
@@ -40,8 +36,8 @@
 
 #ifdef WINVER
 #	undef WINVER
-#	define WINVER _WIN32_WINNT
 #endif // WINVER
+#define WINVER _WIN32_WINNT
 
 #include <winsock2.h>
 #include <windows.h>
