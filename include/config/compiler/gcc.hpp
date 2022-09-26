@@ -136,7 +136,11 @@
 
 #define io_bswap16(__x) __builtin_bswap16((__x))
 
-#define io_snprintf __builtin_snprintf
+#if defined(__MINGW64__) || defined(__MINGW32__)
+#	define io_snprintf __mingw_snprintf
+#else
+#	define io_snprintf __builtin_snprintf
+#endif
 
 // in case of intel compiler
 #ifdef __ICC

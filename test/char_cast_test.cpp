@@ -297,12 +297,12 @@ TEST_F(char_cast_fixture,float_to_char)
 	char* first= buff;
 	char* last = first + sizeof(buff);
 
-	const float f32 = -123456.7F;
-	static const char* expected  = "-1.234567e+005";
-	auto ret = io::to_chars(first, last, f32);
+	const float f32 = -1.234567F;
+	static const char* expected  = "-1.234567";
+	auto ret = io::to_chars(first, last, f32, 6);
 	ASSERT_FALSE( std::make_error_code(ret.ec) );
-	ASSERT_EQ( ret.ptr, first+io_strlen(expected) );
 	ASSERT_STREQ(first,expected);
+	ASSERT_EQ( ret.ptr, first+io_strlen(expected) );
 }
 
 TEST_F(char_cast_fixture,float_from_char)
@@ -326,12 +326,12 @@ TEST_F(char_cast_fixture,double_to_char)
 	char* first= buff;
 	char* last = first + sizeof(buff);
 
-	const double f64 = -123456.789;
-	static const char* expected  = "-1.234568e+005";
-	auto ret = io::to_chars(first, last, f64);
+	const double f64 = -1.23456789;
+	static const char* expected  = "-1.23456789";
+	auto ret = io::to_chars(first, last, f64, 8);
 	ASSERT_FALSE( std::make_error_code(ret.ec) );
-	ASSERT_EQ( ret.ptr, first+io_strlen(expected) );
 	ASSERT_STREQ(first,expected);
+	ASSERT_EQ( ret.ptr, first+io_strlen(expected) );
 }
 
 
@@ -352,16 +352,16 @@ TEST_F(char_cast_fixture,double_from_char)
 
 TEST_F(char_cast_fixture,long_double_to_char)
 {
-	char buff[32] = {'\0'};
+	char buff[64] = {'\0'};
 	char* first= buff;
 	char* last = first + sizeof(buff);
 
-	const long double f80 = -123456.789L;
-	static const char* expected  = "-1.234568e+05";
-	auto ret = io::to_chars(first, last, f80);
+	const long double f80 = -1.2345678901234567L;
+	static const char* expected  = "-1.2345678901234567";
+	auto ret = io::to_chars(first, last, f80, 16);
 	ASSERT_FALSE( std::make_error_code(ret.ec) );
-	ASSERT_EQ( ret.ptr, first+io_strlen(expected) );
 	ASSERT_STREQ(first,expected);
+	ASSERT_EQ( ret.ptr, first+io_strlen(expected) );
 }
 
 TEST_F(char_cast_fixture,long_double_from_char)

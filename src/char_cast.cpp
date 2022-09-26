@@ -10,9 +10,10 @@
  */
 #include "stdafx.hpp"
 
+#include <float.h>
+
 #include "char_cast.hpp"
 #include "string_algs.hpp"
-
 
 #ifdef __IO_WINDOWS_BACKEND__
 
@@ -879,90 +880,59 @@ from_chars_result IO_PUBLIC_SYMBOL signed_from_chars(const char* first, const ch
 	return ret;
 }
 
-
-template<typename T>
-static constexpr unsigned int float_max_digits() noexcept
-{
-	typedef std::numeric_limits<T> limits_type;
-	return 3 + limits_type::digits - limits_type::min_exponent;
-}
-
-static constexpr std::size_t FLOAT_MAX_DIGITS = float_max_digits<float>() + 1;
-static constexpr std::size_t DOUBLE_MAX_DIGITS = float_max_digits<double>() + 1;
-static constexpr std::size_t LONG_DOUBLE_MAX_DIGITS = float_max_digits<long double>() + 1;
-
 #ifdef _MSC_VER
-__declspec(dllexport) to_chars_result float_to_chars(char* const first, char* const last, float value) noexcept
+__declspec(dllexport) to_chars_result float_to_chars(char* const first, char* const last, float value, unsigned int max_digits) noexcept
 #else
-to_chars_result IO_PUBLIC_SYMBOL float_to_chars(char* const first, char* const last, float value) noexcept
+to_chars_result IO_PUBLIC_SYMBOL float_to_chars(char* const first, char* const last, float value, unsigned int max_digits) noexcept
 #endif
 {
-
 	to_chars_result ret = {nullptr, std::errc()};
-	if( io_unlikely(first >= last) ) {
+	std::size_t buff_len = memory_traits::distance(first,last);
+	if( (first >= last) || (buff_len < (FLT_DIG + max_digits)) ) {
 		ret.ec = std::errc::no_buffer_space;
 	}
 	else {
-		char buff[ FLOAT_MAX_DIGITS ] = {'\0'};
-		io_snprintf(buff, FLOAT_MAX_DIGITS, "%e", value);
-		std::size_t len = io_strlen(buff);
-		if( len > memory_traits::distance(first,last) ) {
-			ret.ec = std::errc::no_buffer_space;
-		}
-		else {
-			io_memmove(first, buff, len);
-			ret.ptr = first + len;
-		}
+		io_snprintf(first, buff_len, "%.*f", static_cast<int>(max_digits), value);
+		std::size_t offset = io_strlen(first);
+		ret.ptr = first + offset;
 	}
 	return ret;
 }
 
 #ifdef _MSC_VER
-__declspec(dllexport) to_chars_result float_to_chars(char* const first, char* const last, double value) noexcept
+__declspec(dllexport) to_chars_result float_to_chars(char* const first, char* const last, double value, unsigned int max_digits) noexcept
 #else
-to_chars_result IO_PUBLIC_SYMBOL float_to_chars(char* const first, char* const last, double value) noexcept
+to_chars_result IO_PUBLIC_SYMBOL float_to_chars(char* const first, char* const last, double value, unsigned int max_digits) noexcept
 #endif
 {
 	to_chars_result ret = {nullptr, std::errc()};
-	if( io_unlikely(first >= last) ) {
+	std::size_t buff_len = memory_traits::distance(first,last);
+	if( (first >= last) || (buff_len < (DBL_DIG + max_digits)) ) {
 		ret.ec = std::errc::no_buffer_space;
 	}
 	else {
-		char buff[ DOUBLE_MAX_DIGITS ] = {'\0'};
-		io_snprintf(buff, DOUBLE_MAX_DIGITS, "%e", value);
-		std::size_t len = io_strlen(buff);
-		if( len > memory_traits::distance(first,last) ) {
-			ret.ec = std::errc::no_buffer_space;
-		}
-		else {
-			io_memmove(first, buff, len);
-			ret.ptr = first + len;
-		}
+		io_snprintf(first, buff_len, "%.*f", static_cast<int>(max_digits), value);
+		std::size_t offset = io_strlen(first);
+		ret.ptr = first + offset;
 	}
 	return ret;
 }
 
 #ifdef _MSC_VER
-_declspec(dllexport) to_chars_result float_to_chars(char* const first, char* const last, const long double& value) noexcept
+_declspec(dllexport) to_chars_result float_to_chars(char* const first, char* const last, const long double& value, unsigned int max_digits) noexcept
 #else
-to_chars_result IO_PUBLIC_SYMBOL float_to_chars(char* const first, char* const last, const long double& value) noexcept
+to_chars_result IO_PUBLIC_SYMBOL float_to_chars(char* const first, char* const last, const long double& value, unsigned int max_digits) noexcept
 #endif
 {
 	to_chars_result ret = {nullptr, std::errc()};
-	if( io_unlikely(first >= last) ) {
+	std::size_t buff_len = memory_traits::distance(first,last);
+	if( (first >= last) || (buff_len < (LDBL_DIG + max_digits) ) ) {
 		ret.ec = std::errc::no_buffer_space;
 	}
 	else {
-		char buff[ LONG_DOUBLE_MAX_DIGITS ] = {'\0'};
-		std::snprintf(buff, LONG_DOUBLE_MAX_DIGITS, "%Le", value);
-		std::size_t len = io_strlen(buff);
-		if( len >  memory_traits::distance(first,last) ) {
-			ret.ec = std::errc::no_buffer_space;
-		}
-		else {
-			io_memmove(first, buff, len);
-			ret.ptr = first + len;
-		}
+		io_snprintf(first, buff_len, "%.*Lf", static_cast<int>(max_digits), value);
+		std::size_t offset = io_strlen(first);
+		ret.ptr = first + offset;
 	}
 	return ret;
 }

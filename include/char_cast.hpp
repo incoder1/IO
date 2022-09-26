@@ -74,9 +74,9 @@ char* IO_PUBLIC_SYMBOL uintmax_to_chars_reverse(char* const last, uintmax_t valu
 from_chars_result IO_PUBLIC_SYMBOL unsigned_from_chars(const char* first, const char* last, uintmax_t& value) noexcept;
 from_chars_result IO_PUBLIC_SYMBOL signed_from_chars(const char* first, const char* last, intmax_t& value) noexcept;
 
-to_chars_result IO_PUBLIC_SYMBOL float_to_chars(char* const first, char* const last, float value) noexcept;
-to_chars_result IO_PUBLIC_SYMBOL float_to_chars(char* const first, char* const last, double value) noexcept;
-to_chars_result IO_PUBLIC_SYMBOL float_to_chars(char* const first, char* const last, const long double& value) noexcept;
+to_chars_result IO_PUBLIC_SYMBOL float_to_chars(char* const first, char* const last, float value, unsigned int max_digits) noexcept;
+to_chars_result IO_PUBLIC_SYMBOL float_to_chars(char* const first, char* const last, double value, unsigned int max_digits) noexcept;
+to_chars_result IO_PUBLIC_SYMBOL float_to_chars(char* const first, char* const last, const long double& value,unsigned int max_digits) noexcept;
 
 from_chars_result IO_PUBLIC_SYMBOL float_from_chars(const char* first, const char* last, float& value) noexcept;
 from_chars_result IO_PUBLIC_SYMBOL float_from_chars(const char* first, const char* last, double& value) noexcept;
@@ -86,7 +86,6 @@ to_chars_result IO_PUBLIC_SYMBOL time_to_chars(char* first, char* last, const ch
 to_chars_result IO_PUBLIC_SYMBOL time_from_chars(const char* first,const char* last, const char* format, std::time_t& value) noexcept;
 
 #endif // _MSC_VER
-
 
 } // namespace detail
 
@@ -182,9 +181,9 @@ template<
 		>::type* = nullptr
 	>
 #endif // IO_HAS_CONNCEPTS
-to_chars_result to_chars(char* const first, char* const last,const T& value) noexcept
+to_chars_result to_chars(char* const first, char* const last,const T& value, unsigned int max_digits = std::numeric_limits<T>::digits10 ) noexcept
 {
-	return detail::float_to_chars(first, last, value);
+	return detail::float_to_chars(first, last, value, max_digits);
 }
 
 #ifdef IO_HAS_CONNCEPTS
@@ -322,7 +321,7 @@ template<
 #endif // IO_HAS_CONNCEPTS
 inline io::const_string to_string(std::error_code& ec, const T value) noexcept
 {
-	static constexpr std::size_t buff_size = 32;
+	static constexpr std::size_t buff_size = 64;
 	char tmp[buff_size] = {'\0'};
 	auto ret = io::to_chars(tmp, (tmp+buff_size), value);
 	if( 0 != static_cast<unsigned int>(ret.ec) ) {

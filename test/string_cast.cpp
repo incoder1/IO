@@ -273,8 +273,8 @@ TEST_F(string_cast_fixture, singned_64bit_from_string)
 
 TEST_F(string_cast_fixture, float_to_string)
 {
-	const float f32 = -123456.7F;
-	static const char* expected  = "-1.234567e+005";
+	const float f32 = -1.234567F;
+	static const char* expected  = "-1.234567";
 	auto actual = io::to_string(ec_, f32);
 	ASSERT_FALSE( ec_ );
 	ASSERT_STREQ(expected, actual.data());
@@ -291,8 +291,8 @@ TEST_F(string_cast_fixture, float_from_string)
 
 TEST_F(string_cast_fixture, double_to_string)
 {
-	const double f64 = -123456.789;
-	static const char* expected  = "-1.234568e+005";
+	const double f64 = -1.234567890123456;
+	static const char* expected  = "-1.234567890123456";
 	auto actual = io::to_string(ec_, f64);
 	ASSERT_FALSE( ec_ );
 	ASSERT_STREQ(expected, actual.data());
@@ -309,8 +309,9 @@ TEST_F(string_cast_fixture, double_from_string)
 
 TEST_F(string_cast_fixture, long_double_to_string)
 {
-	const long double f80 = -123456.789L;
-	static const char* expected  = "-1.234568e+05";
+	const long double f80 = -1.234567890123456789L;
+	static const char* expected  = "-1.234567890123456789";
+
 	auto actual = io::to_string(ec_, f80);
 	ASSERT_FALSE( ec_ );
 	ASSERT_STREQ(expected, actual.data());
