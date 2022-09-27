@@ -135,8 +135,8 @@ Tested implementations:
 
 #### Windows
    Compiler | instruction
-    MSYS2 | install developement package i.e. `pacman -S libgnutls-devel` (or mingw-w64-x86_64-gnutls, mingw-w64-ucrt-x86_64-gnutls etc)
-    MS Visual C++ | Download a release built from [ShiftMediaProject/gnutls](https://github.com/ShiftMediaProject/gnutls) extract deps/msvc into sub folder
+    MSYS2 | install developement package i.e. `pacman -S mingw-w64-x86_64-gnutls` or `pacman -S mingw-w64-ucrt-x86_64-gnutls` for universal CRT (preffered)
+    MS Visual C++ | Download release ShiftMediaProject builds [iconv](https://github.com/ShiftMediaProject/libiconv/tags) and [gnutls](https://github.com/ShiftMediaProject/gnutls/tags). Extract arhives to deps/msvc folder source code root subfolder
 
 - [Goole Test](https://github.com/google/googletest) 
   Optionaly if you'd like to run tests
@@ -171,11 +171,11 @@ cmake --build CBuild
 - NO_RTTI optional flag for disiabling C++ runtime type information, by default RTTI generated
 - RUN_TESTS optional flag to build and run tests, use this flag with Release and shared libraries builds
 
-Build result can be found at _CBuild/target/<Release|Debug>/lib_ sub-folder, if you don't whant to install libary with cmake.
+Build result can be found at _CBuild/target/<arh(x86,x64)>/<Release|Debug>/lib_ sub-folder, if you don't whant to install libary with cmake.
 
 When you whant to build with MS VC++ solution as the Cmake output and d'like to build from command line e.g. the CI/CD build
 ```bash
-cmake -S . -B CBuild -G "Visual Studio 17 2022" -A <x86|x64> -DBUILD_LIBRARY_TYPE=<Shared|Static> [-DNO_EXCEPTIONS=ON] [-DNO_RTTI=ON] [-DRUN_TESTS=ON]
+cmake -S . -B CBuild -G "Visual Studio 17 2022" -A <x86|x64> -DCMAKE_BUILD_TYPE=<Release|Debug> -DBUILD_LIBRARY_TYPE=<Shared|Static> [-DNO_EXCEPTIONS=ON] [-DNO_RTTI=ON] [-DRUN_TESTS=ON]
 ```
 you can open Power Shell for visual studio or run vcvars64.bat from console, cd to CBuild directory  
 and then use MSBuild instead of `cmake --build .` like:

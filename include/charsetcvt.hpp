@@ -349,7 +349,7 @@ public:
 	inline void swap(engine& other) noexcept;
 	bool is_open() const;
 
-	converrc convert(uint8_t** src,std::size_t& size, uint8_t** dst, std::size_t& avail) const noexcept;
+	converrc convert(const uint8_t** src,std::size_t& size, uint8_t** dst, std::size_t& avail) const noexcept;
 private:
 	iconv_t iconv_;
 };
@@ -417,7 +417,7 @@ public:
 	/// \param in_bytes_left
 	///
 	/// \param out
-	void convert(std::error_code& ec, uint8_t** in,std::size_t& in_bytes_left,uint8_t** const out, std::size_t& out_bytes_left) const noexcept;
+	void convert(std::error_code& ec, const uint8_t** in,std::size_t& in_bytes_left,uint8_t** const out, std::size_t& out_bytes_left) const noexcept;
 
 	void convert(std::error_code& ec, const uint8_t* src,const std::size_t src_size, byte_buffer& dst) const noexcept;
 

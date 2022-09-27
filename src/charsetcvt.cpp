@@ -92,9 +92,13 @@ engine::~engine() noexcept
 		::iconv_close(iconv_);
 }
 
-converrc engine::convert(uint8_t** src,std::size_t& size, uint8_t** dst, std::size_t& avail) const noexcept
+converrc engine::convert(const uint8_t** src,std::size_t& size, uint8_t** dst, std::size_t& avail) const noexcept
 {
-	char **s = reinterpret_cast<char**>(src);
+#ifdef _MSVER
+	const char **s = reinterpret_cast<const char**>(src);
+#else
+	char **s = const_cast<char**>( reinterpret_cast<const char**>(src) );
+#endif
 	char **d = reinterpret_cast<char**>(dst);
 	if( ICONV_ERROR == ::iconv(iconv_, s, std::addressof(size), d, std::addressof(avail) ) )
 		return iconv_to_conv_errc(errno);
@@ -323,7 +327,7 @@ code_cnvtr::code_cnvtr(detail::engine&& eng) noexcept:
 {
 }
 
-void code_cnvtr::convert(std::error_code& ec, uint8_t** in,std::size_t& in_bytes_left,uint8_t** const out, std::size_t& out_bytes_left) const noexcept
+void code_cnvtr::convert(std::error_code& ec, const uint8_t** in,std::size_t& in_bytes_left,uint8_t** const out, std::size_t& out_bytes_left) const noexcept
 {
 	converrc result = eng_.convert(in, in_bytes_left, out, out_bytes_left);
 	if( converrc::success != result ) {
@@ -336,11 +340,11 @@ void code_cnvtr::convert(std::error_code& ec, const uint8_t* src,const std::size
 {
 	dst.clear();
 	std::size_t left = size;
-	std::size_t available = dst.capacity();
-	uint8_t** s = const_cast<uint8_t**>( std::addressof(src) );
-	const uint8_t* d = dst.position().get();
+	std::size_t available = dst.available();
+	const uint8_t** s = std::addressof(src);
+	uint8_t* d = const_cast<uint8_t*>( dst.position().get() );
 	while(!ec && left > 0)
-		convert(ec, s, left, const_cast<uint8_t**>( std::addressof(d) ), available);
+		convert(ec, s, left, std::addressof(d), available);
 	dst.move(dst.capacity() - available);
 	dst.flip();
 }
@@ -355,11 +359,10 @@ std::size_t IO_PUBLIC_SYMBOL transcode(std::error_code& ec, const uint8_t* u8_sr
 								SYSTEM_UTF16,
 								cnvrt_control::failure_on_failing_chars
 							);
-	uint8_t* s = const_cast<uint8_t*>( reinterpret_cast<const uint8_t*>(u8_src) );
 	uint8_t* d = reinterpret_cast<uint8_t*>(dst);
 	std::size_t left = src_bytes;
 	std::size_t avail = dst_size * sizeof(char16_t);
-	converrc result = eng.convert(&s,left,&d,avail);
+	converrc result = eng.convert(&u8_src,left,&d,avail);
 	if( converrc::success != result ) {
 		ec = make_error_code(result);
 		return 0;
@@ -374,11 +377,10 @@ std::size_t IO_PUBLIC_SYMBOL transcode(std::error_code& ec,const uint8_t* u8_src
 	static detail::engine eng(code_pages::UTF_8.name(),
 							SYSTEM_UTF32,
 							cnvrt_control::failure_on_failing_chars);
-	uint8_t* s = const_cast<uint8_t*>( reinterpret_cast<const uint8_t*>(u8_src) );
 	uint8_t* d = reinterpret_cast<uint8_t*>(dst);
 	std::size_t left = src_bytes;
 	std::size_t avail = dst_size * sizeof(char32_t);
-	converrc result = eng.convert( &s ,left, &d, avail);
+	converrc result = eng.convert( &u8_src,left, &d, avail);
 	if( converrc::success != result ) {
 		ec = make_error_code(result);
 		return 0;
@@ -394,7 +396,7 @@ std::size_t IO_PUBLIC_SYMBOL transcode(std::error_code& ec,const char16_t* u16_s
 							SYSTEM_UTF16,
 							code_pages::UTF_8.name(),
 							cnvrt_control::failure_on_failing_chars);
-	uint8_t* s = const_cast<uint8_t*>( reinterpret_cast<const uint8_t*>(u16_src) );
+	const uint8_t* s = reinterpret_cast<const uint8_t*>(u16_src);
 	uint8_t* d = const_cast<uint8_t*>(u8_dst);
 	std::size_t left = src_width * sizeof(char16_t);
 	std::size_t avail = dst_size;
@@ -412,7 +414,7 @@ std::size_t IO_PUBLIC_SYMBOL transcode(std::error_code& ec,const char32_t* u32_s
 	static detail::engine eng(SYSTEM_UTF32,
 							code_pages::UTF_8.name(),
 							cnvrt_control::failure_on_failing_chars);
-	uint8_t* s = const_cast<uint8_t*>( reinterpret_cast<const uint8_t*>(u32_src) );
+	const uint8_t* s =  reinterpret_cast<const uint8_t*>(u32_src);
 	uint8_t* d = const_cast<uint8_t*>(u8_dst);
 	std::size_t left = src_width * sizeof(char32_t);
 	std::size_t avail = dst_size;
@@ -472,15 +474,12 @@ std::size_t conv_read_channel::read(std::error_code& ec,uint8_t* const buff, std
 	}
 	std::size_t left = length;
 	std::size_t read;
-	uint8_t* cvt_it[1] = { buff };
-	uint8_t* rb_it[1]  = { nullptr };
 	do {
 		read = src_->read(ec, rdbuf, rdbuflen);
 		if( 0 == read || ec)
 			break;
-		rb_it[0] = rdbuf;
 		do {
-			conv_->convert(ec, rb_it, read, cvt_it, left);
+			conv_->convert(ec, const_cast<const uint8_t**>(&rdbuf), read, const_cast<uint8_t**>(&buff), left);
 		} while(read > 0 && !ec);
 	} while(left > 0);
 	if(rdbuflen > MAX_CONVB_STACK_SIZE)
@@ -510,8 +509,8 @@ std::size_t conv_write_channel::convert_some(std::error_code& ec, const uint8_t 
 {
 	const std::size_t to_convert = (size << 2);
 	std::size_t left_after = to_convert;
-	uint8_t* uncv[1] = { const_cast<uint8_t*>(src) };
-	uint8_t* conv[1] = { dst };
+	const uint8_t** uncv = std::addressof(src);
+	uint8_t** conv = std::addressof(dst);
 	conv_->convert(ec, uncv, size, conv, left_after);
 	return to_convert - left_after;
 }

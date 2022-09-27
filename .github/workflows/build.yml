@@ -20,7 +20,7 @@ jobs:
       - name: install dependencies
         run: sudo apt-get install -y gnutls-dev libgtest-dev
       - name: configure
-        run: cmake .  -DCMAKE_CXX_COMPILER=${{matrix.compiler}} -DCMAKE_BUILD_TYPE=Release -DBUILD_LIBRARY_TYPE=Shared -DRUN_TESTS=ON
+        run:  cmake -S . -B CBuild  -DCMAKE_BUILD_TYPE=Release -DBUILD_LIBRARY_TYPE=Shared -DRUN_TESTS=ON
       - name: build-and-test
         run: cmake --build CBuild
 # windows:
