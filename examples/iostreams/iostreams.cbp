@@ -13,10 +13,11 @@
 				<Option type="1" />
 				<Option compiler="gcc" />
 				<Compiler>
-					<Add option="-std=c++11" />
 					<Add option="-pg" />
 					<Add option="-g" />
+					<Add option="-std=c++11" />
 					<Add option="-fexceptions" />
+					<Add option="-D_WIN32_WINNT=0x0A00" />
 				</Compiler>
 				<Linker>
 					<Add option="-pg -lgmon" />
@@ -35,6 +36,7 @@
 					<Add option="-std=c++14" />
 					<Add option="-fno-exceptions" />
 					<Add option="-fno-rtti" />
+					<Add option="-D_WIN32_WINNT=0x0A00" />
 					<Add option="-DIO_SHARED_LIB" />
 					<Add directory="../../deps/include" />
 				</Compiler>
