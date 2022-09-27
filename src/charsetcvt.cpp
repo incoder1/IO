@@ -94,7 +94,7 @@ engine::~engine() noexcept
 
 converrc engine::convert(const uint8_t** src,std::size_t& size, uint8_t** dst, std::size_t& avail) const noexcept
 {
-#ifdef _MSVER
+#ifdef _MSC_VER
 	const char **s = reinterpret_cast<const char**>(src);
 #else
 	char **s = const_cast<char**>( reinterpret_cast<const char**>(src) );
