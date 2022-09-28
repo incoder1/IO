@@ -137,7 +137,7 @@ using detail::decode3;
 using detail::decode4;
 
 
-#ifdef __GNUG__
+#if defined(__GNUG__) || defined(__clang__)
 constexpr unsigned int mblen(const u8char_t* mb) noexcept
 #else
 inline unsigned int mblen(const char8_t* mb) noexcept
@@ -156,7 +156,7 @@ inline unsigned int mblen(const char8_t* mb) noexcept
 #endif // IO_IS_LITTLE_ENDIAN
 }
 
-#ifdef __GNUG__
+#if	defined(__GNUG__) || defined(__clang__)
 constexpr unsigned int mblen(const char* mb) noexcept
 #else
 inline unsigned int mblen(const char* mb)
@@ -200,7 +200,7 @@ IO_PUBLIC_SYMBOL const u8char_t* mbtochar32(char32_t& dst, const u8char_t* src) 
 /// Returns UTF-8 string length in logical UNICODE characters
 /// \param u8str source UTF-8 string
 /// \return length in characters
-#if defined(__GNUG__) && defined(__HAS_CPP_14)
+#if defined(__GNUG__) || defined(__clang__) && defined(__HAS_CPP_14)
 constexpr
 #else
 inline
@@ -280,7 +280,7 @@ enum converrc: int {
 
 class IO_PUBLIC_SYMBOL chconv_error_category final: public std::error_category {
 private:
-#ifndef  _MSC_VER
+#ifdef IO_DELCSPEC
 	friend std::error_code  make_error_code(io::converrc ec) noexcept;
 	friend std::error_condition  make_error_condition(io::converrc err) noexcept;
 #else
@@ -312,13 +312,13 @@ public:
 
 };
 
-#ifdef _MSC_VER
+#ifdef IO_DELCSPEC
 	IO_PUBLIC_SYMBOL std::error_code make_error_code(io::converrc errc) noexcept;
 	IO_PUBLIC_SYMBOL std::error_condition make_error_condition(io::converrc err) noexcept;
 #else
 	std::error_code IO_PUBLIC_SYMBOL make_error_code(io::converrc errc) noexcept;
 	std::error_condition  IO_PUBLIC_SYMBOL make_error_condition(io::converrc err) noexcept;
-#endif
+#endif // IO_DELCSPEC
 
 enum class cnvrt_control
 {
@@ -354,7 +354,7 @@ private:
 	iconv_t iconv_;
 };
 
-#ifdef _MSC_VER
+#ifdef IO_DELCSPEC
 IO_PUBLIC_SYMBOL std::size_t utf8_buff_size(const char16_t* ustr, std::size_t size) noexcept;
 IO_PUBLIC_SYMBOL std::size_t utf8_buff_size(const char32_t* ustr, std::size_t size) noexcept;
 IO_PUBLIC_SYMBOL std::size_t utf16_buff_size(const char* b, std::size_t size) noexcept;
@@ -364,7 +364,7 @@ std::size_t IO_PUBLIC_SYMBOL utf8_buff_size(const char16_t* ustr, std::size_t si
 std::size_t IO_PUBLIC_SYMBOL utf8_buff_size(const char32_t* ustr, std::size_t size) noexcept;
 std::size_t IO_PUBLIC_SYMBOL utf16_buff_size(const char* b, std::size_t size) noexcept;
 std::size_t IO_PUBLIC_SYMBOL utf32_buff_size(const char* b, std::size_t size) noexcept;
-#endif // _MSC_VER
+#endif // IO_DELCSPEC
 
 #ifdef __IO_WINDOWS_BACKEND__
 typedef char16_t sys_widechar_t;

@@ -26,7 +26,7 @@ namespace io {
 
 namespace win {
 
-#ifdef _MSC_VER
+#ifdef IO_DELCSPEC
 	IO_PUBLIC_SYMBOL void* private_heap_alloc(std::size_t bytes) noexcept;
 	IO_PUBLIC_SYMBOL void* private_heap_realoc(void* const ptr, const std::size_t new_size) noexcept;
 	IO_PUBLIC_SYMBOL void private_heap_free(void * const ptr) noexcept;
@@ -49,15 +49,15 @@ struct IO_PUBLIC_SYMBOL memory_traits {
 	/// General propose memory allocation
 	static inline void* malloc IO_PREVENT_MACRO (std::size_t bytes) noexcept
 	{
-	    void *ret = nullptr;
-        while( io_unlikely( nullptr == (ret = std::malloc(bytes) ) ) )
-        {
-            std::new_handler handler = std::get_new_handler();
-            if( nullptr == handler )
-                break;
-            handler();
+		void *ret = nullptr;
+		while( io_unlikely( nullptr == (ret = std::malloc(bytes) ) ) )
+		{
+			std::new_handler handler = std::get_new_handler();
+			if( nullptr == handler )
+				break;
+			handler();
 		}
-        return ret;
+		return ret;
 	}
 
 	/// Continues memory block allocation of specific type
@@ -68,13 +68,13 @@ struct IO_PUBLIC_SYMBOL memory_traits {
 		assert(0 != array_size);
 		void *ret = nullptr;
 		while( io_unlikely(nullptr == (ret = std::calloc(array_size,sizeof(T)) ) ) )
-        {
-            std::new_handler handler = std::get_new_handler();
-            if( nullptr == handler )
-                break;
-            handler();
+		{
+			std::new_handler handler = std::get_new_handler();
+			if( nullptr == handler )
+				break;
+			handler();
 		}
-        return static_cast<T*>( ret );
+		return static_cast<T*>( ret );
 	}
 
 	/// General propose memory block release
@@ -89,9 +89,9 @@ struct IO_PUBLIC_SYMBOL memory_traits {
 	/// Memory block re-allocation
 	static inline void* realloc IO_PREVENT_MACRO (void * const base, std::size_t new_size) noexcept
 	{
-	   assert(new_size > 0);
+		assert(new_size > 0);
 		// replace this one to use jemalloc/tcmalloc etc
-       return std::realloc(base, new_size);
+		return std::realloc(base, new_size);
 	}
 
 	/// Distance between two pointers as unsigned integral type
@@ -121,13 +121,13 @@ struct IO_PUBLIC_SYMBOL memory_traits {
 	{
 		void *ret = nullptr;
 		while( io_unlikely(nullptr == (ret = static_cast<T*>( win::private_heap_alloc( sizeof(T) * count) ) )) )
-        {
-            std::new_handler handler = std::get_new_handler();
-            if( nullptr == handler )
-                break;
-            handler();
+		{
+			std::new_handler handler = std::get_new_handler();
+			if( nullptr == handler )
+				break;
+			handler();
 		}
-        return static_cast<T*>( ret );
+		return static_cast<T*>( ret );
 	}
 
 	/// Temporary propose memory block allocated with calloc_temporary only
@@ -153,9 +153,9 @@ public:
 	typedef const T& const_reference;
 	typedef T value_type;
 
-    typedef std::true_type propagate_on_container_move_assignment;
+	typedef std::true_type propagate_on_container_move_assignment;
 
-    typedef std::true_type is_always_equal;
+	typedef std::true_type is_always_equal;
 
 	template<typename T1>
 	struct rebind {
@@ -196,27 +196,27 @@ struct enclave_memory_traits {
 	{
 		void *ret = nullptr;
 		while( io_unlikely(nullptr == (ret = win::private_heap_alloc(bytes) ) ) )
-        {
-            std::new_handler handler = std::get_new_handler();
-            if( nullptr == handler )
-                break;
-            handler();
+		{
+			std::new_handler handler = std::get_new_handler();
+			if( nullptr == handler )
+				break;
+			handler();
 		}
-        return ret;
+		return ret;
 	}
 
 	/// Memory block re-allocation
 	static inline void* realloc IO_PREVENT_MACRO (void * const base, std::size_t new_size) noexcept
 	{
-	   assert(new_size > 0);
-	   void *ret = base;
-	   if( io_unlikely(nullptr == (ret = win::private_heap_realoc(ret,new_size) ) ) ) {
-            std::new_handler handler = std::get_new_handler();
+		assert(new_size > 0);
+		void *ret = base;
+		if( io_unlikely(nullptr == (ret = win::private_heap_realoc(ret,new_size) ) ) ) {
+			std::new_handler handler = std::get_new_handler();
 			if (nullptr != handler) {
 				handler();
 			}
 		}
-        return ret;
+		return ret;
 	}
 
 	static inline void free IO_PREVENT_MACRO (void * const ptr) noexcept
@@ -239,9 +239,9 @@ public:
 	typedef const T& const_reference;
 	typedef T value_type;
 
-    typedef std::true_type propagate_on_container_move_assignment;
+	typedef std::true_type propagate_on_container_move_assignment;
 
-    typedef std::true_type is_always_equal;
+	typedef std::true_type is_always_equal;
 
 	template<typename T1>
 	struct rebind {

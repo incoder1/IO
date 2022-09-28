@@ -115,7 +115,7 @@ bool byte_buffer::realloc(std::size_t size) noexcept
 	uint8_t *ret = empty() ? new_empty_block(size) : reallocated_block(size);
 	if( nullptr != ret ) {
 		arr_.reset_ownership();
-		arr_ = std::move( detail::mem_block( ret ) );
+		arr_ = detail::mem_block( ret );
 	}
 	return nullptr != ret ;
 }

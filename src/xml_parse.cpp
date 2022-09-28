@@ -30,16 +30,12 @@ static constexpr const char RIGHTB =  62; // '>';
 static constexpr const char SRIGHTB = 93; // ']'
 static constexpr const char QNM = 34; // '"'
 static constexpr const char APH = 39; // '\''
-static constexpr const char SPACE = 32;//' ';
 static constexpr const char EM = 33;//'!';
 static constexpr const char SOLIDUS = 47;// '/'
 static constexpr const char HYPHEN = 45;// '-'
 static constexpr const char COLON = 58; // ':'
 static constexpr const char ES = 61 ; // '='
 static constexpr const char QM = 63; // '?'
-
-
-
 
 static bool is_prologue(const char *s) noexcept
 {

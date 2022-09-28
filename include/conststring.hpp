@@ -57,7 +57,7 @@ static constexpr std::size_t SSO_MAX = sizeof(long_char_buf_t) - 2;
 struct short_char_buf_t {
 	bool sso: 1;
 	// assuming MAX_SIZE string length is not possible,
-    uint8_t size: CHAR_BIT - 1;
+	uint8_t size: CHAR_BIT - 1;
 	// max val + zero ending char
 	utf8char char_buf[ SSO_MAX+1 ];
 };
@@ -122,7 +122,7 @@ public:
 
 	/// Creates empty constant string  object
 	constexpr const_string() noexcept:
-		data_( {false, 0, nullptr} )
+		data_( {{false, 0, nullptr}} )
 	{}
 
 	const_string(const const_string& other) noexcept:
@@ -141,7 +141,7 @@ public:
 	/// Movement constructor, default movement semantic
 	const_string(const_string&& other) noexcept:
 #ifdef __HAS_CPP_14
-		data_( std::exchange(other.data_, {false,0,nullptr}) )
+		data_( std::exchange(other.data_, {{false,0,nullptr}}) )
 	{}
 #else
 		data_(other.data_)

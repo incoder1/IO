@@ -49,7 +49,7 @@ struct from_chars_result {
 
 namespace detail {
 
-#ifdef _MSC_VER
+#ifdef IO_DELCSPEC
 
 IO_PUBLIC_SYMBOL char* uintmax_to_chars_reverse(char* const last, uintmax_t value) noexcept;
 
@@ -82,7 +82,7 @@ from_chars_result IO_PUBLIC_SYMBOL float_from_chars(const char* first, const cha
 from_chars_result IO_PUBLIC_SYMBOL float_from_chars(const char* first, const char* last, double& value) noexcept;
 from_chars_result IO_PUBLIC_SYMBOL float_from_chars(const char* first, const char* last, long double& value) noexcept;
 
-#endif // _MSC_VER
+#endif // IO_DELCSPEC
 
 } // namespace detail
 
@@ -253,7 +253,7 @@ enum class str_bool_format {
 	yes_no
 };
 
-#ifdef _MSC_VER
+#ifdef IO_DELCSPEC
 IO_PUBLIC_SYMBOL to_chars_result to_chars(char* first, char* last, bool value, str_bool_format fmt = str_bool_format::true_false) noexcept;
 IO_PUBLIC_SYMBOL from_chars_result from_chars(const char* first,const char* last, bool& value) noexcept;
 IO_PUBLIC_SYMBOL to_chars_result from_chars(const char* first, const char* last, const char* format, std::time_t& value) noexcept;
@@ -263,7 +263,7 @@ to_chars_result IO_PUBLIC_SYMBOL to_chars(char* first, char* last, bool value, s
 from_chars_result IO_PUBLIC_SYMBOL from_chars(const char* first,const char* last, bool& value) noexcept;
 to_chars_result IO_PUBLIC_SYMBOL from_chars(const char* first,const char* last,const char* format, std::time_t& value) noexcept;
 to_chars_result IO_PUBLIC_SYMBOL to_chars(char* const first, char* const last, const char* format, const std::time_t& value) noexcept;
-#endif // _MSC_VER
+#endif // IO_DELCSPEC
 
 #ifdef IO_HAS_CONNCEPTS
 template<typename T>
@@ -332,11 +332,11 @@ inline io::const_string to_string(std::error_code& ec, const T value) noexcept
 	return io::const_string(tmp);
 }
 
-#ifdef _MSC_VER
+#ifdef IO_DELCSPEC
 IO_PUBLIC_SYMBOL io::const_string to_string(std::error_code& ec, const bool value, str_bool_format fmt = str_bool_format::true_false) noexcept;
 #else
 io::const_string IO_PUBLIC_SYMBOL to_string(std::error_code& ec, const bool value, str_bool_format fmt = str_bool_format::true_false) noexcept;
-#endif // _MSC_VER
+#endif // IO_DELCSPEC
 
 inline io::const_string to_string(const bool value, str_bool_format fmt = str_bool_format::true_false)
 {

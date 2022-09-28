@@ -8,8 +8,8 @@
  * LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
  *
  */
-#ifndef __COMPILLER_CONFIG_GCC_HPP_INCLUDED__
-#define __COMPILLER_CONFIG_GCC_HPP_INCLUDED__
+#ifndef __IO_CLANG_HPP_INCLUDED__
+#define __IO_CLANG_HPP_INCLUDED__
 
 #pragma once
 
@@ -67,7 +67,7 @@
 #	define IO_CPU_INTEL
 #endif // INTEL
 
-#if defined(__LP64__) || defined(__x86_64__) || defined(__MINGW64__)
+#if defined(__LP64__) || defined(__x86_64__)
 #	define IO_CPU_BITS_64 1
 #else
 #	define IO_CPU_BITS_32 1
@@ -87,7 +87,7 @@
 #define io_alloca(__x) __builtin_alloca( (__x) )
 
 // infact this is dummy
-#define io_freea(__x) assert(nullptr != (__x))
+#define io_freea(__x) _freea
 
 #define io_memmove(__dst, __src, __bytes) __builtin_memmove( (__dst), (__src), (__bytes) )
 
@@ -123,17 +123,17 @@
 
 #define io_isalpha(__ch) __builtin_isalpha((__ch))
 
-#define io_isspace(__ch) __builtin_isspace((__ch))
+#define io_isspace(__ch) std::isspace((__ch))
 
 #define io_islower(__ch) __builtin_islower((__ch))
 
 #define io_isupper(__ch) __builtin_isupper((__ch))
 
-#define io_isdigit(__ch) __builtin_isdigit((__ch))
+#define io_isdigit(__ch) std::isdigit((__ch))
 
 #define io_tolower(__ch) __builtin_tolower((__ch))
 
-#define io_toupper(__ch) __builtin_toupper((__ch))
+#define io_toupper(__ch) std::toupper((__ch))
 
 #define io_bswap16(__x) __builtin_bswap16((__x))
 
@@ -221,4 +221,4 @@ namespace atomic_traits {
 
 } // namespace io
 
-#endif // __COMPILLER_CONFIG_GCC_HPP_INCLUDED__
+#endif // __IO_CLANG_HPP_INCLUDED__

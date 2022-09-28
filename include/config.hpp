@@ -12,8 +12,10 @@
 #define IO_CONFIG_HPP_INCLUDED
 
 
-#ifdef __GNUG__
+#if defined(__GNUG__) && !defined(__clang__)
 #	include "config/compiler/gcc.hpp"
+#elif defined(__clang__)
+#	include "config/compiler/clang.hpp"
 #elif defined(_MSC_VER)
 #	include "config/compiler/ms_visual_cpp.hpp"
 #endif // __GNUG__
