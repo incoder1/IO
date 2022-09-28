@@ -82,9 +82,6 @@ from_chars_result IO_PUBLIC_SYMBOL float_from_chars(const char* first, const cha
 from_chars_result IO_PUBLIC_SYMBOL float_from_chars(const char* first, const char* last, double& value) noexcept;
 from_chars_result IO_PUBLIC_SYMBOL float_from_chars(const char* first, const char* last, long double& value) noexcept;
 
-to_chars_result IO_PUBLIC_SYMBOL time_to_chars(char* first, char* last, const char* format, const std::time_t& value) noexcept;
-to_chars_result IO_PUBLIC_SYMBOL time_from_chars(const char* first,const char* last, const char* format, std::time_t& value) noexcept;
-
 #endif // _MSC_VER
 
 } // namespace detail
@@ -257,11 +254,15 @@ enum class str_bool_format {
 };
 
 #ifdef _MSC_VER
-to_chars_result IO_PUBLIC_SYMBOL to_chars(char* first, char* last, bool value, str_bool_format fmt = str_bool_format::true_false) noexcept;
-from_chars_result IO_PUBLIC_SYMBOL from_chars(const char* first,const char* last, bool& value) noexcept;
-#else
 IO_PUBLIC_SYMBOL to_chars_result to_chars(char* first, char* last, bool value, str_bool_format fmt = str_bool_format::true_false) noexcept;
 IO_PUBLIC_SYMBOL from_chars_result from_chars(const char* first,const char* last, bool& value) noexcept;
+IO_PUBLIC_SYMBOL to_chars_result from_chars(const char* first, const char* last, const char* format, std::time_t& value) noexcept;
+IO_PUBLIC_SYMBOL to_chars_result to_chars(char* const first, char* const last, const char* format, const std::time_t& value) noexcept
+#else
+to_chars_result IO_PUBLIC_SYMBOL to_chars(char* first, char* last, bool value, str_bool_format fmt = str_bool_format::true_false) noexcept;
+from_chars_result IO_PUBLIC_SYMBOL from_chars(const char* first,const char* last, bool& value) noexcept;
+to_chars_result IO_PUBLIC_SYMBOL from_chars(const char* first,const char* last,const char* format, std::time_t& value) noexcept;
+to_chars_result IO_PUBLIC_SYMBOL to_chars(char* const first, char* const last, const char* format, const std::time_t& value) noexcept;
 #endif // _MSC_VER
 
 #ifdef IO_HAS_CONNCEPTS

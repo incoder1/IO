@@ -9,7 +9,6 @@
  *
  */
 #include "stdafx.hpp"
-#include "fixtures.hpp"
 
 int main(int argc,char* argv[])
 {

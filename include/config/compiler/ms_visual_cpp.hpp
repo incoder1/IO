@@ -1,6 +1,6 @@
 ﻿/*
  *
- * Copyright (c) 2016-2021
+ * Copyright (c) 2016-2022
  * Viktor Gubin
  *
  * Use, modification and distribution are subject to the

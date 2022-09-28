@@ -6,6 +6,7 @@
 		<Option compiler="gcc" />
 		<Build>
 			<Target title="debug-ming64">
+				<Option platforms="Windows;" />
 				<Option output="bin/debug-ming64/test" prefix_auto="1" extension_auto="1" />
 				<Option object_output="obj/debug-ming64/" />
 				<Option type="1" />
@@ -26,6 +27,7 @@
 				</Linker>
 			</Target>
 			<Target title="release-ming64">
+				<Option platforms="Windows;" />
 				<Option output="bin/release-ming64/test" prefix_auto="1" extension_auto="1" />
 				<Option object_output="obj/release-ming64/" />
 				<Option type="1" />
@@ -70,6 +72,7 @@
 			<Option weight="0" />
 		</Unit>
 		<Unit filename="string_cast.cpp" />
+		<Unit filename="time_cast_test.cpp" />
 		<Extensions>
 			<lib_finder disable_auto="1" />
 		</Extensions>

@@ -9,7 +9,6 @@
  *
  */
 #include "stdafx.hpp"
-#include <char_cast.hpp>
 
 string_cast_fixture::string_cast_fixture():
 	testing::Test(),

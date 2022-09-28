@@ -13,6 +13,7 @@
 
 #include <gtest/gtest.h>
 #include <gtest/gtest-matchers.h>
+
 #include <system_error>
 
 class char_cast_fixture: public testing::Test
@@ -25,6 +26,16 @@ class string_cast_fixture: public testing::Test
 {
 public:
 	string_cast_fixture();
+protected:
+	std::error_code ec_;
+};
+
+class time_cast_fixture: public testing::Test
+{
+public:
+	time_cast_fixture();
+	static const char* FORMAT;
+	static const char* EXPECTED_TIME_STR;
 protected:
 	std::error_code ec_;
 };

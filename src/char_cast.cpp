@@ -1009,49 +1009,6 @@ from_chars_result IO_PUBLIC_SYMBOL float_from_chars(const char* first, const cha
 	return ret;
 }
 
-#ifdef _MSC_VER
-__declspec(dllexport) to_chars_result time_to_chars(char* const first, char* const last, const char* format, const std::time_t& value) noexcept
-#else
-to_chars_result IO_PUBLIC_SYMBOL time_to_chars(char* const first, char* const last, const char* format, const std::time_t& value) noexcept
-#endif
-{
-	to_chars_result ret = {nullptr, std::errc()};
-	if( io_unlikely( (first+io_strlen(format)) >= last ) ) {
-		ret.ec = std::errc::no_buffer_space;
-	}
-	else {
-		const std::size_t buff_size = (2 * io_strlen(format) ) + 1;
-		io::scoped_arr<char> buff(buff_size);
-		const std::size_t len = std::strftime(buff.begin(), buff_size, format, std::localtime(std::addressof(value)) );
-		if( (first+len) > last  ) {
-			ret.ec = std::errc::no_buffer_space;
-		}
-		else {
-			io_memmove(first, buff.begin(), len);
-			ret.ptr = first + len;
-		}
-	}
-	return ret;
-}
-
-#ifdef _MSC_VER
-__declspec(dllexport) to_chars_result time_from_chars(const char* first, const char* last, const char* format, std::time_t& value) noexcept
-#else
-to_chars_result IO_PUBLIC_SYMBOL time_from_chars(const char* first,const char* last,const char* format, std::time_t& value) noexcept
-#endif
-{
-	to_chars_result ret = {nullptr, std::errc()};
-	if( io_unlikely( (first+io_strlen(format)) >= last ) ) {
-		ret.ec = std::errc::no_buffer_space;
-	}
-	else {
-		tm t;
-		ret.ptr = ::strptime( first, format, &t );
-		value = std::mktime(&t);
-	}
-	return ret;
-}
-
 } // namespace detail
 
 #ifdef _MSC_VER
@@ -1155,6 +1112,49 @@ io::const_string IO_PUBLIC_SYMBOL to_string(std::error_code& ec, const bool valu
 	return io::const_string(tmp);
 }
 
+
+#ifdef _MSC_VER
+__declspec(dllexport) to_chars_result to_chars(char* const first, char* const last, const char* format, const std::time_t& value) noexcept
+#else
+to_chars_result IO_PUBLIC_SYMBOL to_chars(char* const first, char* const last, const char* format, const std::time_t& value) noexcept
+#endif
+{
+	to_chars_result ret = {nullptr, std::errc()};
+	if( io_unlikely( (first+io_strlen(format)) >= last ) ) {
+		ret.ec = std::errc::no_buffer_space;
+	}
+	else {
+		const std::size_t buff_size = (2 * io_strlen(format) ) + 1;
+		io::scoped_arr<char> buff(buff_size);
+		const std::size_t len = std::strftime(buff.begin(), buff_size, format, std::localtime(std::addressof(value)) );
+		if( (first+len) > last  ) {
+			ret.ec = std::errc::no_buffer_space;
+		}
+		else {
+			io_memmove(first, buff.begin(), len);
+			ret.ptr = first + len;
+		}
+	}
+	return ret;
+}
+
+#ifdef _MSC_VER
+__declspec(dllexport) to_chars_result from_chars(const char* first, const char* last, const char* format, std::time_t& value) noexcept
+#else
+to_chars_result IO_PUBLIC_SYMBOL from_chars(const char* first,const char* last,const char* format, std::time_t& value) noexcept
+#endif
+{
+	to_chars_result ret = {nullptr, std::errc()};
+	if( io_unlikely( (first+io_strlen(format)) >= last ) ) {
+		ret.ec = std::errc::no_buffer_space;
+	}
+	else {
+		tm t;
+		ret.ptr = ::strptime( first, format, &t );
+		value = std::mktime(&t);
+	}
+	return ret;
+}
 
 } // namespace io
 
