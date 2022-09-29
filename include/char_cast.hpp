@@ -56,9 +56,9 @@ IO_PUBLIC_SYMBOL char* uintmax_to_chars_reverse(char* const last, uintmax_t valu
 IO_PUBLIC_SYMBOL from_chars_result unsigned_from_chars(const char* first, const char* last, uintmax_t& value) noexcept;
 IO_PUBLIC_SYMBOL from_chars_result signed_from_chars(const char* first, const char* last, intmax_t& value) noexcept;
 
-IO_PUBLIC_SYMBOL to_chars_result float_to_chars(char* const first, char* const last, float value) noexcept;
-IO_PUBLIC_SYMBOL to_chars_result float_to_chars(char* const first, char* const last, double value) noexcept;
-IO_PUBLIC_SYMBOL to_chars_result float_to_chars(char* const first, char* const last, const long double& value) noexcept;
+IO_PUBLIC_SYMBOL to_chars_result float_to_chars(char* const first, char* const last, float value, unsigned int max_digits) noexcept;
+IO_PUBLIC_SYMBOL to_chars_result float_to_chars(char* const first, char* const last, double value, unsigned int max_digits) noexcept;
+IO_PUBLIC_SYMBOL to_chars_result float_to_chars(char* const first, char* const last, const long double& value,unsigned int max_digits) noexcept;
 
 IO_PUBLIC_SYMBOL from_chars_result float_from_chars(const char* first, const char* last, float& value) noexcept;
 IO_PUBLIC_SYMBOL from_chars_result float_from_chars(const char* first, const char* last, double& value) noexcept;

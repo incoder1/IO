@@ -248,8 +248,8 @@ static uint64_t combine(const uint64_t seed,const uint64_t value) noexcept
 #ifdef IO_CPU_BITS_32
 
 // Magic numbers for 32-bit hashing.  Copied from Murmur3.
-static constexpr const uint32 MURMUR_C1 = 0xcc9e2d51;
-static constexpr const uint32 MURMUR_C2 = 0x1b873593;
+static constexpr const uint32_t MURMUR_C1 = 0xcc9e2d51;
+static constexpr const uint32_t MURMUR_C2 = 0x1b873593;
 static constexpr uint32_t PRED = 0xe6546b64;
 
 

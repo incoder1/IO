@@ -48,9 +48,9 @@
 #	define IO_IS_LITTLE_ENDIAN  1
 #endif // __ORDER_LITTLE_ENDIAN__
 
-#if defined(__LP64__) || defined(_LP64)
+#if defined(__amd64) || defined(__amd64__) || defined(__aarch64__) || defined(__powerpc64__) || defined(__x86_64) || defined(__x86_64__) || (__SIZEOF_POINTER__ == 8)
 #	define IO_CPU_BITS_64 1
-#else
+#elif __SIZEOF_POINTER__ == 4
 #	define IO_CPU_BITS_32 1
 #endif // __LP64__
 
@@ -223,7 +223,9 @@
 #	define io_toupper(__ch) std::toupper((__ch))
 #endif
 
-#if __has_builtin(__builtin_snprintf)
+#if defined(__MINGW32__ ) || defined(__MINGW64__)
+#	define io_snprintf __mingw_snprintf
+#elif __has_builtin(__builtin_snprintf)
 #	define io_snprintf __builtin_snprintf
 #else
 #	define io_snprintf std::snprintf
@@ -244,7 +246,7 @@
 #else
 __forceinline uint16_t io_bswap16(uint16_t val) noexcept
 {
-    return (val << 8) | (val >> 8 );
+	return (val << 8) | (val >> 8 );
 }
 #endif
 
@@ -254,19 +256,19 @@ __forceinline uint16_t io_bswap16(uint16_t val) noexcept
 #else
 inline uint32_t io_bswap32(uint32_t val) noexcept
 {
-    val = ((val << 8) & 0xFF00FF00 ) | ((val >> 8) & 0xFF00FF );
-    return (val << 16) | (val >> 16);
+	val = ((val << 8) & 0xFF00FF00 ) | ((val >> 8) & 0xFF00FF );
+	return (val << 16) | (val >> 16);
 }
 #endif
 
-#if __builtin_bswap64(__builtin_bswap64)
+#if __has_builtin(__builtin_bswap64)
 #	define io_bswap64(__x) __builtin_bswap64((__x))
 #else
 inline uint64_t io_bswap64(uint64_t val) noexcept
 {
-    val = ((val << 8) & 0xFF00FF00FF00FF00ULL ) | ((val >> 8) & 0x00FF00FF00FF00FFULL );
-    val = ((val << 16) & 0xFFFF0000FFFF0000ULL ) | ((val >> 16) & 0x0000FFFF0000FFFFULL );
-    return (val << 32) | (val >> 32);
+	val = ((val << 8) & 0xFF00FF00FF00FF00ULL ) | ((val >> 8) & 0x00FF00FF00FF00FFULL );
+	val = ((val << 16) & 0xFFFF0000FFFF0000ULL ) | ((val >> 16) & 0x0000FFFF0000FFFFULL );
+	return (val << 32) | (val >> 32);
 }
 #endif // __builtin_bswap64
 
@@ -321,14 +323,14 @@ namespace detail {
 // to save additional 4/8 bytes of memory
 namespace atomic_traits {
 
-	__forceinline std::size_t inc(std::size_t volatile *ptr) noexcept
+	__forceinline std::size_t inc(size_t volatile *ptr) noexcept
 	{
-		return __c11_atomic_fetch_add(ptr, 1, __ATOMIC_RELAXED);
+		return __atomic_fetch_add(ptr, 1, __ATOMIC_RELAXED);
 	}
 
-	__forceinline std::size_t dec(std::size_t volatile *ptr) noexcept
+	__forceinline std::size_t dec(size_t volatile *ptr) noexcept
 	{
-		return __c11_atomic_fetch_sub(ptr, 1, __ATOMIC_RELEASE);
+		return __atomic_fetch_sub(ptr, 1, __ATOMIC_RELEASE);
 	}
 
 } // atomic_traits

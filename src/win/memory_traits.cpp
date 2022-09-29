@@ -97,7 +97,7 @@ critical_section heap_allocator::_mtx;
 std::atomic<heap_allocator*> heap_allocator::_instance(nullptr);
 
 
-#ifdef __GNUG__
+#ifndef IO_DELCSPEC
 
 void* IO_MALLOC_ATTR private_heap_alloc(std::size_t bytes) noexcept
 {
