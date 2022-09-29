@@ -296,12 +296,20 @@ static constexpr const char * SYSTEM_UTF32 = "UCS-4-INTERNAL";
 
 #endif // __IO_WINDOWS_BACKEND__
 
+#ifdef IO_DELCSPEC
+IO_PUBLIC_SYMBOL std::error_code make_error_code(io::converrc ec) noexcept
+#else
 std::error_code IO_PUBLIC_SYMBOL make_error_code(io::converrc ec) noexcept
+#endif
 {
 	return std::error_code( ec, *(chconv_error_category::instance()) );
 }
 
+#ifdef IO_DELCSPEC
+IO_PUBLIC_SYMBOL std::error_condition make_error_condition(io::converrc err) noexcept
+#else
 std::error_condition IO_PUBLIC_SYMBOL make_error_condition(io::converrc err) noexcept
+#endif
 {
 	return std::error_condition(static_cast<int>(err), *(chconv_error_category::instance()) );
 }

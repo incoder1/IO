@@ -55,9 +55,10 @@ inline os_descriptor_t socket_id(::SOCKET socket) noexcept {
 #		if defined(__GNUG__) && !defined(__clang__)
 #			define IO_PUBLIC_SYMBOL __attribute__ ((dllexport))
 #			define IO_MALLOC_ATTR __attribute__ ((dllexport,malloc))
-#		else
+#		elif defined(_MSC_VER) || defined(__clang__)
+#			define IO_DELCSPEC 1
 #			define IO_PUBLIC_SYMBOL __declspec(dllexport)
-#			define IO_MALLOC_ATTR __declspec(dllexport)
+#			define IO_MALLOC_ATTR __declspec(dllexport,restrict)
 #		endif
 #	else
 #		if defined(__GNUG__) and !defined(__clang__)
@@ -66,11 +67,7 @@ inline os_descriptor_t socket_id(::SOCKET socket) noexcept {
 #		elif defined(_MSC_VER) || defined(__clang__)
 #			define IO_DELCSPEC 1
 #			define IO_PUBLIC_SYMBOL __declspec(dllimport)
-#			if defined(__clang__)
-#				define IO_MALLOC_ATTR __declspec(dllimport,restrict)
-#			else
-#				define IO_MALLOC_ATTR __declspec(dllimport)
-#			endif
+#			define IO_MALLOC_ATTR __declspec(dllimport,restrict)
 #		endif
 #	endif // defined
 // static library

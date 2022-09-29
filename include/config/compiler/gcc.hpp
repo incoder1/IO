@@ -54,18 +54,9 @@
 #	endif
 #endif // exception
 
-#ifndef IO_NO_INLINE
-#	define IO_NO_INLINE __attribute__ ((noinline))
-#endif // IO_NO_INLINE
-
 #if __BYTE_ORDER__ == __ORDER_LITTLE_ENDIAN__
-#define IO_IS_LITTLE_ENDIAN  1
+#	define IO_IS_LITTLE_ENDIAN  1
 #endif // __ORDER_LITTLE_ENDIAN__
-
-
-#if defined(__i386__) || defined(__i486__) || defined(__i586__) || defined(__i686__) || defined(__x86_64__)
-#	define IO_CPU_INTEL
-#endif // INTEL
 
 #if defined(__LP64__) || defined(__x86_64__) || defined(__MINGW64__)
 #	define IO_CPU_BITS_64 1
@@ -77,6 +68,10 @@
 #ifndef __forceinline
 #	define __forceinline inline __attribute__((__always_inline__))
 #endif // __forceinline
+
+#ifndef __noinline
+#	define __noinline __attribute__ ((noinline))
+#endif // __noinline
 
 #ifdef IO_CPU_BITS_64
 #	define io_size_t_abs(__x) __builtin_llabs( (__x) )
@@ -194,6 +189,19 @@
 #endif // __HAS_CPP_20
 
 namespace io {
+
+static __forceinline uint32_t ror32(const uint32_t val,const uint32_t shift) noexcept
+{
+	// Avoid shifting by 32: doing so yields an undefined result.
+	return shift == 0 ? val : ((val >> shift) | (val << (32 - shift) ) );
+}
+
+static __forceinline uint64_t ror64(const uint64_t val,const uint32_t shift) noexcept
+{
+	// Avoid shifting by 64: doing so yields an undefined result.
+	return shift == 0 ? val : ((val >> shift) | (val << (64 - shift) ) );
+}
+
 namespace detail {
 
 // GCC intrinsics for atomic pointer
@@ -215,7 +223,7 @@ namespace atomic_traits {
 		return __atomic_sub_fetch(ptr, 1, __ATOMIC_RELEASE);
 	}
 
-} // atomic_traits
+} // namespace atomic_traits
 
 } // namespace detail
 

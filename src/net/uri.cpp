@@ -84,7 +84,7 @@ static const char* str_to_lower_a(char* const dst, const char* src) noexcept
 }
 
 // uri
-uint16_t IO_NO_INLINE uri::default_port_for_scheme(const char* scheme) noexcept
+uint16_t __noinline uri::default_port_for_scheme(const char* scheme) noexcept
 {
 	char sch[8];
 	str_to_lower_a(sch, scheme);

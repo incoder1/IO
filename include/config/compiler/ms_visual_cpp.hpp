@@ -16,17 +16,27 @@
 #	error "This library needs at least MS VC++ 15 with /std:c++latest compiller option"
 #endif // CPP11 detection
 
+#if _MSVC_LANG >= 201402L
+#	define __HAS_CPP_14 1
+#endif // CPP14 detected
+
 #if _MSVC_LANG >= 201703L
-#define __HAS_CPP_17 1
+#	define __HAS_CPP_17 1
 #endif // CPP17 detected
+
+#if _MSVC_LANG >= 202002L
+#	define __HAS_CPP_20 1
+#	define IO_HAS_CONNCEPTS 1
+#endif // CPP20 detected
 
 #ifdef IO_BUILD
 #	define _CRT_SECURE_NO_WARNINGS 1
 #endif
 
+
 #define _STATIC_CPPLIB
 // disable warnings about defining _STATIC_CPPLIB
-#define _DISABLE_DEPRECATE_STATIC_CPPLIB  
+#define _DISABLE_DEPRECATE_STATIC_CPPLIB
 
 #include <intrin.h>
 #include <stddef.h>
@@ -35,11 +45,6 @@
 #include <malloc.h>
 #include <string.h>
 #include <BaseTsd.h>
-
-// Intel compiler specific
-#ifdef __ICL
-#	include <immintrin.h>
-#endif
 
 typedef SSIZE_T ssize_t;
 
@@ -51,11 +56,7 @@ typedef SSIZE_T ssize_t;
 #	endif
 #endif
 
-#ifndef IO_NO_INLINE
-#	define IO_NO_INLINE __declspec(noinline)
-#endif // IO_NO_INLINE
-
-#ifndef  _CPPUNWIND
+#ifndef _CPPUNWIND
 #	define IO_NO_EXCEPTIONS
 // use static STL and stdlib C++ when exeptions off
 // to avoid std::unxpected, when exeptions off
@@ -66,7 +67,11 @@ typedef SSIZE_T ssize_t;
 #	define _STATIC_CPPLIB
 #endif // exception
 
-// MS VC doesn't generate big endian code
+#ifndef __noinline
+#	define __noinline __declspec(noinline)
+#endif // IO_NO_INLINE
+
+// MS VC does not generate big endian code at all
 #define IO_IS_LITTLE_ENDIAN 1
 
 #if defined(_M_IX86) || defined(_M_AMD64)
@@ -207,8 +212,20 @@ typedef SSIZE_T ssize_t;
 #	endif 
 #endif
 
-
 namespace io {
+
+#pragma intrinsic(_rotr,_rotr64)
+
+static __forceinline uint32_t ror32(const uint32_t val,const uint32_t shift) noexcept
+{
+	return _rotr(val,shift);
+}
+
+static __forceinline uint64_t ror64(const uint64_t val,const uint32_t shift) noexcept
+{
+	return _rotr64(val,shift);
+}
+
 namespace detail {
 	
 #ifdef _M_X64
@@ -252,7 +269,7 @@ namespace atomic_traits {
 		return static_cast<size_t>( io_atomic_dec( io_mword(ptr) ) );
 	}
 	
-} // atomic_traits
+} // =namespace atomic_traits
 
 #undef io_atomic_inc
 #undef io_atomic_dec

@@ -30,44 +30,25 @@
 #	define __HAS_CPP_20 1
 #endif // C++ 20
 
-
 #include <cstddef>
 #include <cstdint>
 #include <climits>
 
-#define HAS_PRAGMA_ONCE
+#define HAS_PRAGMA_ONCE 1
 
-// Intel compiler specific
-#ifdef __ICC
-#	include <immintrin.h>
+#if __has_feature(cxx_rtti) && !defined(IO_NO_RTTI)
+#	define IO_NO_RTTI 1
 #endif
 
-#ifndef __GXX_RTTI
-#	ifndef IO_NO_RTTI
-#		define IO_NO_RTTI 1
-#	endif
+#if __has_feature(cxx_exceptions) && !defined(IO_NO_EXCEPTIONS)
+#	define IO_NO_EXCEPTIONS 1
 #endif
-
-#ifndef __EXCEPTIONS
-#	ifndef IO_NO_EXCEPTIONS
-#		define IO_NO_EXCEPTIONS 1
-#	endif
-#endif // exception
-
-#ifndef IO_NO_INLINE
-#	define IO_NO_INLINE __attribute__ ((noinline))
-#endif // IO_NO_INLINE
 
 #if __BYTE_ORDER__ == __ORDER_LITTLE_ENDIAN__
-#define IO_IS_LITTLE_ENDIAN  1
+#	define IO_IS_LITTLE_ENDIAN  1
 #endif // __ORDER_LITTLE_ENDIAN__
 
-
-#if defined(__i386__) || defined(__i486__) || defined(__i586__) || defined(__i686__) || defined(__x86_64__)
-#	define IO_CPU_INTEL
-#endif // INTEL
-
-#if defined(__LP64__) || defined(__x86_64__)
+#if defined(__LP64__) || defined(_LP64)
 #	define IO_CPU_BITS_64 1
 #else
 #	define IO_CPU_BITS_32 1
@@ -75,8 +56,20 @@
 
 // should not be used unless something specific, i.e. inline assembly based function
 #ifndef __forceinline
-#	define __forceinline inline __attribute__((__always_inline__))
+#	if __has_attribute(always_inline)
+#		define __forceinline __attribute__((always_inline))
+#	else
+#		define __forceinline inline
+#	endif // __has_attribute(always_inline)
 #endif // __forceinline
+
+#ifndef __noinline
+#	if __has_attribute(noinline)
+#		define __noinline __attribute__ ((noinline))
+#	else
+#		define __noinline
+#	endif
+#endif // IO_NO_INLINE
 
 #ifdef IO_CPU_BITS_64
 #	define io_size_t_abs(__x) __builtin_llabs( (__x) )
@@ -84,94 +77,206 @@
 #	define io_size_t_abs(__x) __builtin_labs( (__x) )
 #endif
 
-#define io_alloca(__x) __builtin_alloca( (__x) )
-
-// infact this is dummy
-#define io_freea(__x) _freea
-
-#define io_memmove(__dst, __src, __bytes) __builtin_memmove( (__dst), (__src), (__bytes) )
-
-#define io_memset(__p,__v,__bytes) __builtin_memset( (__p), (__v), (__bytes) )
-
-#define io_memcmp(__p1,__p2,__bytes) __builtin_memcmp((__p1),(__p2),(__bytes))
-
-#define io_zerro_mem(__p,__bytes) __builtin_bzero( (__p), (__bytes) )
-
-#define io_memchr(__s,__c,__n) __builtin_memchr((__s),(__c),(__n))
-
-#define io_strstr(__s1,__s2) __builtin_strstr( (__s1), (__s2) )
-
-#define io_strchr(__s,__c) __builtin_strchr( (__s), (__c) )
-
-#define io_strlen(__s) __builtin_strlen( (__s) )
-
-#define io_strcpy(__s1,__s2) __builtin_strcpy( (__s1), (__s2) )
-
-#define io_strcat(__dst,__src) __builtin_strcat( (__dst) , (__src) )
-
-#define io_strcmp(__lsh,__rhs) __builtin_strcmp( (__lsh), (__rhs) )
-
-#define io_strncmp(__lsh,__rhs,__num) __builtin_strncmp( (__lsh), (__rhs), (__num) )
-
-#define io_strspn(__s, __p) __builtin_strspn( (__s), (__p) )
-
-#define io_strcspn(__s, __p) __builtin_strcspn( (__s), (__p) )
-
-#define io_strpbrk(__s, __p) __builtin_strpbrk( (__s), (__p) )
-
-#define io_strchr(__s,__c) __builtin_strchr( (__s), (__c) )
-
-#define io_isalpha(__ch) __builtin_isalpha((__ch))
-
-#define io_isspace(__ch) std::isspace((__ch))
-
-#define io_islower(__ch) __builtin_islower((__ch))
-
-#define io_isupper(__ch) __builtin_isupper((__ch))
-
-#define io_isdigit(__ch) std::isdigit((__ch))
-
-#define io_tolower(__ch) __builtin_tolower((__ch))
-
-#define io_toupper(__ch) std::toupper((__ch))
-
-#define io_bswap16(__x) __builtin_bswap16((__x))
-
-#if defined(__MINGW64__) || defined(__MINGW32__)
-#	define io_snprintf __mingw_snprintf
+#if __has_builtin(__builtin_alloca)
+#	define io_alloca(__x) __builtin_alloca( (__x) )
 #else
+#	define io_alloca(__x) _alloca( (__x) )
+#endif
+
+#define io_freea(__x) assert(nullptr != (__x))
+
+#if __has_builtin(__builtin_memmove)
+#	define io_memmove(__dst, __src, __bytes) __builtin_memmove( (__dst), (__src), (__bytes) )
+#else
+#	define io_memmove(__dst, __src, __bytes) std::memmove( (__dst), (__src), (__bytes) )
+#endif
+
+#if __has_builtin(__builtin_memset)
+#	define io_memset(__p,__v,__bytes) __builtin_memset( (__p), (__v), (__bytes) )
+#else
+#	define io_memset(__p,__v,__bytes) std::memset( (__p), (__v), (__bytes) )
+#endif
+
+#if __has_builtin(__builtin_memcmp)
+#	define io_memcmp(__p1,__p2,__bytes) __builtin_memcmp((__p1),(__p2),(__bytes))
+#else
+#	define io_memcmp(__p1,__p2,__bytes) std::memcmp((__p1),(__p2),(__bytes))
+#endif
+
+#if __has_builtin(__builtin_bzero)
+#	define io_zerro_mem(__p,__bytes) __builtin_bzero( (__p), (__bytes) )
+#else
+#	define io_zerro_mem(__p,__bytes) std::memset( (__p), 0, (__bytes) )
+#endif
+
+#if __has_builtin(__builtin_memchr)
+#	define io_memchr(__s,__c,__n) __builtin_memchr((__s),(__c),(__n))
+#else
+#	define io_memchr(__s,__c,__n) std::memchr((__s),(__c),(__n))
+#endif
+
+#if __has_builtin(__builtin_strstr)
+#	define io_strstr(__s1,__s2) __builtin_strstr( (__s1), (__s2) )
+#else
+#	define io_strstr(__s1,__s2) std::strstr( (__s1), (__s2) )
+#endif
+
+#if __has_builtin(__builtin_strchr)
+#	define io_strchr(__s,__c) __builtin_strchr( (__s), (__c) )
+#else
+#	define io_strchr(__s,__c) std::strchr( (__s), (__c) )
+#endif
+
+#if __has_builtin(__builtin_strlen)
+#	define io_strlen(__s) __builtin_strlen( (__s) )
+#else
+#	define io_strlen(__s) std::strlen( (__s) )
+#endif
+
+#if __has_builtin(__builtin_strcpy)
+#	define io_strcpy(__s1,__s2) __builtin_strcpy( (__s1), (__s2) )
+#else
+#	define io_strcpy(__s1,__s2) std::strcpy( (__s1), (__s2) )
+#endif
+
+#if __has_builtin(__builtin_strcat)
+#	define io_strcat(__dst,__src) __builtin_strcat( (__dst) , (__src) )
+#else
+#	define io_strcat(__dst,__src) std::strcat( (__dst) , (__src) )
+#endif
+
+#if __has_builtin(__builtin_strcmp)
+#	define io_strcmp(__lsh,__rhs) __builtin_strcmp( (__lsh), (__rhs) )
+#else
+#	define io_strcmp(__lsh,__rhs) std::strcmp( (__lsh), (__rhs) )
+#endif
+
+#if __has_builtin(__builtin_strncmp)
+#	define io_strncmp(__lsh,__rhs,__num) __builtin_strncmp( (__lsh), (__rhs), (__num) )
+#else
+#	define io_strncmp(__lsh,__rhs,__num) std::strncmp( (__lsh), (__rhs), (__num) )
+#endif
+
+#if __has_builtin(__builtin_strspn)
+#	define io_strspn(__s, __p) __builtin_strspn( (__s), (__p) )
+#else
+#	define io_strspn(__s, __p) std::strspn( (__s), (__p) )
+#endif
+
+#if __has_builtin(__builtin_strcspn)
+#	define io_strcspn(__s, __p) __builtin_strcspn( (__s), (__p) )
+#else
+#	define io_strcspn(__s, __p) std::strcspn( (__s), (__p) )
+#endif
+
+#if __has_builtin(__builtin_strpbrk)
+#	define io_strpbrk(__s, __p) __builtin_strpbrk( (__s), (__p) )
+#else
+#	define io_strpbrk(__s, __p) std::strpbrk( (__s), (__p) )
+#endif
+
+#if __has_builtin(__builtin_strchr)
+#	define io_strchr(__s,__c) __builtin_strchr( (__s), (__c) )
+#else
+#	define io_strchr(__s,__c) std::strchr( (__s), (__c) )
+#endif
+
+#if __has_builtin(__builtin_isalpha)
+#	define io_isalpha(__ch) __builtin_isalpha((__ch))
+#else
+#	define io_isalpha(__ch) std::isalpha((__ch))
+#endif
+
+#if __has_builtin(__builtin_isspace)
+#	define io_isspace(__ch) __builtin_isspace((__ch))
+#else
+#	define io_isspace(__ch) std::isspace((__ch))
+#endif
+
+#if __has_builtin(__builtin_islower)
+#	define io_islower(__ch) __builtin_islower((__ch))
+#else
+#	define io_islower(__ch) std::islower((__ch))
+#endif
+
+#if __has_builtin(__builtin_isupper)
+#	define io_isupper(__ch) __builtin_isupper((__ch))
+#else
+#	define io_isupper(__ch) std::isupper((__ch))
+#endif
+
+#if __has_builtin(__builtin_isdigit)
+#	define io_isdigit(__ch) __builtin_isdigit((__ch))
+#else
+#	define io_isdigit(__ch) std::isdigit((__ch))
+#endif
+
+#if __has_builtin(__builtin_tolower)
+#	define io_tolower(__ch) __builtin_tolower((__ch))
+#else
+#	define io_tolower(__ch) std::tolower((__ch))
+#endif
+
+#if __has_builtin(__builtin_toupper)
+#	define io_toupper(__ch) __builtin_toupper((__ch))
+#else
+#	define io_toupper(__ch) std::toupper((__ch))
+#endif
+
+#if __has_builtin(__builtin_snprintf)
 #	define io_snprintf __builtin_snprintf
+#else
+#	define io_snprintf std::snprintf
 #endif
 
 // in case of intel compiler
-#ifdef __ICC
-#	define io_clz(__x) _lzcnt_u32((__x))
-#	ifdef  __LP64__
-#		define io_size_t_clz(__x) _lzcnt_u64((__x))
-#	else
-#		define io_size_t_clz(__x) _lzcnt_u32((__x))
-#	endif
-#else
 // in case of gcc or clang
-#	define io_clz(__x) __builtin_clz((__x))
-#	ifdef __LP64__
-#		define io_size_t_clz(__x) __builtin_clzll((__x))
-#	else
-#		define io_size_t_clz(__x) __builtin_clzl((__x))
-#	endif // __LP64__
-#endif // clz
+#define io_clz(__x) __builtin_clz((__x))
+
+#ifdef __LP64__
+#	define io_size_t_clz(__x) __builtin_clzll((__x))
+#else
+#	define io_size_t_clz(__x) __builtin_clzl((__x))
+#endif // __LP64__
+
+#if __has_builtin(__builtin_bswap16)
+#	define io_bswap16(__x) __builtin_bswap16((__x))
+#else
+__forceinline uint16_t io_bswap16(uint16_t val) noexcept
+{
+    return (val << 8) | (val >> 8 );
+}
+#endif
 
 
-#define io_bswap32(__x) __builtin_bswap32((__x))
-#define io_bswap64(__x) __builtin_bswap64((__x))
+#if __has_builtin(__builtin_bswap32)
+#	define io_bswap32(__x) __builtin_bswap32((__x))
+#else
+inline uint32_t io_bswap32(uint32_t val) noexcept
+{
+    val = ((val << 8) & 0xFF00FF00 ) | ((val >> 8) & 0xFF00FF );
+    return (val << 16) | (val >> 16);
+}
+#endif
+
+#if __builtin_bswap64(__builtin_bswap64)
+#	define io_bswap64(__x) __builtin_bswap64((__x))
+#else
+inline uint64_t io_bswap64(uint64_t val) noexcept
+{
+    val = ((val << 8) & 0xFF00FF00FF00FF00ULL ) | ((val >> 8) & 0x00FF00FF00FF00FFULL );
+    val = ((val << 16) & 0xFFFF0000FFFF0000ULL ) | ((val >> 16) & 0x0000FFFF0000FFFFULL );
+    return (val << 32) | (val >> 32);
+}
+#endif // __builtin_bswap64
 
 #ifndef IO_PUSH_IGNORE_UNUSED_PARAM
 
 #	define IO_PUSH_IGNORE_UNUSED_PARAM\
-			_Pragma("GCC diagnostic push")\
-			_Pragma("GCC diagnostic ignored \"-Wunused-parameter\" ")
+			_Pragma("clang diagnostic push")\
+			_Pragma("clang diagnostic ignored \"-Wunused-parameter\" ")
 
-#	define IO_POP_IGNORE_UNUSED_PARAM _Pragma("GCC diagnostic pop")
+#	define IO_POP_IGNORE_UNUSED_PARAM _Pragma("clang diagnostic pop")
 
 #endif // IO_PUSH_IGNORE_UNUSED_PARAM
 
@@ -194,6 +299,17 @@
 #endif // __HAS_CPP_20
 
 namespace io {
+
+static __forceinline uint32_t ror32(const uint32_t val,const uint32_t shift) noexcept
+{
+	return __builtin_rotateright32(val,shift);
+}
+
+static __forceinline uint64_t ror64(const uint64_t val,const uint32_t shift) noexcept
+{
+	return __builtin_rotateright64(val,shift);
+}
+
 namespace detail {
 
 // GCC intrinsics for atomic pointer
@@ -207,12 +323,12 @@ namespace atomic_traits {
 
 	__forceinline std::size_t inc(std::size_t volatile *ptr) noexcept
 	{
-		return __atomic_add_fetch(ptr, 1, __ATOMIC_RELAXED);
+		return __c11_atomic_fetch_add(ptr, 1, __ATOMIC_RELAXED);
 	}
 
 	__forceinline std::size_t dec(std::size_t volatile *ptr) noexcept
 	{
-		return __atomic_sub_fetch(ptr, 1, __ATOMIC_RELEASE);
+		return __c11_atomic_fetch_sub(ptr, 1, __ATOMIC_RELEASE);
 	}
 
 } // atomic_traits

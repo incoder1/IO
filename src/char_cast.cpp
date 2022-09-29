@@ -691,11 +691,11 @@ static char* copy_four(char* s, const uint32_t i, const uint32_t j) noexcept
 	return ret;
 }
 
-#ifdef _MSC_VER
+#ifdef IO_DELCSPEC
 __declspec(dllexport) char* uintmax_to_chars_reverse(char* const last, uintmax_t value) noexcept
 #else
 char* IO_PUBLIC_SYMBOL uintmax_to_chars_reverse(char* const last, uintmax_t value) noexcept
-#endif // _MSC_VER
+#endif // IO_DELCSPEC
 {
 	char* ret = last;
 	if (value < BRANCH_8) {
@@ -829,7 +829,7 @@ char* IO_PUBLIC_SYMBOL uintmax_to_chars_reverse(char* const last, uintmax_t valu
 	return ret;
 }
 
-#ifdef _MSC_VER
+#ifdef IO_DELCSPEC
 __declspec(dllexport) from_chars_result unsigned_from_chars(const char* first, const char* last, uintmax_t& value) noexcept
 #else
 from_chars_result IO_PUBLIC_SYMBOL unsigned_from_chars(const char* first, const char* last, uintmax_t& value) noexcept
@@ -858,7 +858,7 @@ from_chars_result IO_PUBLIC_SYMBOL unsigned_from_chars(const char* first, const 
 	return ret;
 }
 
-#ifdef _MSC_VER
+#ifdef IO_DELCSPEC
 __declspec(dllexport) from_chars_result signed_from_chars(const char* first, const char* last, intmax_t& value) noexcept
 #else
 from_chars_result IO_PUBLIC_SYMBOL signed_from_chars(const char* first, const char* last, intmax_t& value) noexcept
@@ -880,7 +880,7 @@ from_chars_result IO_PUBLIC_SYMBOL signed_from_chars(const char* first, const ch
 	return ret;
 }
 
-#ifdef _MSC_VER
+#ifdef IO_DELCSPEC
 __declspec(dllexport) to_chars_result float_to_chars(char* const first, char* const last, float value, unsigned int max_digits) noexcept
 #else
 to_chars_result IO_PUBLIC_SYMBOL float_to_chars(char* const first, char* const last, float value, unsigned int max_digits) noexcept
@@ -899,7 +899,7 @@ to_chars_result IO_PUBLIC_SYMBOL float_to_chars(char* const first, char* const l
 	return ret;
 }
 
-#ifdef _MSC_VER
+#ifdef IO_DELCSPEC
 __declspec(dllexport) to_chars_result float_to_chars(char* const first, char* const last, double value, unsigned int max_digits) noexcept
 #else
 to_chars_result IO_PUBLIC_SYMBOL float_to_chars(char* const first, char* const last, double value, unsigned int max_digits) noexcept
@@ -918,7 +918,7 @@ to_chars_result IO_PUBLIC_SYMBOL float_to_chars(char* const first, char* const l
 	return ret;
 }
 
-#ifdef _MSC_VER
+#ifdef IO_DELCSPEC
 _declspec(dllexport) to_chars_result float_to_chars(char* const first, char* const last, const long double& value, unsigned int max_digits) noexcept
 #else
 to_chars_result IO_PUBLIC_SYMBOL float_to_chars(char* const first, char* const last, const long double& value, unsigned int max_digits) noexcept
@@ -937,7 +937,7 @@ to_chars_result IO_PUBLIC_SYMBOL float_to_chars(char* const first, char* const l
 	return ret;
 }
 
-#ifdef _MSC_VER
+#ifdef IO_DELCSPEC
 __declspec(dllexport) from_chars_result float_from_chars(const char* first, const char* last, float& value) noexcept
 #else
 from_chars_result IO_PUBLIC_SYMBOL float_from_chars(const char* first, const char* last, float& value) noexcept
@@ -961,7 +961,7 @@ from_chars_result IO_PUBLIC_SYMBOL float_from_chars(const char* first, const cha
 	return ret;
 }
 
-#ifdef _MSC_VER
+#ifdef IO_DELCSPEC
 __declspec(dllexport) from_chars_result float_from_chars(const char* first, const char* last, double& value) noexcept
 #else
 from_chars_result IO_PUBLIC_SYMBOL float_from_chars(const char* first, const char* last, double& value) noexcept
@@ -985,7 +985,7 @@ from_chars_result IO_PUBLIC_SYMBOL float_from_chars(const char* first, const cha
 	return ret;
 }
 
-#ifdef _MSC_VER
+#ifdef IO_DELCSPEC
 __declspec(dllexport) from_chars_result float_from_chars(const char* first, const char* last, long double& value) noexcept
 #else
 from_chars_result IO_PUBLIC_SYMBOL float_from_chars(const char* first, const char* last, long double& value) noexcept
@@ -1011,7 +1011,7 @@ from_chars_result IO_PUBLIC_SYMBOL float_from_chars(const char* first, const cha
 
 } // namespace detail
 
-#ifdef _MSC_VER
+#ifdef IO_DELCSPEC
 __declspec(dllexport) to_chars_result to_chars(char* first, char* last, bool value, str_bool_format fmt) noexcept
 #else
 to_chars_result IO_PUBLIC_SYMBOL to_chars(char* first, char* last, bool value, str_bool_format fmt) noexcept
@@ -1057,7 +1057,7 @@ static bool cmp_false(const char* s) noexcept
 	return start_with(s, "false", 5);
 }
 
-#ifdef _MSC_VER
+#ifdef IO_DELCSPEC
 __declspec(dllexport) from_chars_result from_chars(const char* first, const char* last, bool& value) noexcept
 #else
 from_chars_result IO_PUBLIC_SYMBOL from_chars(const char* first,const char* last, bool& value) noexcept
@@ -1097,7 +1097,7 @@ from_chars_result IO_PUBLIC_SYMBOL from_chars(const char* first,const char* last
 	return ret;
 }
 
-#ifdef _MSC_VER
+#ifdef IO_DELCSPEC
 __declspec(dllexport) io::const_string to_string(std::error_code& ec, const bool value, str_bool_format fmt) noexcept
 #else
 io::const_string IO_PUBLIC_SYMBOL to_string(std::error_code& ec, const bool value, str_bool_format fmt) noexcept
@@ -1113,7 +1113,7 @@ io::const_string IO_PUBLIC_SYMBOL to_string(std::error_code& ec, const bool valu
 }
 
 
-#ifdef _MSC_VER
+#ifdef IO_DELCSPEC
 __declspec(dllexport) to_chars_result to_chars(char* const first, char* const last, const char* format, const std::time_t& value) noexcept
 #else
 to_chars_result IO_PUBLIC_SYMBOL to_chars(char* const first, char* const last, const char* format, const std::time_t& value) noexcept
@@ -1138,7 +1138,7 @@ to_chars_result IO_PUBLIC_SYMBOL to_chars(char* const first, char* const last, c
 	return ret;
 }
 
-#ifdef _MSC_VER
+#ifdef IO_DELCSPEC
 __declspec(dllexport) to_chars_result from_chars(const char* first, const char* last, const char* format, std::time_t& value) noexcept
 #else
 to_chars_result IO_PUBLIC_SYMBOL from_chars(const char* first,const char* last,const char* format, std::time_t& value) noexcept

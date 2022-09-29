@@ -70,7 +70,7 @@ public:
     *   \param  scheme protocol scheme name
     *   \return default port number for know scheme, or 0 for unknown
     */
-    static uint16_t IO_NO_INLINE default_port_for_scheme(const char* scheme) noexcept;
+    static uint16_t __noinline default_port_for_scheme(const char* scheme) noexcept;
 
 private:
 
