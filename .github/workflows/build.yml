@@ -18,10 +18,10 @@ jobs:
     steps:
       - uses: actions/checkout@v1
       - name: install dependencies
-        run: sudo apt-get install -y gnutls-dev libgtest-dev
+        run: sudo apt-get install -y gnutls-bin gnutls-dev libgtest-dev
       - name: configure
-        run:  cmake -S . -B CBuild  -DCMAKE_BUILD_TYPE=Release -DBUILD_LIBRARY_TYPE=Shared -DRUN_TESTS=ON
-      - name: build-and-test
+        run:  cmake -S . -B CBuild  -DCMAKE_BUILD_TYPE=Release -DBUILD_LIBRARY_TYPE=Shared -DRUN_TESTS=OFF
+      - name: build
         run: cmake --build CBuild
 # windows:
 #   strategy:
