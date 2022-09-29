@@ -473,15 +473,15 @@ document_event event_stream_parser::parse_start_doc() noexcept
 			assign_error(error::illegal_prologue);
 			return document_event();
 		}
-		standalone =  ( 0 == io_memcmp( i, YES, 3) );
-		if( !standalone &&  ( 0 != io_memcmp(i, NO, 2) ) ) {
+		standalone = start_with( i, YES, 3);
+		if( !standalone &&  start_with(i, NO, 2) ) {
 			assign_error(error::illegal_prologue);
 			return document_event();
 		}
 		i = stop + 1;
 	}
 	// check error in this point
-	if( 0 != io_memcmp( skip_spaces(i), END_PROLOGUE, 2) ) {
+	if( ! start_with( skip_spaces(i), END_PROLOGUE) ) {
 		assign_error(error::illegal_prologue);
 		return document_event();
 	}

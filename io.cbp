@@ -87,6 +87,32 @@
 					<Add directory="bin/release-win-gcc-dll-x64" />
 				</Linker>
 			</Target>
+			<Target title="debug-win-clang-static-x64">
+				<Option platforms="Windows;" />
+				<Option output="bin/debug-win-clang-static-x64/io" prefix_auto="1" extension_auto="1" />
+				<Option working_dir="" />
+				<Option object_output="obj/debug-win-clang-static-x64/" />
+				<Option type="2" />
+				<Option compiler="clang" />
+				<Compiler>
+					<Add option="-Wall" />
+					<Add option="-g" />
+					<Add option="-std=c++20" />
+					<Add option="-D_WIN32_WINNT=0x0A00" />
+					<Add option="-D_UNICODE" />
+					<Add option="-DUNICODE" />
+					<Add directory="include/net" />
+					<Add directory="include/tls" />
+					<Add directory="include/win" />
+					<Add directory="src" />
+				</Compiler>
+				<Linker>
+					<Add library="iconv.dll" />
+					<Add library="Ws2_32" />
+					<Add library="gnutls.dll" />
+					<Add directory="bin/release-win-gcc-dll-x64" />
+				</Linker>
+			</Target>
 			<Target title="release-win-clang-dll-x64">
 				<Option platforms="Windows;" />
 				<Option output="bin/release-win-clang-dll-x64/io" prefix_auto="1" extension_auto="1" />
@@ -94,7 +120,6 @@
 				<Option object_output="obj/release-win-clang-dll-x64/" />
 				<Option type="3" />
 				<Option compiler="clang" />
-				<Option createDefFile="1" />
 				<Option createStaticLib="1" />
 				<Compiler>
 					<Add option="-fPIC" />
@@ -180,6 +205,7 @@
 		<Unit filename="include/config.hpp" />
 		<Unit filename="include/config/compiler/clang.hpp">
 			<Option target="release-win-clang-dll-x64" />
+			<Option target="debug-win-clang-static-x64" />
 		</Unit>
 		<Unit filename="include/config/compiler/gcc.hpp" />
 		<Unit filename="include/config/libs/exceptions.hpp" />
@@ -249,76 +275,91 @@
 			<Option target="debug-win-gcc-static-x64" />
 			<Option target="release-win-gcc-dll-x64" />
 			<Option target="release-win-clang-dll-x64" />
+			<Option target="debug-win-clang-static-x64" />
 		</Unit>
 		<Unit filename="include/win/console.hpp">
 			<Option target="debug-win-gcc-static-x64" />
 			<Option target="release-win-gcc-dll-x64" />
 			<Option target="release-win-clang-dll-x64" />
+			<Option target="debug-win-clang-static-x64" />
 		</Unit>
 		<Unit filename="include/win/criticalsection.hpp">
 			<Option target="debug-win-gcc-static-x64" />
 			<Option target="release-win-gcc-dll-x64" />
 			<Option target="release-win-clang-dll-x64" />
+			<Option target="debug-win-clang-static-x64" />
 		</Unit>
 		<Unit filename="include/win/errorcheck.hpp">
 			<Option target="debug-win-gcc-static-x64" />
 			<Option target="release-win-gcc-dll-x64" />
 			<Option target="release-win-clang-dll-x64" />
+			<Option target="debug-win-clang-static-x64" />
 		</Unit>
 		<Unit filename="include/win/files.hpp">
 			<Option target="debug-win-gcc-static-x64" />
 			<Option target="release-win-gcc-dll-x64" />
 			<Option target="release-win-clang-dll-x64" />
+			<Option target="debug-win-clang-static-x64" />
 		</Unit>
 		<Unit filename="include/win/handlechannel.hpp">
 			<Option target="debug-win-gcc-static-x64" />
 			<Option target="release-win-gcc-dll-x64" />
 			<Option target="release-win-clang-dll-x64" />
+			<Option target="debug-win-clang-static-x64" />
 		</Unit>
 		<Unit filename="include/win/io_context.hpp">
 			<Option target="debug-win-gcc-static-x64" />
 			<Option target="release-win-gcc-dll-x64" />
 			<Option target="release-win-clang-dll-x64" />
+			<Option target="debug-win-clang-static-x64" />
 		</Unit>
 		<Unit filename="include/win/memory_traits.hpp">
 			<Option target="debug-win-gcc-static-x64" />
 			<Option target="release-win-gcc-dll-x64" />
 			<Option target="release-win-clang-dll-x64" />
+			<Option target="debug-win-clang-static-x64" />
 		</Unit>
 		<Unit filename="include/win/sockets.hpp">
 			<Option target="debug-win-gcc-static-x64" />
 			<Option target="release-win-gcc-dll-x64" />
 			<Option target="release-win-clang-dll-x64" />
+			<Option target="debug-win-clang-static-x64" />
 		</Unit>
 		<Unit filename="include/win/srw_lock.hpp">
 			<Option target="debug-win-gcc-static-x64" />
 			<Option target="release-win-gcc-dll-x64" />
 			<Option target="release-win-clang-dll-x64" />
+			<Option target="debug-win-clang-static-x64" />
 		</Unit>
 		<Unit filename="include/win/synch_socket_channel.hpp">
 			<Option target="debug-win-gcc-static-x64" />
 			<Option target="release-win-gcc-dll-x64" />
 			<Option target="release-win-clang-dll-x64" />
+			<Option target="debug-win-clang-static-x64" />
 		</Unit>
 		<Unit filename="include/win/thread_pool.hpp">
 			<Option target="debug-win-gcc-static-x64" />
 			<Option target="release-win-gcc-dll-x64" />
 			<Option target="release-win-clang-dll-x64" />
+			<Option target="debug-win-clang-static-x64" />
 		</Unit>
 		<Unit filename="include/win/win_asynch_channel.hpp">
 			<Option target="debug-win-gcc-static-x64" />
 			<Option target="release-win-gcc-dll-x64" />
 			<Option target="release-win-clang-dll-x64" />
+			<Option target="debug-win-clang-static-x64" />
 		</Unit>
 		<Unit filename="include/win/winconf.hpp">
 			<Option target="debug-win-gcc-static-x64" />
 			<Option target="release-win-gcc-dll-x64" />
 			<Option target="release-win-clang-dll-x64" />
+			<Option target="debug-win-clang-static-x64" />
 		</Unit>
 		<Unit filename="include/win/wsaerror.hpp">
 			<Option target="debug-win-gcc-static-x64" />
 			<Option target="release-win-gcc-dll-x64" />
 			<Option target="release-win-clang-dll-x64" />
+			<Option target="debug-win-clang-static-x64" />
 		</Unit>
 		<Unit filename="include/xml_binding.hpp" />
 		<Unit filename="include/xml_error.hpp" />
@@ -384,51 +425,61 @@
 			<Option target="debug-win-gcc-static-x64" />
 			<Option target="release-win-gcc-dll-x64" />
 			<Option target="release-win-clang-dll-x64" />
+			<Option target="debug-win-clang-static-x64" />
 		</Unit>
 		<Unit filename="src/win/console.cpp">
 			<Option target="debug-win-gcc-static-x64" />
 			<Option target="release-win-gcc-dll-x64" />
 			<Option target="release-win-clang-dll-x64" />
+			<Option target="debug-win-clang-static-x64" />
 		</Unit>
 		<Unit filename="src/win/errorcheck.cpp">
 			<Option target="debug-win-gcc-static-x64" />
 			<Option target="release-win-gcc-dll-x64" />
 			<Option target="release-win-clang-dll-x64" />
+			<Option target="debug-win-clang-static-x64" />
 		</Unit>
 		<Unit filename="src/win/files.cpp">
 			<Option target="debug-win-gcc-static-x64" />
 			<Option target="release-win-gcc-dll-x64" />
 			<Option target="release-win-clang-dll-x64" />
+			<Option target="debug-win-clang-static-x64" />
 		</Unit>
 		<Unit filename="src/win/io_context.cpp">
 			<Option target="debug-win-gcc-static-x64" />
 			<Option target="release-win-gcc-dll-x64" />
 			<Option target="release-win-clang-dll-x64" />
+			<Option target="debug-win-clang-static-x64" />
 		</Unit>
 		<Unit filename="src/win/memory_traits.cpp">
 			<Option target="debug-win-gcc-static-x64" />
 			<Option target="release-win-gcc-dll-x64" />
 			<Option target="release-win-clang-dll-x64" />
+			<Option target="debug-win-clang-static-x64" />
 		</Unit>
 		<Unit filename="src/win/sockets.cpp">
 			<Option target="debug-win-gcc-static-x64" />
 			<Option target="release-win-gcc-dll-x64" />
 			<Option target="release-win-clang-dll-x64" />
+			<Option target="debug-win-clang-static-x64" />
 		</Unit>
 		<Unit filename="src/win/synch_socket_channel.cpp">
 			<Option target="debug-win-gcc-static-x64" />
 			<Option target="release-win-gcc-dll-x64" />
 			<Option target="release-win-clang-dll-x64" />
+			<Option target="debug-win-clang-static-x64" />
 		</Unit>
 		<Unit filename="src/win/thread_pool.cpp">
 			<Option target="debug-win-gcc-static-x64" />
 			<Option target="release-win-gcc-dll-x64" />
 			<Option target="release-win-clang-dll-x64" />
+			<Option target="debug-win-clang-static-x64" />
 		</Unit>
 		<Unit filename="src/win/wsaerror.cpp">
 			<Option target="debug-win-gcc-static-x64" />
 			<Option target="release-win-gcc-dll-x64" />
 			<Option target="release-win-clang-dll-x64" />
+			<Option target="debug-win-clang-static-x64" />
 		</Unit>
 		<Unit filename="src/xml_error.cpp" />
 		<Unit filename="src/xml_event.cpp" />

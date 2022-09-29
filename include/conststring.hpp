@@ -126,14 +126,16 @@ public:
 	{}
 
 	const_string(const const_string& other) noexcept:
-		data_(other.data_) {
+		data_(other.data_)
+	{
 		// increase reference count if needed
 		// for long buffer
-		if( !empty() && !sso() )
+		if( !sso() && 0 != detail::long_size(data_) )
 			long_buf_add_ref(data_);
 	}
 
-	const_string& operator=(const const_string& rhs) noexcept {
+	const_string& operator=(const const_string& rhs) noexcept
+	{
 		const_string(rhs).swap( *this );
 		return *this;
 	}
@@ -172,7 +174,7 @@ public:
 	{}
 
 	/// Deep copies a zero ending C string
-	const_string(const char* str) noexcept:
+	explicit const_string(const char* str) noexcept:
 		const_string(str, traits_type::length(str) )
 	{}
 
@@ -198,7 +200,7 @@ public:
 	/// Returns raw C-style zero ending string
 	/// \return C-style string, "" if string is empty
 	const char* data() const noexcept {
-		return empty() ? "" : sso() ?  detail::short_str(data_) : detail::long_str(data_);
+		return sso() ? detail::short_str(data_) : 0 != detail::long_size(data_) ? detail::long_str(data_) : "";
 	}
 
 	/// Checks whether this string empty or contains only whitespace characters
@@ -297,7 +299,11 @@ public:
 
 inline std::basic_ostream<char>& operator<<(std::basic_ostream<char>& os, const const_string& cstr)
 {
+#if	defined(__GNUG__) && !defined(__clang__)
 	os << cstr.data();
+#else
+	os << cstr.clone();
+#endif
 	return os;
 }
 

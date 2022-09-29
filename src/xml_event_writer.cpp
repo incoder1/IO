@@ -49,7 +49,7 @@ s_event_writer event_writer::open(std::error_code& ec,writer&& dst, bool format,
 {
 	char vstr[8] = {'\0'};
 	std::snprintf(vstr, sizeof(vstr), "%d.%d", v.major, v.minor);
-	return open(ec, std::forward<writer&&>(dst), format, io::xml::document_event(vstr, encoding.name(), standalone) );
+	return open(ec, std::forward<writer&&>(dst), format, io::xml::document_event( const_string(vstr), const_string(encoding.name()), standalone) );
 }
 
 s_event_writer event_writer::open(std::error_code& ec, writer&& dst) noexcept

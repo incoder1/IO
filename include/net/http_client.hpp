@@ -67,7 +67,7 @@ public:
 	}
 	inline void add_header(const char* name, const char* value) noexcept
 	{
-		hdrs_.emplace(name,value);
+		hdrs_.emplace(io::const_string(name),io::const_string(value));
 	}
 private:
 	request_method method_;
@@ -84,12 +84,12 @@ inline s_request new_get_request(std::error_code& ec, const s_uri& resource) noe
 {
 	s_request ret = new_request(ec, request_method::get, resource);
 	if(!ec) {
-		ret->add_header({"User-Agent", "IO (C++ HTTP client lib)"});
-		ret->add_header({"Accept","text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8"});
-		ret->add_header({"Accept-Language","en-US,en;q=0.5"});
-		ret->add_header({"Connection","close"});
-		ret->add_header({"Pragma", "no-cache"});
-		ret->add_header({"Cache-Control", "no-cache"});
+		ret->add_header("User-Agent", "IO (C++ HTTP client lib)");
+		ret->add_header("Accept","text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8");
+		ret->add_header("Accept-Language","en-US,en;q=0.5");
+		ret->add_header("Connection","close");
+		ret->add_header("Pragma", "no-cache");
+		ret->add_header("Cache-Control", "no-cache");
 	}
 	return ret;
 }
