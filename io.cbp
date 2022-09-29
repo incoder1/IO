@@ -122,7 +122,6 @@
 				<Option compiler="clang" />
 				<Option createStaticLib="1" />
 				<Compiler>
-					<Add option="-fPIC" />
 					<Add option="-O3" />
 					<Add option="-Wall" />
 					<Add option="-std=c++20" />

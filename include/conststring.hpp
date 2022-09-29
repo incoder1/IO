@@ -174,7 +174,7 @@ public:
 	{}
 
 	/// Deep copies a zero ending C string
-	explicit const_string(const char* str) noexcept:
+	const_string(const char* str) noexcept:
 		const_string(str, traits_type::length(str) )
 	{}
 

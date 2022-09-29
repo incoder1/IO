@@ -22,6 +22,8 @@
 #include <utility>
 
 #include <memory_channel.hpp>
+#include <text.hpp>
+
 #include "uri.hpp"
 
 namespace io

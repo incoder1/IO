@@ -85,7 +85,7 @@
 				<Option object_output="obj/release-win-clang-x64/" />
 				<Option type="1" />
 				<Option compiler="clang" />
-				<Option parameters="test.xml" />
+				<Option parameters="test.xml " />
 				<Compiler>
 					<Add option="-O3" />
 					<Add option="-Wall" />

@@ -248,7 +248,7 @@ gl::s_texture model_loader::get_texture_by_name(const io::const_string& name)
 	io::file image_file( base_dir.append( name.data() ) );
 
 	if( !image_file.exist() )
-		throw std::runtime_error( name.get_mutable().append(" file is not found") );
+		throw std::runtime_error( name.clone().append(" file is not found") );
 
 	// TODO: Load different types of images according file extension
 	s_image timg = engine::load_png_rgba(image_file, true);
