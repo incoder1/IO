@@ -193,10 +193,11 @@ void asynch_io_context::completion_loop_routine(::HANDLE ioc_port) noexcept
 bool asynch_io_context::bind_to_port(std::error_code& ec, const asynch_channel* src) const noexcept
 {
 	const io::win::win_asynch_channel  *ch = reinterpret_cast<const io::win::win_asynch_channel*>(src);
-    bool ret = ioc_port_ == ::CreateIoCompletionPort( ch->handle(), ioc_port_, reinterpret_cast<ULONG_PTR>( src ), 0 );
-    if(!ret) {
-        ec = std::error_code( ::GetLastError(), std::system_category() );
-    }
+	bool ret = true;
+    if( ioc_port_ != ::CreateIoCompletionPort( ch->handle(), ioc_port_, reinterpret_cast<ULONG_PTR>( src ), 0 ) ) {
+        ec.assign( ::GetLastError(), std::system_category() );
+        ret = false;
+	}
 	return ret;
 }
 

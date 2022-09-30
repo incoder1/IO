@@ -78,7 +78,7 @@ static std::size_t extract_prefix(std::size_t &start, const char* str) noexcept
 		start += shift;
 	}
 	s += prefix_delimit(s);
-	if( chnoteq(COLON, *s) ) {
+	if( chnoteq(':', *s) ) {
 		start = 0;
 		return 0;
 	}

@@ -15,7 +15,7 @@
 
 #if __cplusplus < 201103L
 #	 error "This library requires at least C++ 11 standard compatiable compiler.\
-	 Check your compiller options must have -std=c++[11,14,17,...]"
+	 Check your compiller options must have -std=c++[11,14,17,20...]"
 #endif // CPP11 detection
 
 #if __cplusplus >= 201402L
@@ -314,7 +314,7 @@ static __forceinline uint64_t ror64(const uint64_t val,const uint32_t shift) noe
 
 namespace detail {
 
-// GCC intrinsics for atomic pointer
+// Intrinsics for atomic pointer
 // used only to save memory since std::atomic_size_t is 8/16 bytes long
 // A size_t for reference counter and another std::atomic<size_t>* this
 // should not be used with any non dynamically allocated memory,

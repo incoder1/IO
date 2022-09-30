@@ -37,6 +37,17 @@ constexpr unsigned int unsign(const int ch) noexcept
 
 } // namespace detail
 
+
+constexpr bool cheq(unsigned char lhs,unsigned char rhs) noexcept
+{
+	return lhs == rhs;
+}
+
+constexpr bool chnoteq(unsigned char lhs,unsigned char rhs) noexcept
+{
+	return lhs != rhs;
+}
+
 /// Compares two character code points
 /// \param lhs compare left hand statement code point
 /// \param rhs compare right hand statement code point
@@ -77,16 +88,6 @@ template<
 constexpr bool chnoteq(const lhs_ch_t lhs,const rhs_ch_t rhs) noexcept
 {
 	return detail::unsign(lhs) != detail::unsign(rhs);
-}
-
-constexpr bool cheq(char lhs, char rhs) noexcept
-{
-	return lhs == rhs;
-}
-
-constexpr bool chnoteq(char lhs, char rhs) noexcept
-{
-	return lhs != rhs;
 }
 
 #ifdef IO_HAS_CONNCEPTS
@@ -640,12 +641,12 @@ inline const char* skip_spaces_ranged(const char *str, const char *end) noexcept
 
 inline bool start_with(const char* s,const char* pattern,const std::size_t size) noexcept
 {
-	return 0 == std::char_traits<char>::compare( s, pattern, size );
+	return 0 == io_memcmp( s, pattern, size );
 }
 
 inline bool start_with(const char* s,const char* pattern) noexcept
 {
-	return start_with( s, pattern, std::char_traits<char>::length(pattern) );
+	return start_with( s, pattern, io_strlen(pattern) );
 }
 
 inline std::size_t str_size(const char* b, const char* e) noexcept

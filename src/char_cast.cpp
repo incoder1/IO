@@ -31,7 +31,7 @@ typedef unsigned int uint;
  */
 #define ALT_E			0x01
 #define ALT_O			0x02
-#define	LEGAL_ALT(x)		{ if (alt_format & ~(x)) return NULL; }
+#define	LEGAL_ALT(x)		{ if (alt_format & ~(x)) return nullptr; }
 
 #ifndef TIME_MAX
 #define TIME_MAX	INT64_MAX
@@ -178,7 +178,7 @@ char *strptime(const char *buf, const char *fmt, struct tm *tm) noexcept
 
 	bp = (const u_char *)buf;
 
-	while (bp != NULL && (c = *fmt++) != '\0') {
+	while (bp != nullptr && (c = *fmt++) != '\0') {
 		/* Clear `alternate' modifier prior to new conversion. */
 		alt_format = 0;
 		i = 0;
@@ -197,7 +197,7 @@ again:
 		case '%':	/* "%%" is converted to "%". */
 literal:
 			if (c != *bp++)
-				return NULL;
+				return nullptr;
 			LEGAL_ALT(0);
 			continue;
 
@@ -336,9 +336,9 @@ recurse:
 			continue;
 
 		case 'p':	/* The locale's equivalent of AM/PM. */
-			bp = find_string(bp, &i, am_pm, NULL, 2);
+			bp = find_string(bp, &i, am_pm, nullptr, 2);
 			if (tm->tm_hour > 11)
-				return NULL;
+				return nullptr;
 			tm->tm_hour += i * 12;
 			LEGAL_ALT(0);
 			continue;
@@ -353,7 +353,7 @@ recurse:
 			uint64_t rulim = TIME_MAX;
 
 			if (*bp < '0' || *bp > '9') {
-				bp = NULL;
+				bp = nullptr;
 				continue;
 			}
 
@@ -365,13 +365,13 @@ recurse:
 			while ((sse * 10 <= TIME_MAX) && rulim && *bp >= '0' && *bp <= '9');
 
 			if (sse < 0 || (uint64_t)sse > TIME_MAX) {
-				bp = NULL;
+				bp = nullptr;
 				continue;
 			}
 
 			tm = localtime(&sse);
-			if(tm == NULL)
-				bp = NULL;
+			if(tm == nullptr)
+				bp = nullptr;
 		}
 		continue;
 
@@ -455,8 +455,8 @@ recurse:
 				bp += 3;
 			}
 			else {
-				ep = find_string(bp, &i, (const char * const *)_tzname, NULL, 2);
-				if (ep != NULL) {
+				ep = find_string(bp, &i, (const char * const *)_tzname, nullptr, 2);
+				if (ep != nullptr) {
 					tm->tm_isdst = i;
 #ifdef TM_GMTOFF
 					tm->TM_GMTOFF = -(timezone);
@@ -492,11 +492,11 @@ recurse:
 			switch (*bp++) {
 			case 'G':
 				if (*bp++ != 'M')
-					return NULL;
+					return nullptr;
 			/*FALLTHROUGH*/
 			case 'U':
 				if (*bp++ != 'T')
-					return NULL;
+					return nullptr;
 			/*FALLTHROUGH*/
 			case 'Z':
 				tm->tm_isdst = 0;
@@ -515,8 +515,8 @@ recurse:
 				break;
 			default:
 				--bp;
-				ep = find_string(bp, &i, nast, NULL, 4);
-				if (ep != NULL) {
+				ep = find_string(bp, &i, nast, nullptr, 4);
+				if (ep != nullptr) {
 #ifdef TM_GMTOFF
 					tm->TM_GMTOFF = -5 - i;
 #endif
@@ -526,8 +526,8 @@ recurse:
 					bp = ep;
 					continue;
 				}
-				ep = find_string(bp, &i, nadt, NULL, 4);
-				if (ep != NULL) {
+				ep = find_string(bp, &i, nadt, nullptr, 4);
+				if (ep != nullptr) {
 					tm->tm_isdst = 1;
 #ifdef TM_GMTOFF
 					tm->TM_GMTOFF = -4 - i;
@@ -551,12 +551,12 @@ recurse:
 						tm->TM_GMTOFF = (int)*bp - 'M';
 #endif
 #ifdef TM_ZONE
-					tm->TM_ZONE = NULL; /* XXX */
+					tm->TM_ZONE = nullptr; /* XXX */
 #endif
 					bp++;
 					continue;
 				}
-				return NULL;
+				return nullptr;
 			}
 			offs = 0;
 			for (i = 0; i < 4; ) {
@@ -578,12 +578,12 @@ recurse:
 			case 4:
 				i = offs % 100;
 				if (i >= 60)
-					return NULL;
+					return nullptr;
 				/* Convert minutes into decimal */
 				offs = (offs / 100) * 100 + (i * 50) / 30;
 				break;
 			default:
-				return NULL;
+				return nullptr;
 			}
 			if (neg)
 				offs = -offs;
@@ -592,7 +592,7 @@ recurse:
 			tm->TM_GMTOFF = offs;
 #endif
 #ifdef TM_ZONE
-			tm->TM_ZONE = NULL;	/* XXX */
+			tm->TM_ZONE = nullptr;	/* XXX */
 #endif
 			continue;
 
@@ -607,14 +607,14 @@ recurse:
 
 
 		default:	/* Unknown/unsupported conversion. */
-			return NULL;
+			return nullptr;
 		}
 	}
 
 	return (char *)(bp);
 }
 
-#endif // __WIN32
+#endif // __IO_WINDOWS_BACKEND__
 
 namespace io {
 
@@ -673,21 +673,21 @@ static uintmax_t BRANCH_14 = 100000000000000UL;
 static uintmax_t BRANCH_15 = 1000000000000000UL;
 static uintmax_t BRANCH_16 = 10000000000000000UL;
 
-static char* copy_one(char* s, const uint32_t i) noexcept
+static char* lut_copy_one(char* s, const uint32_t i) noexcept
 {
 	*s = DIGITS[ i ];
 	return --s;
 }
 
-static char* copy_two(char* s, const uint32_t i) noexcept
+static char* lut_copy_two(char* s, const uint32_t i) noexcept
 {
-	return copy_one( copy_one(s, (i + 1) ), i );
+	return lut_copy_one( lut_copy_one(s, (i + 1) ), i );
 }
 
-static char* copy_four(char* s, const uint32_t i, const uint32_t j) noexcept
+static char* lut_copy_four(char* s, const uint32_t i, const uint32_t j) noexcept
 {
-	char* ret = copy_two(s, j);
-	ret = copy_two(ret, i);
+	char* ret = lut_copy_two(s, j);
+	ret = lut_copy_two(ret, i);
 	return ret;
 }
 
@@ -703,13 +703,13 @@ char* IO_PUBLIC_SYMBOL uintmax_to_chars_reverse(char* const last, uintmax_t valu
 		if(v < BRANCH_4) {
 			const uint32_t d1 = static_cast<uint32_t>(v / BRANCH_2) << 1;
 			const uint32_t d2 = static_cast<uint32_t>(v % BRANCH_2) << 1;
-			ret = copy_one(ret, d2 + 1);
+			ret = lut_copy_one(ret, d2 + 1);
 			if (v >= BRANCH_1)
-				ret = copy_one(ret, d2);
+				ret = lut_copy_one(ret, d2);
 			if (v >= BRANCH_2)
-				ret = copy_one(ret, d1 + 1);
+				ret = lut_copy_one(ret, d1 + 1);
 			if (v >= BRANCH_3)
-				ret = copy_one(ret, d1);
+				ret = lut_copy_one(ret, d1);
 			++ret;
 		}
 		else {
@@ -721,16 +721,16 @@ char* IO_PUBLIC_SYMBOL uintmax_to_chars_reverse(char* const last, uintmax_t valu
 			const uint32_t d3 = static_cast<uint32_t>(c / BRANCH_2) << 1;
 			const uint32_t d4 = static_cast<uint32_t>(c % BRANCH_2) << 1;
 
-			ret = copy_two(ret, d4);
-			ret = copy_two(ret, d3);
-			ret = copy_one(ret, d2 + 1);
+			ret = lut_copy_two(ret, d4);
+			ret = lut_copy_two(ret, d3);
+			ret = lut_copy_one(ret, d2 + 1);
 
 			if (value >= BRANCH_5)
-				ret = copy_one(ret, d2);
+				ret = lut_copy_one(ret, d2);
 			if (value >= BRANCH_6)
-				ret = copy_one(ret, d1 + 1);
+				ret = lut_copy_one(ret, d1 + 1);
 			if (value >= BRANCH_7)
-				ret = copy_one(ret, d1);
+				ret = lut_copy_one(ret, d1);
 			++ret;
 		}
 	}
@@ -752,26 +752,26 @@ char* IO_PUBLIC_SYMBOL uintmax_to_chars_reverse(char* const last, uintmax_t valu
 		const uint32_t d7 = (c1 / BRANCH_2) << 1;
 		const uint32_t d8 = (c1 % BRANCH_2) << 1;
 
-		ret = copy_two(ret, d8);
-		ret = copy_two(ret, d7);
-		ret = copy_two(ret, d6);
-		ret = copy_two(ret, d5);
+		ret = lut_copy_two(ret, d8);
+		ret = lut_copy_two(ret, d7);
+		ret = lut_copy_two(ret, d6);
+		ret = lut_copy_two(ret, d5);
 		if (value >= BRANCH_8)
-			ret = copy_one(ret, d4 + 1);
+			ret = lut_copy_one(ret, d4 + 1);
 		if (value >= BRANCH_9)
-			ret = copy_one(ret, d4);
+			ret = lut_copy_one(ret, d4);
 		if (value >= BRANCH_10)
-			ret = copy_one(ret, d3 + 1);
+			ret = lut_copy_one(ret, d3 + 1);
 		if (value >= BRANCH_11)
-			ret = copy_one(ret, d3);
+			ret = lut_copy_one(ret, d3);
 		if (value >= BRANCH_12)
-			ret = copy_one(ret, d2 + 1);
+			ret = lut_copy_one(ret, d2 + 1);
 		if (value >= BRANCH_13)
-			ret = copy_one(ret, d2);
+			ret = lut_copy_one(ret, d2);
 		if (value >= BRANCH_14)
-			ret = copy_one(ret, d1 + 1);
+			ret = lut_copy_one(ret, d1 + 1);
 		if (value >= BRANCH_15)
-			ret = copy_one(ret, d1);
+			ret = lut_copy_one(ret, d1);
 		++ret;
 	}
 	else {
@@ -796,14 +796,14 @@ char* IO_PUBLIC_SYMBOL uintmax_to_chars_reverse(char* const last, uintmax_t valu
 		const uint32_t d7 = (c1 / BRANCH_2) << 1;
 		const uint32_t d8 = (c1 % BRANCH_2) << 1;
 
-		ret = copy_two(ret, d8);
-		ret = copy_two(ret, d7);
-		ret = copy_two(ret, d6);
-		ret = copy_two(ret, d5);
-		ret = copy_two(ret, d4);
-		ret = copy_two(ret, d3);
-		ret = copy_two(ret, d2);
-		ret = copy_two(ret, d1);
+		ret = lut_copy_two(ret, d8);
+		ret = lut_copy_two(ret, d7);
+		ret = lut_copy_two(ret, d6);
+		ret = lut_copy_two(ret, d5);
+		ret = lut_copy_two(ret, d4);
+		ret = lut_copy_two(ret, d3);
+		ret = lut_copy_two(ret, d2);
+		ret = lut_copy_two(ret, d1);
 
 		if (a < BRANCH_1) {
 			*ret = '0' + static_cast<char>(a);
@@ -811,18 +811,18 @@ char* IO_PUBLIC_SYMBOL uintmax_to_chars_reverse(char* const last, uintmax_t valu
 		}
 		else if(a < BRANCH_2) {
 			const uint32_t i = static_cast<uint32_t>(a << 1);
-			ret = copy_two(ret, i);
+			ret = lut_copy_two(ret, i);
 		}
 		else if (a < BRANCH_3) {
 			const uint32_t i = static_cast<uint32_t>(a % BRANCH_2) << 1;
-			ret = copy_two(ret, i);
+			ret = lut_copy_two(ret, i);
 			*ret = '0' + static_cast<char>(a / BRANCH_2);
 			--ret;
 		}
 		else {
 			const uint32_t i = static_cast<uint32_t>(a / BRANCH_2) << 1;
 			const uint32_t j = static_cast<uint32_t>(a % BRANCH_2) << 1;
-			ret = copy_four(ret, i, j);
+			ret = lut_copy_four(ret, i, j);
 		}
 		++ret;
 	}

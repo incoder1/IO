@@ -92,12 +92,12 @@ s_read_write_channel io_context::client_blocking_connect(std::error_code& ec, co
 // demultiplexor
 namespace detail {
 
-#if defined(__IO_EPOLL_MULTIPLEX__)
+//#ifdef __IO_EPOLL_MULTIPLEX__
 s_demultiplexor demultiplexor::create(std::error_code& ec) noexcept
 {
     int descriptor = ::epoll_create1(0);
     if(-1 == descriptor) {
-        ec = std::error_code( errno , std::system_category() );
+        ec.assign( errno , std::system_category() );
         return s_demultiplexor();
     }
     demultiplexor *ret = new std::nowthrow demultiplexor(descriptor);
@@ -118,35 +118,35 @@ void demultiplexor::register_descriptor(std::error_code& ec, int descriptor) noe
     int flags = ::fcntl(descriptor, F_GETFL, 0);
     flags |= O_NONBLOCK;
     if(-1 == ::fcntl(descriptor, F_SETFL, flags) ) {
-        ec = std::error_code( errno , std::system_category() );
+        ec.assign( errno , std::system_category() );
     }
     ::epoll_event ev;
     ev.data.fd = descriptor;
     ev.events = EPOLLIN | EPOLLET;
     if(-1 = ::epoll_ctl(peer_, EPOLL_CTL_ADD, descriptor, &ev) ) {
-        ec = std::error_code( errno , std::system_category() );
+        ec.assign( errno , std::system_category() );
     }
 }
 
-#elif defined(__IO_KQUEUE_DEMULTIPLEX__)
-
-
-s_demultiplexor demultiplexor::create(std::error_code& ec) noexcept
-{
-
-}
-
-demultiplexor::~demultiplexor() noexcept
-{
-
-}
-
-void demultiplexor::register_descriptor(std::error_code& ec, int descriptor) noexcept
-{
-
-}
-
-#endif
+//#elif defined(__IO_KQUEUE_DEMULTIPLEX__)
+//
+//
+//s_demultiplexor demultiplexor::create(std::error_code& ec) noexcept
+//{
+//
+//}
+//
+//demultiplexor::~demultiplexor() noexcept
+//{
+//
+//}
+//
+//void demultiplexor::register_descriptor(std::error_code& ec, int descriptor) noexcept
+//{
+//
+//}
+//
+//#endif // __IO_EPOLL_MULTIPLEX__
 
 } // namespace detail
 

@@ -17,13 +17,11 @@
 
 namespace io {
 
-static constexpr const char* __RED_FORMAT = "\033[01;31m %i %s \033[0m\n";
-
 namespace detail {
 
 void IO_PANIC_ATTR panic(int errcode, const char* message)
 {
-    std::fprintf(stderr, __RED_FORMAT, errcode, message);
+    std::fprintf(stderr, "\033[01;31m %i %s \033[0m\n", errcode, message);
     std::exit(errcode);
 }
 
@@ -32,7 +30,7 @@ void ios_check_error_code(const char* msg, std::error_code const &ec )
 	if(!ec)
 		return;
 #ifdef IO_NO_EXCEPTIONS
-	std::fprintf(stderr, __RED_FORMAT, ec.value(), msg, ec.message().data() );
+	std::fprintf(stderr, "\033[01;31m %i %s %s \033[0m\n", ec.value(), msg, ec.message().data() );
 	std::exit( ec.value() );
 #else
 	throw std::ios_base::failure( msg + ec.message() );
