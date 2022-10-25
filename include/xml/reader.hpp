@@ -20,7 +20,7 @@
 #include <sstream>
 
 #include "errorcheck.hpp"
-#include "xml_parse.hpp"
+#include "event_stream_parser.hpp"
 
 namespace io {
 

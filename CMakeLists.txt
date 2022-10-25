@@ -8,12 +8,14 @@ include(CTest)
 include_directories(include)
 include_directories(include/net)
 include_directories(include/tls)
+include_directories(include/xml)
 # for pre-compiled headers
 include_directories(src)
 
 file(GLOB PROJECT_SOURCE_PATH ${PROJECT_SOURCE_DIR}/src)
 file(GLOB COMMON_SRC ${PROJECT_SOURCE_PATH}/*.cpp ${PROJECT_SOURCE_PATH}/net/*.cpp)
 file(GLOB TLS_SRC ${PROJECT_SOURCE_PATH}/tls/*.cpp)
+file(GLOB XML_SRC ${PROJECT_SOURCE_PATH}/xml/*.cpp)
 
 # set type of OCCT libraries
 if (NOT BUILD_LIBRARY_TYPE)
@@ -94,7 +96,7 @@ elseif(${CMAKE_BUILD_TYPE} STREQUAL "Debug")
 endif()
 
 if(BUILD_SHARED_LIBS)
-	add_library(io SHARED ${COMMON_SRC} ${TLS_SRC} ${PLATFORM_SRC})
+	add_library(io SHARED ${COMMON_SRC} ${TLS_SRC} ${XML_SRC} ${PLATFORM_SRC})
 	if(MSVC)
 		add_definitions(/D "IO_SHARED_LIB" /D "IO_BUILD" /D "_USRDLL" /D "_WINDLL")
 	elseif(CMAKE_COMPILER_IS_GNUCXX)
@@ -104,7 +106,7 @@ if(BUILD_SHARED_LIBS)
 		endif()
 	endif()
 else()
-	add_library(io STATIC ${COMMON_SRC} ${TLS_SRC} ${PLATFORM_SRC})
+	add_library(io STATIC ${COMMON_SRC} ${TLS_SRC} ${XML_SRC} ${PLATFORM_SRC})
 endif()
 
 if( CMAKE_COMPILER_IS_GNUCXX )

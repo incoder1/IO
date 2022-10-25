@@ -9,7 +9,7 @@
  *
  */
 #include "stdafx.hpp"
-#include "xml_event_writer.hpp"
+#include "event_writer.hpp"
 
 namespace io {
 
@@ -29,7 +29,7 @@ s_event_writer event_writer::open(std::error_code& ec, writer&& dst, bool format
 {
 	char tmp[64] = {'\0'};
 	const char* standalone = prologue.standalone() ? STANDALONE_ATTR : " ";
-	std::snprintf( tmp, sizeof(tmp), PROLOGUE_FMT, prologue.version().data(), prologue.encoding().data(), standalone);
+	io_snprintf( tmp, sizeof(tmp), PROLOGUE_FMT, prologue.version().data(), prologue.encoding().data(), standalone);
 	if(format)
 		tmp[ io_strlen(tmp) ] = '\n';
 	if(!dst) {
@@ -48,7 +48,7 @@ s_event_writer event_writer::open(std::error_code& ec, writer&& dst, bool format
 s_event_writer event_writer::open(std::error_code& ec,writer&& dst, bool format, const version& v,const charset& encoding, bool standalone) noexcept
 {
 	char vstr[8] = {'\0'};
-	std::snprintf(vstr, sizeof(vstr), "%d.%d", v.major, v.minor);
+	io_snprintf(vstr, sizeof(vstr), "%d.%d", v.major, v.minor);
 	return open(ec, std::forward<writer&&>(dst), format, io::xml::document_event( const_string(vstr), const_string(encoding.name()), standalone) );
 }
 

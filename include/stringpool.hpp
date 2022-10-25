@@ -75,7 +75,6 @@ public:
 	}
 
 private:
-	friend class nobadalloc<string_pool>;
 
 #ifdef __IO_WINDOWS_BACKEND__
 	typedef enclave_allocator< std::pair<const std::size_t, const_string> > allocator_type;
@@ -84,7 +83,7 @@ private:
 #endif // __IO_WINDOWS_BACKEND__
 
 	typedef std::unordered_map<
-	std::size_t,
+		std::size_t,
 		const_string,
 		std::hash<std::size_t>,
 		std::equal_to<std::size_t>,

@@ -1,14 +1,13 @@
-// This example program shows how to parse an XML using StAX API of
-// IO library.
-// Example usage: xmlparse < xmlfilename[.xml] >
-// supported XML file text encoding Latin1(ASCII,ISO,Win1252 etc),
+// This example program shows how to parse an XML using IO event pull API
+// Program prints parsed XML to console and colored highlight parsed pars
+// Usage: xml_event_parser < xmlfilename[.xml] > example: xml_event_parser test.xml
+// program supports XML file text encoding Latin1(ASCII,ISO,Win1252 etc),
 // UTF-8, UTF-16 (LE,BE) or UTF-32(LE,BE)
-// For non UTF-8 UNICODE encodings XML file should have byte order mark (BOM)
+// For non UTF-8 UNICODE encodings XML file must have byte order mark (BOM)
 
-// for file channels
+// For parsing event from
 #include <files.hpp>
-// StAX XML parser
-#include <xml_parse.hpp>
+#include <xml/event_stream_parser.hpp>
 
 // C++ standard library
 #include <algorithm>

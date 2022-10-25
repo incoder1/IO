@@ -9,7 +9,7 @@
  *
  */
 #include "stdafx.hpp"
-#include "xml_error.hpp"
+#include "error.hpp"
 
 namespace io {
 

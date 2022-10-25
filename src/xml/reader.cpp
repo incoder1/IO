@@ -9,7 +9,7 @@
  *
  */
 #include "stdafx.hpp"
-#include "xml_reader.hpp"
+#include "reader.hpp"
 
 namespace io {
 

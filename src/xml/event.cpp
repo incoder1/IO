@@ -9,7 +9,7 @@
  *
  */
 #include "stdafx.hpp"
-#include "xml_event.hpp"
+#include "event.hpp"
 
 namespace io {
 

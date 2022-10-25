@@ -231,8 +231,6 @@
 #	define io_snprintf std::snprintf
 #endif
 
-// in case of intel compiler
-// in case of gcc or clang
 #define io_clz(__x) __builtin_clz((__x))
 
 #ifdef __LP64__

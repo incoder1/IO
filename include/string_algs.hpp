@@ -550,7 +550,7 @@ constexpr bool not_endl(const char_t ch) noexcept
 	return chnoteq(0, ch);
 }
 
-/// Converts given 0-ro ending character array string UNICODE-latin1 symbols to upper case
+/// Converts in place given 0-ro ending character array string UNICODE-latin1 symbols to upper case
 /// \param str a string to modify
 #ifdef IO_HAS_CONNCEPTS
 template<typename char_t>
@@ -571,7 +571,7 @@ inline void upcase_latin1(char_t* str) noexcept
 	}
 }
 
-/// Converts given 0-ro ending character array string UNICODE-latin1 symbols to lower case
+/// Converts in place given 0-ro ending character array string UNICODE-latin1 symbols to lower case
 /// \param str a string to modify
 #ifdef IO_HAS_CONNCEPTS
 template<typename char_t>

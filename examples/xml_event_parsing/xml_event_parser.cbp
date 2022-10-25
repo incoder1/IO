@@ -2,13 +2,13 @@
 <CodeBlocks_project_file>
 	<FileVersion major="1" minor="6" />
 	<Project>
-		<Option title="xmlparse" />
+		<Option title="xml_event_parser" />
 		<Option pch_mode="2" />
 		<Option compiler="gcc" />
 		<Build>
 			<Target title="debug-win-gcc-x64">
 				<Option platforms="Windows;" />
-				<Option output="bin/debug-win-gcc-x64/xmlparse" prefix_auto="1" extension_auto="1" />
+				<Option output="bin/debug-win-gcc-x64/xml_event_parser" prefix_auto="1" extension_auto="1" />
 				<Option object_output="obj/debug-win-gcc-x64/" />
 				<Option type="1" />
 				<Option compiler="gcc" />
@@ -30,7 +30,7 @@
 				</Linker>
 			</Target>
 			<Target title="release-win-gcc-x64">
-				<Option output="bin/release-win-gcc-x64/xmlparse" prefix_auto="1" extension_auto="1" />
+				<Option output="bin/release-win-gcc-x64/xml_event_parser" prefix_auto="1" extension_auto="1" />
 				<Option object_output="obj/release-win-gcc-x64/" />
 				<Option type="1" />
 				<Option compiler="gcc" />
@@ -63,7 +63,7 @@
 				</Linker>
 			</Target>
 			<Target title="debug-win-clang-x64">
-				<Option output="bin/debug-win-clang-x64/xmlparse" prefix_auto="1" extension_auto="1" />
+				<Option output="bin/debug-win-clang-x64/xml_event_parser" prefix_auto="1" extension_auto="1" />
 				<Option object_output="obj/debug-win-clang-x64/" />
 				<Option type="1" />
 				<Option compiler="clang" />
@@ -81,7 +81,7 @@
 				</Linker>
 			</Target>
 			<Target title="release-win-clang-x64">
-				<Option output="bin/release-win-clang-x64/xmlparse" prefix_auto="1" extension_auto="1" />
+				<Option output="bin/release-win-clang-x64/xml_event_parser" prefix_auto="1" extension_auto="1" />
 				<Option object_output="obj/release-win-clang-x64/" />
 				<Option type="1" />
 				<Option compiler="clang" />
@@ -103,7 +103,7 @@
 			</Target>
 			<Target title="debug-unix-gcc-x86_64">
 				<Option platforms="Unix;Mac;" />
-				<Option output="bin/debug-unix-gcc-x64/xmlparse" prefix_auto="1" extension_auto="1" />
+				<Option output="bin/debug-unix-gcc-x64/xml_event_parser" prefix_auto="1" extension_auto="1" />
 				<Option object_output="obj/debug-unix-gcc-x64/" />
 				<Option type="1" />
 				<Option compiler="gcc" />

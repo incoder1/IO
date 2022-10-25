@@ -12,8 +12,8 @@
 #define __IO_XML_PARSE_HPP_INCLUDED__
 
 #include "config.hpp"
-#include "xml_source.hpp"
-#include "xml_event.hpp"
+#include "source.hpp"
+#include "event.hpp"
 
 #include <unordered_set>
 

@@ -17,7 +17,7 @@
 #pragma once
 #endif // HAS_PRAGMA_ONCE
 
-#include "xml_event.hpp"
+#include "event.hpp"
 #include "text.hpp"
 
 namespace io {

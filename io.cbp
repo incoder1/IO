@@ -29,8 +29,6 @@
 					<Add option="-D_WIN32_WINNT=0x0A00" />
 					<Add option="-D_UNICODE" />
 					<Add option="-DUNICODE" />
-					<Add directory="include/net" />
-					<Add directory="include/tls" />
 					<Add directory="include/win" />
 				</Compiler>
 				<Linker>
@@ -191,6 +189,9 @@
 			<Add option="-Wall" />
 			<Add option="-DIO_BUILD" />
 			<Add directory="include" />
+			<Add directory="include/xml" />
+			<Add directory="include/net" />
+			<Add directory="include/tls" />
 		</Compiler>
 		<Unit filename="CMakeLists.txt">
 			<Option target="&lt;{~None~}&gt;" />
@@ -360,14 +361,14 @@
 			<Option target="release-win-clang-dll-x64" />
 			<Option target="debug-win-clang-static-x64" />
 		</Unit>
-		<Unit filename="include/xml_binding.hpp" />
-		<Unit filename="include/xml_error.hpp" />
-		<Unit filename="include/xml_event.hpp" />
-		<Unit filename="include/xml_event_writer.hpp" />
-		<Unit filename="include/xml_parse.hpp" />
-		<Unit filename="include/xml_reader.hpp" />
-		<Unit filename="include/xml_source.hpp" />
-		<Unit filename="include/xml_types.hpp" />
+		<Unit filename="include/xml/binding.hpp" />
+		<Unit filename="include/xml/error.hpp" />
+		<Unit filename="include/xml/event.hpp" />
+		<Unit filename="include/xml/event_stream_parser.hpp" />
+		<Unit filename="include/xml/event_writer.hpp" />
+		<Unit filename="include/xml/reader.hpp" />
+		<Unit filename="include/xml/source.hpp" />
+		<Unit filename="include/xml/types.hpp" />
 		<Unit filename="src/buffer.cpp" />
 		<Unit filename="src/channels.cpp" />
 		<Unit filename="src/char_cast.cpp" />
@@ -480,12 +481,12 @@
 			<Option target="release-win-clang-dll-x64" />
 			<Option target="debug-win-clang-static-x64" />
 		</Unit>
-		<Unit filename="src/xml_error.cpp" />
-		<Unit filename="src/xml_event.cpp" />
-		<Unit filename="src/xml_event_writer.cpp" />
-		<Unit filename="src/xml_parse.cpp" />
-		<Unit filename="src/xml_reader.cpp" />
-		<Unit filename="src/xml_source.cpp" />
+		<Unit filename="src/xml/error.cpp" />
+		<Unit filename="src/xml/event.cpp" />
+		<Unit filename="src/xml/event_stream_parser.cpp" />
+		<Unit filename="src/xml/event_writer.cpp" />
+		<Unit filename="src/xml/reader.cpp" />
+		<Unit filename="src/xml/source.cpp" />
 		<Extensions>
 			<DoxyBlocks>
 				<comment_style block="1" line="0" />

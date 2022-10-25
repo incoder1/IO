@@ -206,9 +206,10 @@ Check that you have dependencies installed, install them if not yet with your pa
 ### EXAMPLES
 Code examples can be found examples sub-folder. 
 Where:
-* xmlparse – XML parsing with event API, prints into console XML or any type
-* xml_parse_to_structures - reads XML into C++ structure data type with cursor API
-* write_structures_to_xml – compile time reflection plain C object XML marshalling and XSD generation example
+* channels - basic input/output functionality
 * chconv – converting characters between different code pages example
-* iostreams – writes UNICODE strings into file and console with reconverting characters between multiple UNICODE representation, using C++ iostreams build on top of IO channels.
 * collada - limited set of [COLLADA](https://www.khronos.org/collada/) 3D model OpenGL 4+ based viewer. Contans even based collada parser and simple 3D graphical model rendering engine.
+* iostreams – writes UNICODE strings into file and console with reconverting characters between multiple UNICODE representation, using C++ iostreams build on top of IO channels.
+* xml_parse_to_structures - reads XML into C++ structure data type with cursor API
+* xml_event_parsing – XML parsing with event API, prints into console XML or any type
+* write_structures_to_xml – compile time reflection plain C object XML marshalling and XSD generation example

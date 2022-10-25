@@ -46,7 +46,6 @@ static uint32_t fetch_32(const uint8_t *p) noexcept
 	return unaligned_load32(p);
 }
 #else
-
 static __forceinline uint64_t fetch_64(const uint8_t *p) noexcept
 {
 	return io_bswap64( unaligned_load64(p) );

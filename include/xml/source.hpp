@@ -18,7 +18,7 @@
 #endif // HAS_PRAGMA_ONCE
 
 #include "channels.hpp"
-#include "xml_error.hpp"
+#include "error.hpp"
 #include "text.hpp"
 #include "charsetdetector.hpp"
 
