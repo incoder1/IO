@@ -3,7 +3,7 @@
 * for blocking connection see network
 */
 #include <errorcheck.hpp>
-#include <network.hpp>
+#include <net/context.hpp>
 #include <iostream>
 
 /// Asynchronous IO operations completion routine

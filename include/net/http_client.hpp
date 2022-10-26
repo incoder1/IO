@@ -8,8 +8,8 @@
  * LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
  *
  */
-#ifndef __IO_HTTP_CLIENT_HPP_INCLUDED__
-#define __IO_HTTP_CLIENT_HPP_INCLUDED__
+#ifndef __IO_NET_HTTP_CLIENT_HPP_INCLUDED__
+#define __IO_NET_HTTP_CLIENT_HPP_INCLUDED__
 
 #include <config.hpp>
 
@@ -105,4 +105,4 @@ inline s_request new_get_request(std::error_code& ec, const s_uri& resource) noe
 } // namespace io
 
 
-#endif // __IO_HTTP_CLIENT_HPP_INCLUDED__
+#endif // __IO_NET_HTTP_CLIENT_HPP_INCLUDED__

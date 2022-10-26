@@ -639,19 +639,42 @@ inline const char* skip_spaces_ranged(const char *str, const char *end) noexcept
 	return skip_spaces_n(str, static_cast<std::size_t>(end-str) );
 }
 
-inline bool start_with(const char* s,const char* pattern,const std::size_t size) noexcept
+
+#ifdef IO_HAS_CONNCEPTS
+template<typename char_t>
+	requires( is_charater_v<char_t> )
+#else
+template<
+	typename char_t,
+	typename std::enable_if<
+		is_charater<char_t>::value
+	>::type* = nullptr
+>
+#endif // IO_HAS_CONNCEPTS
+inline bool start_with(const char_t* s,const char_t* pattern,const std::size_t size) noexcept
 {
-	return 0 == io_memcmp( s, pattern, size );
+	return 0 == std::char_traits<char_t>::compare( s, pattern, size );
 }
 
-inline bool start_with(const char* s,const char* pattern) noexcept
+#ifdef IO_HAS_CONNCEPTS
+template<typename char_t>
+	requires( is_charater_v<char_t> )
+#else
+template<
+	typename char_t,
+	typename std::enable_if<
+		is_charater<char_t>::value
+	>::type* = nullptr
+>
+#endif // IO_HAS_CONNCEPTS
+inline bool start_with(const char_t* s,const char_t* pattern) noexcept
 {
-	return start_with( s, pattern, io_strlen(pattern) );
+	return start_with( s, pattern, std::char_traits<char_t>::length(pattern) );
 }
 
 inline std::size_t str_size(const char* b, const char* e) noexcept
 {
-    return memory_traits::distance(b, e);
+	return memory_traits::distance(b, e);
 }
 
 } // namespace io

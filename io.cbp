@@ -217,11 +217,11 @@
 		<Unit filename="include/files.hpp" />
 		<Unit filename="include/hashing.hpp" />
 		<Unit filename="include/memory_channel.hpp" />
+		<Unit filename="include/net/context.hpp" />
 		<Unit filename="include/net/http_client.hpp" />
 		<Unit filename="include/net/http_error.hpp" />
 		<Unit filename="include/net/security.hpp" />
 		<Unit filename="include/net/uri.hpp" />
-		<Unit filename="include/network.hpp" />
 		<Unit filename="include/object.hpp" />
 		<Unit filename="include/posix/console.hpp">
 			<Option target="debug-unix-gcc-static-64bit" />

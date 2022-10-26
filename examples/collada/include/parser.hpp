@@ -16,7 +16,7 @@
 
 #include "collada.hpp"
 
-#include <xml_parse.hpp>
+#include <xml/event_stream_parser.hpp>
 
 namespace collada {
 

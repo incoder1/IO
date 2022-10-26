@@ -19,10 +19,6 @@ namespace net {
 
 namespace http {
 
-static inline const uint8_t* str_bytes(const char* str) noexcept {
-	return reinterpret_cast<const uint8_t*>(str);
-}
-
 static const char* SEP = "\r\n";
 
 static void write_header(writer& to,const std::pair<const_string,const_string>& hdr) {

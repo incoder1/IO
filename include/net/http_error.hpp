@@ -1,5 +1,5 @@
-#ifndef __IO_HTTP_ERROR_HPP_INCLUDED__
-#define __IO_HTTP_ERROR_HPP_INCLUDED__
+#ifndef __IO_NET_HTTP_ERROR_HPP_INCLUDED__
+#define __IO_NET_HTTP_ERROR_HPP_INCLUDED__
 
 #include <config.hpp>
 
@@ -28,4 +28,4 @@ enum class status {
 
 
 
-#endif // __IO_HTTP_ERROR_HPP_INCLUDED__
+#endif // __IO_NET_HTTP_ERROR_HPP_INCLUDED__

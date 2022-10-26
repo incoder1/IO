@@ -19,7 +19,7 @@
 
 #include "blocking_channel.hpp"
 #include "credentials.hpp"
-#include "network.hpp"
+#include "../net/context.hpp"
 
 namespace io {
 
