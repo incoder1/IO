@@ -158,17 +158,6 @@ static const u_char *find_string(const u_char *bp, int *tgt, const char * const 
 	return nullptr;
 }
 
-#ifndef __GNUC__
-static int strncasecmp(const char* lhs, const char* rhs, std::size_t size) noexcept
-{
-	io::scoped_arr<char> l_lc( lhs, size );
-	io::scoped_arr<char> r_lc( rhs, size );
-	io::downcase_latin1(l_lc.begin());
-	io::downcase_latin1(l_lc.begin());
-	return io_memcmp(l_lc.begin(), r_lc.begin(), size);
-}
-#endif // __GNUC__
-
 char *strptime(const char *buf, const char *fmt, struct tm *tm) noexcept
 {
 	unsigned char c;
@@ -444,7 +433,7 @@ recurse:
 		case 'Z':
 			_tzset();
 			if (io_strncmp((const char *)bp, gmt, 3) == 0
-					||  strncasecmp((const char *)bp, utc, 3) == 0) {
+					||  io_strncasecmp((const char *)bp, utc, 3) == 0) {
 				tm->tm_isdst = 0;
 #ifdef TM_GMTOFF
 				tm->TM_GMTOFF = 0;

@@ -43,7 +43,7 @@ static constexpr unsigned int URIGHTB = detail::unsign(RIGHTB);
 
 static bool is_prologue(const char *s) noexcept
 {
-	return 0 == ::strncasecmp(s, PROLOGUE, 3) && is_space( s[3] );
+	return 0 == io_strncasecmp(s, PROLOGUE, 3) && is_space(s[3]);
 }
 
 static bool is_comment(const char *s) noexcept
@@ -64,13 +64,13 @@ static bool is_doc_type(const char *s) noexcept
 static bool is_true(const char* s) noexcept
 {
 	constexpr const char* YES = "yes";
-	return 0 == strncasecmp(YES, s, 3);
+	return 0 == io_strncasecmp(YES, s, 3);
 }
 
 static bool is_false(const char* s) noexcept
 {
 	static constexpr const char* NO = "no";
-	return 0 == strncasecmp(NO, s, 2);
+	return 0 == io_strncasecmp(NO, s, 2);
 }
 
 static std::size_t prefix_delimit(const char* src) noexcept

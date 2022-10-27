@@ -126,6 +126,8 @@ typedef SSIZE_T ssize_t;
 
 #define io_strncmp(__lsh,__rhs,__num) strncmp( (__lsh), (__rhs), (__num) )
 
+#define io_strncasecmp(__lsh,__rhs,__num) _strnicmp( (__lsh), (__rhs), (__num) )
+
 #define io_strcpy(__s1,__s2 ) strcpy( (__s1), (__s2) )
 
 #define io_strspn(__s, __p) strspn( (__s), (__p) )

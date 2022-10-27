@@ -106,6 +106,8 @@
 
 #define io_strcmp(__lsh,__rhs) __builtin_strcmp( (__lsh), (__rhs) )
 
+#define io_strncasecmp(__lsh,__rhs,__num) __builtin_strncasecmp( (__lsh), (__rhs), (__num) )
+
 #define io_strncmp(__lsh,__rhs,__num) __builtin_strncmp( (__lsh), (__rhs), (__num) )
 
 #define io_strspn(__s, __p) __builtin_strspn( (__s), (__p) )

@@ -151,6 +151,12 @@
 #	define io_strcmp(__lsh,__rhs) std::strcmp( (__lsh), (__rhs) )
 #endif
 
+#if __has_builtin(__builtin_strncasecmp)
+#	define io_strncasecmp(__lsh,__rhs,__num) __builtin_strncasecmp( (__lsh), (__rhs), (__num) )
+#else
+#	define io_strncasecmp(__lsh,__rhs,__num) strncasecmp( (__lsh), (__rhs), (__num) )
+#endif
+
 #if __has_builtin(__builtin_strncmp)
 #	define io_strncmp(__lsh,__rhs,__num) __builtin_strncmp( (__lsh), (__rhs), (__num) )
 #else
