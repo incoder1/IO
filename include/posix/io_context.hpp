@@ -23,6 +23,7 @@
 // Use epoll for Linux
 #if defined(__ANDROID__) || defined(__linux) || defined(__linux__) || defined(__gnu_linux__)
 #   define __IO_EPOLL_DEMULTIPLEX__
+#   include <fcntl.h>
 #   include <sys/epoll.h>
 // use kqueue for FreeBSD and Mac OSX
 #elif defined(__FreeBSD__) || ( defined(__APPLE__) && defined(__MACH__) )

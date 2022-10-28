@@ -142,7 +142,7 @@
 				</Linker>
 			</Target>
 			<Target title="debug-unix-gcc-static-64bit">
-				<Option platforms="Unix;Mac;" />
+				<Option platforms="Unix;" />
 				<Option output="bin/debug-unix-gcc-x86_64/io" prefix_auto="1" extension_auto="1" />
 				<Option working_dir="" />
 				<Option object_output="obj/debug-unix-gcc-x86_64/" />

@@ -9,7 +9,7 @@
  *
  */
 #include "stdafx.hpp"
-#include "posix/io_context.hpp"
+#include "io_context.hpp"
 
 namespace io {
 
@@ -100,7 +100,7 @@ s_demultiplexor demultiplexor::create(std::error_code& ec) noexcept
         ec.assign( errno , std::system_category() );
         return s_demultiplexor();
     }
-    demultiplexor *ret = new std::nowthrow demultiplexor(descriptor);
+    demultiplexor *ret = new ( std::nothrow ) demultiplexor(descriptor);
     if(nullptr == ret) {
         ec = std::make_error_code(std::errc::not_enough_memory);
         return s_demultiplexor();
@@ -119,12 +119,13 @@ void demultiplexor::register_descriptor(std::error_code& ec, int descriptor) noe
     flags |= O_NONBLOCK;
     if(-1 == ::fcntl(descriptor, F_SETFL, flags) ) {
         ec.assign( errno , std::system_category() );
-    }
-    ::epoll_event ev;
-    ev.data.fd = descriptor;
-    ev.events = EPOLLIN | EPOLLET;
-    if(-1 = ::epoll_ctl(peer_, EPOLL_CTL_ADD, descriptor, &ev) ) {
-        ec.assign( errno , std::system_category() );
+    } else {
+        ::epoll_event ev;
+        ev.data.fd = descriptor;
+        ev.events = EPOLLIN | EPOLLET;
+        if(-1 == ::epoll_ctl(peer_, EPOLL_CTL_ADD, descriptor, &ev) ) {
+            ec.assign( errno , std::system_category() );
+        }
     }
 }
 

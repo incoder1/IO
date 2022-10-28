@@ -78,6 +78,26 @@
 					<Add directory="../bin/release-win-clang-dll-x64" />
 				</Linker>
 			</Target>
+			<Target title="debug-unix-gcc-x86_64">
+				<Option platforms="Unix;" />
+				<Option output="bin/debug-unix-gcc-x86_64/test" prefix_auto="1" extension_auto="1" />
+				<Option object_output="obj/debug-unix-gcc-x86_64/" />
+				<Option type="1" />
+				<Option compiler="gcc" />
+				<Option parameters="--gtest_color=yes" />
+				<Compiler>
+					<Add option="-g" />
+					<Add option="-fexceptions" />
+					<Add option="-std=gnu++20" />
+					<Add option="`pkg-config --cflags gtest`" />
+					<Add directory="../test" />
+					<Add directory="include" />
+				</Compiler>
+				<Linker>
+					<Add option="`pkg-config --libs gtest`" />
+					<Add directory="../bin/debug-unix-gcc-x86_64" />
+				</Linker>
+			</Target>
 		</Build>
 		<Compiler>
 			<Add option="-Wall" />
