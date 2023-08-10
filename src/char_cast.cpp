@@ -133,7 +133,7 @@ static const u_char * conv_num(const unsigned char *buf, int *dest, unsigned int
 		rulim /= 10;
 		ch = *++buf;
 	}
-	while ((result * 10 <= ulim) && rulim && ch >= '0' && ch <= '9');
+	while ((result * 10 <= ulim) && rulim && io_isdigit( ch ) );
 
 	if (result < llim || result > ulim)
 		return nullptr;

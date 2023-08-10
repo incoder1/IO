@@ -76,12 +76,12 @@ thread_pool::~thread_pool() noexcept
 void thread_pool::sumbmit(std::error_code& ec,async_task&& routine) noexcept
 {
     task_context *tc = new (std::nothrow) task_context( std::forward<async_task>(routine) );
-    if(nullptr == tc) {
-        ec = std::make_error_code(std::errc::not_enough_memory);
-    }
-    else {
+    if( nullptr != tc ) {
         ::PTP_WORK work = ::CreateThreadpoolWork(&thread_pool::routine_wrapper, tc, &cbenv_);
         ::SubmitThreadpoolWork(work);
+    }
+    else {
+        ec = std::make_error_code(std::errc::not_enough_memory);
     }
 }
 

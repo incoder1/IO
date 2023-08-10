@@ -61,7 +61,7 @@ const const_string string_pool::get(const char* s, std::size_t count) noexcept
 			auto its = pool_.equal_range( str_hash );
 			// find string by comparing memory
 			// more likely never going to happen
-			it = std::find_if(its.first, its.second, [s,count] (const auto& entry) {
+			it = std::find_if(its.first, its.second, [s,count] (const std::pair<std::size_t,const_string> & entry) {
 				return entry.second.equal(s, count);
 			} );
 		}

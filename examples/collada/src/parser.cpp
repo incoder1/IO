@@ -153,8 +153,8 @@ parser::parser(io::s_read_channel&& src) noexcept:
 
 io::const_string parser::get_attr(const io::xml::start_element_event& sev, const char* name)
 {
-	std::pair<io::const_string, bool> query = sev.get_attribute("",name);
-	if( io_unlikely( !query.second  ) ) {
+	auto ret = sev.get_attr("",name);
+	if( io_unlikely( !ret  ) ) {
 		std::string emsg("COLLADA error [");
 		emsg.append( std::to_string( xp_->row() ) );
 		emsg.push_back(',');
@@ -166,7 +166,7 @@ io::const_string parser::get_attr(const io::xml::start_element_event& sev, const
 		emsg.append(" attribute is mandatory");
 		throw std::runtime_error( emsg );
 	}
-	return query.first;
+	return *ret;
 }
 
 // XML parsing functions

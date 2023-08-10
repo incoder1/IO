@@ -76,59 +76,55 @@ ssize_t session::pull(void *data, std::size_t size) noexcept
 int session::client_handshake(::gnutls_session_t const peer) noexcept
 {
 	int ret = ::gnutls_handshake(peer);
-	while (ret == GNUTLS_E_AGAIN || ret == GNUTLS_E_INTERRUPTED) {
+	while ( ! ::gnutls_error_is_fatal(ret) ) {
 		if ( 1 != ::gnutls_record_get_direction(peer) )
-				break;
-		ret = ::gnutls_handshake(peer);
+			break;
+		else
+			ret = ::gnutls_handshake(peer);
 	}
 	return ret;
 }
 
 s_session session::client_blocking_session(std::error_code &ec, ::gnutls_certificate_credentials_t crd,s_read_write_channel&& raw) noexcept
 {
+	s_session ret;
 	::gnutls_session_t peer = nullptr;
 	int err = ::gnutls_init(&peer, GNUTLS_CLIENT);
 	if(GNUTLS_E_SUCCESS != err) {
 		ec = make_error_code( err );
-		return s_session();
+	} else {
+		/* Use default priorities */
+		//::gnutls_session_enable_compatibility_mode(peer);
+		err = ::gnutls_set_default_priority(peer);
+		if(GNUTLS_E_SUCCESS != err) {
+			ec = make_error_code( err );
+		} else {
+			err = ::gnutls_credentials_set(peer, GNUTLS_CRD_CERTIFICATE, crd);
+			if(GNUTLS_E_SUCCESS != err) {
+				ec = make_error_code( err );
+			} else {
+				synch_transport *connection = new (std::nothrow) synch_transport( std::forward<s_read_write_channel>(raw) );
+				if(nullptr ==  connection) {
+					ec = std::make_error_code(std::errc::not_enough_memory);
+				} else {
+					session *px = new (std::nothrow) session(peer, s_transport( connection ) );
+					if( nullptr == px ) {
+						ec = std::make_error_code(std::errc::not_enough_memory);
+					} else {
+						ret.reset(px, true);
+						::gnutls_transport_set_ptr(peer, static_cast<::gnutls_transport_ptr_t>( px ) );
+						::gnutls_transport_set_pull_function(peer, session_pull);
+						::gnutls_transport_set_vec_push_function(peer, session_push );
+						//::gnutls_transport_set_pull_timeout_function(peer, ::gnutls_system_recv_timeout);
+						err = client_handshake( peer );
+						if(GNUTLS_E_SUCCESS != err)
+							ec = make_error_code(err);
+					}
+				}
+			}
+		}
 	}
-	/* Use default priorities */
-	//::gnutls_session_enable_compatibility_mode(peer);
-	err = ::gnutls_set_default_priority(peer);
-	if(GNUTLS_E_SUCCESS != err) {
-		ec = make_error_code( err );
-		return s_session();
-	}
-	err = ::gnutls_credentials_set(peer, GNUTLS_CRD_CERTIFICATE, crd);
-	if(GNUTLS_E_SUCCESS != err) {
-		ec = make_error_code( err );
-		return s_session();
-	}
-	if(ec)
-		return s_session();
-	synch_transport *connection = new (std::nothrow) synch_transport( std::forward<s_read_write_channel>(raw) );
-	if(nullptr ==  connection) {
-		ec = std::make_error_code(std::errc::not_enough_memory);
-		return s_session();
-	}
-	session *ret = new (std::nothrow) session(peer, s_transport( connection ) );
-	if( nullptr == ret ) {
-		ec = std::make_error_code(std::errc::not_enough_memory);
-		return s_session();
-	}
-	::gnutls_transport_set_ptr(peer, static_cast<::gnutls_transport_ptr_t>( ret ) );
-	::gnutls_transport_set_pull_function(peer, session_pull);
-	::gnutls_transport_set_vec_push_function(peer, session_push );
-
-	::gnutls_transport_set_pull_timeout_function(peer, ::gnutls_system_recv_timeout);
-
-	err = client_handshake( peer );
-
-	if(GNUTLS_E_SUCCESS != err) {
-		ec = make_error_code(err);
-		return s_session();
-	}
-	return s_session(ret);
+	return ret;
 }
 
 

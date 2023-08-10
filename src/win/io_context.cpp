@@ -13,7 +13,7 @@
 
 namespace io {
 
-static ::SOCKET new_scoket(std::error_code& ec, net::ip_family af, net::transport prot, bool asynch) noexcept
+static ::SOCKET new_socket(std::error_code& ec, net::ip_family af, net::transport prot, bool asynch) noexcept
 {
     int type = 0;
     switch(prot) {
@@ -67,15 +67,22 @@ io_context::~io_context() noexcept
 
 s_read_write_channel io_context::client_blocking_connect(std::error_code& ec, net::socket&& socket) const noexcept
 {
-    ::SOCKET s = new_scoket(ec, socket.get_endpoint().family(), socket.transport_protocol(), false );
-    if(ec)
-        return s_read_write_channel();
-    const ::addrinfo *ai = static_cast<const ::addrinfo *>(socket.get_endpoint().native());
-    if( SOCKET_ERROR == ::WSAConnect(s, ai->ai_addr, static_cast<int>(ai->ai_addrlen), nullptr,nullptr,nullptr,nullptr) ) {
-        ec = net::make_wsa_last_error_code();
-        return s_read_write_channel();
+	s_read_write_channel ret;
+    ::SOCKET s = new_socket(ec, socket.get_endpoint().family(), socket.transport_protocol(), false );
+    if(!ec) {
+    	const ::addrinfo *ai = static_cast<const ::addrinfo *>(socket.get_endpoint().native());
+    	if( SOCKET_ERROR == ::WSAConnect(s, ai->ai_addr, static_cast<int>(ai->ai_addrlen), nullptr,nullptr,nullptr,nullptr) ) {
+        	ec = net::make_wsa_last_error_code();
+    	} else {
+    		net::synch_socket_channel *raw = new (std::nothrow) net::synch_socket_channel(s);
+    		if(nullptr == raw) {
+    			ec = std::make_error_code(std::errc::not_enough_memory);
+    		} else {
+    			ret.reset(raw, true);
+    		}
+    	}
     }
-    return s_read_write_channel( nobadalloc<net::synch_socket_channel>::construct(ec, s ) );
+	return ret;
 }
 
 s_read_write_channel io_context::client_blocking_connect(std::error_code& ec, const char* host, uint16_t port) const noexcept
@@ -203,7 +210,7 @@ bool asynch_io_context::bind_to_port(std::error_code& ec, const asynch_channel* 
 
 s_asynch_channel asynch_io_context::client_asynch_connect(std::error_code& ec, net::socket&& socket,const s_asynch_completion_routine& routine) const noexcept
 {
-    ::SOCKET s = new_scoket(ec, socket.get_endpoint().family(), socket.transport_protocol(), true );
+    ::SOCKET s = new_socket(ec, socket.get_endpoint().family(), socket.transport_protocol(), true );
     if(ec)
         return s_asynch_channel();
     const ::addrinfo *ai = static_cast<const ::addrinfo *>(socket.get_endpoint().native());

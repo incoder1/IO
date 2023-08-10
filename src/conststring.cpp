@@ -38,6 +38,12 @@ void const_string::init_long(detail::sso_variant_t& dst,std::size_t size,const c
 	}
 }
 
+void const_string::long_buf_add_ref(detail::sso_variant_t& var) noexcept {
+	std::size_t volatile *p = reinterpret_cast<std::size_t volatile*>(var.long_buf.char_buf);
+	// increment string intrusive reference counter, with relaxed memory order
+	detail::atomic_traits::inc(p);
+}
+
 void const_string::long_buf_release(detail::sso_variant_t& var) noexcept
 {
 	// decrement atomic intrusive reference counter

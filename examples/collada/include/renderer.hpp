@@ -37,6 +37,16 @@ static constexpr const material_t DEFAULT_MATERIAL = {
 	0.0
 };
 
+static constexpr const material_t PERL_MATERIAL = {
+	{
+		0.250000F, 0.250000F, 0.250000F, 1.0F,
+		0.400000F, 0.400000F, 0.400000F, 1.0F,
+		0.774597F, 0.774597F, 0.774597F, 1.0F,
+		0.000000F, 0.000000F, 0.000000F, 1.0F
+	},
+	76.8
+};
+
 /// White plastic material
 static constexpr const material_t WHITE_PLASTIC_MATERIAL = {
 	{

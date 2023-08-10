@@ -323,7 +323,7 @@ s_surface model_loader::load_bummaped_mesh(const collada::s_sub_mesh& sm, const 
 	return s_surface(
 			new normal_mapped_mesh(
 				sufrace_data(
-				   DEFAULT_MATERIAL, vertex_count,
+				   PERL_MATERIAL, vertex_count,
 				   util::array_view<float>(vbo.begin(), vbo.len()),
 				   util::array_view<unsigned int>()
 				),

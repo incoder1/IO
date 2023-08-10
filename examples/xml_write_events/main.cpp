@@ -5,7 +5,7 @@
 #include <console.hpp>
 #include <char_cast.hpp>
 #include <files.hpp>
-#include <xml_event_writer.hpp>
+#include <xml/event_writer.hpp>
 
 namespace xml = io::xml;
 

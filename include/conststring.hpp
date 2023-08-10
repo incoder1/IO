@@ -95,22 +95,29 @@ __forceinline std::size_t long_size(const sso_variant_t& v) noexcept
 	return v.long_buf.size;
 }
 
+#ifndef __HAS_CPP_14
+  // C++11 version of std::exchange for internal use.
+  template <typename _Tp, typename _Up = _Tp>
+    inline _Tp
+    exchange(_Tp& __obj, _Up&& __new_val)
+    {
+      _Tp __old_val = std::move(__obj);
+      __obj = std::forward<_Up>(__new_val);
+      return __old_val;
+    }
+#endif // __HAS_CPP_14
+
 } // namespace detail
 
 ///  \brief Immutable zero ending C style string wrapper
 class IO_PUBLIC_SYMBOL const_string final {
 private:
 
-	static void long_buf_add_ref(detail::sso_variant_t& var) noexcept {
-		std::size_t volatile *p = reinterpret_cast<std::size_t volatile*>(var.long_buf.char_buf);
-		// increment string intrusive reference counter, with relaxed memory order
-		detail::atomic_traits::inc(p);
-	}
-
 	static inline bool carr_empty(const char* rhs, std::size_t len) noexcept {
 		return 0 == len || nullptr == rhs || '\0' == *rhs;
 	}
 
+	static void long_buf_add_ref(detail::sso_variant_t& var) noexcept;
 	static void long_buf_release(detail::sso_variant_t& var) noexcept;
 
 	void init_short(detail::sso_variant_t& dst, const char* str, std::size_t length) noexcept;
@@ -144,13 +151,10 @@ public:
 	const_string(const_string&& other) noexcept:
 #ifdef __HAS_CPP_14
 		data_( std::exchange(other.data_, {{false,0,nullptr}}) )
-	{}
 #else
-		data_(other.data_)
-	{
-		other.data_ = {false,0,nullptr};
-	}
+		data_( detail::exchange(other.data_, {{false,0,nullptr}}) )
 #endif // __HAS_CPP_14
+	{}
 
 	/// Movement assignment operator, default movement semantic
 	const_string& operator=(const_string&& other) noexcept {

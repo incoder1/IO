@@ -15,7 +15,7 @@ int main(int argc, const char** argv)
 
 	using namespace io::net;
 	std::error_code ec;
-	s_uri url = uri::parse(ec, "https://www.rfc-editor.org/rfc/rfc9110.html");
+	s_uri url = uri::parse(ec, "https://raw.githubusercontent.com/incoder1/IO/master/examples/network/main.cpp");
 	io::check_error_code(ec);
 
 

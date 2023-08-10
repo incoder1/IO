@@ -25,7 +25,7 @@ namespace io {
 
 namespace meta {
 
-typedef int index_t;
+typedef std::size_t index_t;
 
 // tuple for each util
 template<index_t...>
@@ -68,7 +68,7 @@ static constexpr inline void for_each_helper(__functor&& f, index_tuple<__indexe
 }
 
 template<typename __functor, typename ... __args>
-static constexpr inline void for_each( std::tuple<__args...>& tup, __functor&& f)
+static constexpr inline void for_each_in_tuple(std::tuple<__args...>& tup, __functor&& f)
 {
 	for_each_helper(std::forward<__functor>(f),
 	                typename make_indexes< __args... >::type(),
@@ -76,17 +76,12 @@ static constexpr inline void for_each( std::tuple<__args...>& tup, __functor&& f
 }
 
 template<typename __functor, typename ... __args>
-static constexpr inline void for_each( std::tuple<__args...>&& tup, __functor&& f)
+static constexpr inline void for_each_in_tuple(std::tuple<__args...>&& tup, __functor&& f)
 {
 	for_each_helper(std::forward<__functor>(f),
 	                typename make_indexes<__args...>::type(),
 	                std::forward<std::tuple<__args...> >(tup) );
 }
-
-// compile time util
-
-typedef std::true_type  true_type;
-typedef std::false_type false_type;
 
 } // namesapce meta
 

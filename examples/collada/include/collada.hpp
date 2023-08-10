@@ -324,7 +324,7 @@ private:
 DECLARE_IPTR(geometry);
 
 
-/// A COLLADA model mesh sub-sources, i.e. lines/tiangles/polyline etc
+/// A COLLADA model mesh sub-sources, i.e. lines/triangles/polyline etc
 class sub_mesh: public io::object {
 	sub_mesh(const sub_mesh&) = delete;
 	sub_mesh& operator=(const sub_mesh&) = delete;

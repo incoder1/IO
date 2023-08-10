@@ -36,9 +36,9 @@ scene::scene(float width, float height,float eye_distance,float depth):
 	height_(height),
 	eye_distance_(eye_distance),
 	depth_(depth),
-	angle_x_(0.0f),
-	angle_y_(0.0F),
-	distance_z_( 0.0F ),
+	angle_x_(0.0),
+	angle_y_(0.0),
+	distance_z_(0.0),
 	light_(DEFAULT_LIGHT)
 {
 	light_.pads[2] = eye_distance;

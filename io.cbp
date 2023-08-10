@@ -16,7 +16,6 @@
 					<Add option="-Winit-self" />
 					<Add option="-Weffc++" />
 					<Add option="-pedantic" />
-					<Add option="-Og" />
 					<Add option="-g" />
 					<Add option="-std=gnu++20" />
 					<Add option="-fchar8_t" />

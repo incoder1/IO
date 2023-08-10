@@ -28,8 +28,8 @@ public:
 private:
 	::GLFWwindow *frame_;
 	scene scn_;
-	int mouse_prev_x_;
-	int mouse_prev_y_;
+	double mouse_prev_x_;
+	double mouse_prev_y_;
 	float angle_x_;
 	float angle_y_;
 	float zoom_;

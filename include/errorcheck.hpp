@@ -28,23 +28,6 @@
 
 #include <functional>
 
-#ifdef IO_HAS_BOOST
-
-#ifdef IO_NO_EXCEPTIONS
-
-#include <exception>
-
-// to be used when we have boost toolchain
-namespace boost {
-inline void throw_exception( std::system_error const & e )
-{
-    io::detail::panic(  e.code().value(), e.what() );
-}
-}
-#endif // IO_NO_EXCEPTIONS
-
-#endif // IO_HAS_BOOST
-
 namespace io {
 
 /// Checks error code variable, if there is an error calls a fall back

@@ -611,16 +611,22 @@ inline const char_t* strchrn(const char_t* s,const char_t c,const std::size_t ma
 	return const_cast<const char_t*>( std::char_traits<char_t>::find(s, max_len, c) );
 }
 
-static constexpr const char* SPACES = "\t\n\v\f\r ";
+#define IO_SPACES "\t\n\v\f\r "
+#define IO_WSPACES L"\t\n\v\f\r "
 
 inline const char* skip_spaces(const char *str) noexcept
 {
-	return str + io_strspn(str, SPACES);
+	return str + io_strspn(str, IO_SPACES);
+}
+
+inline const wchar_t* skip_spaces(const wchar_t *str) noexcept
+{
+	return str + std::wcsspn(str, IO_WSPACES);
 }
 
 inline char* skip_spaces(char *str) noexcept
 {
-	return str + io_strspn(str, SPACES);
+	return str + io_strspn(str, IO_SPACES);
 }
 
 inline const unsigned char* skip_spaces(const unsigned char *str) noexcept
@@ -630,7 +636,7 @@ inline const unsigned char* skip_spaces(const unsigned char *str) noexcept
 
 inline const char* skip_spaces_n(const char *str, std::size_t n) noexcept
 {
-	std::size_t offset = io_strspn(str, SPACES);
+	std::size_t offset = io_strspn(str, IO_SPACES);
 	return (offset < n) ? (str+offset) : str;
 }
 

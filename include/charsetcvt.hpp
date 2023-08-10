@@ -200,7 +200,7 @@ IO_PUBLIC_SYMBOL const u8char_t* mbtochar32(char32_t& dst, const u8char_t* src) 
 /// Returns UTF-8 string length in logical UNICODE characters
 /// \param u8str source UTF-8 string
 /// \return length in characters
-#if defined(__GNUG__) || defined(__clang__) && defined(__HAS_CPP_14)
+#if ( defined(__GNUG__) || defined(__clang__) ) && defined(__HAS_CPP_14)
 constexpr
 #else
 inline

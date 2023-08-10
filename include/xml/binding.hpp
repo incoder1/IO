@@ -30,11 +30,18 @@ namespace io {
 
 namespace xml {
 
-namespace detail {
+template<class _tuple_t>
+struct marshaller {
+	static inline void marshal(const _tuple_t& t,std::error_code& ec, const xml::s_event_writer& to)
+	{
+		meta::for_each_in_tuple(  const_cast<_tuple_t&&>(t), [ec,to] { t.marshal(ec, to); } );
+	}
 
-template<class xs_type, bool simple, bool attribute, bool tags_list>
-class unmarshaller_functor
-{
+	static inline void marshal(_tuple_t&& t,const xml::s_event_writer& t)
+	{
+		meta::for_each_in_tuple( std::forward<_tuple_t>(t), [ec,to] { t.marshal(ec, to); } );
+	}
+
 };
 
 } // namespace xml

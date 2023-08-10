@@ -24,6 +24,10 @@
 #include <functional>
 #include <set>
 
+#ifdef __HAS_CPP_17
+#	include <optional>
+#endif // __HAS_CPP_17
+
 namespace io {
 
 namespace xml {
@@ -267,7 +271,7 @@ private:
 	const_string value_;
 };
 
-
+/// \brief Provides access to information about start elements
 class IO_PUBLIC_SYMBOL start_element_event final {
 private:
 
@@ -342,6 +346,17 @@ public:
 	}
 
 	std::pair<const_string, bool> get_attribute(const char* prefix, const char* local_name) const noexcept;
+
+#ifdef __HAS_CPP_17
+	inline std::optional<const_string> get_attr(const char* prefix, const char* local_name) const noexcept
+	{
+		auto lookup = get_attribute(prefix, local_name);
+		if(lookup.second)
+			return lookup.first;
+		else
+			return {};
+	}
+#endif // __HAS_CPP_17
 
 	inline void swap(start_element_event& other) noexcept
 	{

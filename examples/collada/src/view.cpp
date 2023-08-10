@@ -19,30 +19,30 @@ extern "C" int gladLoadGL(void);
 
 #include <cmath>
 
+#ifndef M_PI
+#	define M_PI 3.14159265358979323846
+#endif // M_PI
 
 namespace engine  {
-
 
 // frame_view
 frame_view::frame_view(unsigned int widht, unsigned int height,const char* title):
 	frame_(nullptr),
 	scn_( scene::perspective( widht, height, 2.0F, 20.0F) ),
-	mouse_prev_x_(0),
-	mouse_prev_y_(0),
+	mouse_prev_x_(0.0),
+	mouse_prev_y_(0.0),
 	angle_x_(0.0F),
 	angle_y_(0.0F),
 	zoom_(-5.0F)
 {
 
-#ifdef _WIN32
 	::glfwWindowHint(GLFW_CONTEXT_CREATION_API, GLFW_NATIVE_CONTEXT_API);
-#endif // _WIN32
 
 #ifdef __APPLE__
-	::glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT,GL_TRUE);
 	::glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
-	::glfwWindowHint(GLFW_SAMPLES, 8);
+	::glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT,GL_TRUE);
 #endif
+
 	::glfwWindowHint(GLFW_DOUBLEBUFFER, GLFW_TRUE);
 	::glfwWindowHint(GLFW_CONTEXT_RELEASE_BEHAVIOR, GLFW_RELEASE_BEHAVIOR_FLUSH);
 	::glfwWindowHint(GLFW_VISIBLE, GLFW_FALSE);
@@ -71,9 +71,6 @@ frame_view::frame_view(unsigned int widht, unsigned int height,const char* title
 	::glfwSwapInterval(1);
 
 	// Init OpenGL
-	//::glEnable(GL_CULL_FACE);
-	//::glCullFace(GL_FRONT);
-
 	::glEnable(GL_DEPTH_TEST);
 	::glDepthFunc(GL_LEQUAL);
 
@@ -81,15 +78,11 @@ frame_view::frame_view(unsigned int widht, unsigned int height,const char* title
 	//::glShadeModel(GL_SMOOTH);
 
 	::glHint(GL_PERSPECTIVE_CORRECTION_HINT, GL_NICEST);
-	::glEnable(GL_LIGHTING);
-	::glEnable(GL_NORMALIZE);
-	::glEnable(GL_COLOR_MATERIAL);
-	::glEnable( GL_MULTISAMPLE );
 
 	// set up callbacks
 
 	// to convert mouse offset into radians angles
-	static constexpr const float TWO_PI = 3.14159265358979323846 * 2;
+	static constexpr const double TWO_PI = M_PI + M_PI;
 
 	// initialize mouse position in the middle of the window
 	const ::GLFWvidmode* mode = ::glfwGetVideoMode( ::glfwGetPrimaryMonitor() );
@@ -104,10 +97,21 @@ frame_view::frame_view(unsigned int widht, unsigned int height,const char* title
 		if( left_pressed ) {
 			int w, h;
 			::glfwGetFramebufferSize(wnd, &w, &h);
-			float x_delta = TWO_PI  * float( (xpos - self->mouse_prev_x_) / w );
-			float y_delta = TWO_PI  * float( (ypos - self->mouse_prev_y_) / h );
-			self->angle_x_ -= y_delta;
-			self->angle_y_ += x_delta;
+			double x_delta = TWO_PI  * float( (xpos - self->mouse_prev_x_) / w );
+			double y_delta = TWO_PI  * float( (ypos - self->mouse_prev_y_) / h );
+
+			float new_x_rotr = self->angle_x_ - y_delta;
+			if( std::abs(new_x_rotr) > TWO_PI ) {
+				self->angle_x_ = - y_delta;
+			} else {
+				self->angle_x_ = new_x_rotr;
+			}
+			float new_y_rotr = self->angle_y_ + x_delta;
+			if( std::abs(new_y_rotr) > TWO_PI ) {
+				self->angle_y_ = x_delta;
+			} else {
+				self->angle_y_ = new_y_rotr;
+			}
 		}
 		self->mouse_prev_x_ = xpos;
 		self->mouse_prev_y_ = ypos;

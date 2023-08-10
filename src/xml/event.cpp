@@ -48,12 +48,11 @@ bool start_element_event::add_attribute(const attribute& attr) noexcept
 
 std::pair<const_string, bool> start_element_event::get_attribute(const char* prefix, const char* name) const noexcept
 {
-	auto ret = std::find_if(
-				attributes_.cbegin(),
-				attributes_.cend(),
-				[prefix,name] (const attribute& attr) noexcept {
-								return attr.name().equal(prefix, name);
-				} );
+	auto comparator = [prefix,name]
+		(const attribute& attr) noexcept {
+			return attr.name().equal(prefix, name);
+		};
+	auto ret = std::find_if( attributes_.cbegin(), attributes_.cend(), comparator);
 	return (attributes_.cend() != ret)
 			? std::make_pair( ret->value(), true )
 			: std::make_pair( const_string(), false );
