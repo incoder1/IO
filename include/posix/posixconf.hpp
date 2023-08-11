@@ -14,15 +14,9 @@
 #include <sys/types.h>
 #include <unistd.h>
 
-// shared library
-#if defined(IO_SHARED_LIB) && defined(__GNUC__) || defined(__CLANG__)
-#	define IO_PUBLIC_SYMBOL __attribute__ ((visibility ("default")))
-// static library
-#else
-#	define IO_PUBLIC_SYMBOL
-#endif // IO_SHARED_LIB
+#define IO_PUBLIC_SYMBOL
 
-#define IO_MALLOC_ATTR __attribute__ ((dllexport,malloc))
+#define IO_MALLOC_ATTR __attribute__ ((malloc))
 
 #include  "memory_traits.hpp"
 
