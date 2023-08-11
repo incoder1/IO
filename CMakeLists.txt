@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.4)
+cmake_minimum_required(VERSION 3.13)
 
 project(io CXX)
 
@@ -28,7 +28,7 @@ if ("${BUILD_LIBRARY_TYPE}" STREQUAL "Shared")
 endif()
 
 set(EXTRA_LIBS)
-set(CMAKE_BINARY_DIR target)
+#set(CMAKE_BINARY_DIR target)
 
 if( WIN32 OR MSYS OR CYGWIN)
 	message( STATUS "Building IO for Microsoft Windows")
@@ -46,7 +46,7 @@ if( WIN32 OR MSYS OR CYGWIN)
 	list(APPEND EXTRA_LIBS Ws2_32)
 elseif( UNIX AND NOT WIN32 AND NOT MSYS AND NOT CYGWIN)
 	message( STATUS "Building IO for UNIX/POSIX ")
-	include_directories(include/posix)	
+	include_directories(include/posix)
 	file(GLOB PLATFORM_SRC ${PROJECT_SOURCE_PATH}/posix/*.cpp)
 
 	set(CMAKE_THREAD_LIBS_INIT "-lpthread")
@@ -205,20 +205,26 @@ if(MSVC)
 		set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /EHsc")
 	endif()
 
-	if(NOT NO_RTTI)
-		set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /GR")
-	else()
+	if(NO_RTTI)
 		set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /GR-")
+	else()
+		set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /GR")
 	endif()
 
 	set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS} /ZI")
 
 endif(MSVC)
 
-if(RUN_TESTS)
+if(RUN_TESTS AND NOT BUILD_SHARED_LIBS)
+	message(WARNING "Test can be run only with -DBUILD_LIBRARY_TYPE=Shared " ...)
+endif()
+
+if(RUN_TESTS AND BUILD_SHARED_LIBS)
 	# Locate GTest
+	find_package(Threads REQUIRED)
 	find_package(GTest REQUIRED)
 	include_directories(${GTest_INCLUDE_DIRS})
+	
 	if(IO_SHARED_LIB)
 		if(MSVC)
 			add_definitions(/DIO_SHARED_LIB)
@@ -231,7 +237,7 @@ if(RUN_TESTS)
 			set(RUNTIME_PATH "$ENV{PATH};${LIBRARY_OUTPUT_PATH}")
 			set_tests_properties(io_gtests PROPERTIES ENVIRONMENT  "PATH=${RUNTIME_PATH}")
 		elseif(UNIX)
-			set(RUNTIME_PATH "$ENV{LD_LIBRARY_PATH};${SO_DIR}")
+			set(RUNTIME_PATH "$ENV{LD_LIBRARY_PATH}:${CMAKE_BINARY_DIR}")
 			set_tests_properties(io_gtests PROPERTIES ENVIRONMENT "LD_LIBRARY_PATH=${RUNTIME_PATH}")
 		endif()
 	endif()
@@ -242,19 +248,25 @@ if(RUN_TESTS)
 			add_definitions(-DNDEBUG)
 		endif()
 	endif()
-	link_directories(${LIBRARY_OUTPUT_PATH})
+	
 	file(GLOB TEST_SRC ${PROJECT_SOURCE_DIR}/test/*.cpp)
 	add_executable(io-gtest-suite ${TEST_SRC})
-	target_link_libraries(io-gtest-suite PRIVATE io Threads::Threads ${GTEST_BOTH_LIBRARIES})
-	set_target_properties(io-gtest-suite PROPERTIES LINKER_LANGUAGE CXX)
+	
+	target_link_directories(io-gtest-suite PRIVATE ${CMAKE_LIBRARY_OUTPUT_DIRECTORY})
+	target_link_libraries(io-gtest-suite PRIVATE Threads::Threads ${GTEST_BOTH_LIBRARIES} io)
+
+	if( CMAKE_COMPILER_IS_GNUCXX )
+		set_target_properties(io-gtest-suite PROPERTIES LINKER_LANGUAGE CXX)
+	endif()
+	
 	enable_testing()
-  	add_test(NAME io-check
-    	COMMAND io-gtest-suite
-    	WORKING_DIRECTORY ${LIBRARY_OUTPUT_PATH})
+	add_test(NAME io-check
+		COMMAND io-gtest-suite
+		WORKING_DIRECTORY ${LIBRARY_OUTPUT_PATH})
 
 	add_custom_command(
-				   TARGET io-gtest-suite
-				   COMMENT "Run tests"
-                   POST_BUILD
-                   COMMAND ${CMAKE_CTEST_COMMAND} --output-on-failure )
+		TARGET io-gtest-suite
+		COMMENT "Run tests"
+		POST_BUILD
+		COMMAND ${CMAKE_CTEST_COMMAND} --output-on-failure )
 endif()
