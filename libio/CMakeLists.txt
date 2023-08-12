@@ -215,16 +215,12 @@ if(MSVC)
 
 endif(MSVC)
 
-if(RUN_TESTS AND NOT BUILD_SHARED_LIBS)
-	message(WARNING "Test can be run only with -DBUILD_LIBRARY_TYPE=Shared " ...)
-endif()
-
 if(RUN_TESTS AND BUILD_SHARED_LIBS)
 	# Locate GTest
 	find_package(Threads REQUIRED)
 	find_package(GTest REQUIRED)
 	include_directories(${GTest_INCLUDE_DIRS})
-	
+
 	if(IO_SHARED_LIB)
 		if(MSVC)
 			add_definitions(/DIO_SHARED_LIB)
@@ -248,17 +244,17 @@ if(RUN_TESTS AND BUILD_SHARED_LIBS)
 			add_definitions(-DNDEBUG)
 		endif()
 	endif()
-	
+
 	file(GLOB TEST_SRC ${PROJECT_SOURCE_DIR}/test/*.cpp)
 	add_executable(io-gtest-suite ${TEST_SRC})
-	
+
 	target_link_directories(io-gtest-suite PRIVATE ${CMAKE_LIBRARY_OUTPUT_DIRECTORY})
 	target_link_libraries(io-gtest-suite PRIVATE Threads::Threads ${GTEST_BOTH_LIBRARIES} io)
 
 	if( CMAKE_COMPILER_IS_GNUCXX )
 		set_target_properties(io-gtest-suite PROPERTIES LINKER_LANGUAGE CXX)
 	endif()
-	
+
 	enable_testing()
 	add_test(NAME io-check
 		COMMAND io-gtest-suite

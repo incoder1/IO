@@ -59,7 +59,7 @@ private:
     friend class nobadalloc<io_context>;
 };
 
-class asynch_io_context final:public io::object {
+class IO_PUBLIC_SYMBOL asynch_io_context final:public io::object {
     asynch_io_context(const asynch_io_context&) = delete;
     asynch_io_context& operator=(const asynch_io_context&) = delete;
 public:
