@@ -29,7 +29,7 @@ where id and enabled fields stored as XML attributes and name stored as a tag
 #include <vector>
 
 #include <files.hpp>
-#include <xml_reader.hpp>
+#include <xml/reader.hpp>
 #include <char_cast.hpp>
 
 /// A structure to parse into

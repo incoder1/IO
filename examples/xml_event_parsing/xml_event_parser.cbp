@@ -3,7 +3,6 @@
 	<FileVersion major="1" minor="6" />
 	<Project>
 		<Option title="xml_event_parser" />
-		<Option pch_mode="2" />
 		<Option compiler="gcc" />
 		<Build>
 			<Target title="debug-win-gcc-x64">
@@ -14,17 +13,14 @@
 				<Option compiler="gcc" />
 				<Option parameters="test.xml" />
 				<Compiler>
-					<Add option="-pg" />
 					<Add option="-Og" />
 					<Add option="-g" />
-					<Add option="-std=gnu++20" />
-					<Add option="-fexceptions" />
 					<Add option="-D_WIN32_WINNT=0x0A00" />
-					<Add directory="../../bin/debug-win-gcc-static-x64" />
+					<Add option="-D_UNICODE" />
+					<Add option="-DUNICODE" />
 				</Compiler>
 				<Linker>
-					<Add option="-pg -lgmon" />
-					<Add option="-shared-libgcc" />
+					<Add library="io" />
 					<Add library="iconv.dll" />
 					<Add directory="../../bin/debug-win-gcc-static-x64" />
 				</Linker>
@@ -39,12 +35,7 @@
 				<Compiler>
 					<Add option="-flto" />
 					<Add option="-Weffc++" />
-					<Add option="-pedantic" />
-					<Add option="-Wextra" />
 					<Add option="-Wall" />
-					<Add option="-std=gnu++20" />
-					<Add option="-fno-exceptions" />
-					<Add option="-fno-rtti" />
 					<Add option="-DNDEBUG" />
 					<Add option="-DIO_SHARED_LIB" />
 					<Add option="-D_WIN32_WINNT=0x0A00" />
@@ -55,12 +46,8 @@
 					<Add option="-O3" />
 					<Add option="-flto" />
 					<Add option="-s" />
-					<Add option="-mtune=native" />
-					<Add option="-fwhole-program" />
-					<Add option="-minline-stringops-dynamically" />
-					<Add option="-fno-set-stack-executable" />
-					<Add library="iconv.dll" />
-					<Add directory="../../bin/release-win-gcc-dll-x64" />
+					<Add library="io.dll" />
+					<Add directory="../../libio/bin/release-win-gcc-dll-x64" />
 				</Linker>
 			</Target>
 			<Target title="debug-win-clang-x64">
@@ -71,15 +58,17 @@
 				<Option compiler="clang" />
 				<Option parameters="test.xml" />
 				<Compiler>
-					<Add option="-Wall" />
 					<Add option="-g" />
+					<Add option="-std=c++20" />
+					<Add option="-Og" />
 					<Add option="-D_WIN32_WINNT=0x0A00" />
 					<Add option="-D_UNICODE" />
 					<Add option="-DUNICODE" />
 				</Compiler>
 				<Linker>
+					<Add library="io" />
 					<Add library="iconv.dll" />
-					<Add directory="../../bin/debug-win-clang-static-x64" />
+					<Add directory="../../libio/bin/debug-win-clang-static-x64" />
 				</Linker>
 			</Target>
 			<Target title="release-win-clang-x64">
@@ -88,7 +77,7 @@
 				<Option object_output="obj/release-win-clang-x64/" />
 				<Option type="1" />
 				<Option compiler="clang" />
-				<Option parameters="test.xml " />
+				<Option parameters="test.xml" />
 				<Compiler>
 					<Add option="-O3" />
 					<Add option="-Wall" />
@@ -97,50 +86,42 @@
 					<Add option="-D_WIN32_WINNT=0x0A00" />
 					<Add option="-D_UNICODE" />
 					<Add option="-DUNICODE" />
+					<Add directory="../../libio/bin/release-win-gcc-dll-x64" />
 				</Compiler>
 				<Linker>
 					<Add option="-s" />
-					<Add library="iconv.dll" />
-					<Add directory="../../bin/release-win-clang-dll-x64" />
+					<Add library="io.dll" />
+					<Add directory="../../libio/bin/release-win-clang-dll-x64" />
 				</Linker>
 			</Target>
-			<Target title="debug-unix-gcc-x86_64">
+			<Target title="debug-unix-gcc">
 				<Option platforms="Unix;" />
-				<Option output="bin/debug-unix-gcc-x86_64/xml_event_parser" prefix_auto="1" extension_auto="1" />
-				<Option object_output="obj/debug-unix-gcc-x86_64/" />
+				<Option output="bin/debug-unix-gcc/xml_event_parser" prefix_auto="1" extension_auto="1" />
+				<Option object_output="obj/debug-unix-gcc/" />
 				<Option type="1" />
 				<Option compiler="gcc" />
 				<Option parameters="test.xml" />
 				<Compiler>
-					<Add option="-flto" />
 					<Add option="-Weffc++" />
-					<Add option="-pedantic" />
-					<Add option="-Wextra" />
 					<Add option="-Wall" />
-					<Add option="-pg" />
-					<Add option="-Og" />
-					<Add option="-g" />
-					<Add option="-std=gnu++20" />
-					<Add option="-fno-exceptions" />
-					<Add option="-fno-rtti" />
+					<Add option="`pkg-config --cflags gnutls`" />
 					<Add option="-DNDEBUG" />
-					<Add option="-DUNICODE" />
-					<Add option="-DIO_SHARED_LIB" />
 				</Compiler>
 				<Linker>
-					<Add option="-flto" />
-					<Add option="-pg" />
-					<Add directory="../../bin/debug-unix-gcc-x86_64" />
+					<Add option="-Og" />
+					<Add option="-g" />
+					<Add option="`pkg-config --libs gnutls`" />
+					<Add library="io" />
+					<Add directory="../../libio/bin/debug-unix-gcc-static" />
 				</Linker>
 			</Target>
 		</Build>
 		<Compiler>
 			<Add option="-Wall" />
-			<Add directory="../../include" />
+			<Add option="-std=gnu++20" />
+			<Add option="-fexceptions" />
+			<Add directory="../../libio/include" />
 		</Compiler>
-		<Linker>
-			<Add library="io" />
-		</Linker>
 		<Unit filename="main.cpp" />
 		<Extensions>
 			<lib_finder disable_auto="1" />

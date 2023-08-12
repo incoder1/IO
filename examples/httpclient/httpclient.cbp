@@ -2,12 +2,12 @@
 <CodeBlocks_project_file>
 	<FileVersion major="1" minor="6" />
 	<Project>
-		<Option title="channels" />
+		<Option title="httpclient" />
 		<Option compiler="gcc" />
 		<Build>
 			<Target title="debug-win-gcc-x64">
 				<Option platforms="Windows;" />
-				<Option output="bin/debug-win-gcc-x64/channels" prefix_auto="1" extension_auto="1" />
+				<Option output="bin/debug-win-gcc-x64/httpclient" prefix_auto="1" extension_auto="1" />
 				<Option object_output="obj/debug-win-gcc-x64/" />
 				<Option type="1" />
 				<Option compiler="gcc" />
@@ -22,12 +22,14 @@
 				<Linker>
 					<Add library="io" />
 					<Add library="iconv.dll" />
+					<Add library="gnutls.dll" />
+					<Add library="Ws2_32" />
 					<Add directory="../../bin/debug-win-gcc-static-x64" />
 				</Linker>
 			</Target>
 			<Target title="release-win-gcc-x64">
 				<Option platforms="Windows;" />
-				<Option output="bin/release-win-gcc-x64/channels" prefix_auto="1" extension_auto="1" />
+				<Option output="bin/release-win-gcc-x64/httpclient" prefix_auto="1" extension_auto="1" />
 				<Option object_output="obj/release-win-gcc-x64/" />
 				<Option type="1" />
 				<Option compiler="gcc" />
@@ -52,7 +54,7 @@
 			</Target>
 			<Target title="debug-win-clang-x64">
 				<Option platforms="Windows;" />
-				<Option output="bin/debug-win-clang-x64/channels" prefix_auto="1" extension_auto="1" />
+				<Option output="bin/debug-win-clang-x64/httpclient" prefix_auto="1" extension_auto="1" />
 				<Option object_output="obj/debug-win-clang-x64/" />
 				<Option type="1" />
 				<Option compiler="clang" />
@@ -68,12 +70,14 @@
 				<Linker>
 					<Add library="io" />
 					<Add library="iconv.dll" />
+					<Add library="gnutls.dll" />
+					<Add library="Ws2_32" />
 					<Add directory="../../libio/bin/debug-win-clang-static-x64" />
 				</Linker>
 			</Target>
 			<Target title="release-win-clang-x64">
 				<Option platforms="Windows;" />
-				<Option output="bin/release-win-clang-x64/channels" prefix_auto="1" extension_auto="1" />
+				<Option output="bin/release-win-gcc-x64/httpclient" prefix_auto="1" extension_auto="1" />
 				<Option object_output="obj/release-win-clang-x64/" />
 				<Option type="1" />
 				<Option compiler="clang" />
@@ -96,7 +100,7 @@
 			</Target>
 			<Target title="debug-unix-gcc">
 				<Option platforms="Unix;" />
-				<Option output="bin/debug-unix-gcc/channels" prefix_auto="1" extension_auto="1" />
+				<Option output="bin/debug-unix-gcc-x86_64/httpclient" prefix_auto="1" extension_auto="1" />
 				<Option object_output="obj/debug-unix-gcc/" />
 				<Option type="1" />
 				<Option compiler="gcc" />

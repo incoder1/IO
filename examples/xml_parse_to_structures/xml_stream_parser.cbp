@@ -2,12 +2,12 @@
 <CodeBlocks_project_file>
 	<FileVersion major="1" minor="6" />
 	<Project>
-		<Option title="channels" />
+		<Option title="xml_stream_parser" />
 		<Option compiler="gcc" />
 		<Build>
 			<Target title="debug-win-gcc-x64">
 				<Option platforms="Windows;" />
-				<Option output="bin/debug-win-gcc-x64/channels" prefix_auto="1" extension_auto="1" />
+				<Option output="bin/debug-win-gcc-x64/xml_stream_parser" prefix_auto="1" extension_auto="1" />
 				<Option object_output="obj/debug-win-gcc-x64/" />
 				<Option type="1" />
 				<Option compiler="gcc" />
@@ -27,7 +27,7 @@
 			</Target>
 			<Target title="release-win-gcc-x64">
 				<Option platforms="Windows;" />
-				<Option output="bin/release-win-gcc-x64/channels" prefix_auto="1" extension_auto="1" />
+				<Option output="bin/release-win-gcc-x64/xml_stream_parser" prefix_auto="1" extension_auto="1" />
 				<Option object_output="obj/release-win-gcc-x64/" />
 				<Option type="1" />
 				<Option compiler="gcc" />
@@ -52,8 +52,8 @@
 			</Target>
 			<Target title="debug-win-clang-x64">
 				<Option platforms="Windows;" />
-				<Option output="bin/debug-win-clang-x64/channels" prefix_auto="1" extension_auto="1" />
-				<Option object_output="obj/debug-win-clang-x64/" />
+				<Option output="bin/debug-win-gcc-x64/xml_stream_parser" prefix_auto="1" extension_auto="1" />
+				<Option object_output="obj/debug-win-gcc-x64/" />
 				<Option type="1" />
 				<Option compiler="clang" />
 				<Option parameters="test.xml" />
@@ -73,8 +73,8 @@
 			</Target>
 			<Target title="release-win-clang-x64">
 				<Option platforms="Windows;" />
-				<Option output="bin/release-win-clang-x64/channels" prefix_auto="1" extension_auto="1" />
-				<Option object_output="obj/release-win-clang-x64/" />
+				<Option output="bin/release-win-gcc-x64/xml_stream_parser" prefix_auto="1" extension_auto="1" />
+				<Option object_output="obj/release-win-gcc-x64/" />
 				<Option type="1" />
 				<Option compiler="clang" />
 				<Option parameters="test.xml" />
@@ -96,8 +96,8 @@
 			</Target>
 			<Target title="debug-unix-gcc">
 				<Option platforms="Unix;" />
-				<Option output="bin/debug-unix-gcc/channels" prefix_auto="1" extension_auto="1" />
-				<Option object_output="obj/debug-unix-gcc/" />
+				<Option output="bin/debug-unix-gcc-x86_64/xml_stream_parser" prefix_auto="1" extension_auto="1" />
+				<Option object_output="obj/debug-unix-gcc-x86_64/" />
 				<Option type="1" />
 				<Option compiler="gcc" />
 				<Option parameters="test.xml" />

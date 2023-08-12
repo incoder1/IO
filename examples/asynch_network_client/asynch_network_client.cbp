@@ -46,17 +46,14 @@
 					<Add option="-O3" />
 					<Add option="-flto" />
 					<Add option="-s" />
-					<Add library="Ws2_32" />
-					<Add library="gnutls.dll" />
-					<Add library="iconv.dll" />
 					<Add library="io.dll" />
 					<Add directory="../../libio/bin/release-win-gcc-dll-x64" />
 				</Linker>
 			</Target>
 			<Target title="debug-win-clang-x64">
 				<Option platforms="Windows;" />
-				<Option output="bin/debug-win-gcc-x64/asynch_network_client" prefix_auto="1" extension_auto="1" />
-				<Option object_output="obj/debug-win-gcc-x64/" />
+				<Option output="bin/debug-win-clang-x64/asynch_network_client" prefix_auto="1" extension_auto="1" />
+				<Option object_output="obj/debug-win-clang-x64/" />
 				<Option type="1" />
 				<Option compiler="clang" />
 				<Compiler>
@@ -77,8 +74,8 @@
 			</Target>
 			<Target title="release-win-clang-x64">
 				<Option platforms="Windows;" />
-				<Option output="bin/release-win-gcc-x64/asynch_network_client" prefix_auto="1" extension_auto="1" />
-				<Option object_output="obj/release-win-gcc-x64/" />
+				<Option output="bin/release-win-clang-x64/asynch_network_client" prefix_auto="1" extension_auto="1" />
+				<Option object_output="obj/release-win-clang-x64/" />
 				<Option type="1" />
 				<Option compiler="clang" />
 				<Compiler>
@@ -89,43 +86,32 @@
 					<Add option="-D_WIN32_WINNT=0x0A00" />
 					<Add option="-D_UNICODE" />
 					<Add option="-DUNICODE" />
+					<Add directory="../../libio/bin/release-win-clang-x64" />
 				</Compiler>
 				<Linker>
 					<Add option="-s" />
-					<Add option="-O3" />
-					<Add option="-flto" />
-					<Add library="Ws2_32" />
-					<Add library="gnutls.dll" />
-					<Add library="iconv.dll" />
 					<Add library="io.dll" />
 					<Add directory="../../libio/bin/release-win-clang-dll-x64" />
 				</Linker>
 			</Target>
-			<Target title="debug-unix-gcc-x86_64">
-				<Option platforms="Unix;Mac;" />
-				<Option output="bin/debug-unix-gcc-x86_64/asynch_network_client" prefix_auto="1" extension_auto="1" />
-				<Option object_output="obj/debug-unix-gcc-x86_64/" />
+			<Target title="debug-unix-gcc">
+				<Option platforms="Unix;" />
+				<Option output="bin/debug-unix-gcc/asynch_network_client" prefix_auto="1" extension_auto="1" />
+				<Option object_output="obj/debug-unix-gcc/" />
 				<Option type="1" />
 				<Option compiler="gcc" />
 				<Compiler>
-					<Add option="-flto" />
 					<Add option="-Weffc++" />
 					<Add option="-Wall" />
+					<Add option="`pkg-config --cflags gnutls`" />
 					<Add option="-DNDEBUG" />
-					<Add option="-DIO_SHARED_LIB" />
-					<Add option="-D_WIN32_WINNT=0x0A00" />
-					<Add option="-D_UNICODE" />
-					<Add option="-DUNICODE" />
 				</Compiler>
 				<Linker>
-					<Add option="-O3" />
-					<Add option="-flto" />
-					<Add option="-s" />
-					<Add library="iconv.dll" />
-					<Add library="Ws2_32" />
-					<Add library="gnutls.dll" />
+					<Add option="-Og" />
+					<Add option="-g" />
+					<Add option="`pkg-config --libs gnutls`" />
 					<Add library="io" />
-					<Add directory="../../bin/release-win-gcc-dll-x64" />
+					<Add directory="../../libio/bin/debug-unix-gcc-static" />
 				</Linker>
 			</Target>
 		</Build>

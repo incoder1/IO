@@ -1,5 +1,5 @@
 /**
-* Example demonstrate IO blocking TCP/IP and HTTP network client input-output
+* Example demonstrate IO syncronous blocking TCP/IP and HTTP network client input-output
 * including secured TLS protected HTTP connection.
 * For non blocking connection see async_network_client
 */

@@ -7,6 +7,8 @@
 #include <files.hpp>
 #include <iostream>
 
+static const std::size_t BUFFER_SIZE = 512;
+
 int main(int argc, const char** argv)
 {
 	using namespace io;
@@ -15,10 +17,7 @@ int main(int argc, const char** argv)
 	// Open IO file channel with UTF-16LE encoded text
 	file sf( "test-utf16le.txt" );
 	if(!sf.exist()) {
-		std::cerr<<
-			" test file "<< sf.path() <<
-			 "is not exist"<<
-		std::endl;
+		std::cerr << "Test file "<< sf.path() << "is not exist"<< std::endl;
 		return -1;
 	}
 	// Create new destination file with UTF-8 encoded text result
@@ -26,10 +25,7 @@ int main(int argc, const char** argv)
 	if( !to.exist() )
 		to.create();
 
-	std::cout<<
-		"Converting "<< sf.path()<<
-		" to "<<to.path()<<
-    std::endl;
+	std::cout << "Converting "<< sf.path() <<" to "<< to.path() << std::endl;
 
 	// Open a character set converter between UTF-16LE and UTF-8 code pages
 	s_code_cnvtr cvn = code_cnvtr::open(ec,
@@ -45,18 +41,15 @@ int main(int argc, const char** argv)
 
 	s_write_channel dst = to.open_for_write(ec, write_open_mode::overwrite);
 	check_error_code(ec);
+
 	// write a UTF-8 BOM to destination file first
 	dst->write(ec, io::utf8_bom::data(), io::utf8_bom::len() );
 	check_error_code(ec);
 
-	std::size_t transcoded = transmit(ec, src, dst, 512);
+	std::size_t transcoded = transmit(ec, src, dst, BUFFER_SIZE);
 	check_error_code(ec);
 
-	std::cout<<
-		"Transcoded "<<transcoded<<
-		" bytes from "<<sf.name()<<
-		" to "<<to.name()<<
-	std::endl;
+	std::cout << "Transcoded "<< transcoded << " bytes from "<< sf.name() << " to " << to.name() << std::endl;
 
     return 0;
 }

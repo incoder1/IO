@@ -31,8 +31,8 @@
 					<Add directory="include/win" />
 				</Compiler>
 				<Linker>
-					<Add library="iconv.dll" />
 					<Add library="Ws2_32" />
+					<Add library="iconv.dll" />
 					<Add library="gnutls.dll" />
 					<Add directory="bin/debug-win-gcc-static-x64" />
 				</Linker>
@@ -107,7 +107,7 @@
 					<Add library="iconv.dll" />
 					<Add library="Ws2_32" />
 					<Add library="gnutls.dll" />
-					<Add directory="bin/release-win-gcc-dll-x64" />
+					<Add directory="bin/debug-win-clang-static-x64" />
 				</Linker>
 			</Target>
 			<Target title="release-win-clang-dll-x64">
@@ -138,14 +138,14 @@
 					<Add library="iconv.dll" />
 					<Add library="Ws2_32" />
 					<Add library="gnutls.dll" />
-					<Add directory="bin/release-win-gcc-dll-x64" />
+					<Add directory="bin/release-win-clang-dll-x64" />
 				</Linker>
 			</Target>
-			<Target title="debug-unix-gcc-static-64bit">
+			<Target title="debug-unix-gcc-static">
 				<Option platforms="Unix;" />
-				<Option output="bin/debug-unix-gcc-x86_64/io" prefix_auto="1" extension_auto="1" />
+				<Option output="bin/debug-unix-gcc-static/io" prefix_auto="1" extension_auto="1" />
 				<Option working_dir="" />
-				<Option object_output="obj/debug-unix-gcc-x86_64/" />
+				<Option object_output="obj/debug-unix-gcc/" />
 				<Option type="2" />
 				<Option compiler="gcc" />
 				<Option createDefFile="1" />
@@ -157,31 +157,13 @@
 					<Add option="-g" />
 					<Add option="-std=gnu++20" />
 					<Add option="-fchar8_t" />
-					<Add option="-fno-exceptions" />
-					<Add option="-fno-rtti" />
-					<Add option="-DNDEBUG" />
-					<Add option="-DIO_SHARED_LIB" />
-					<Add option="-DIO_TLS_PROVIDER_GNUTLS" />
 					<Add directory="include" />
-					<Add directory="include/posix" />
 					<Add directory="include/net" />
 					<Add directory="include/tls" />
+					<Add directory="include/posix" />
 				</Compiler>
 				<Linker>
-					<Add option="-fwhole-program" />
-					<Add option="-fdeclone-ctor-dtor" />
-					<Add option="-fdevirtualize-at-ltrans" />
-					<Add option="-Wl,-allow-multiple-definition" />
-					<Add option="-mtune=generic" />
-					<Add option="-minline-stringops-dynamically" />
-					<Add option="-mavx" />
-					<Add option="-mavx2" />
-					<Add option="-mlzcnt" />
-					<Add option="-mmovbe" />
-					<Add library="iconv.dll" />
-					<Add library="Ws2_32" />
-					<Add library="gnutls.dll" />
-					<Add directory="$(#msys2.lib)" />
+					<Add directory="bin/debug-unix-gcc-static" />
 				</Linker>
 			</Target>
 		</Build>
@@ -224,37 +206,37 @@
 		<Unit filename="include/net/uri.hpp" />
 		<Unit filename="include/object.hpp" />
 		<Unit filename="include/posix/console.hpp">
-			<Option target="debug-unix-gcc-static-64bit" />
+			<Option target="debug-unix-gcc-static" />
 		</Unit>
 		<Unit filename="include/posix/criticalsection.hpp">
-			<Option target="debug-unix-gcc-static-64bit" />
+			<Option target="debug-unix-gcc-static" />
 		</Unit>
 		<Unit filename="include/posix/errorcheck.hpp">
-			<Option target="debug-unix-gcc-static-64bit" />
+			<Option target="debug-unix-gcc-static" />
 		</Unit>
 		<Unit filename="include/posix/files.hpp">
-			<Option target="debug-unix-gcc-static-64bit" />
+			<Option target="debug-unix-gcc-static" />
 		</Unit>
 		<Unit filename="include/posix/io_context.hpp">
-			<Option target="debug-unix-gcc-static-64bit" />
+			<Option target="debug-unix-gcc-static" />
 		</Unit>
 		<Unit filename="include/posix/memory_traits.hpp">
-			<Option target="debug-unix-gcc-static-64bit" />
+			<Option target="debug-unix-gcc-static" />
 		</Unit>
 		<Unit filename="include/posix/posixconf.hpp">
-			<Option target="debug-unix-gcc-static-64bit" />
+			<Option target="debug-unix-gcc-static" />
 		</Unit>
 		<Unit filename="include/posix/rwlock.hpp">
-			<Option target="debug-unix-gcc-static-64bit" />
+			<Option target="debug-unix-gcc-static" />
 		</Unit>
 		<Unit filename="include/posix/sockets.hpp">
-			<Option target="debug-unix-gcc-static-64bit" />
+			<Option target="debug-unix-gcc-static" />
 		</Unit>
 		<Unit filename="include/posix/synch_socket_channel.hpp">
-			<Option target="debug-unix-gcc-static-64bit" />
+			<Option target="debug-unix-gcc-static" />
 		</Unit>
 		<Unit filename="include/posix/thread_pool.hpp">
-			<Option target="debug-unix-gcc-static-64bit" />
+			<Option target="debug-unix-gcc-static" />
 		</Unit>
 		<Unit filename="include/scoped_array.hpp" />
 		<Unit filename="include/stream.hpp" />
@@ -382,32 +364,32 @@
 		<Unit filename="src/net/http_error.cpp" />
 		<Unit filename="src/net/uri.cpp" />
 		<Unit filename="src/posix/console.cpp">
-			<Option target="debug-unix-gcc-static-64bit" />
+			<Option target="debug-unix-gcc-static" />
 		</Unit>
 		<Unit filename="src/posix/errorcheck.cpp">
-			<Option target="debug-unix-gcc-static-64bit" />
+			<Option target="debug-unix-gcc-static" />
 		</Unit>
 		<Unit filename="src/posix/files.cpp">
-			<Option target="debug-unix-gcc-static-64bit" />
+			<Option target="debug-unix-gcc-static" />
 		</Unit>
 		<Unit filename="src/posix/io_context.cpp">
-			<Option target="debug-unix-gcc-static-64bit" />
+			<Option target="debug-unix-gcc-static" />
 		</Unit>
 		<Unit filename="src/posix/sockets.cpp">
-			<Option target="debug-unix-gcc-static-64bit" />
+			<Option target="debug-unix-gcc-static" />
 		</Unit>
 		<Unit filename="src/posix/synch_socket_channel.cpp">
-			<Option target="debug-unix-gcc-static-64bit" />
+			<Option target="debug-unix-gcc-static" />
 		</Unit>
 		<Unit filename="src/posix/thread_pool.cpp">
-			<Option target="debug-unix-gcc-static-64bit" />
+			<Option target="debug-unix-gcc-static" />
 		</Unit>
 		<Unit filename="src/shared_library.cpp" />
 		<Unit filename="src/stdafx.cpp">
 			<Option link="0" />
 			<Option weight="1" />
 			<Option target="debug-win-gcc-static-x64" />
-			<Option target="debug-unix-gcc-static-64bit" />
+			<Option target="debug-unix-gcc-static" />
 		</Unit>
 		<Unit filename="src/stdafx.hpp">
 			<Option compile="1" />

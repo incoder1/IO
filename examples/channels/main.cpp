@@ -7,6 +7,8 @@
 // A data to be source of memory read channel
 const char* umessage = "Hello!\nПривет!\nПривіт!\nΧαιρετίσματα!\nHelló!\nHallå!\n";
 
+static const std::size_t BUFFER_SIZE = 24;
+
 int main()
 {
 	std::error_code ec;
@@ -20,7 +22,7 @@ int main()
 	io::check_error_code(ec);
 
 	// transmit data from memory read channel to memory write channel
-	io::transmit(ec, rch, wch, 24);
+	io::transmit(ec, rch, wch, BUFFER_SIZE);
     io::check_error_code(ec);
 
 	// Obtain memory buffer from write channel
@@ -28,7 +30,8 @@ int main()
     io::check_error_code(ec);
 
 	// Display data in console
-    std::ostream& cout = io::console::out_stream();
+	io::console cons;
+    io::console_output_stream cout(cons);
     cout <<  written.position().cdata() << std::endl;
 
     return 0;
