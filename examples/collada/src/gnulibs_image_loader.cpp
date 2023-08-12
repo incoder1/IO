@@ -95,7 +95,7 @@ public:
 
 		png_bytepp row_pointers = ::png_get_rows(png_, info_);
 
-		uint8_t* px = data.get();
+		uint8_t* px = data.begin();
 		if(flip_) {
 #ifdef _OPENMP
 #           pragma omp parallel for
