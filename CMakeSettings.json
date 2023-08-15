@@ -1,0 +1,28 @@
+﻿{
+  "configurations": [
+    {
+      "name": "debug-win-msvc-static-x64",
+      "configurationType": "Debug",
+      "inheritEnvironments": [ "msvc_x64_x64" ],
+      "buildRoot": "${projectDir}\\CBuild\\build\\${name}",
+      "installRoot": "${projectDir}\\CBuild\\install\\${name}",
+      "cmakeCommandArgs": "-DCMAKE_BUILD_TYPE=Debug -DBUILD_LIBRARY_TYPE=Static",
+      "buildCommandArgs": "",
+      "ctestCommandArgs": "",
+      "generator": "Visual Studio 17 2022 Win64",
+      "intelliSenseMode": "windows-msvc-x64"
+    },
+    {
+      "name": "release-win-msvc-dll-x64",
+      "configurationType": "RelWithDebInfo",
+      "buildRoot": "${projectDir}\\CBuild\\build\\${name}",
+      "installRoot": "${projectDir}\\CBuild\\install\\${name}",
+      "cmakeCommandArgs": "-DCMAKE_BUILD_TYPE=Release -DBUILD_LIBRARY_TYPE=Shared",
+      "buildCommandArgs": "",
+      "ctestCommandArgs": "",
+      "generator": "Visual Studio 17 2022 Win64",
+      "inheritEnvironments": [ "msvc_x64_x64" ],
+      "intelliSenseMode": "windows-msvc-x64"
+    }
+  ]
+}

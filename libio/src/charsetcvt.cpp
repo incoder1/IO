@@ -206,7 +206,7 @@ static void mbtochar32_noshift(char32_t& dst, const char* src,std::size_t& len)
 }
 
 #ifdef _MSC_VER
-__declspec(dllexport) const char* mbtochar32(char32_t& dst, const char* src) noexcept
+IO_PUBLIC_SYMBOL const char* mbtochar32(char32_t& dst, const char* src) noexcept
 #else
 const char* IO_PUBLIC_SYMBOL mbtochar32(char32_t& dst, const char* src) noexcept
 #endif
@@ -217,7 +217,7 @@ const char* IO_PUBLIC_SYMBOL mbtochar32(char32_t& dst, const char* src) noexcept
 }
 
 #ifdef _MSC_VER
-__declspec(dllexport) const u8char_t* mbtochar32(char32_t& dst, const u8char_t* src) noexcept
+IO_PUBLIC_SYMBOL const u8char_t* mbtochar32(char32_t& dst, const u8char_t* src) noexcept
 #else
 const u8char_t* IO_PUBLIC_SYMBOL mbtochar32(char32_t& dst, const u8char_t* src) noexcept
 #endif

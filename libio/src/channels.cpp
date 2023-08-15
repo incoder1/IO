@@ -14,20 +14,15 @@
 namespace io {
 
 //read_channel
-read_channel::read_channel() noexcept:
-	object()
+read_channel::read_channel() noexcept
 {}
 
 //write_channel
-write_channel::write_channel() noexcept:
-	object()
+write_channel::write_channel() noexcept
 {}
 
 // read_write_channel
-read_write_channel::read_write_channel() noexcept:
-	object(),
-	read_channel(),
-	write_channel()
+read_write_channel::read_write_channel() noexcept
 {}
 
 read_write_channel::~read_write_channel() noexcept

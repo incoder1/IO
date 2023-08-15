@@ -61,9 +61,9 @@ endif()
 
 # Dependencies
 if(MSVC)
-	set(Iconv_INCLUDE_DIR "${PROJECT_SOURCE_DIR}/deps/msvc/include")
-	set(GNUTLS_INCLUDE_DIR "${PROJECT_SOURCE_DIR}/deps/msvc/include")
-	link_directories(io "${PROJECT_SOURCE_DIR}/deps/msvc/lib/${CMAKE_VS_PLATFORM_TOOLSET_HOST_ARCHITECTURE}")
+	set(Iconv_INCLUDE_DIR "${PROJECT_SOURCE_DIR}/../deps/msvc/include")
+	set(GNUTLS_INCLUDE_DIR "${PROJECT_SOURCE_DIR}/../deps/msvc/include")
+	link_directories(io "${PROJECT_SOURCE_DIR}/../deps/msvc/lib/${CMAKE_VS_PLATFORM_TOOLSET_HOST_ARCHITECTURE}")
 	set(Iconv_LIBRARY iconv)
 	set(GNUTLS_LIBRARIES gnutls)
 elseif(CMAKE_COMPILER_IS_GNUCXX)

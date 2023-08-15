@@ -160,7 +160,7 @@ static const u_char *find_string(const u_char *bp, int *tgt, const char * const 
 
 char *strptime(const char *buf, const char *fmt, struct tm *tm) noexcept
 {
-	unsigned char c;
+	unsigned char c = '\0';
 	const unsigned char *bp, *ep;
 	int alt_format, i, split_year = 0, neg = 0, offs;
 	const char *new_fmt;

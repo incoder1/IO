@@ -247,10 +247,7 @@ static error check_xml_name(const char* tn) noexcept
 static error validate_tag_name(const char* name) noexcept
 {
 	// check XML,xMl,xml etc
-	char first[3];
-	for(std::size_t i=0; i < 3; i++)
-		first[i] = latin1_to_lower(name[i]);
-	if( start_with(first, PROLOGUE, 3) )
+	if( 0 == io_strncasecmp(name, PROLOGUE, 3) )
 		return error::illegal_name;
 	return check_xml_name(name);
 }

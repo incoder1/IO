@@ -355,8 +355,7 @@ static model_t UTF8_MODEL = {
 namespace detail {
 
 // prober
-prober::prober() noexcept:
-	object()
+prober::prober() noexcept
 {}
 
 byte_buffer prober::filter_without_english_letters(std::error_code& ec, const uint8_t* buff, std::size_t size) const noexcept
