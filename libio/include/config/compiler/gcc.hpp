@@ -173,7 +173,6 @@
 
 #endif // IO_PUSH_IGNORE_UNUSED_PARAM
 
-
 #define io_likely(__expr__) __builtin_expect(!!(__expr__), 1)
 #define io_unlikely(__expr__) __builtin_expect(!!(__expr__), 0)
 #define io_unreachable __builtin_unreachable();

@@ -133,31 +133,29 @@ std::size_t IO_PUBLIC_SYMBOL utf32_buff_size(const char* b, std::size_t size) no
 	return ret;
 }
 
-static bool is_surogate_word(uint16_t ch) noexcept
-{
-	return (ch - 0xDC00) < ( (0xDF00 - 0xDC00) + 1);
-}
 
-static constexpr uint16_t LATIN1_MAX = 0x80;
-static constexpr uint16_t TWOB_MAX = 0x800;
-static constexpr uint32_t THREEB_MAX = 0x10000;
+static constexpr uint16_t USC1_MAX = 0x007F;
+static constexpr uint16_t USC2_MAX = 0x07FF;
+static constexpr uint16_t USC3_MAX = 0xFFFF;
 
 std::size_t IO_PUBLIC_SYMBOL utf8_buff_size(const char16_t* ustr, std::size_t size) noexcept
 {
 	std::size_t ret = 0;
-	const uint16_t* c = reinterpret_cast<const uint16_t*>( ustr );
-	for (std::size_t i = 0; *c && (i < size); i++, c++) {
-		if (*c < LATIN1_MAX)
-			++ret;
-		else if (*c < TWOB_MAX) {
-			ret += 2;
-		}
-		else if ( is_surogate_word(*c) ) {
-			ret += 4;
+	std::size_t i = 0;
+	while(i < size) {
+		if (ustr[i] <= USC1_MAX) {
+			ret += 1;
 			++i;
-		}
-		else
+		} else if (ustr[i] <= USC2_MAX) {
+			ret += 2;
+			++i;
+		} else if(ustr[i] <= USC3_MAX) {
 			ret += 3;
+			++i;
+		} else {
+			ret += 4;
+			i += 2;
+		}
 	}
 	return ret;
 }
@@ -165,13 +163,12 @@ std::size_t IO_PUBLIC_SYMBOL utf8_buff_size(const char16_t* ustr, std::size_t si
 std::size_t IO_PUBLIC_SYMBOL utf8_buff_size(const char32_t* ustr, std::size_t size) noexcept
 {
 	std::size_t ret = 0;
-	const uint32_t* c = reinterpret_cast<const uint32_t*>(ustr);
-	for(std::size_t i = 0; *c && (i < size); i++, c++) {
-		if(*c < LATIN1_MAX)
+	for(std::size_t i = 0; i < size; i++) {
+		if(ustr[i] <= USC1_MAX)
 			++ret;
-		else if(*c < TWOB_MAX)
+		else if(ustr[i] <= USC2_MAX)
 			ret += 2;
-		else if(*c < THREEB_MAX)
+		else if(ustr[i] <= USC3_MAX)
 			ret += 3;
 		else
 			ret += 4;

@@ -58,15 +58,14 @@ add_custom_command(
 		TARGET io-gtest-suite
 		COMMENT "Run tests"
 		POST_BUILD
-		COMMAND ${CMAKE_CTEST_COMMAND} --output-on-failure )
+		COMMAND ${CMAKE_CTEST_COMMAND} --output-on-failure --gtest_color=auto)
 		
 if(BUILD_SHARED_LIBS)
 	if(WIN32)
 		set(RUNTIME_PATH "$ENV{PATH};${CMAKE_BINARY_DIR}")
 		message(STATUS "${RUNTIME_PATH}")
-		set_tests_properties(io-check PROPERTIES ENVIRONMENT  "PATH=${RUNTIME_PATH}\\lib")
+		set_tests_properties(io-check PROPERTIES ENVIRONMENT_MODIFICATION PATH=path_list_append:${CMAKE_BINARY_DIR}/lib)
 	elseif(UNIX)
-		set(RUNTIME_PATH "$ENV{LD_LIBRARY_PATH}:${CMAKE_BINARY_DIR}/lib")
-		set_tests_properties(io-check PROPERTIES ENVIRONMENT "LD_LIBRARY_PATH=${RUNTIME_PATH}")
+		set_tests_properties(io-check PROPERTIES ENVIRONMENT_MODIFICATION LD_LIBRARY_PATH=path_list_append:${CMAKE_BINARY_DIR}/lib)
 	endif()
 endif()

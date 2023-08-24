@@ -1,5 +1,14 @@
+/*
+ *
+ * Copyright (c) 2016-2023
+ * Viktor Gubin
+ *
+ * Use, modification and distribution are subject to the
+ * Boost Software License, Version 1.0. (See accompanying file
+ * LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
+ *
+ */
 #include "stdafx.hpp"
-
 
 static const char* BYTE_1 = "a";
 static const char* BYTE_2 = "α";
@@ -64,7 +73,7 @@ TEST_F(charset_conv_fixture, utf8_multibyte_string_character_legth)
 	ASSERT_EQ( EXPECTED, io::utf8::strlength(UTF8_STR) );
 }
 
-TEST_F(charset_conv_fixture, utf8_to_utf16)
+TEST_F(charset_conv_fixture, chars_utf8_to_utf16)
 {
 	std::error_code ec;
 	char16_t actual[64] = {u'\0'};
@@ -82,8 +91,7 @@ TEST_F(charset_conv_fixture, utf8_to_utf32)
 	ASSERT_EQ( 0, std::char_traits<char32_t>::compare(UTF32_STR, actual, std::char_traits<char32_t>::length(UTF32_STR) ) );
 }
 
-
-TEST_F(charset_conv_fixture, utf16_to_utf8)
+TEST_F(charset_conv_fixture, chars_utf16_to_utf8)
 {
 	std::error_code ec;
 	uint8_t actual[128] = {0};
@@ -99,4 +107,24 @@ TEST_F(charset_conv_fixture, utf32_to_utf8)
 	io::transcode(ec, UTF32_STR,  std::char_traits<char32_t>::length(UTF32_STR), actual, 128);
 	ASSERT_FALSE(ec);
 	ASSERT_STREQ( UTF8_STR, reinterpret_cast<char*>(actual) );
+}
+
+TEST_F(charset_conv_fixture, string_utf16_to_utf8)
+{
+	ASSERT_STREQ(UTF8_STR, io::transcode(UTF16_STR).data() );
+}
+
+TEST_F(charset_conv_fixture, string_utf32_to_utf8)
+{
+	ASSERT_STREQ(UTF8_STR, io::transcode(UTF32_STR).data() );
+}
+
+TEST_F(charset_conv_fixture, string_utf8_to_utf16)
+{
+	ASSERT_EQ( std::u16string(UTF16_STR), io::transcode_to_u16(UTF8_STR) );
+}
+
+TEST_F(charset_conv_fixture, string_utf8_to_utf32)
+{
+	ASSERT_EQ( std::u32string(UTF32_STR), io::transcode_to_u32(UTF8_STR).data() );
 }
