@@ -19,12 +19,10 @@
 					<Add option="-D_WIN32_WINNT=0x0A00" />
 					<Add option="-D_UNICODE" />
 					<Add option="-DUNICODE" />
-					<Add directory="../test" />
-					<Add directory="include" />
 				</Compiler>
 				<Linker>
 					<Add library="iconv" />
-					<Add directory="../bin/debug-win-gcc-static-x64" />
+					<Add directory="../libio/bin/debug-win-gcc-static-x64" />
 				</Linker>
 			</Target>
 			<Target title="release-ming64">
@@ -44,14 +42,12 @@
 					<Add option="-DIO_SHARED_LIB" />
 					<Add option="-D_UNICODE" />
 					<Add option="-DUNICODE" />
-					<Add directory="../test" />
-					<Add directory="include" />
 				</Compiler>
 				<Linker>
 					<Add option="-O3" />
 					<Add option="-flto" />
 					<Add option="-s" />
-					<Add directory="../bin/release-win-gcc-dll-x64" />
+					<Add directory="../libio/bin/release-win-gcc-dll-x64" />
 				</Linker>
 			</Target>
 			<Target title="release-win64-clang">
@@ -70,8 +66,6 @@
 					<Add option="-DIO_SHARED_LIB" />
 					<Add option="-D_UNICODE" />
 					<Add option="-DUNICODE" />
-					<Add directory="../test" />
-					<Add directory="include" />
 				</Compiler>
 				<Linker>
 					<Add option="-s" />
@@ -101,14 +95,14 @@
 		</Build>
 		<Compiler>
 			<Add option="-Wall" />
-			<Add directory="include" />
-			<Add directory="../include" />
+			<Add directory="../libio/include" />
 		</Compiler>
 		<Linker>
 			<Add library="io" />
 			<Add library="gtest" />
 		</Linker>
 		<Unit filename="char_cast_test.cpp" />
+		<Unit filename="charset_conv_test.cpp" />
 		<Unit filename="fixtures.hpp" />
 		<Unit filename="main.cpp" />
 		<Unit filename="stdafx.cpp" />

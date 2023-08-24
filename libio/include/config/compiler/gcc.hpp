@@ -98,6 +98,8 @@
 
 #define io_strchr(__s,__c) __builtin_strchr( (__s), (__c) )
 
+#define io_strchrn(__s,__c) __builtin_strchr( (__s), (__c) )
+
 #define io_strlen(__s) __builtin_strlen( (__s) )
 
 #define io_strcpy(__s1,__s2) __builtin_strcpy( (__s1), (__s2) )
@@ -149,7 +151,6 @@
 #		define io_size_t_clz(__x) _lzcnt_u32((__x))
 #	endif
 #else
-// in case of gcc or clang
 #	define io_clz(__x) __builtin_clz((__x))
 #	ifdef __LP64__
 #		define io_size_t_clz(__x) __builtin_clzll((__x))

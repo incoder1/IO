@@ -247,7 +247,7 @@ void source::read_until_char(byte_buffer& to,const char lookup,const char* illeg
 			}
 		}
 	}
-	while( nullptr == strchrn(stops, c, stops_size) );
+	while( nullptr == io_memchr(stops, c, stops_size) );
 	if( lookup != c ) {
 		if( cheq(c,EOF) )
 			last_ = error::illegal_markup;

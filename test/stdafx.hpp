@@ -14,5 +14,6 @@
 #include "fixtures.hpp"
 
 #include <char_cast.hpp>
+#include <charsetcvt.hpp>
 
 #endif // __IO_TEST_STDAFX_HPP_INCLUDED__

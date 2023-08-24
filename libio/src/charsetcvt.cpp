@@ -190,15 +190,19 @@ static void mbtochar32_noshift(char32_t& dst, const char* src,std::size_t& len)
 	case 1:
 		dst = static_cast<char32_t>( *src );
 		len = 1;
+		break;
 	case 2:
 		dst = decode2( src );
 		len = 2;
+		break;
 	case 3:
 		dst = decode3( src );
 		len = 3;
+		break;
 	case 4:
 		dst = decode4( src );
 		len = 4;
+		break;
 	default:
 		dst = U'\0';
 		break;

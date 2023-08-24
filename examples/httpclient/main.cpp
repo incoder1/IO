@@ -8,7 +8,7 @@
 #include <net/uri.hpp>
 #include <net/http_client.hpp>
 #include <net/security.hpp>
-#include <iostream>
+#include <console.hpp>
 
 int main(int argc, const char** argv)
 {
@@ -18,9 +18,13 @@ int main(int argc, const char** argv)
 	s_uri url = uri::parse(ec, "https://raw.githubusercontent.com/incoder1/IO/master/examples/network/main.cpp");
 	io::check_error_code(ec);
 
+	io::console cons;
+	io::console_output_stream cout(cons);
+	io::console_error_stream cerr(cons);
 
-	std::ios::sync_with_stdio(false);
-	std::cout << "Connecting to: " <<  url->host().data() << std::endl;
+	cout << "Connecting to: ";
+	cout << io::cclr::magenta << url->host();
+	cout << io::cclr::reset << std::endl;
 
 	// IO context, entry point to network and asynchronous input oputput
 	io::s_io_context ioc = io::io_context::create(ec);
@@ -53,14 +57,14 @@ int main(int argc, const char** argv)
 		read = httpr.read(ec, buff.begin(), buff.len() );
 		io::check_error_code(ec);
 		if(read > 0) {
-			std::cout.write(buff.begin(), read);
+			cout.write(buff.begin(), read);
 			buff[0] = '\0';
 		}
 	} while( !ec && read > 0 );
-	std::cout.flush();
+	cout.flush();
 
 	if(ec) {
-		std::cerr << "Network error: " << ec.value() << " " << ec.message() << std::endl;
+		cerr << "Network error: " << ec.value() << " " << ec.message() << std::endl;
 		return ec.value();
 	}
 
