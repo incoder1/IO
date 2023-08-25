@@ -90,7 +90,7 @@ cind of data needs to be caches, as well as combine hahes with inspired CityHash
 
 #### LECICAL CASTING  
 
-A compiler and standard library agnostic lexical cast implementation similar to to_chars/from_char to_string/from_string C++ standard library design.
+A compiler and standard library agnostic lexical cast implementation similar to C++ 17 [charconv](https://en.cppreference.com/w/cpp/header/charconv) to_chars&from_chars and [to_string](https://en.cppreference.com/w/cpp/string/basic_string/to_string) 
 
 ### XML 
 
