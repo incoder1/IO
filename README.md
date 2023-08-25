@@ -109,43 +109,58 @@ COLLADA 3D model partial parser and 3D model viewer example provided
 
 You should have C++ 11 compatible compiler with STD C++ library. Optionally you can use Boost library for the boost::intrusive_ptr.
 
-- [iconv](https://en.wikipedia.org/wiki/Iconv) with support of the following character sets 
+- [iconv](https://en.wikipedia.org/wiki/Iconv) following implemenations supported
+    - [GNU iconv](https://www.gnu.org/software/libiconv/)
+    -  GNU C Library iconv
 
-    Type | Code pages
-     --- | ---
-    **UNICODE** | `UTF-8`  `UTF-16LE`  `UTF-16BE`  `UTF-32LE`  `UTF-32BE`  `UTF-7` 
-    **One byte** | `US ASCII` `ISO-8859-1…ISO-8859-16` `KOI8-R` `KOI8-U` `KOI8-RU` 
-    **Windows** | `CP-1250 … CP-1258`
+- [GNU TLS v 3.0+](https://www.gnutls.org/)
+- 
+#### GNU Linux
 
-Tested implementations:
-    * [GNU iconv](https://www.gnu.org/software/libiconv/)
-    *  GNU C Library iconv
+Use your package manager to install development package
 
-- [GNU TLS v 3.0+](https://www.gnutls.org/) 
-#### UNIX
-    Most Unix distributions have an implementation, use your package manager to install development package
-    i.e. 
-    Debian based i.e. Debian/Ubuntu/Lint etc.
+##### Debian based i.e. Debian/Ubuntu/Lint etc.
+
 ```bash    
-    sudo apt-get install -y gnutls-dev 
-```    
-    RPM based Fedora,RHEL,CentOS, Mandriva etc.
+sudo apt-get install -y gnutls-dev 
+```
+
+#####  RPM based Fedora,RHEL,CentOS, Mandriva etc.
+
 ```bash    
-    sudo dnf install gnutls-devel 
-```    
-    Pacman based Arch Linux, Chakra etc.
+sudo dnf install gnutls-devel 
+```
+
+#####  Pacman based Arch Linux, Chakra etc.
 ```bash    
-    pacman -S libgnutls-devel
+pacman -S libgnutls-devel
 ```    
 
 #### Windows
-   Compiler | instruction
-    MSYS2 GCC | install developement package i.e. `pacman -S mingw-w64-x86_64-libiconv mingw-w64-x86_64-gnutls mingw-w64-x86_64-gtest` or `pacman -S mingw-w64-ucrt-x86_64-libiconv mingw-w64-ucrt-x86_64-gnutls mingw-w64-ucrt-x86_64-gtest` for universal CRT (preffered)
-    MSYS2 Clang | install developement package i.e. `pacman -S mingw-w64-clang-x86_64-libiconv mingw-w64-clang-x86_64-gnutls mingw-w64-clang-x86_64-gtest`
-    MS Visual C++ | Download release ShiftMediaProject builds [iconv](https://github.com/ShiftMediaProject/libiconv/tags) and [gnutls](https://github.com/ShiftMediaProject/gnutls/tags). Extract arhives to deps/msvc folder source code root subfolder
 
-- [Goole Test](https://github.com/google/googletest) 
-  Optionaly if you'd like to run tests
+##### MSYS2 GCC Universal CRT (UCRT) preffered GCC on Windows
+  
+```bash
+pacman -S mingw-w64-ucrt-x86_64-libiconv mingw-w64-ucrt-x86_64-gnutls mingw-w64-ucrt-x86_64-gtest
+```
+
+##### MSYS2 GCC MSVCRT - Legacy systems
+
+```bash
+pacman -S mingw-w64-x86_64-libiconv mingw-w64-x86_64-gnutls mingw-w64-x86_64-gtest
+```
+
+##### MSYS2 Clang
+```bash
+pacman -S mingw-w64-clang-x86_64-libiconv mingw-w64-clang-x86_64-gnutls mingw-w64-clang-x86_64-gtest
+```
+#####  MS Visual C++
+ 
+ Download release ShiftMediaProject builds 
+ + [iconv](https://github.com/ShiftMediaProject/libiconv/tags)
+ + [gnutls](https://github.com/ShiftMediaProject/gnutls/tags).
+    
+Create __deps\msvc__ in the IO souce directory root, and extract both archives into this folder
 
 ## TESTED OPERATING SYSTEMS AND COMPILERS MATRIX
 
@@ -166,54 +181,69 @@ OS | Compiler | Version | Arhitecture
 ## BUILDING
 
 ### Building with CMake
-To build with CMake build tool to can use following command
 
-You can build shared or static library release or debug version, optionally you can on or off exceptions and rtti.
+#### Configure
+
+General syntax
 
 ```bash
 cmake -S . -B CBuild -DCMAKE_BUILD_TYPE=<Release|Debug> -DBUILD_LIBRARY_TYPE=<Shared|Static> [-DNO_EXCEPTIONS=ON] [-DNO_RTTI=ON] [-DBUILD_TESTING=ON]
-cmake --build CBuild
 ```
 
 - BUILD_LIBRARY_TYPE use Shared with this flag to build shared library (DLL) or Static for the static library
 - NO_EXCEPTIONS optional flag for disiabling C++ exceptions, by default exceptions will be used
 - NO_RTTI optional flag for disiabling C++ runtime type information, by default RTTI generated
-- RUN_TESTS optional flag to build with GTest and run with CTest
+- DBUILD_TESTING optional flag to build with GTest and run with CTest
 
 Build result can be found at _CBuild/<arh(x86,x64)>/<Release|Debug>/lib_ sub-folder, if you don't whant to install libary with cmake.
 
-When you whant to build with MS VC++ solution as the Cmake output and d'like to build from command line e.g. the CI/CD build
+#### Configre debug static libray and run test
 ```bash
-cmake -S . -B CBuild -G "Visual Studio 17 2022" -A <x86|x64> -DCMAKE_BUILD_TYPE=<Release|Debug> -DBUILD_LIBRARY_TYPE=<Shared|Static> [-DNO_EXCEPTIONS=ON] [-DNO_RTTI=ON] [-DBUILD_TESTING=ON]
+cmake -S . -B CBuild -DCMAKE_BUILD_TYPE=Debug -DBUILD_LIBRARY_TYPE=Static -DBUILD_TESTING=ON
 ```
 
-you can open Power Shell for visual studio or run [vcvars64.bat](https://learn.microsoft.com/en-us/cpp/build/building-on-the-command-line?view=msvc-170) from console, cd to CBuild directory  
-and then use MSBuild instead of `cmake --build .` like:
+#### Configre release dynamic library
 ```bash
-MSBuild Solution_IO.sln]\io.sln /p:Configuration=Release
+cmake -S . -B CBuild -DCMAKE_BUILD_TYPE=Debug -DBUILD_LIBRARY_TYPE=Shared
 ```
+
+## Generate MS VC++ solution files
+Ensure [Visual C++ desktop tools installed](https://learn.microsoft.com/en-us/cpp/build/vscpp-step-0-installation?view=msvc-170)
+Open [Power Shell for visual studio](https://learn.microsoft.com/en-us/visualstudio/ide/reference/command-prompt-powershell?view=vs-2022)
+Follow confire and build steps
+
+#### Configure
+
+General syntax
+
+```bash
+cmake -S . -B CBuild -G "Visual Studio 17 2022" -A <x86|x64> -DCMAKE_BUILD_TYPE=<Release|Debug> -DBUILD_LIBRARY_TYPE=<Shared|Static> [-DNO_EXCEPTIONS=ON] [-DNO_RTTI=ON] [-DBUILD_TESTING=ON] --preset release
+```
+
+#### Configre debug static libray x64 and run test
+```bash
+cmake -S . -B CBuild -G "Visual Studio 17 2022" -A x64 -DCMAKE_BUILD_TYPE=Debug -DBUILD_LIBRARY_TYPE=Static -DBUILD_TESTING=ON --preset release
+```
+
+#### Configre release x64 DLL library
+```bash
+cmake -S . -B CBuild -G "Visual Studio 17 2022" -A x64 -DCMAKE_BUILD_TYPE=Release -DBUILD_LIBRARY_TYPE=Shared --preset release
+```
+
+#### Build
+
+From command line with CBuild
 
 ```PowerShell
-cmake -S . -B CBuild -G "Visual Studio 17 2022" -A x64 -DCMAKE_BUILD_TYPE=Release -DBUILD_LIBRARY_TYPE=Shared -DBUILD_TESTING=ON --preset release"
+MSBuild Solution_IO.sln /p:Configuration=Release
 ```
 
-Otherwise simply build solution with IDE. 
+Or open IDE Solution_IO.sln file and preform build from IDE
 
-##IDE
 
-#### Windows GCC MinGW64
+### Code::Blocks IDE
+Open _io.cbp profile file, select configuration you'd like and build. Same procedure for test and examples. MS VC++ compiler is not supported, use Visual Studio as described above.
 
-Preferable MinGW64 distribution is [MSYS2 MinGW64](https://www.msys2.org/).
-When you are using Msys2 make sure that Code::Blocks using [MSYS2 GCC](https://www.youtube.com/watch?v=G3QguXOVJM4) rather then any another compiler.
-Prefere Universal CRT [UCRT64](https://www.msys2.org/docs/environments/) if you'd choose GCC or choose Clang.
-Make sure that you have dependencies installed, install them if not yet i.e.
-
-```bash
-pacman -S mingw-w64-ucrt-x86_64-libiconv mingw-w64-ucrt-x86_64-gnutls mingw-w64-ucrt-x86_64-gtest
-```
-
-#### Linux/Unix
-Check that you have dependencies installed, install them if not yet with your package manager i.e. dnf, apt, pacman, port etc.Choose UNIX configration in Code::Blocks, and build the library.
 
 ### EXAMPLES
 Code examples can be found examples sub-folder. 
