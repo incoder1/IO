@@ -55,7 +55,7 @@ asynch_transport::asynch_transport(io::s_asynch_channel&& raw) noexcept:
 	ec_()
 {}
 
-ssize_t asynch_transport::pull(void* dst,std::size_t len) noexcept
+ssize_t asynch_transport::pull(void* ,std::size_t len) noexcept
 {
 	raw_->recaive(ec_, len, 0 );
 	// TODO: wait for completion and notify

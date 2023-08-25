@@ -164,7 +164,7 @@ void asynch_io_context::notify_received(std::error_code& ec,::DWORD transfered,a
 /// used as main routine function by all worker thread pool threads
 void asynch_io_context::completion_loop_routine(::HANDLE ioc_port) noexcept
 {
-	::BOOLEAN status;
+	::BOOL status = FALSE;
 	asynch_channel* channel = nullptr;
 	do {
 		::DWORD transfered = 0;

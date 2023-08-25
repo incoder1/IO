@@ -69,6 +69,23 @@ constexpr bool cheq(const lhs_ch_t lhs,const rhs_ch_t rhs) noexcept
 	return detail::unsign(lhs) == detail::unsign(rhs);
 }
 
+/// Check current symbol is enof of file symbol
+/// \param c compare left hand statement code point
+#ifdef IO_HAS_CONNCEPTS
+template<typename char_type>
+	requires(is_charater_v<char_type>)
+#else
+template<
+	typename char_type,
+	typename std::enable_if<
+		is_charater<char_type>::value
+	>::type* = nullptr
+>
+#endif // IO_HAS_CONNCEPTS
+constexpr bool is_eof(char_type ch) noexcept {
+	return std::char_traits<char_type>::eof() == ch;
+}
+ 
 /// Compares two character code points
 /// \param lhs compare left hand statement code point
 /// \param rhs compare right hand statement code point

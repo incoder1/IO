@@ -69,15 +69,16 @@ static uint16_t addrin_get_port(::PSOCKADDR_IN6 addrin) noexcept
 
 uint16_t endpoint::port() const noexcept
 {
+    uint16_t ret = 0;
     switch( family() ) {
     case ip_family::ip_v4:
-        return addrin_get_port( reinterpret_cast<::PSOCKADDR_IN>(addr_info_->ai_addr) );
+        ret = addrin_get_port( reinterpret_cast<::PSOCKADDR_IN>(addr_info_->ai_addr) );
+        break;
     case ip_family::ip_v6:
-        return addrin_get_port( reinterpret_cast<::PSOCKADDR_IN6>(addr_info_->ai_addr) );
-	default:
-		io_unreachable
-		return 0;
+        ret = addrin_get_port( reinterpret_cast<::PSOCKADDR_IN6>(addr_info_->ai_addr) );
+        break;
     }
+    return ret;
 }
 
 

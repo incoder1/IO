@@ -249,7 +249,7 @@ void source::read_until_char(byte_buffer& to,const char lookup,const char* illeg
 	}
 	while( nullptr == io_memchr(stops, c, stops_size) );
 	if( lookup != c ) {
-		if( cheq(c,EOF) )
+		if( is_eof(c) )
 			last_ = error::illegal_markup;
 		to.clear();
 	}
@@ -272,7 +272,7 @@ void source::read_until_double_char(byte_buffer& to, const char ch) noexcept
 	uint16_t i = 0;
 	do {
 		c = next();
-		if( io_unlikely( cheq(c,EOF) ) )
+		if( io_unlikely( cheq(std::char_traits<char>::eof(), c)) )
 			break;
 		if( !to.put(c) ) {
 			if( io_likely( to.exp_grow() ) ) {
@@ -286,7 +286,7 @@ void source::read_until_double_char(byte_buffer& to, const char ch) noexcept
 		i = pack_word(i, static_cast<uint16_t>(c) );
 	}
 	while( i != pattern);
-	if( error::ok != last_ || cheq(c,EOF) )
+	if( error::ok != last_ || is_eof(c) )
 		to.clear();
 }
 
@@ -297,7 +297,7 @@ void source::skip_until_dobule_char(const char ch) noexcept
 	uint16_t i = 0;
 	do {
 		c = next();
-		if( io_unlikely( cheq(c,EOF) ) )
+		if( io_unlikely( is_eof(c) ) )
 			break;
 		i = pack_word(i,c);
 	}

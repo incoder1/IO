@@ -18,7 +18,7 @@ namespace net {
 namespace tls {
 
 // friend transport functions
-int session_timeout(::gnutls_transport_ptr_t tr, unsigned int ms) noexcept
+int session_timeout(::gnutls_transport_ptr_t, unsigned int ms) noexcept
 {
 	 return static_cast<int>( ms);
 }

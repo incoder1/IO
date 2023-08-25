@@ -78,7 +78,6 @@ const char* error_category::cstr_message(int err_code) const noexcept
 	case error::ok:
 		return OK_MSG;
 	default:
-		io_unreachable
 		return OK_MSG;
 	}
 }

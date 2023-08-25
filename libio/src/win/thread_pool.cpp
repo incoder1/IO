@@ -13,7 +13,7 @@
 
 namespace io {
 
-void CALLBACK thread_pool::routine_wrapper(::PTP_CALLBACK_INSTANCE instance,::PVOID context, ::PTP_WORK work) noexcept
+void CALLBACK thread_pool::routine_wrapper(::PTP_CALLBACK_INSTANCE ,::PVOID context, ::PTP_WORK ) noexcept
 {
     std::unique_ptr<task_context> ctx(static_cast<task_context*>(context));
     ctx->call();
@@ -60,7 +60,7 @@ thread_pool::thread_pool(::PTP_POOL id, ::DWORD max_threads, ::PTP_CLEANUP_GROUP
     cbenv_()
 {
     InitializeThreadpoolEnvironment(&cbenv_);
-    SetThreadpoolCallbackCleanupGroup(&cbenv_, cleanup_group_, [](PVOID object_context, PVOID cleanup_context) {});
+    SetThreadpoolCallbackCleanupGroup(&cbenv_, cleanup_group_, [](PVOID , PVOID ) {});
 }
 
 thread_pool::~thread_pool() noexcept

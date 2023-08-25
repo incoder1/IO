@@ -81,7 +81,7 @@ inline std::ostream& operator<<(std::ostream& os, transport prot)
 /// Network connection end point, i.e. host, port IP version (4 or 6)
 class IO_PUBLIC_SYMBOL endpoint {
 private:
-	static void do_nothing(void const *p) noexcept
+	static void do_nothing(void const *) noexcept
 	{}
 	explicit endpoint(::addrinfo* const info) noexcept:
 		addr_info_(info, &endpoint::do_nothing )

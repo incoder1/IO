@@ -3,6 +3,7 @@
 /target
 /deps
 CBuild/
+.vs/
 CMakeCache.txt
 cmake_install.cmake
 CMakeFiles/

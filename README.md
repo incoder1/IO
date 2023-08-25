@@ -169,9 +169,9 @@ cmake --build CBuild
 - BUILD_LIBRARY_TYPE use Shared with this flag to build shared library (DLL) or Static for the static library
 - NO_EXCEPTIONS optional flag for disiabling C++ exceptions, by default exceptions will be used
 - NO_RTTI optional flag for disiabling C++ runtime type information, by default RTTI generated
-- RUN_TESTS optional flag to build and run tests, use this flag with Release and shared libraries builds
+- RUN_TESTS optional flag to build with GTest and run with CTest
 
-Build result can be found at _CBuild/target/<arh(x86,x64)>/<Release|Debug>/lib_ sub-folder, if you don't whant to install libary with cmake.
+Build result can be found at _CBuild/<arh(x86,x64)>/<Release|Debug>/lib_ sub-folder, if you don't whant to install libary with cmake.
 
 When you whant to build with MS VC++ solution as the Cmake output and d'like to build from command line e.g. the CI/CD build
 ```bash

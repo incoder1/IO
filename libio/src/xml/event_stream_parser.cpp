@@ -200,7 +200,7 @@ static constexpr bool is_xml_name_char(char32_t ch) noexcept
 {
 	return is_digit(ch) ||
 		// - (U+002D) | . (U+002E) | · (U+00B7)
-		is_one_of < U'-', U'.', U'·'>(ch) ||
+		is_one_of < U'·', U'-', U'.'>(ch) ||
 			is_xml_name_start_char(ch) ||
 			between<0x0300,0x036F>(ch)  ||
 			between<0x203F,0x2040>(ch);
