@@ -309,7 +309,13 @@ TEST_F(string_cast_fixture, double_from_string)
 TEST_F(string_cast_fixture, long_double_to_string)
 {
 	const long double f80 = -1.234567890123456789L;
+
+// Microsoft Visual C++ not have long double as simply double :(
+#ifdef _MSC_VER
+	static const char* expected = "-1.234567890123457";
+#else
 	static const char* expected  = "-1.234567890123456789";
+#endif
 
 	auto actual = io::to_string(ec_, f80);
 	ASSERT_FALSE( ec_ );

@@ -2,7 +2,6 @@ cmake_minimum_required(VERSION 3.13 FATAL_ERROR)
 
 project(Solution_IO CXX)
 
-
 # set type of OCCT libraries
 if (NOT BUILD_LIBRARY_TYPE)
 	set (BUILD_LIBRARY_TYPE "Shared" CACHE STRING "${BUILD_LIBRARY_TYPE_DESCR}" FORCE)

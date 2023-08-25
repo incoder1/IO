@@ -1,3 +1,4 @@
+
 /*
  *
  * Copyright (c) 2016-2022
@@ -96,6 +97,11 @@ static inline uint64_t hash_len16(const uint64_t u,const uint64_t v,const uint64
 	return ret;
 }
 
+static inline uint32_t upcast(uint8_t byte) noexcept
+{
+	return static_cast<uint32_t>(byte);
+}
+
 static uint64_t hash_0_to_16(const uint8_t *s, uint32_t len) noexcept
 {
 	if (len >= 8) {
@@ -112,9 +118,9 @@ static uint64_t hash_0_to_16(const uint8_t *s, uint32_t len) noexcept
 		return hash_len16(len + (a << 3), fetch_32(s + len - 4), mul);
 	}
 	else if (len > 0) {
-		uint32_t a = static_cast<uint32_t>(s[0]);
-		uint32_t b = static_cast<uint32_t>(s[len >> 1]);
-		uint32_t c = static_cast<uint32_t>(s[len - 1]);
+		uint32_t a = upcast(s[0]);
+		uint32_t b = upcast(s[len >> 1]);
+		uint32_t c = upcast(s[len - 1]);
 		uint32_t y = a + (b << 8);
 		uint32_t z = len + (c << 2);
 		return shift_mix(y * K2 ^ z * K0) * K2;

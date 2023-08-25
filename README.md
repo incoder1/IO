@@ -9,27 +9,27 @@ This branch in active development and not stabile
 ## Road map by the priority
 
 ### Version 1.0.0:
-1. Updates for C++ 20 standard, backward compatibility for C++11 for release 1.0	
+1. Updates for C++ 20 standard, backward compatibility for C++11 for release 1.0    
 2. Simplify some APIs and implemations i.e. console, network, etc lecal casting for work with text data formats
 3. Test over Google Test and cmake/ctest
 4. Make files must be obsolite and removed complitelly, Cmake build only
 5. Gith hub actions CI instead of Travis
-6. Asynchronous IO for network with TLS security support		
+6. Asynchronous IO for network with TLS security support        
 7. HTTP client, use (preffered) libnghttp2 or create own libnghttp2 like implementaton, need proff of concept
 8. Fix character set detection lib for full fertured, need proff of concept
-9 Tutorial over the examples	
-	
-### Deep backlog i.e. for version 1.0.1 etc: 	
+9 Tutorial over the examples    
+    
+### Deep backlog i.e. for version 1.0.1 etc:     
 * YAML data format streaming API
 * Named pipes sources
 * Support for clang compiller
-* Support for FreeBSD, Mac OS X Android and iOS	
+* Support for FreeBSD, Mac OS X Android and iOS    
 * JSON data format sreaming like Boost JSON
 * ASN 1.0 data format streaming 
 * BSON data format streaming
 * Extend COLLADA demo viewer with glTF add pathes support with geometry/calc shaders
 * Support for Intel compiller
-			
+            
 IO is modern C++ (std 11 +) library for general propose input/output library read and write binary and textual common data formats
 
 ## LIBRARY FEATURES
@@ -118,24 +118,25 @@ Tested implementations:
 
 - [GNU TLS v 3.0+](https://www.gnutls.org/) 
 #### UNIX
-	Most Unix distributions have an implementation, use your package manager to install development package
-	i.e. 
-	Debian based i.e. Debian/Ubuntu/Lint etc.
-```bash	
-	sudo apt-get install -y gnutls-dev 
-```	
-	RPM based Fedora,RHEL,CentOS, Mandriva etc.
-```bash	
-	sudo dnf install gnutls-devel 
-```	
-	Pacman based Arch Linux, Chakra etc.
-```bash	
-	pacman -S libgnutls-devel
-```	
+    Most Unix distributions have an implementation, use your package manager to install development package
+    i.e. 
+    Debian based i.e. Debian/Ubuntu/Lint etc.
+```bash    
+    sudo apt-get install -y gnutls-dev 
+```    
+    RPM based Fedora,RHEL,CentOS, Mandriva etc.
+```bash    
+    sudo dnf install gnutls-devel 
+```    
+    Pacman based Arch Linux, Chakra etc.
+```bash    
+    pacman -S libgnutls-devel
+```    
 
 #### Windows
    Compiler | instruction
-    MSYS2 | install developement package i.e. `pacman -S mingw-w64-x86_64-gnutls` or `pacman -S mingw-w64-ucrt-x86_64-gnutls` for universal CRT (preffered)
+    MSYS2 GCC | install developement package i.e. `pacman -S mingw-w64-x86_64-libiconv mingw-w64-x86_64-gnutls mingw-w64-x86_64-gtest` or `pacman -S mingw-w64-ucrt-x86_64-libiconv mingw-w64-ucrt-x86_64-gnutls mingw-w64-ucrt-x86_64-gtest` for universal CRT (preffered)
+    MSYS2 Clang | install developement package i.e. `pacman -S mingw-w64-clang-x86_64-libiconv mingw-w64-clang-x86_64-gnutls mingw-w64-clang-x86_64-gtest`
     MS Visual C++ | Download release ShiftMediaProject builds [iconv](https://github.com/ShiftMediaProject/libiconv/tags) and [gnutls](https://github.com/ShiftMediaProject/gnutls/tags). Extract arhives to deps/msvc folder source code root subfolder
 
 - [Goole Test](https://github.com/google/googletest) 
@@ -150,9 +151,12 @@ OS | Compiler | Version | Arhitecture
 --- | --- | --- | ---
 **Windows** | | |
  Windows 10 | GCC/G++ | 12.1.0 MinGW64 (MSYS2 build) | [x86_64 | UCRT64] 
- Windows 10 | MS Visual C++ | 22 | x64
+ Windows 10 | GCC/G++ | 13.0.1 MinGW64 (MSYS2 build) | [x86_64 | UCRT64]
+ Windows 10 | Clang | 16.0.5-3 | [x64] 
+ Windows 10 | MS Visual C++ | 22 | [x64]
 **GNU/Lunux** | | | 
  Fedora 36 | GCC/G++ | 12.1.0 |  x86_64
+ Ubuntu 22 | GCC/G++ | 13.0.1 |  x86_64
 
 ## BUILDING
 
@@ -162,7 +166,7 @@ To build with CMake build tool to can use following command
 You can build shared or static library release or debug version, optionally you can on or off exceptions and rtti.
 
 ```bash
-cmake -S . -B CBuild -DCMAKE_BUILD_TYPE=<Release|Debug> -DBUILD_LIBRARY_TYPE=<Shared|Static> [-DNO_EXCEPTIONS=ON] [-DNO_RTTI=ON] [-DRUN_TESTS=ON]
+cmake -S . -B CBuild -DCMAKE_BUILD_TYPE=<Release|Debug> -DBUILD_LIBRARY_TYPE=<Shared|Static> [-DNO_EXCEPTIONS=ON] [-DNO_RTTI=ON] [-DBUILD_TESTING=ON]
 cmake --build CBuild
 ```
 
@@ -175,13 +179,19 @@ Build result can be found at _CBuild/<arh(x86,x64)>/<Release|Debug>/lib_ sub-fol
 
 When you whant to build with MS VC++ solution as the Cmake output and d'like to build from command line e.g. the CI/CD build
 ```bash
-cmake -S . -B CBuild -G "Visual Studio 17 2022" -A <x86|x64> -DCMAKE_BUILD_TYPE=<Release|Debug> -DBUILD_LIBRARY_TYPE=<Shared|Static> [-DNO_EXCEPTIONS=ON] [-DNO_RTTI=ON] [-DRUN_TESTS=ON]
+cmake -S . -B CBuild -G "Visual Studio 17 2022" -A <x86|x64> -DCMAKE_BUILD_TYPE=<Release|Debug> -DBUILD_LIBRARY_TYPE=<Shared|Static> [-DNO_EXCEPTIONS=ON] [-DNO_RTTI=ON] [-DBUILD_TESTING=ON]
 ```
-you can open Power Shell for visual studio or run vcvars64.bat from console, cd to CBuild directory  
+
+you can open Power Shell for visual studio or run [vcvars64.bat](https://learn.microsoft.com/en-us/cpp/build/building-on-the-command-line?view=msvc-170) from console, cd to CBuild directory  
 and then use MSBuild instead of `cmake --build .` like:
 ```bash
-MSBuild io.sln /p:Configuration=Release
+MSBuild Solution_IO.sln]\io.sln /p:Configuration=Release
 ```
+
+```PowerShell
+cmake -S . -B CBuild -G "Visual Studio 17 2022" -A x64 -DCMAKE_BUILD_TYPE=Release -DBUILD_LIBRARY_TYPE=Shared -DBUILD_TESTING=ON --preset release"
+```
+
 Otherwise simply build solution with IDE. 
 
 ##IDE

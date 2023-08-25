@@ -66,13 +66,14 @@ DECLARE_CHARSET(CP_1258,1258,"CP1258",1,false) // ANSI/OEM Vietnamese; Vietnames
 
 #undef DECLARE_CHARSET
 
-#if	defined(__IO_POSIX_BACKEND__) && defined(IO_IS_LITTLE_ENDIAN)
-const charset code_pages::SYSTEM_WIDE = UTF_32LE;
-#endif
+#ifdef __IO_POSIX_BACKEND__
+#	ifdef IO_IS_LITTLE_ENDIAN
+		const charset code_pages::SYSTEM_WIDE = UTF_32LE;
+#	else
+		const charset code_pages::SYSTEM_WIDE = UTF_32BE;
+#	endif // IO_IS_LITTLE_ENDIAN
+#endif // __IO_POSIX_BACKEND__
 
-#if	defined(__IO_POSIX_BACKEND__) && !defined(IO_IS_LITTLE_ENDIAN)
-const charset code_pages::SYSTEM_WIDE = UTF_32BE;
-#endif
 
 #ifdef __IO_WINDOWS_BACKEND__
 const charset code_pages::SYSTEM_WIDE = UTF_16LE;
@@ -128,13 +129,9 @@ std::pair<bool, charset> code_pages::for_name(const char* name) noexcept
 {
 	static constexpr std::size_t MAX_LEN = 11;
 	if(nullptr != name && '\0' != *name) {
-		char tmp[MAX_LEN] = {'\0'};
-		for(std::size_t i=0; i < MAX_LEN && name[i] != '\0'; i++) {
-			tmp[i] = static_cast<char>( io_toupper(name[i]) );
-		}
 		for(std::size_t i=0; i < MAX_SUPPORTED; i++) {
-			if( 0 == io_strncmp(ALL_SUPPORTED[i]->name(), tmp, MAX_LEN) )
-				return std::make_pair(false, *ALL_SUPPORTED[i] );
+			if( 0 == io_strncasecmp(ALL_SUPPORTED[i]->name(), name, MAX_LEN) )
+				return std::make_pair(true, *ALL_SUPPORTED[i] );
 		}
 	}
 	return std::make_pair( false, charset() );

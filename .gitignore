@@ -4,6 +4,7 @@
 /deps
 CBuild/
 .vs/
+vcpkg_installed/
 CMakeCache.txt
 cmake_install.cmake
 CMakeFiles/

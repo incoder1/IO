@@ -25,7 +25,7 @@
 				<Linker>
 					<Add library="io" />
 					<Add library="iconv.dll" />
-					<Add directory="../../bin/debug-win-gcc-static-x64" />
+					<Add directory="../../libio/bin/debug-win-gcc-static-x64" />
 				</Linker>
 			</Target>
 			<Target title="release-win-gcc-x64">

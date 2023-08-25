@@ -140,7 +140,7 @@ using detail::decode4;
 #if defined(__GNUG__) || defined(__clang__)
 constexpr unsigned int mblen(const u8char_t* mb) noexcept
 #else
-inline unsigned int mblen(const char8_t* mb) noexcept
+inline unsigned int mblen(const u8char_t* mb) noexcept
 #endif // __GNUG__
 {
 	return isonebyte(detail::make_uint(*mb))

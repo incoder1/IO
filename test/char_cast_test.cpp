@@ -12,6 +12,8 @@
 
 #include <char_cast.hpp>
 
+#define PREVENT_MACRO_SUBSTITUTION
+
 char_cast_fixture::char_cast_fixture():
 	testing::Test()
 {}
@@ -124,7 +126,7 @@ TEST_F(char_cast_fixture,singned_8bit_to_char)
 	char* first= buff;
 	char* last = first + sizeof(buff);
 
-	int8_t s8bit = std::numeric_limits<int8_t>::min();
+	int8_t s8bit = (std::numeric_limits<int8_t>::min)();
 	auto ret = io::to_chars(first, last, s8bit);
 	ASSERT_FALSE( std::make_error_code(ret.ec) );
 	ASSERT_EQ( ret.ptr, (buff+4) );
@@ -167,13 +169,13 @@ TEST_F(char_cast_fixture,singned_16bit_to_char)
 	char* first= buff;
 	char* last = first + sizeof(buff);
 
-	int16_t s16bit = std::numeric_limits<int16_t>::min();
+	int16_t s16bit = (std::numeric_limits<int16_t>::min)();
 	auto ret = io::to_chars(first, last, s16bit);
 	ASSERT_FALSE( std::make_error_code(ret.ec) );
 	ASSERT_EQ( ret.ptr, (buff+6) );
 	ASSERT_STREQ(first,"-32768");
 
-	s16bit = std::numeric_limits<int16_t>::max();
+	s16bit = (std::numeric_limits<int16_t>::max)();
 	io_zerro_mem(buff,sizeof(buff));
 	ret = io::to_chars(first, last, s16bit);
 	ASSERT_FALSE( std::make_error_code(ret.ec) );
@@ -210,14 +212,14 @@ TEST_F(char_cast_fixture,singned_32bit_to_char)
 	char* first= buff;
 	char* last = first + sizeof(buff);
 
-	int32_t s32bit = std::numeric_limits<int32_t>::min();
+	int32_t s32bit = (std::numeric_limits<int32_t>::min)();
 
 	auto ret = io::to_chars(first, last, s32bit);
 	ASSERT_FALSE( std::make_error_code(ret.ec) );
 	ASSERT_EQ( ret.ptr, (buff+11) );
 	ASSERT_STREQ(first,"-2147483648");
 
-	s32bit = std::numeric_limits<int32_t>::max();
+	s32bit = (std::numeric_limits<int32_t>::max)();
 	io_zerro_mem(buff,sizeof(buff));
 	ret = io::to_chars(first, last, s32bit);
 	ASSERT_FALSE( std::make_error_code(ret.ec) );
@@ -254,13 +256,13 @@ TEST_F(char_cast_fixture,singned_64bit_to_char)
 	char* first= buff;
 	char* last = first + sizeof(buff);
 
-	int64_t s64bit = std::numeric_limits<int64_t>::min();
+	int64_t s64bit = (std::numeric_limits<int64_t>::min)();
 	auto ret = io::to_chars(first, last, s64bit);
 	ASSERT_FALSE( std::make_error_code(ret.ec) );
 	ASSERT_EQ( ret.ptr, (buff+20) );
 	ASSERT_STREQ(first,"-9223372036854775808");
 
-	s64bit = std::numeric_limits<int64_t>::max();
+	s64bit = (std::numeric_limits<int64_t>::max)();
 	io_zerro_mem(buff,sizeof(buff));
 	ret = io::to_chars(first, last, s64bit);
 	ASSERT_FALSE( std::make_error_code(ret.ec) );
@@ -272,7 +274,7 @@ TEST_F(char_cast_fixture, singned_64bit_from_char)
 {
 	const char* src_min = "\t\n\v\f\r -9223372036854775808";
 	const char* endp_min = src_min + io_strlen(src_min);
-	const int64_t expected_min = std::numeric_limits<int64_t>::min();
+	const int64_t expected_min = (std::numeric_limits<int64_t>::min)();
 
 	int64_t actual;
 
@@ -283,7 +285,7 @@ TEST_F(char_cast_fixture, singned_64bit_from_char)
 
 	const char* src_max = "\t\n\v\f\r 9223372036854775807";
 	const char* endp_max = src_max + io_strlen(src_max);
-	int64_t expected_max = std::numeric_limits<int64_t>::max();
+	int64_t expected_max = (std::numeric_limits<int64_t>::max)();
 
 	ret = io::from_chars(src_max, endp_max, actual );
 	ASSERT_EQ(actual, expected_max );
