@@ -105,16 +105,18 @@ See [reading C++ structure from XML](https://github.com/incoder1/IO/wiki/Reading
 
 COLLADA 3D model partial parser and 3D model viewer example provided
 
-### DEPENDENCIES 
+### INSTALL DEPENDENCIES 
 
-You should have C++ 11 compatible compiler with STD C++ library. Optionally you can use Boost library for the boost::intrusive_ptr.
+You should have one of the C++ 11 compatible compiler GNU GCC, LLVM Clang or Microsoft Visual C++
+
+You'll need following additional libraries
 
 - [iconv](https://en.wikipedia.org/wiki/Iconv) following implemenations supported
     - [GNU iconv](https://www.gnu.org/software/libiconv/)
     -  GNU C Library iconv
 
 - [GNU TLS v 3.0+](https://www.gnutls.org/)
-- 
+
 #### GNU Linux
 
 Use your package manager to install development package
@@ -197,12 +199,12 @@ cmake -S . -B CBuild -DCMAKE_BUILD_TYPE=<Release|Debug> -DBUILD_LIBRARY_TYPE=<Sh
 
 Build result can be found at _CBuild/<arh(x86,x64)>/<Release|Debug>/lib_ sub-folder, if you don't whant to install libary with cmake.
 
-#### Configre debug static libray and run test
+####  Configure debug static libray and run test
 ```bash
 cmake -S . -B CBuild -DCMAKE_BUILD_TYPE=Debug -DBUILD_LIBRARY_TYPE=Static -DBUILD_TESTING=ON
 ```
 
-#### Configre release dynamic library
+#### Configure release dynamic library
 ```bash
 cmake -S . -B CBuild -DCMAKE_BUILD_TYPE=Debug -DBUILD_LIBRARY_TYPE=Shared
 ```
@@ -220,12 +222,12 @@ General syntax
 cmake -S . -B CBuild -G "Visual Studio 17 2022" -A <x86|x64> -DCMAKE_BUILD_TYPE=<Release|Debug> -DBUILD_LIBRARY_TYPE=<Shared|Static> [-DNO_EXCEPTIONS=ON] [-DNO_RTTI=ON] [-DBUILD_TESTING=ON] --preset release
 ```
 
-#### Configre debug static libray x64 and run test
+####  Configure debug static libray x64 and run test
 ```bash
 cmake -S . -B CBuild -G "Visual Studio 17 2022" -A x64 -DCMAKE_BUILD_TYPE=Debug -DBUILD_LIBRARY_TYPE=Static -DBUILD_TESTING=ON --preset release
 ```
 
-#### Configre release x64 DLL library
+####  Configure release x64 DLL library
 ```bash
 cmake -S . -B CBuild -G "Visual Studio 17 2022" -A x64 -DCMAKE_BUILD_TYPE=Release -DBUILD_LIBRARY_TYPE=Shared --preset release
 ```
@@ -242,7 +244,7 @@ Or open IDE Solution_IO.sln file and preform build from IDE
 
 
 ### Code::Blocks IDE
-Open _io.cbp profile file, select configuration you'd like and build. Same procedure for test and examples. MS VC++ compiler is not supported, use Visual Studio as described above.
+Open __io.cbp__ progect file, select configuration you'd like and build. Same procedure for test and examples. MS VC++ compiler is not supported, use Visual Studio as described above.
 
 
 ### EXAMPLES
