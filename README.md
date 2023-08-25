@@ -9,28 +9,26 @@ This branch in active development and not stabile
 ## Road map by the priority
 
 ### Version 1.0.0:
-1. Updates for C++ 20 standard, backward compatibility for C++11 for release 1.0    
+1. Updates for C++ 20 standard, backward compatibility for C++11 for release 1.0
 2. Simplify some APIs and implemations i.e. console, network, etc lecal casting for work with text data formats
-3. Test over Google Test and cmake/ctest
-4. Make files must be obsolite and removed complitelly, Cmake build only
-5. Gith hub actions CI instead of Travis
-6. Asynchronous IO for network with TLS security support        
+3. Test over Google Test and cmake/CTest
+4. CMake section for Clang
+5. Gith hub actions CI instead of Travis (Unix/GCC done without tests (CTest can't start test suite), Add Windows and CLang)
+6. Asynchronous IO for network with TLS security support (Windows only with IO Copletition port, need Unix and TLS encription for both)
 7. HTTP client, use (preffered) libnghttp2 or create own libnghttp2 like implementaton, need proff of concept
-8. Fix character set detection lib for full fertured, need proff of concept
-9 Tutorial over the examples    
-    
-### Deep backlog i.e. for version 1.0.1 etc:     
+8. Improve character set detector feature, or simply replace with ready to use like [compact_enc_det]()ttps://github.com/google/compact_enc_det
+9. Tutorial over the examples, review examples and replace with tests when needed
+11. Binary format examples with Google Protocol Buffer, Apache Avro and ASN1 using additional libs or tools
+12. Named pipes channels and input/output
+
+### Deep backlog i.e. for version 1.0.1 etc:
+* CSV data format parser and writer
 * YAML data format streaming API
-* Named pipes sources
-* Support for clang compiller
-* Support for FreeBSD, Mac OS X Android and iOS    
-* JSON data format sreaming like Boost JSON
-* ASN 1.0 data format streaming 
-* BSON data format streaming
-* Extend COLLADA demo viewer with glTF add pathes support with geometry/calc shaders
-* Support for Intel compiller
-            
-IO is modern C++ (std 11 +) library for general propose input/output library read and write binary and textual common data formats
+* Support for FreeBSD, Mac OS X Android and iOS
+* Extend COLLADA demo viewer, replace self made OpenGL viewer with some more high level toolkit with Vulkan backedn like : [BGFX](https://github.com/bkaradzic/bgfx), [OGRE Next](https://www.ogre3d.org/download/sdk/sdk-ogre-next) or [Filament](https://github.com/google/filament)
+* Add support for Intel compiller
+
+IO is modern C++ (std 11 +) library for general propose input/output and common data textual and binary formats.
 
 ## LIBRARY FEATURES
 
@@ -64,22 +62,21 @@ C/C++ locale. Functionality allow you to work with UNICODE including UTF-8, UTF-
 and char, char8_t, char16_t, char32_t, wchar_t underlying data types as well as another single bye code pages from ISO/Windows
 and convert between them.
 
-#### CHARACTER SET LIBRARY
+#### CHARACTER SET CONVERTER
 
-Character set library for detecting and converting between characters sets (code pages) without depending on current C/C++ 
-locale. Library designed to be useful for applications, which should work in worldwide like a web server or web browser 
-for example. Conversion between character sets based on iconv library standardized by POSIX. Microsoft Windows version 
-uses port of GNU iconv. There are minimal port of Mozilla universal character detector, which can detect latin1 
-or UNICODE representation from a sort of raw bytes. As well as byte order mark ( BOM ) utility classes bundled.
- 
+Converting between different characters sets (code pages) without depending on current C/C++ 
+locale. Conversion between character sets based on iconv library standardized by POSIX to be a part of C standard library i.e. no dependency on ICU etc.
+Microsoft Windows version uses port of GNU iconv.
+
+#### CHARACTER SET DETECTOR
+
+Functionality for detecting text character set from stream of unknown data.
 
 #### CONSOLE 
 
 Console mode input/output and color manipulation library. Allows input and output into system console/terminal without 
 back effect of C/C++ locale library, and in full UNICODE mode. Unix and Windows versions supports full UNICODE console
-including UTF-8 and system WCHAR mode. There is possibility to define console colors, in respect to portability
-16 standard colors used so that it should work with most terminals. Can be used in combination with iostreams compatibility
-to replace std::cout and add coloring and UNICODE (Windows) support for console input output.
+including UTF-8 and system WCHAR mode. Colored output poroveded for all supported platfroms.
 
 #### STRINGS
 
@@ -92,13 +89,21 @@ IO implements [Google CityHash](https://github.com/google/cityhash) for const_st
 cind of data needs to be caches, as well as combine hahes with inspired CityHash algorytm.
 
 #### LECICAL CASTING  
-A common implemetion for lexical casting with the similar to to_chars/from_char to_string/from_string design. 
+
+A compiler and standard library agnostic lexical cast implementation similar to to_chars/from_char to_string/from_string C++ standard library design.
 
 ### XML 
 
-Streaming i.e. iterator lile API for XML parsing and writing. Documentation and examples provided
+Streaming - [pull](https://www.xmlpull.org/) i.e. iterator lile API for XML parsing and writing. Allow parse XML directly into POD (plain old data) stuctures, with out waste memory for building
+additional tree memory structures such as Document Object Model (DOM) and back extracting data from this structure, or dealling with callbacks like SAX API.
 
-Libray provides event and [cursor]([reading C++ structure from XML](https://github.com/incoder1/IO/wiki/Reading-structures-from-XML)) based API's.
+API gives you full control of XML parsing and writing process, skip some: tags, text or comments etc
+
+Parser and writer designed for dealling with huge XML document files such as [COLLADA](https://collada.org/) 3D models or [Scalable Vector Graphics](https://www.w3.org/TR/SVG2/)
+
+See [reading C++ structure from XML](https://github.com/incoder1/IO/wiki/Reading-structures-from-XML)
+
+COLLADA 3D model partial parser and 3D model viewer example provided
 
 ### DEPENDENCIES 
 
@@ -150,13 +155,13 @@ Tested implementations:
 OS | Compiler | Version | Arhitecture
 --- | --- | --- | ---
 **Windows** | | |
- Windows 10 | GCC/G++ | 12.1.0 MinGW64 (MSYS2 build) | [x86_64 | UCRT64] 
- Windows 10 | GCC/G++ | 13.0.1 MinGW64 (MSYS2 build) | [x86_64 | UCRT64]
- Windows 10 | Clang | 16.0.5-3 | [x64] 
- Windows 10 | MS Visual C++ | 22 | [x64]
+ Windows 10 | GCC/G++ | 12.1.0 MinGW64 (MSYS2 build) | x86_64
+ Windows 10 | GCC/G++ | 13.0.1 MinGW64 (MSYS2 build) | x86_64-UCRT64
+ Windows 10 | Clang | 16.0.5-3 | x86_64
+ Windows 10 | MS Visual C++ | 22 | x64
 **GNU/Lunux** | | | 
- Fedora 36 | GCC/G++ | 12.1.0 |  x86_64
- Ubuntu 22 | GCC/G++ | 13.0.1 |  x86_64
+ Fedora 36 | GCC/G++ | 12.1.0 | x86_64
+ Ubuntu 22 | GCC/G++ | 13.0.1 | x86_64
 
 ## BUILDING
 
@@ -200,15 +205,12 @@ Otherwise simply build solution with IDE.
 
 Preferable MinGW64 distribution is [MSYS2 MinGW64](https://www.msys2.org/).
 When you are using Msys2 make sure that Code::Blocks using [MSYS2 GCC](https://www.youtube.com/watch?v=G3QguXOVJM4) rather then any another compiler.
+Prefere Universal CRT [UCRT64](https://www.msys2.org/docs/environments/) if you'd choose GCC or choose Clang.
 Make sure that you have dependencies installed, install them if not yet i.e.
+
 ```bash
-pacman -S mingw-w64-x86_64-libiconv mingw-w64-x86_64-gnutls
+pacman -S mingw-w64-ucrt-x86_64-libiconv mingw-w64-ucrt-x86_64-gnutls mingw-w64-ucrt-x86_64-gtest
 ```
-or
-```bash
-pacman -S mingw-w64-ucrt-x86_64-libiconv mingw-w64-ucrt-x86_64-gnutls
-```
-if you d'like to link with [universal CRT](https://www.msys2.org/docs/environments/)
 
 #### Linux/Unix
 Check that you have dependencies installed, install them if not yet with your package manager i.e. dnf, apt, pacman, port etc.Choose UNIX configration in Code::Blocks, and build the library.
@@ -219,7 +221,7 @@ Where:
 * channels - basic input/output functionality
 * chconv – converting characters between different code pages example
 * collada - limited set of [COLLADA](https://www.khronos.org/collada/) 3D model OpenGL 4+ based viewer. Contans even based collada parser and simple 3D graphical model rendering engine.
-* iostreams – writes UNICODE strings into file and console with reconverting characters between multiple UNICODE representation, using C++ iostreams build on top of IO channels.
+* iostreams – writes UNICODE strings into file and console with transcoding characters between multiple UNICODE representation, using C++ iostreams build on top of IO channels.
 * xml_parse_to_structures - reads XML into C++ structure data type with cursor API
-* xml_event_parsing – XML parsing with event API, prints into console XML or any type
-* write_structures_to_xml – compile time reflection plain C object XML marshalling and XSD generation example
+* xml_event_parsing – reads any format XML document and prints parsed result into console with color highlight
+* xml_write_events – writes custom XML document with features like comments, tag prefixes and namespaces, CDATA. Format the result to human readable (pretty-print)

@@ -109,9 +109,9 @@ private:
 /// Network socket interface
 class IO_PUBLIC_SYMBOL socket {
 public:
-    socket(endpoint&& ep, transport t_prot) noexcept:
-        transport_(t_prot),
-        ep_( std::forward<endpoint>(ep) )
+	socket(endpoint&& ep, transport t_prot) noexcept:
+		transport_(t_prot),
+		ep_( std::forward<endpoint>(ep) )
 	{}
 
 	socket() noexcept:
@@ -120,19 +120,19 @@ public:
 
 	/// Returns this socket endpoint
 	/// \return socket endpoint
-    endpoint get_endpoint() const noexcept {
-        return ep_;
-    }
+	endpoint get_endpoint() const noexcept {
+		return ep_;
+	}
 
 	/// Returns socket transport type, i.e. TCP,UDP or ICMP
 	/// \return socket transport
-    transport transport_protocol() const noexcept {
-        return transport_;
-    }
+	transport transport_protocol() const noexcept {
+		return transport_;
+	}
 
 private:
-    transport transport_;
-    endpoint ep_;
+	transport transport_;
+	endpoint ep_;
 };
 
 ///  entry point to operating system network

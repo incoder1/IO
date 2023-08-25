@@ -23,7 +23,6 @@ int main(int argc, const char** argv)
 	// make unsafe concept, to avoid manual error checking, i.e. use exceptions if they are on
 	io::unsafe<xml::event_writer> xew( std::move(safe_ew) );
 
-
 	xew.add_coment("Test event writer");
 	xml::start_element_event sev( xml::qname("tst","test"), false );
 
