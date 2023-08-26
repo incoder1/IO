@@ -101,6 +101,7 @@ public:
 	{}
 
 #else // before C++ 17
+
 class byte_buffer_iterator : public std::iterator<
 	std::bidirectional_iterator_tag,
 	uint8_t,

@@ -1,6 +1,6 @@
 /*
  *
- * Copyright (c) 2016-2022
+ * Copyright (c) 2016-2023
  * Viktor Gubin
  *
  * Use, modification and distribution are subject to the
@@ -128,60 +128,66 @@ const charset* ALL_SUPPORTED[MAX_SUPPORTED] =
 std::pair<bool, charset> code_pages::for_name(const char* name) noexcept
 {
 	static constexpr std::size_t MAX_LEN = 11;
-	if(nullptr != name && '\0' != *name) {
+	std::pair<bool, charset> ret = std::make_pair( false, charset() );
+	std::size_t len = (nullptr != name && '\0' != *name) ? io_strlen(name) : 0;
+	if(len <= MAX_LEN ) {
 		for(std::size_t i=0; i < MAX_SUPPORTED; i++) {
-			if( 0 == io_strncasecmp(ALL_SUPPORTED[i]->name(), name, MAX_LEN) )
-				return std::make_pair(true, *ALL_SUPPORTED[i] );
+			if( 0 == io_strncasecmp(ALL_SUPPORTED[i]->name(), name, len) ) {
+				ret = std::make_pair(true, *ALL_SUPPORTED[i] );
+				break;
+			}
 		}
 	}
-	return std::make_pair( false, charset() );
+	return ret;
 }
 
-const charset& code_pages::platform_default() noexcept {
-	#if defined(__IO_WINDOWS_BACKEND__)
-		return UTF_16LE;
-	#elif defined(__IO_POSIX_BACKED__)
-		return UTF_8;
-	#else
-		return ASCII;
-	#endif
+const charset& code_pages::platform_default() noexcept 
+{
+#if defined(__IO_WINDOWS_BACKEND__)
+	return UTF_16LE;
+#elif defined(__IO_POSIX_BACKED__)
+	return UTF_8;
+#else
+	return ASCII;
+#endif
 }
 
-charset code_pages::platform_current() noexcept {
-	#if defined(__IO_WINDOWS_BACKEND__)
-		switch(::GetACP()) {
-			case 1250:
-				return CP_1250;
-			case 1251:
-				return CP_1251;
-			case 1252:
-				return CP_1252;
-			case 1253:
-				return CP_1253;
-			case 1254:
-				return CP_1254;
-			case 1255:
-				return CP_1255;
-			case 1256:
-				return CP_1256;
-			case 1257:
-				return CP_1257;
-			case 1258:
-				return CP_1258;
-			case 12000:
-				return UTF_32LE;
-			case 65001:
-				return UTF_8;
-			case 1200:
-			default:
-				return UTF_16LE;
-		}
-	#elif defined(__IO_POSIX_BACKEND__)
-		std::pair<bool, charset> sres = for_name(::nl_langinfo(CODESET));
-		return sres.first ? sres.second : UTF_8;
-	#else
-		return UTF_8;
-	#endif
+charset code_pages::platform_current() noexcept 
+{
+#if defined(__IO_WINDOWS_BACKEND__)
+	switch(::GetACP()) {
+		case 1250:
+			return CP_1250;
+		case 1251:
+			return CP_1251;
+		case 1252:
+			return CP_1252;
+		case 1253:
+			return CP_1253;
+		case 1254:
+			return CP_1254;
+		case 1255:
+			return CP_1255;
+		case 1256:
+			return CP_1256;
+		case 1257:
+			return CP_1257;
+		case 1258:
+			return CP_1258;
+		case 12000:
+			return UTF_32LE;
+		case 65001:
+			return UTF_8;
+		case 1200:
+		default:
+			return UTF_16LE;
+	}
+#elif defined(__IO_POSIX_BACKEND__)
+	std::pair<bool, charset> sres = for_name(::nl_langinfo(CODESET));
+	return sres.first ? sres.second : UTF_8;
+#else
+	return UTF_8;
+#endif
 }
 
 } // namesapce io

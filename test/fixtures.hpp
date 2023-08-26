@@ -52,4 +52,10 @@ public:
 	hash_fixture();
 };
 
+class charset_fixture: public testing::Test
+{
+public:
+	charset_fixture();
+};
+
 #endif // __IO_TEST_FIXTURES_HPP_INCLUDED__
