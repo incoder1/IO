@@ -51,7 +51,7 @@ namespace engine {
 		}
 
 		const uint8_t* data() const noexcept {
-			return data_.begin();
+			return data_.cbegin();
 		}
 	private:
 		std::size_t width_;

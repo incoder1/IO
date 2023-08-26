@@ -18,22 +18,32 @@
 #endif // HAS_PRAGMA_ONCE
 
 #include <type_traits>
-#include <cstring>
 
 namespace io {
 
-/// !\brief An movable but not copyable heap array reference wrapper
+
+/// !\brief An movable but not copyable heap array reference wrapper. I.e. immutable vector
 /// Unlike stl containers like vector, this is fixed size array but holds memory in heap unlike std::array
-template<typename T, typename = typename std::enable_if<std::is_copy_assignable<T>::value || std::is_move_assignable<T>::value >::type >
+#ifdef IO_HAS_CONNCEPTS
+template<typename T>
+	requires( std::is_copy_assignable_v<T> || std::is_move_assignable_v<T> )
+#else
+template<
+	typename T,
+	typename = typename std::enable_if<
+			std::is_copy_assignable<T>::value ||
+			std::is_move_assignable<T>::value
+		>::type
+>
+#endif // IO_HAS_CONNCEPTS
 class scoped_arr {
 private:
 	typedef scoped_arr<T> self_type;
-	static inline void default_free(T* const px) noexcept {
-		memory_traits::free_temporary<T>(px);
-	}
+
 	static inline void temp_free(T* const px) noexcept {
 		memory_traits::free_temporary<T>(px);
 	}
+
 public:
 
 	typedef void (*release_function)(T* const );
@@ -73,11 +83,18 @@ public:
 	scoped_arr(const T* arr, const std::size_t len) noexcept:
 		len_(len),
 		mem_( memory_traits::calloc_temporary<T>(len) ),
-		rf_( self_type::default_free )
+		rf_( self_type::temp_free )
 	{
 		assert(nullptr != mem_ && 0 != len_ && len_ < SIZE_MAX );
 		io_memmove(mem_, arr, ( len_ * sizeof(T) ) );
 	}
+
+	/// Allocates new memory block in heap and deep copy a continues memory block into it
+	/// \param begin copied memory block begin
+	/// \param end copied memory block end
+	scoped_arr(const T* begin, const T* end) noexcept:
+		scoped_arr(begin, memory_traits::distance(begin, end) )
+	{}
 
 	/// Construct an empty array reference, i.e. en empty reference to be returned in case of error
 	constexpr scoped_arr() noexcept:
@@ -107,7 +124,7 @@ public:
 		return nullptr != mem_;
 	}
 
-	/// Fill allocated memory bu 0 values
+	/// Fill allocated memory by 0 values
 	inline void clear() noexcept
 	{
 		io_zerro_mem(mem_, (len_  * sizeof(T)) );
@@ -141,12 +158,22 @@ public:
 	}
 
 	/// Gives raw C pointer on first array element
-	inline T* begin() const noexcept {
+	inline T* begin() noexcept {
 		return mem_;
 	}
 
 	/// Gives raw C pointer on element after last array element
-	inline T* end() const noexcept {
+	inline T* end() noexcept {
+		return mem_ + bytes();
+	}
+
+	/// Gives raw C const pointer on first array element
+	inline const T* cbegin() const noexcept {
+		return mem_;
+	}
+
+	/// Gives raw C const pointer on element after last array element
+	inline const T* cend() const noexcept {
 		return mem_ + bytes();
 	}
 

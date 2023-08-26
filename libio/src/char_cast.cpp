@@ -636,7 +636,7 @@ static char* fmt_yes_no(char* to, std::size_t buf_size, bool value) noexcept
 }
 
 
-// Brached LUT constants
+// Branched LUT constants
 static char DIGITS[201] =
 	"0001020304050607080910111213141516171819"
 	"2021222324252627282930313233343536373839"
@@ -1028,22 +1028,22 @@ to_chars_result IO_PUBLIC_SYMBOL to_chars(char* first, char* last, bool value, s
 
 static bool cmp_no(const char* s) noexcept
 {
-	return start_with(s,"no",2);
+	return 0 == io_strncasecmp(s,"no",2);
 }
 
 static bool cmp_yes(const char* s) noexcept
 {
-	return start_with(s,"yes",3);
+	return 0 == io_strncasecmp(s,"yes",3);
 }
 
 static bool cmp_true(const char* s) noexcept
 {
-	return start_with(s, "true", 4);
+	return 0 == io_strncasecmp(s, "true", 4);
 }
 
 static bool cmp_false(const char* s) noexcept
 {
-	return start_with(s, "false", 5);
+	return 0 == io_strncasecmp(s, "false", 5);
 }
 
 #ifdef IO_DELCSPEC
@@ -1058,24 +1058,19 @@ from_chars_result IO_PUBLIC_SYMBOL from_chars(const char* first,const char* last
 		ret.ec = std::errc::invalid_argument;
 	}
 	else {
-		std::size_t buf_size = memory_traits::distance(s,last);
-		char tmp[8] = { '\0' };
-		const std::size_t max_len = buf_size > 5 ? 5 : buf_size;
-		io_memmove(tmp, s, max_len);
-		downcase_latin1(tmp);
-		if( cmp_no(tmp) ) {
+		if( cmp_no(s) ) {
 			value = false;
 			ret.ptr = s + 2;
 		}
-		else if(cmp_yes(tmp)) {
+		else if(cmp_yes(s)) {
 			value = true;
 			ret.ptr = s + 3;
 		}
-		else if(cmp_true(tmp)) {
+		else if(cmp_true(s)) {
 			value = true;
 			ret.ptr = s + 4;
 		}
-		else if(cmp_false(tmp)) {
+		else if(cmp_false(s)) {
 			value = false;
 			ret.ptr = s + 5;
 		}

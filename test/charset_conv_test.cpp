@@ -16,6 +16,7 @@ static const char* BYTE_3 = "ァ";
 static const char* BYTE_4 = "𒀀";
 
 const char* UTF8_STR = "Hello!Привет!Χαιρετίσματα!გამარჯობა!こんにちは!您好!";
+const wchar_t* W_STR = L"Hello!Привет!Χαιρετίσματα!გამარჯობა!こんにちは!您好!";
 const char16_t* UTF16_STR = u"Hello!Привет!Χαιρετίσματα!გამარჯობა!こんにちは!您好!";
 const char32_t* UTF32_STR = U"Hello!Привет!Χαιρετίσματα!გამარჯობა!こんにちは!您好!";
 
@@ -127,4 +128,14 @@ TEST_F(charset_conv_fixture, string_utf8_to_utf16)
 TEST_F(charset_conv_fixture, string_utf8_to_utf32)
 {
 	ASSERT_EQ( std::u32string(UTF32_STR), io::transcode_to_u32(UTF8_STR).data() );
+}
+
+TEST_F(charset_conv_fixture, wchar_t_to_utf8)
+{
+	ASSERT_EQ(std::string(UTF8_STR), io::transcode(W_STR));
+}
+
+TEST_F(charset_conv_fixture, utf8_to_wchar_t)
+{
+	ASSERT_EQ(std::wstring(W_STR), io::transcode_to_ucs(UTF8_STR));
 }

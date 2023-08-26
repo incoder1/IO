@@ -85,7 +85,7 @@ template<
 constexpr bool is_eof(char_type ch) noexcept {
 	return std::char_traits<char_type>::eof() == ch;
 }
- 
+
 /// Compares two character code points
 /// \param lhs compare left hand statement code point
 /// \param rhs compare right hand statement code point
@@ -654,6 +654,12 @@ inline const unsigned char* skip_spaces(const unsigned char *str) noexcept
 inline const char* skip_spaces_n(const char *str, std::size_t n) noexcept
 {
 	std::size_t offset = io_strspn(str, IO_SPACES);
+	return (offset < n) ? (str+offset) : str;
+}
+
+inline const wchar_t* skip_spaces_n(const wchar_t* str, std::size_t n) noexcept
+{
+	std::size_t offset = std::wcsspn(str, IO_WSPACES);
 	return (offset < n) ? (str+offset) : str;
 }
 

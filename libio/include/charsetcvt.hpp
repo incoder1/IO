@@ -19,7 +19,6 @@
 
 #include "channels.hpp"
 #include "charsets.hpp"
-#include "scoped_array.hpp"
 #include "type_traits_ext.hpp"
 
 #include <system_error>
@@ -316,8 +315,8 @@ public:
 IO_PUBLIC_SYMBOL std::error_code make_error_code(io::converrc errc) noexcept;
 IO_PUBLIC_SYMBOL std::error_condition make_error_condition(io::converrc err) noexcept;
 #else
-	std::error_code IO_PUBLIC_SYMBOL make_error_code(io::converrc errc) noexcept;
-	std::error_condition  IO_PUBLIC_SYMBOL make_error_condition(io::converrc err) noexcept;
+std::error_code IO_PUBLIC_SYMBOL make_error_code(io::converrc errc) noexcept;
+std::error_condition  IO_PUBLIC_SYMBOL make_error_condition(io::converrc err) noexcept;
 #endif // IO_DELCSPEC
 
 enum class cnvrt_control
@@ -372,35 +371,6 @@ typedef char16_t sys_widechar_t;
 typedef char32_t sys_widechar_t;
 #endif // __IO_WINDOWS_BACKEND__
 
-// inside header to avoid exporting std::basic_string<char> i.e. std::string into shared library
-// and avoid possible issue with different memory allocators like jemalloc etc
-static std::string transcode_big(const wchar_t* ucs_str, std::size_t len)
-{
-
-	const sys_widechar_t* ucs = reinterpret_cast<const sys_widechar_t*>(ucs_str);
-	scoped_arr<uint8_t> arr( detail::utf8_buff_size(ucs, len) );
-	std::error_code ec;
-	std::size_t conv = transcode(ec, ucs, len, arr.begin(), arr.len() );
-	check_error_code(ec);
-	return std::string( reinterpret_cast<char*>(arr.begin()), conv);
-}
-
-static std::string transcode_small(const wchar_t* ucs_str, std::size_t len)
-{
-#ifdef __IO_WINDOWS_BACKEND__
-	const char16_t* ucs = reinterpret_cast<const char16_t*>(ucs_str);
-	uint8_t tmp[512] = { 0 };
-#else
-	const char32_t* ucs = reinterpret_cast<const char32_t*>(ucs_str);
-	uint8_t tmp[256] = { 0 };
-#endif // __IO_WINDOWS_BACKEND__
-	const std::size_t buff_size = utf8_buff_size(ucs, len);
-	std::error_code ec;
-	std::size_t conv = transcode(ec, ucs, len, tmp, buff_size);
-	check_error_code(ec);
-	return std::string(reinterpret_cast<char*>(tmp), conv);
-}
-
 } // namespace detail
 
 class IO_PUBLIC_SYMBOL code_cnvtr;
@@ -409,7 +379,7 @@ DECLARE_IPTR(code_cnvtr);
 /// \brief Character set conversation (transcoding) interface
 class IO_PUBLIC_SYMBOL code_cnvtr final: public object {
 public:
-	/// Cursor character transcoding API, direct access to conversation engine
+	/// Cursor character transcoding API, direct access to character set conversion engine
 	/// \param ec
 	///    operation error code
 	/// \param in
@@ -545,21 +515,31 @@ inline std::u32string transcode_to_u32(const char* u8_str)
 /// Convert a system UCS-2 character array to UTF-8 encoded STL string
 inline std::string transcode(const char16_t* u16_str, std::size_t len)
 {
-	scoped_arr<uint8_t> arr( detail::utf8_buff_size(u16_str, len)  );
+	std::size_t buff_size = detail::utf8_buff_size(u16_str, len);
 	std::error_code ec;
-	std::size_t conv = transcode(ec, u16_str, len, arr.begin(), arr.len() );
+	std::string ret(buff_size, '\0');
+	std::size_t conv = transcode(ec, u16_str, len, reinterpret_cast<uint8_t*>(&ret[0]), buff_size );
 	check_error_code(ec);
-	return std::string( reinterpret_cast<char*>(arr.begin()), conv);
+	ret.resize(conv);
+#ifdef __HAS_CPP_17
+	ret.shrink_to_fit();
+#endif // __HAS_CPP_17
+	return ret;
 }
 
 /// Convert a system UCS-4 character array to UTF-8 encoded STL string
 inline std::string transcode(const char32_t* u32_str, std::size_t len)
 {
-	scoped_arr<uint8_t> arr( detail::utf8_buff_size(u32_str, len) );
+	std::size_t buff_size = detail::utf8_buff_size(u32_str, len);
+	std::string ret(buff_size, '\0');
 	std::error_code ec;
-	std::size_t conv = transcode(ec, u32_str, len, arr.begin(), arr.len() );
+	std::size_t conv = transcode(ec, u32_str, len, reinterpret_cast<uint8_t*>(&ret[0]), buff_size );
 	check_error_code(ec);
-	return std::string( reinterpret_cast<char*>(arr.begin()), conv);
+	ret.resize(conv);
+#ifdef __HAS_CPP_17
+	ret.shrink_to_fit();
+#endif // __HAS_CPP_17
+	return ret;
 }
 
 inline std::string transcode(const char16_t* u16_str)
@@ -576,15 +556,16 @@ inline std::string transcode(const char32_t* u32_str)
 /// system UCS (UTF-(16|32)(LE|BE) ) character string
 inline std::wstring transcode_to_ucs(const char* u8_str, std::size_t bytes)
 {
-#ifdef __IO_WINDOWS_BACKEND__
-	scoped_arr<char16_t> arr( detail::utf16_buff_size(u8_str, bytes) + 1 );
-#else
-	scoped_arr<char32_t> arr( detail::utf32_buff_size(u8_str,bytes) + 1);
-#endif // __IO_WINDOWS_BACKEND__
+	std::size_t buff_size = detail::utf32_buff_size(u8_str,bytes) + 1;
+	std::wstring ret(buff_size, '\0');
 	std::error_code ec;
-	std::size_t conv = transcode(ec, reinterpret_cast<const uint8_t*>(u8_str), bytes, arr.begin(), arr.len() );
+	std::size_t conv = transcode(ec, reinterpret_cast<const uint8_t*>(u8_str), bytes,  reinterpret_cast<detail::sys_widechar_t*>(&ret[0]), buff_size );
 	check_error_code(ec);
-	return std::wstring(reinterpret_cast<const wchar_t*>(arr.begin()), conv );
+	ret.resize(conv);
+#ifdef __HAS_CPP_17
+	ret.shrink_to_fit();
+#endif // __HAS_CPP_17
+	return ret;
 }
 
 inline std::wstring transcode_to_ucs(const char* u8_str)
@@ -594,9 +575,17 @@ inline std::wstring transcode_to_ucs(const char* u8_str)
 
 inline std::string transcode(const wchar_t* ucs_str, std::size_t len)
 {
-	return ( io_likely( len <= (1024 / sizeof(wchar_t) ) ) )
-		   ? detail::transcode_small(ucs_str, len)
-		   : detail::transcode_big(ucs_str, len);
+	const detail::sys_widechar_t* ucs = reinterpret_cast<const detail::sys_widechar_t*>(ucs_str);
+	std::size_t buff_size = detail::utf8_buff_size(ucs, len);
+	std::string ret(buff_size, '\0');
+	std::error_code ec;
+	std::size_t conv = transcode(ec, ucs, len, reinterpret_cast<uint8_t*>(&ret[0]), buff_size );
+	check_error_code(ec);
+	ret.resize(conv);
+#ifdef __HAS_CPP_17
+	ret.shrink_to_fit();
+#endif // __HAS_CPP_17
+	return ret;
 }
 
 inline std::string transcode(const wchar_t* ucs_str)
