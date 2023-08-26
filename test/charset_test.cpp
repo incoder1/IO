@@ -69,7 +69,7 @@ TEST_F(charset_fixture, should_found_all_supported)
 	};
 
 	for(auto name: supported) {
-		auto actual = io::code_pages::for_name(name);
+		auto actual = io::code_pages::for_name(name.data());
 		ASSERT_TRUE(actual.first);
 	}
 

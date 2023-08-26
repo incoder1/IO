@@ -124,18 +124,18 @@ Use your package manager to install development package
 ##### Debian based i.e. Debian/Ubuntu/Lint etc.
 
 ```bash    
-sudo apt-get install -y gnutls-dev 
+sudo apt-get install -y gnutls-dev googletest
 ```
 
 #####  RPM based Fedora,RHEL,CentOS, Mandriva etc.
 
 ```bash    
-sudo dnf install gnutls-devel 
+sudo dnf install gnutls-devel gtest-devel
 ```
 
 #####  Pacman based Arch Linux, Chakra etc.
 ```bash    
-pacman -S libgnutls-devel
+pacman -S libgnutls-devel gtest
 ```    
 
 #### Windows
@@ -207,6 +207,15 @@ cmake -S . -B CBuild -DCMAKE_BUILD_TYPE=Debug -DBUILD_LIBRARY_TYPE=Static -DBUIL
 #### Configure release dynamic library
 ```bash
 cmake -S . -B CBuild -DCMAKE_BUILD_TYPE=Debug -DBUILD_LIBRARY_TYPE=Shared
+
+```
+
+#### Building
+
+Execute cmake building
+
+```bash
+cmake --build CBuild
 ```
 
 ## Generate MS VC++ solution files
