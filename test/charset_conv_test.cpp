@@ -15,10 +15,10 @@ static const char* BYTE_2 = "α";
 static const char* BYTE_3 = "ァ";
 static const char* BYTE_4 = "𒀀";
 
-const char* UTF8_STR = "Hello!Привет!Χαιρετίσματα!გამარჯობა!こんにちは!您好!";
-const wchar_t* W_STR = L"Hello!Привет!Χαιρετίσματα!გამარჯობა!こんにちは!您好!";
-const char16_t* UTF16_STR = u"Hello!Привет!Χαιρετίσματα!გამარჯობა!こんにちは!您好!";
-const char32_t* UTF32_STR = U"Hello!Привет!Χαιρετίσματα!გამარჯობა!こんにちは!您好!";
+static const char* UTF8_STR = "Hello!Привет!Χαιρετίσματα!გამარჯობა!こんにちは!您好!";
+static const wchar_t* W_STR = L"Hello!Привет!Χαιρετίσματα!გამარჯობა!こんにちは!您好!";
+static const char16_t* UTF16_STR = u"Hello!Привет!Χαιρετίσματα!გამარჯობა!こんにちは!您好!";
+static const char32_t* UTF32_STR = U"Hello!Привет!Χαιρετίσματα!გამარჯობა!こんにちは!您好!";
 
 charset_conv_fixture::charset_conv_fixture():
 	testing::Test()

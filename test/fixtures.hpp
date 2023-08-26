@@ -40,11 +40,16 @@ protected:
 	std::error_code ec_;
 };
 
-
 class charset_conv_fixture: public testing::Test
 {
 public:
 	charset_conv_fixture();
+};
+
+class hash_fixture: public testing::Test
+{
+public:
+	hash_fixture();
 };
 
 #endif // __IO_TEST_FIXTURES_HPP_INCLUDED__
