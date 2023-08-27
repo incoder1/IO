@@ -109,18 +109,16 @@
 				<Option compiler="gcc" />
 				<Option parameters="--gtest_color=yes" />
 				<Compiler>
-					<Add option="-std=gnu++23" />
 					<Add option="-ggdb" />
 					<Add option="-Og" />
 					<Add option="-g" />
+					<Add option="-std=gnu++23" />
 					<Add option="-fexceptions" />
 					<Add option="`pkg-config --cflags gtest gnutls`" />
-					<Add directory="../test" />
-					<Add directory="include" />
 				</Compiler>
 				<Linker>
 					<Add option="`pkg-config --libs gtest gnutls`" />
-					<Add directory="../bin/debug-unix-gcc-x86_64" />
+					<Add directory="../libio/bin/debug-unix-gcc-static" />
 				</Linker>
 			</Target>
 		</Build>

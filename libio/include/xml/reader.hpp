@@ -304,11 +304,7 @@ private:
 				io_snprintf(
 						emsg,
 						512,
-#if IO_CPU_BITS_64
-						"XML validation error at [%llu,%llu] %s:%s %s expected in this state",
-#else
-						"XML validation error at [%lu,%lu] %s:%s %s expected in this state",
-#endif // IO_CPU_BITS_64
+						"XML validation error at [%zu,%zu] %s:%s %s expected in this state",
 						pos.first,
 						pos.second,
 						nmp,
@@ -318,11 +314,7 @@ private:
 				io_snprintf(
 						emsg,
 						512,
-#if IO_CPU_BITS_64
-						"XML validation error at [%llu,%llu] %s %s expected in this state",
-#else
-						"XML validation error at [%lu,%lu] %s %s expected in this state",
-#endif // IO_CPU_BITS_64
+						"XML validation error at [%zu,%zu] %s %s expected in this state",
 						pos.first,
 						pos.second,
 						local_name,
