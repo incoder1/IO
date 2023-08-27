@@ -26,7 +26,7 @@ int main(int argc, const char** argv)
 	cout << io::cclr::magenta << url->host();
 	cout << io::cclr::reset << std::endl;
 
-	// IO context, entry point to network and asynchronous input oputput
+	// IO context, entry point to network and asynchronous input output
 	io::s_io_context ioc = io::io_context::create(ec);
 	io::check_error_code(ec);
 

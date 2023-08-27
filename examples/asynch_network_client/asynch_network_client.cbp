@@ -19,10 +19,10 @@
 					<Add option="-DUNICODE" />
 				</Compiler>
 				<Linker>
+					<Add library="io" />
 					<Add library="Ws2_32" />
 					<Add library="gnutls.dll" />
 					<Add library="iconv.dll" />
-					<Add library="io" />
 					<Add directory="../../bin/debug-win-gcc-static-x64" />
 				</Linker>
 			</Target>

@@ -1,6 +1,6 @@
 /*
  *
- * Copyright (c) 2016-2022
+ * Copyright (c) 2016-2023
  * Viktor Gubin
  *
  * Use, modification and distribution are subject to the
@@ -301,24 +301,24 @@ private:
 			char emsg[ 512 ] = {'\0'};
 			std::pair<std::size_t, std::size_t> pos = rd_.position();
 			if(nullptr != nmp && '\0' != *nmp)
-				std::snprintf(
+				io_snprintf(
 						emsg,
 						512,
-#if defined(IO_CPU_BITS_64) && defined(__IO_WINDOWS_BACKEND__)
+#if IO_CPU_BITS_64
 						"XML validation error at [%llu,%llu] %s:%s %s expected in this state",
 #else
 						"XML validation error at [%lu,%lu] %s:%s %s expected in this state",
-#endif // IO_CPU_BITS_64 and Windows
+#endif // IO_CPU_BITS_64
 						pos.first,
 						pos.second,
 						nmp,
 						local_name,
 						type);
 			else
-				std::snprintf(
+				io_snprintf(
 						emsg,
 						512,
-#if defined(IO_CPU_BITS_64) && defined(__IO_WINDOWS_BACKEND__)
+#if IO_CPU_BITS_64
 						"XML validation error at [%llu,%llu] %s %s expected in this state",
 #else
 						"XML validation error at [%lu,%lu] %s %s expected in this state",
@@ -328,7 +328,7 @@ private:
 						local_name,
 						type);
 #ifdef IO_NO_EXCEPTIONS
-        io::detail::panic( ec_.value() , emsg );
+		io::detail::panic( ec_.value() , emsg );
 #else
 		throw std::runtime_error( emsg );
 #endif // IO_NO_EXCEPTIONS
