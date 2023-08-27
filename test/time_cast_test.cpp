@@ -24,9 +24,9 @@ TEST_F(time_cast_fixture, time_point_to_chars)
 	tm.tm_year = 2022-1900; // 2022
 	tm.tm_mon = 9-1; // September
 	tm.tm_mday = 28; // 28th
-	tm.tm_hour = 21;
+	tm.tm_hour = 22;
 	tm.tm_min = 35;
-	tm.tm_isdst = 0; // Not daylight saving
+	tm.tm_isdst = 1;
 	std::time_t tp = std::mktime(&tm);
 
 	char actual[128] = {'\0'};
@@ -40,20 +40,17 @@ TEST_F(time_cast_fixture, time_point_to_chars)
 
 TEST_F(time_cast_fixture, time_from_chars)
 {
-	std::tm tm{};  // zero initialise
-	tm.tm_year = 2022-1900; // 2022
-	tm.tm_mon = 9-1; // September
-	tm.tm_mday = 28; // 28th
-	tm.tm_hour = 21;
-	tm.tm_min = 35;
-	tm.tm_isdst = 0; // Not daylight saving
-
-	std::time_t expected = std::mktime(&tm);
-
-	std::time_t actual;
-	auto ret = io::from_chars(EXPECTED_TIME_STR, EXPECTED_TIME_STR+io_strlen(EXPECTED_TIME_STR), FORMAT, actual);
+	std::time_t parsed;
+	auto ret = io::from_chars(EXPECTED_TIME_STR, EXPECTED_TIME_STR+io_strlen(EXPECTED_TIME_STR), FORMAT, parsed);
 
 	ec_ =  std::make_error_code(ret.ec);
 	ASSERT_FALSE( ec_ );
-	ASSERT_EQ(expected, actual);
+
+	// Convert sting back and check, to get time in GMT timezone
+	char actual[128] = {'\0'};
+	char* first = &actual[0];
+	char* last = first + sizeof(actual);
+	ret = io::to_chars(first, last, FORMAT,parsed);
+	ASSERT_FALSE( ec_ );
+	ASSERT_STREQ(EXPECTED_TIME_STR,actual);
 }

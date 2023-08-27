@@ -13,9 +13,10 @@
 				<Option type="1" />
 				<Option compiler="gcc" />
 				<Compiler>
+					<Add option="-std=gnu++23" />
+					<Add option="-ggdb" />
 					<Add option="-Og" />
 					<Add option="-g" />
-					<Add option="-std=gnu++20" />
 					<Add option="-fexceptions" />
 					<Add option="-D_WIN32_WINNT=0x0A00" />
 					<Add option="-D_UNICODE" />
@@ -110,8 +111,11 @@
 				<Option compiler="gcc" />
 				<Option parameters="test.xml" />
 				<Compiler>
-					<Add option="-Wall" />
+					<Add option="-std=gnu++23" />
+					<Add option="-ggdb" />
+					<Add option="-Og" />
 					<Add option="-g" />
+					<Add option="-Wall" />
 				</Compiler>
 				<Linker>
 					<Add library="io" />

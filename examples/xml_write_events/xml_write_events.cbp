@@ -13,6 +13,8 @@
 				<Option compiler="gcc" />
 				<Option parameters="test.xml" />
 				<Compiler>
+					<Add option="-std=gnu++23" />
+					<Add option="-ggdb" />
 					<Add option="-Og" />
 					<Add option="-g" />
 					<Add option="-D_WIN32_WINNT=0x0A00" />
@@ -33,6 +35,7 @@
 				<Option compiler="gcc" />
 				<Option parameters="test.xml" />
 				<Compiler>
+					<Add option="-std=gnu++23" />
 					<Add option="-flto" />
 					<Add option="-Weffc++" />
 					<Add option="-Wall" />
@@ -79,6 +82,7 @@
 				<Option compiler="clang" />
 				<Option parameters="test.xml" />
 				<Compiler>
+					<Add option="-std=c++20" />
 					<Add option="-O3" />
 					<Add option="-Wall" />
 					<Add option="-DNDEBUG" />
@@ -100,7 +104,6 @@
 				<Option object_output="obj/debug-unix-gcc/" />
 				<Option type="1" />
 				<Option compiler="gcc" />
-				<Option parameters="test.xml" />
 				<Compiler>
 					<Add option="-Weffc++" />
 					<Add option="-Wall" />
@@ -108,6 +111,8 @@
 					<Add option="-DNDEBUG" />
 				</Compiler>
 				<Linker>
+					<Add option="-std=gnu++23" />
+					<Add option="-ggdb" />
 					<Add option="-Og" />
 					<Add option="-g" />
 					<Add option="`pkg-config --libs gnutls`" />
@@ -118,8 +123,6 @@
 		</Build>
 		<Compiler>
 			<Add option="-Wall" />
-			<Add option="-std=gnu++20" />
-			<Add option="-fexceptions" />
 			<Add directory="../../libio/include" />
 		</Compiler>
 		<Unit filename="main.cpp" />

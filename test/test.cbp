@@ -13,11 +13,15 @@
 				<Option compiler="gcc" />
 				<Option parameters="--gtest_color=yes" />
 				<Compiler>
+					<Add option="-Winit-self" />
+					<Add option="-std=gnu++23" />
+					<Add option="-ggdb" />
 					<Add option="-Og" />
 					<Add option="-g" />
 					<Add option="-D_WIN32_WINNT=0x0A00" />
 					<Add option="-D_UNICODE" />
 					<Add option="-DUNICODE" />
+					<Add directory="include/win" />
 				</Compiler>
 				<Linker>
 					<Add library="io" />
@@ -105,15 +109,17 @@
 				<Option compiler="gcc" />
 				<Option parameters="--gtest_color=yes" />
 				<Compiler>
+					<Add option="-std=gnu++23" />
+					<Add option="-ggdb" />
+					<Add option="-Og" />
 					<Add option="-g" />
 					<Add option="-fexceptions" />
-					<Add option="-std=gnu++20" />
-					<Add option="`pkg-config --cflags gtest`" />
+					<Add option="`pkg-config --cflags gtest gnutls`" />
 					<Add directory="../test" />
 					<Add directory="include" />
 				</Compiler>
 				<Linker>
-					<Add option="`pkg-config --libs gtest`" />
+					<Add option="`pkg-config --libs gtest gnutls`" />
 					<Add directory="../bin/debug-unix-gcc-x86_64" />
 				</Linker>
 			</Target>

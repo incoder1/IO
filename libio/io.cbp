@@ -16,8 +16,10 @@
 					<Add option="-Winit-self" />
 					<Add option="-Weffc++" />
 					<Add option="-pedantic" />
+					<Add option="-std=gnu++23" />
+					<Add option="-ggdb" />
+					<Add option="-Og" />
 					<Add option="-g" />
-					<Add option="-std=gnu++20" />
 					<Add option="-fchar8_t" />
 					<Add option="-fexceptions" />
 					<Add option="-minline-stringops-dynamically" />
@@ -51,7 +53,7 @@
 					<Add option="-Weffc++" />
 					<Add option="-pedantic" />
 					<Add option="-Wall" />
-					<Add option="-std=gnu++20" />
+					<Add option="-std=gnu++23" />
 					<Add option="-fchar8_t" />
 					<Add option="-fno-exceptions" />
 					<Add option="-fno-rtti" />
