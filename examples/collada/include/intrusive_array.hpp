@@ -59,7 +59,6 @@ public:
 		}
 	}
 
-
 	intrusive_array(const intrusive_array& other) noexcept:
 		length_(other.length_),
 		mem_(other.mem_)

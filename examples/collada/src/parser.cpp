@@ -41,12 +41,9 @@ static unsigned int next_uint(const char* str,const char* &endp) noexcept
 
 static std::size_t parse_sizet(const io::const_string& str) noexcept
 {
-	char *s = const_cast<char*>( str.data() );
-#ifdef IO_CPU_BITS_64
-	return std::strtoull(s, &s, 10);
-#else
-	return std::strtoul(s, &s, 10);
-#endif
+	std::size_t ret;
+	io::from_string(str,ret);
+	return ret;
 }
 
 static bool not_empty(const char* str) noexcept
@@ -69,43 +66,64 @@ static std::size_t parse_string_array(const io::const_string& val,float* const t
 	return ret;
 }
 
-/// Parses space separated list of unsigned integers
-template<typename T>
-static util::intrusive_array<T> parse_string_array(
-			const io::const_string& val,
-			typename std::enable_if<std::is_arithmetic<T>::value >::type* = nullptr
-		) noexcept
+// Regex like to count integers separated by spaces in a strings
+static std::size_t count_string_numbers(const io::const_string& val) noexcept
 {
-	constexpr const char* WHITESPACE = "\t\n\v\f\r ";
-	constexpr const char* DIGIGTS = "1234567890";
-	std::size_t size = 0;
+	static constexpr const char* DIGIGTS = "0123456789";
+	std::size_t ret = 0;
 	const char* s = val.data();
 	std::size_t len = 0;
 	// count numbers
 	do {
 		// skip all whitespace characters and all digits
-		len = io_strspn( (s += io_strspn(s,WHITESPACE) ), DIGIGTS );
+		// stop on next space after a last digit
+		// i.e. count groups by (\s+\d+) regular expression
+		len = io_strspn( io::skip_spaces(s), DIGIGTS );
+		// no expression found, stop counting
 		if(0 != len)
-			++size;
+			++ret;
+		// move forward
 		s += len;
 	}
 	while( 0 != len && not_empty(s) );
+	return ret;
+}
+
+/// Parses space separated list of unsigned integers
+#ifdef IO_HAS_CONNCEPTS
+template<typename T>
+	requires( io::is_unsigned_integer_v<T> )
+static util::intrusive_array<T> parse_string_array(const io::const_string& val) noexcept
+#else
+template<typename T>
+static util::intrusive_array<T> parse_string_array(
+			const io::const_string& val,
+			typename std::enable_if<
+				io::is_unsigned_integer<T>::value
+			>::type* = nullptr
+		) noexcept
+#endif // IO_HAS_CONNCEPTS
+{
+
+	std::size_t size = count_string_numbers(val);
+	util::intrusive_array<T> ret;
 	// Parse numbers if any
 	if( io_likely(0 != size) ) {
-		util::intrusive_array<T> ret( size );
-		s = val.data();
+		ret = util::intrusive_array<T>( size );
+		const char* s = val.data();
 		for(std::size_t i=0; i < size; i++) {
 			ret[i] = static_cast<T>( next_uint(s, s) );
 		}
 		return ret;
 	}
-	return util::intrusive_array<T>();
+	return ret;
 }
 
 static float parse_float(const io::const_string& val)
 {
-	const char* s = val.data();
-	return next_float(s, s);
+	float ret;
+	io::from_string(val,ret);
+	return ret;
 }
 
 static void parse_vec4(const io::const_string& val, float * ret)
@@ -116,7 +134,6 @@ static void parse_vec4(const io::const_string& val, float * ret)
 	}
 }
 
-
 static io::xml::s_event_stream_parser open_parser(io::s_read_channel&& src)
 {
 	std::error_code ec;
@@ -125,7 +142,7 @@ static io::xml::s_event_stream_parser open_parser(io::s_read_channel&& src)
 	return ret;
 }
 
-static io::const_string unref(const io::const_string& ref) noexcept
+static io::const_string link_unref(const io::const_string& ref) noexcept
 {
 	return io::const_string( ref.data()+1, ref.length()-1 );
 }
@@ -526,7 +543,7 @@ void parser::parse_library_materials(s_model& md)
 				material_id = get_attr(sev,"id");
 			}
 			else if( is_element(sev,"instance_effect") ) {
-				md->add_material_effect_link( std::move(material_id), unref(get_attr(sev,"url")) );
+				md->add_material_effect_link( std::move(material_id), link_unref(get_attr(sev,"url")) );
 			}
 		}
 	}
@@ -555,7 +572,7 @@ input parser::parse_input(const io::xml::start_element_event& e)
 		}
 	}
 	// remove # at the begin
-	ret.accessor_id = unref(get_attr(e,"source"));
+	ret.accessor_id = link_unref(get_attr(e,"source"));
 
 	//
 	ret.offset = parse_sizet( get_attr(e,"offset") );
@@ -612,7 +629,7 @@ void parser::parse_source(const s_source& src)
 				continue;
 			}
 			else if( is_element(sev,"accessor") ) {
-				io::const_string id = unref( get_attr(sev,"source") );
+				io::const_string id = link_unref( get_attr(sev,"source") );
 				auto attr = sev.get_attribute("","count");
 				std::size_t count = attr.second ? parse_sizet( attr.first ) : 0;
 				attr = sev.get_attribute("","stride");
@@ -750,7 +767,7 @@ void parser::parse_mesh(const s_mesh& m)
 				sev = xp_->parse_start_element();
 				check_eod(state, ERR_MSG);
 				if( is_element(sev, "input") )
-					m->set_pos_src_id( unref( get_attr(sev,"source") ) );
+					m->set_pos_src_id( link_unref( get_attr(sev,"source") ) );
 			}
 			else if( is_sub_mesh(sev) ) {
 				auto mat = sev.get_attribute("","material");
@@ -807,13 +824,13 @@ void parser::parse_node(node& nd)
 			sev = xp_->parse_start_element();
 			check_eod(state, ERR_MSG);
 			if( is_element(sev,"instance_geometry") ) {
-				nd.geo_ref.url = unref( get_attr(sev,"url") );
+				nd.geo_ref.url = link_unref( get_attr(sev,"url") );
 				auto attr = sev.get_attribute("","name");
 				if( attr.second )
 					nd.geo_ref.name.swap( attr.first );
 			}
 			else if(is_element(sev,"instance_material") ) {
-				nd.geo_ref.mat_ref.target = unref( get_attr(sev,"target") );
+				nd.geo_ref.mat_ref.target = link_unref( get_attr(sev,"target") );
 				nd.geo_ref.mat_ref.symbol = get_attr(sev,"symbol");
 			}
 		}

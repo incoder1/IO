@@ -668,6 +668,8 @@ inline const char* skip_spaces_ranged(const char *str, const char *end) noexcept
 	return skip_spaces_n(str, static_cast<std::size_t>(end-str) );
 }
 
+#undef IO_SPACES
+#undef IO_WSPACES
 
 #ifdef IO_HAS_CONNCEPTS
 template<typename char_t>
