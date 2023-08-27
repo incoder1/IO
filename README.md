@@ -121,8 +121,12 @@ You'll need following additional libraries
 
 Use your package manager to install development package
 
-##### Debian based i.e. Debian/Ubuntu/Lint etc.
-
+##### APT based
+##### Ubuntu 
+```bash
+sudo apt-get install -y gnutls-bin gnutls-dev libgtest-dev
+```
+##### Debian
 ```bash    
 sudo apt-get install -y gnutls-dev googletest
 ```
