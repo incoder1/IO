@@ -30,12 +30,15 @@
 #	define __HAS_CPP_20 1
 #endif // C++ 20
 
+#if __cplusplus >= 202302L
+#	define __HAS_CPP_23 1
+#endif // C++ 23
+
+#define HAS_PRAGMA_ONCE
 
 #include <cstddef>
 #include <cstdint>
 #include <climits>
-
-#define HAS_PRAGMA_ONCE
 
 // Intel compiler specific
 #ifdef __ICC

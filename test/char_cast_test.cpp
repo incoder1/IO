@@ -12,8 +12,6 @@
 
 #include <char_cast.hpp>
 
-#define PREVENT_MACRO_SUBSTITUTION
-
 char_cast_fixture::char_cast_fixture():
 	testing::Test()
 {}

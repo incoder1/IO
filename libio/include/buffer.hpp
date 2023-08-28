@@ -149,11 +149,11 @@ public:
 		return reinterpret_cast<const char*>(position_);
 	}
 
-#if defined(__HAS_CPP_17) && defined(__cpp_char8_t)
+#ifdef IO_HAS_CHAR8_T
 	inline const char8_t* u8data() const noexcept {
 		return reinterpret_cast<const char8_t*>(position_);
 	}
-#endif
+#endif // IO_HAS_CHAR8_T
 
 	inline byte_buffer_iterator& operator++() noexcept {
 		++position_;

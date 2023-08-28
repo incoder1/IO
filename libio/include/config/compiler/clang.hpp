@@ -30,6 +30,10 @@
 #	define __HAS_CPP_20 1
 #endif // C++ 20
 
+#if __cplusplus >= 202302L
+#	define __HAS_CPP_23 1
+#endif // C++ 23
+
 #include <cstddef>
 #include <cstdint>
 #include <climits>

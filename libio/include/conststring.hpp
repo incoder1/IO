@@ -96,15 +96,14 @@ __forceinline std::size_t long_size(const sso_variant_t& v) noexcept
 }
 
 #ifndef __HAS_CPP_14
-  // C++11 version of std::exchange for internal use.
-  template <typename _Tp, typename _Up = _Tp>
-    inline _Tp
-    exchange(_Tp& __obj, _Up&& __new_val)
-    {
-      _Tp __old_val = std::move(__obj);
-      __obj = std::forward<_Up>(__new_val);
-      return __old_val;
-    }
+// C++11 version of std::exchange for internal use.
+template <typename _Tp, typename _Up = _Tp>
+inline _Tp exchange(_Tp& __obj, _Up&& __new_val)
+{
+	_Tp __old_val = std::move(__obj);
+	__obj = std::forward<_Up>(__new_val);
+	return __old_val;
+}
 #endif // __HAS_CPP_14
 
 } // namespace detail

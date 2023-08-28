@@ -13,13 +13,13 @@
 				<Option type="2" />
 				<Option compiler="gcc" />
 				<Compiler>
+					<Add option="-std=gnu++23" />
 					<Add option="-Winit-self" />
 					<Add option="-Weffc++" />
 					<Add option="-pedantic" />
-					<Add option="-std=gnu++23" />
-					<Add option="-ggdb" />
 					<Add option="-Og" />
 					<Add option="-g" />
+					<Add option="-ggdb" />
 					<Add option="-fchar8_t" />
 					<Add option="-fexceptions" />
 					<Add option="-minline-stringops-dynamically" />
@@ -81,8 +81,8 @@
 					<Add option="-mlzcnt" />
 					<Add option="-mmovbe" />
 					<Add library="iconv.dll" />
-					<Add library="Ws2_32" />
 					<Add library="gnutls.dll" />
+					<Add library="Ws2_32" />
 					<Add directory="bin/release-win-gcc-dll-x64" />
 				</Linker>
 			</Target>

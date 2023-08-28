@@ -33,6 +33,18 @@
 #	define _CRT_SECURE_NO_WARNINGS 1
 #endif
 
+// C++ 20 features test
+#ifdef __HAS_CPP_20
+
+#ifdef __cpp_char8_t
+#  define IO_HAS_CHAR8_T 1
+#endif // defined
+
+#ifdef __cpp_concepts
+#  define IO_HAS_CONNCEPTS 1
+#endif // __cpp_concepts
+
+#endif // __HAS_CPP_20
 
 #define _STATIC_CPPLIB
 // disable warnings about defining _STATIC_CPPLIB

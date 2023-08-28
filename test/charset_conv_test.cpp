@@ -10,6 +10,8 @@
  */
 #include "stdafx.hpp"
 
+#include <charsets.hpp>
+
 static const char* BYTE_1 = "a";
 static const char* BYTE_2 = "α";
 static const char* BYTE_3 = "ァ";

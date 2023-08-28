@@ -48,17 +48,17 @@ static bool is_prologue(const char *s) noexcept
 
 static bool is_comment(const char *s) noexcept
 {
-	return start_with(s, COMMENT, 4);
+	return starts_with(s, COMMENT, 4);
 }
 
 static bool is_cdata(const char* s) noexcept
 {
-	return start_with(s, CDATA, 9);
+	return starts_with(s, CDATA, 9);
 }
 
 static bool is_doc_type(const char *s) noexcept
 {
-	return start_with(s, DOCTYPE, 9);
+	return starts_with(s, DOCTYPE, 9);
 }
 
 static bool is_true(const char* s) noexcept
@@ -491,7 +491,7 @@ document_event event_stream_parser::parse_start_doc() noexcept
 		i = stop + 1;
 	}
 	// check error in this point
-	if( ! start_with( skip_spaces(i), END_PROLOGUE) ) {
+	if( ! starts_with( skip_spaces(i), END_PROLOGUE) ) {
 		assign_error(error::illegal_prologue);
 		return document_event();
 	}
@@ -633,7 +633,7 @@ const_string event_stream_parser::read_comment() noexcept
 	check_state(state_type::comment, const_string)
 	constexpr std::size_t END_LEXEM_LEN = 3; // --> len
 	byte_buffer tmp( read_until_double_separator(HYPHEN, error::illegal_commentary) );
-	if( tmp.empty() || start_with("--", tmp.position().cdata(), 2) )
+	if( tmp.empty() || starts_with("--", tmp.position().cdata(), 2) )
 		return  const_string();
 	else
 		return const_string( tmp.position().cdata(), tmp.last().cdata()-END_LEXEM_LEN );

@@ -88,35 +88,35 @@ uint16_t __noinline uri::default_port_for_scheme(const char* scheme) noexcept
 {
 	char sch[8];
 	str_to_lower_a(sch, scheme);
-	if(start_with("echo", sch, 4) )
+	if(starts_with("echo", sch, 4) )
 		return 7;
-	else if( start_with("daytime", sch, 7) )
+	else if( starts_with("daytime", sch, 7) )
 		return 13;
-	else if( start_with("ftp", sch, 3) )
+	else if( starts_with("ftp", sch, 3) )
 		return 21;
-	else if(start_with("ssh", sch, 3) )
+	else if(starts_with("ssh", sch, 3) )
 		return 22;
-	else if(start_with("telnet",sch,6) )
+	else if(starts_with("telnet",sch,6) )
 		return 23;
-	else if(start_with("mailto", sch, 6) )
+	else if(starts_with("mailto", sch, 6) )
 		return 25;
-	else if(start_with("time", sch, 4 ) )
+	else if(starts_with("time", sch, 4 ) )
 		return 37;
-	else if(start_with("name", sch, 4) )
+	else if(starts_with("name", sch, 4) )
 		return 42;
-	else if(start_with("domain", sch, 6) )
+	else if(starts_with("domain", sch, 6) )
 		return 53;
-	else if(start_with("gopher", sch, 6) )
+	else if(starts_with("gopher", sch, 6) )
 		return 70;
-	else if(start_with("https", sch, 5 ) )
+	else if(starts_with("https", sch, 5 ) )
 		return 443;
-	else if(start_with("http", sch, 4) )
+	else if(starts_with("http", sch, 4) )
 		return 80;
-	else if(start_with("npp", sch, 3) )
+	else if(starts_with("npp", sch, 3) )
 		return 92;
-	else if(start_with("sftp", sch, 4) )
+	else if(starts_with("sftp", sch, 4) )
 		return 115;
-	else if(start_with("irc", sch, 3) )
+	else if(starts_with("irc", sch, 3) )
 		return 6697;
 	return 0;
 }

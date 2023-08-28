@@ -83,7 +83,7 @@ template<
 >
 #endif // IO_HAS_CONNCEPTS
 constexpr bool is_eof(char_type ch) noexcept {
-	return std::char_traits<char_type>::eof() == ch;
+	return std::char_traits<char_type>::eof() == std::char_traits<char_type>::to_int_type(ch);
 }
 
 /// Compares two character code points
@@ -682,7 +682,7 @@ template<
 	>::type* = nullptr
 >
 #endif // IO_HAS_CONNCEPTS
-inline bool start_with(const char_t* s,const char_t* pattern,const std::size_t size) noexcept
+inline bool starts_with(const char_t* s,const char_t* pattern,const std::size_t size) noexcept
 {
 	return 0 == std::char_traits<char_t>::compare( s, pattern, size );
 }
@@ -698,9 +698,9 @@ template<
 	>::type* = nullptr
 >
 #endif // IO_HAS_CONNCEPTS
-inline bool start_with(const char_t* s,const char_t* pattern) noexcept
+inline bool starts_with(const char_t* s,const char_t* pattern) noexcept
 {
-	return start_with( s, pattern, std::char_traits<char_t>::length(pattern) );
+	return starts_with( s, pattern, std::char_traits<char_t>::length(pattern) );
 }
 
 inline std::size_t str_size(const char* b, const char* e) noexcept

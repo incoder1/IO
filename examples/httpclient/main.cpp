@@ -22,9 +22,8 @@ int main(int argc, const char** argv)
 	io::console_output_stream cout(cons);
 	io::console_error_stream cerr(cons);
 
-	cout << "Connecting to: ";
-	cout << io::cclr::magenta << url->host();
-	cout << io::cclr::reset << std::endl;
+	cout << io::cclr::light_green << "Connecting to: ";
+	cout << io::cclr::reset << url->host() << std::endl;
 
 	// IO context, entry point to network and asynchronous input output
 	io::s_io_context ioc = io::io_context::create(ec);

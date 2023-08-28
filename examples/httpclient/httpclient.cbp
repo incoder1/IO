@@ -13,10 +13,10 @@
 				<Option compiler="gcc" />
 				<Option parameters="test.xml" />
 				<Compiler>
-					<Add option="-std=gnu++23" />
-					<Add option="-ggdb" />
 					<Add option="-Og" />
 					<Add option="-g" />
+					<Add option="-std=gnu++23" />
+					<Add option="-ggdb" />
 					<Add option="-D_WIN32_WINNT=0x0A00" />
 					<Add option="-D_UNICODE" />
 					<Add option="-DUNICODE" />
@@ -26,7 +26,7 @@
 					<Add library="iconv.dll" />
 					<Add library="gnutls.dll" />
 					<Add library="Ws2_32" />
-					<Add directory="../../bin/debug-win-gcc-static-x64" />
+					<Add directory="../../libio/bin/debug-win-gcc-static-x64" />
 				</Linker>
 			</Target>
 			<Target title="release-win-gcc-x64">
@@ -102,22 +102,21 @@
 			</Target>
 			<Target title="debug-unix-gcc">
 				<Option platforms="Unix;" />
-				<Option output="bin/debug-unix-gcc-x86_64/httpclient" prefix_auto="1" extension_auto="1" />
+				<Option output="bin/debug-unix-gcc/asynch_network_client" prefix_auto="1" extension_auto="1" />
 				<Option object_output="obj/debug-unix-gcc/" />
 				<Option type="1" />
 				<Option compiler="gcc" />
-				<Option parameters="test.xml" />
 				<Compiler>
+					<Add option="-std=gnu++23" />
+					<Add option="-ggdb" />
+					<Add option="-Og" />
+					<Add option="-g" />
 					<Add option="-Weffc++" />
 					<Add option="-Wall" />
 					<Add option="`pkg-config --cflags gnutls`" />
 					<Add option="-DNDEBUG" />
 				</Compiler>
 				<Linker>
-					<Add option="-std=gnu++23" />
-					<Add option="-ggdb" />
-					<Add option="-Og" />
-					<Add option="-g" />
 					<Add option="`pkg-config --libs gnutls`" />
 					<Add library="io" />
 					<Add directory="../../libio/bin/debug-unix-gcc-static" />

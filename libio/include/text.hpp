@@ -191,23 +191,18 @@ public:
 		basic_writer(dst, memory_traits::page_size())
 	{}
 
-#ifdef __HAS_CPP_14
 	basic_writer(basic_writer&& other) noexcept:
+#ifdef __HAS_CPP_14
 		ec_( std::exchange(other.ec_, std::error_code() ) ),
 		buffer_( std::exchange(other.buffer_, byte_buffer()) ),
 		dst_( std::exchange(other.dst_, s_write_channel()) )
-	{}
 #else
-	basic_writer(basic_writer&& other) noexcept:
-		ec_( std::move(other.ec_) ),
-		buffer_( std::move(other.buffer_) ),
-		dst_( std::move(other.dst_) )
-	{
-		other.ec_ = std::error_code();
-		other.buffer_ = byte_buffer();
-		other.dst_ = s_write_channel();
-	}
+		ec_( detail::exchange(other.ec_, std::error_code() ) ),
+		buffer_( detail::exchange(other.buffer_, byte_buffer()) ),
+		dst_( detail::exchange(other.dst_, s_write_channel()) )
+
 #endif // __HAS_CPP_14
+	{}
 
 	basic_writer& operator=(basic_writer&& other) noexcept
 	{
