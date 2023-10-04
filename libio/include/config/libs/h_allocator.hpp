@@ -24,11 +24,6 @@
 
 namespace io {
 
-#ifdef IO_NO_EXCEPTIONS
-	typedef std::true_type no_exceptions_mode_t;
-#else
-	typedef std::false_type no_exceptions_mode_t;
-#endif // IO_NO_EXCEPTIONS
 
 template<typename T, class __memory_traits>
 class heap_allocator_base {
@@ -40,7 +35,6 @@ private:
 	}
 
 public:
-
 
 	typedef std::size_t size_type;
 	typedef ptrdiff_t difference_type;
@@ -63,22 +57,29 @@ public:
 		return std::addressof(__x);
 	}
 
-	pointer allocate(size_type __n, const void* px = nullptr) noexcept(no_exceptions_mode_t::value)
+	pointer allocate(size_type __n, const void* px = nullptr)
 	{
-		assert( 0 != __n );
+		assert( __n > 0 );
+		void *ret = nullptr;
 		if( __n > 1 ) {
-            void *ret = nullptr;
-		    if( io_likely(nullptr == px) )
-                ret = __memory_traits::malloc( __n * sizeof(value_type) );
-		    else
-		 	   ret = __memory_traits::realloc( const_cast<void*>(px),  __n * sizeof(value_type) );
-			#ifndef IO_NO_EXCEPTIONS
-			if( io_unlikely(nullptr == ret) )
-					throw std::bad_array_new_length();
-			#endif
-	        return uncast_void<value_type>(ret);
+			const std::size_t al = alignof(value_type) - 1;
+			const std::size_t bytes = ((__n * sizeof(value_type) ) + al) & ~al;
+			ret = __memory_traits::realloc( const_cast<void*>(px), bytes  );
 		}
-        return uncast_void<value_type>( __memory_traits::malloc( sizeof(value_type) ) );
+		else {
+			ret = __memory_traits::aligned_alloc( sizeof(value_type), alignof(value_type) );
+		}
+		if( io_unlikely(nullptr == ret) ) {
+			if(nullptr != px) {
+				__memory_traits::free( const_cast<void*>(px) );
+			}
+#ifdef IO_NO_EXCEPTIONS
+			detail::panic(ENOMEM, "Out of memory");
+#else
+			throw std::bad_array_new_length();
+#endif
+		}
+		return uncast_void<value_type>( ret );
 	}
 
 	// __p is not permitted to be a null pointer.
@@ -96,7 +97,7 @@ public:
 	}
 
 	template<typename _Up>
-	inline void  destroy(_Up* const __p) noexcept( noexcept( __p->~_Up() ) )
+	inline void destroy(_Up* const __p) noexcept( noexcept( __p->~_Up() ) )
 	{
 		__p->~_Up();
 	}

@@ -138,7 +138,7 @@ s_uri uri::parse(std::error_code& ec, const char* str) noexcept
 	const_string fragment;
 	const char *b = normalized.begin();
 	const char *e;
-	for(e = b; '\0' != *e && nullptr == io_memchr(":/", *e, 2); ++e);
+	for(e = b; '\0' != *e && io::is_none_of<'%',':'>(*e); ++e);
 	if( cheq('\0',*e) )
 			return return_error(ec, std::errc::invalid_argument);
 	// not relative URI need to extract scheme

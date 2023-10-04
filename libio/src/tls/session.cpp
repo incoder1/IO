@@ -26,17 +26,24 @@ int session_timeout(::gnutls_transport_ptr_t, unsigned int ms) noexcept
 ssize_t session_push(::gnutls_transport_ptr_t tr, const ::giovec_t * iov, int iovcnt) noexcept
 {
 	 session* s = static_cast<session*>( tr );
-	 ssize_t ret = 0;
-	 ssize_t written = 0;
-	 for(std::size_t i = 0; i < static_cast<std::size_t>(iovcnt); i++) {
-		written = s->push(iov[i].iov_base, iov[i].iov_len);
-		if(written < 0) {
-				ret = -1;
-				break;
-		}
-		else {
-				ret += written;
-		}
+	 ssize_t ret = EOF;
+	 if(iovcnt > 1) {
+		 std::size_t vecsize = 0;
+		 for(std::size_t i = 0; i < static_cast<std::size_t>(iovcnt); i++) {
+				vecsize += iov[i].iov_len;
+		 }
+		 std::error_code ec;
+		 io::byte_buffer tmp = io::byte_buffer::allocate(ec,vecsize);
+		 if(!ec) {
+			for(std::size_t i = 0; i < static_cast<std::size_t>(iovcnt); i++) {
+				tmp.put( static_cast<uint8_t*>(iov[i].iov_base), iov[i].iov_len);
+			}
+			tmp.flip();
+			ret = s->push( tmp.position().get(), tmp.length() );
+		 }
+	 }
+	 else {
+	 	ret = s->push(iov[0].iov_base, iov[0].iov_len);
 	 }
 	 return ret;
 }
@@ -94,7 +101,6 @@ s_session session::client_blocking_session(std::error_code &ec, ::gnutls_certifi
 		ec = make_error_code( err );
 	} else {
 		/* Use default priorities */
-		//::gnutls_session_enable_compatibility_mode(peer);
 		err = ::gnutls_set_default_priority(peer);
 		if(GNUTLS_E_SUCCESS != err) {
 			ec = make_error_code( err );

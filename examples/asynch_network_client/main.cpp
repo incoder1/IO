@@ -3,19 +3,23 @@
 * for blocking connection see network
 */
 #include <errorcheck.hpp>
+
 #include <net/context.hpp>
-#include <iostream>
+
+#include <console.hpp>
 
 /// Asynchronous IO operations completion routine
 class my_routine final: public io::asynch_completion_routine {
 private:
-	explicit my_routine() noexcept:
-		io::asynch_completion_routine()
+	explicit my_routine(std::ostream& cout, std::ostream& cerr) noexcept:
+		io::asynch_completion_routine(),
+		cout_(cout),
+		cerr_(cerr)
 	{}
 public:
 	/// Creates new routine reference on implementation smart pointer
 	/// ec contains operation error code, like out of memory
-	static io::s_asynch_completion_routine create(std::error_code& ec) noexcept;
+	static io::s_asynch_completion_routine create(std::error_code& ec, std::ostream& cout, std::ostream& cerr) noexcept;
 	/// Handles asynchronous data received i.e. read is done
 	/// \param ec
 	///			 operation error code like network is down etc.
@@ -32,13 +36,16 @@ public:
 	///			 a async_channel which was used to asynchronously send data
 	/// \param data
 	///			 sent data buffer, position iterator shows on last sent byte, what.lenght() can be used to detect not sent tail bytes
-	virtual void sent(std::error_code& ec,const io::s_asynch_channel& source, io::byte_buffer&& what) noexcept override;
+virtual void sent(std::error_code& ec,const io::s_asynch_channel& source, io::byte_buffer&& what) noexcept override;
+private:
+	std::ostream& cout_;
+	std::ostream& cerr_;
 };
 
-io::s_asynch_completion_routine my_routine::create(std::error_code& ec) noexcept
+io::s_asynch_completion_routine my_routine::create(std::error_code& ec, std::ostream& cout, std::ostream& cerr) noexcept
 {
 	if(!ec) {
-		my_routine *ret = new (std::nothrow) my_routine();
+		my_routine *ret = new (std::nothrow) my_routine(cout, cerr);
 		if(nullptr == ret)
 			ec = std::make_error_code(std::errc::not_enough_memory);
 		else
@@ -50,17 +57,21 @@ io::s_asynch_completion_routine my_routine::create(std::error_code& ec) noexcept
 void my_routine::received(std::error_code& ec, const io::s_asynch_channel& source, io::byte_buffer&& data) noexcept
 {
 	if(!ec && !data.empty()) {
-		std::cout <<  data.length() << " received from server\n";
-		std::cout.write(data.position().cdata(), data.length() );
-		std::cout.flush();
-		source->recaive(ec, io::memory_traits::page_size(), 0);
-	} else {
+		cout_ <<  data.length() << " received from server\n";
+		cout_.write(data.position().cdata(), data.length() );
+		cout_.flush();
+		data.clear();
+		source->recaive(ec, std::forward<io::byte_buffer>(data), 0);
+	}
+	else {
 		// notify main application thread, waiting for pending IO operations, we've done
 		// and shutdown IO completion thread pool
 		source->context()->shutdown();
 	}
-	if(ec)
-		std::cerr << "Error: " << ec.value() << ' ' << ec.message() << std::endl;
+	if(ec) {
+		cerr_ << "Error: " << ec.value() << ' ' << ec.message() << std::endl;
+		source->context()->shutdown();
+	}
 }
 
 void my_routine::sent(std::error_code& ec,const io::s_asynch_channel& source, io::byte_buffer&& what) noexcept
@@ -69,18 +80,19 @@ void my_routine::sent(std::error_code& ec,const io::s_asynch_channel& source, io
 		// check all data sent
 		if(what.empty()) {
 			what.flip();
-			std::cout<< "HTTP 1.1 Request sent: \n" <<  what.position().cdata() << std::endl;
+			cout_ << "HTTP 1.1 Request sent: \n" <<  what.position().cdata() << std::endl;
+			what.clear();
 			// now asynchronously read HTTP response from server
-			if(!ec)
-				source->recaive(ec, io::memory_traits::page_size(), 0);
-		} else {
+			source->recaive(ec, std::forward<io::byte_buffer>( what ), 0);
+		}
+		else {
 			// some data left, send the tail part
 			// since we've using socket, position ramains 0
 			source->send(ec, std::forward<io::byte_buffer>(what), 0);
 		}
 	}
 	if(ec) {
-		std::cerr << "Error: " << ec.value() << ' ' << ec.message() << std::endl;
+		cerr_ << "Error: " << ec.value() << ' ' << ec.message() << std::endl;
 		// in case of error, shutdown asynch io completion handling,
 		// and release threads waiting for it by io::s_io_context::await_asynchronous
 		// in our case it is our main application thread
@@ -104,6 +116,10 @@ int main(int argc, const char** argv)
 {
 	std::error_code ec;
 
+	io::console cons;
+	io::console_output_stream cout(cons);
+	io::console_error_stream cerr(cons);
+
 	// Create a network socket to connect
 	const io::net::socket_factory *sf = io::net::socket_factory::instance(ec);
 	io::check_error_code(ec);
@@ -120,15 +136,17 @@ int main(int argc, const char** argv)
 
 	//Create asynchronous completion routine object instance
 	// which will handle all asynchronous operations complete states
-	io::s_asynch_completion_routine routine = my_routine::create(ec);
+	io::s_asynch_completion_routine routine = my_routine::create(ec, cout, cerr);
 	io::check_error_code(ec);
 	// Connect to the server using asynchronous input/ouput
 	io::s_asynch_channel asch = aioc->client_asynch_connect(ec, std::move(socket), routine );
 
-	// Wrap HTTP request text into byte buffer and send HTTP request asynchronously
-	io::byte_buffer buff = io::byte_buffer::wrap(ec, HTTP_GET_REQUEST );
+	// Put HTTP request text into byte buffer and send HTTP request asynchronously
+	io::byte_buffer iobuff = io::byte_buffer::allocate(ec, io::memory_traits::page_size());
+	iobuff.put(HTTP_GET_REQUEST);
+	iobuff.flip();
 	io::check_error_code(ec);
-	asch->send(ec, std::move(buff), 0);
+	asch->send(ec, std::move(iobuff), 0);
 	io::check_error_code(ec);
 
 	// Await for all pending asynchronous operations to be done.

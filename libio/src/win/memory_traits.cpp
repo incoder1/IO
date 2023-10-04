@@ -18,18 +18,6 @@
 
 namespace io {
 
-
-std::size_t memory_traits::page_size() noexcept
-{
-	static ::DWORD ret = 0;
-	if(0 == ret) {
-		::SYSTEM_INFO si;
-		::GetSystemInfo(&si);
-		ret = si.dwPageSize;
-	}
-	return static_cast<std::size_t>( ret );
-}
-
 namespace win {
 
 class heap_allocator {
@@ -37,7 +25,8 @@ private:
 	constexpr explicit heap_allocator(::HANDLE heap) noexcept:
 		heap_(heap)
 	{}
-	static void do_destoroy() noexcept {
+	static void do_destoroy() noexcept
+	{
 		heap_allocator *tmp = _instance.load(std::memory_order_acquire);
 		if( io_likely(nullptr != tmp) ) {
 			::HANDLE heap = tmp->heap_;
@@ -46,7 +35,8 @@ private:
 			_instance.store(nullptr, std::memory_order_release);
 		}
 	}
-	static heap_allocator* create_new() noexcept {
+	static heap_allocator* create_new() noexcept
+	{
 		::HANDLE heap = ::HeapCreate( 0, 0, 0 );
 		if(INVALID_HANDLE_VALUE != heap) {
 			void *raw = ::HeapAlloc(heap, HEAP_NO_SERIALIZE, sizeof(heap_allocator) );
@@ -64,8 +54,9 @@ private:
 		return nullptr;
 	}
 public:
-	static const heap_allocator* instance() noexcept {
-		heap_allocator *ret = _instance.load(std::memory_order_consume);
+	static const heap_allocator* instance() noexcept
+	{
+		heap_allocator *ret = _instance.load(std::memory_order_relaxed);
 		if(nullptr == ret) {
 			lock_guard lock(_mtx);
 			ret = _instance.load(std::memory_order_consume);
@@ -77,16 +68,23 @@ public:
 		}
 		return ret;
 	}
-	__forceinline void* allocate(const std::size_t bytes) const noexcept {
+
+	__forceinline void* allocate(const std::size_t bytes) const noexcept
+	{
 		return ::HeapAlloc(heap_, HEAP_ZERO_MEMORY, bytes);
 	}
-	__forceinline void* reallocate(void* const ptr, const std::size_t new_size) const noexcept {
+
+	__forceinline void* reallocate(void* const ptr, const std::size_t new_size) const noexcept
+	{
 		static constexpr ::DWORD flags = HEAP_REALLOC_IN_PLACE_ONLY | HEAP_ZERO_MEMORY;
-        return ::HeapReAlloc(heap_, flags, ptr, new_size);
+		return ::HeapReAlloc(heap_, flags, ptr, new_size);
 	}
-	__forceinline void release(void* const ptr) const noexcept {
+
+	__forceinline void release(void* const ptr) const noexcept
+	{
 		::HeapFree(heap_, 0, const_cast<LPVOID>(ptr) );
 	}
+
 private:
 	::HANDLE heap_;
 	static critical_section _mtx;
@@ -96,43 +94,51 @@ private:
 critical_section heap_allocator::_mtx;
 std::atomic<heap_allocator*> heap_allocator::_instance(nullptr);
 
-
-#ifndef IO_DELCSPEC
-
-void* IO_MALLOC_ATTR private_heap_alloc(std::size_t bytes) noexcept
-{
-	return heap_allocator::instance()->allocate(bytes);
-}
-
-void* IO_MALLOC_ATTR private_heap_realoc(void* const ptr, const std::size_t new_size) noexcept
-{
-	return heap_allocator::instance()->reallocate(ptr, new_size);
-}
-
-void IO_PUBLIC_SYMBOL private_heap_free(void * const ptr) noexcept
-{
-	heap_allocator::instance()->release(ptr);
-}
-
+#ifdef IO_DELCSPEC
+IO_PUBLIC_SYMBOL void*
 #else
-
-IO_PUBLIC_SYMBOL void* private_heap_alloc(std::size_t bytes) noexcept
+void* IO_MALLOC_ATTR
+#endif // IO_DELCSPEC
+private_heap_alloc(std::size_t bytes) noexcept
 {
 	return heap_allocator::instance()->allocate(bytes);
 }
 
-IO_PUBLIC_SYMBOL void* private_heap_realoc(void* const ptr, const std::size_t new_size) noexcept
+#ifdef IO_DELCSPEC
+IO_PUBLIC_SYMBOL void*
+#else
+void* IO_MALLOC_ATTR
+#endif // IO_DELCSPEC
+private_heap_realoc(void* const ptr, const std::size_t new_size) noexcept
 {
-	return heap_allocator::instance()->reallocate(ptr, new_size);
+	return nullptr == ptr ? private_heap_alloc(new_size) : heap_allocator::instance()->reallocate(ptr, new_size);
 }
 
-IO_PUBLIC_SYMBOL void private_heap_free(void * const ptr) noexcept
+#ifdef IO_DELCSPEC
+IO_PUBLIC_SYMBOL void*
+#else
+void IO_PUBLIC_SYMBOL
+#endif // IO_DELCSPEC
+private_heap_free(void * const ptr) noexcept
 {
 	heap_allocator::instance()->release(ptr);
 }
 
-#endif
-
+#ifdef IO_DELCSPEC
+IO_PUBLIC_SYMBOL std::size_t
+#else
+std::size_t IO_PUBLIC_SYMBOL
+#endif // IO_DELCSPEC
+page_size() noexcept
+{
+	static ::DWORD ret = 0;
+	if(0 == ret) {
+		::SYSTEM_INFO si;
+		::GetSystemInfo(&si);
+		ret = si.dwPageSize;
+	}
+	return static_cast<std::size_t>( ret );
+}
 
 } // namesapce win
 

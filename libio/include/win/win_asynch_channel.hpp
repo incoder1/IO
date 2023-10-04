@@ -45,8 +45,8 @@ class win_asynch_channel:public asynch_channel
 	win_asynch_channel(const win_asynch_channel&) = delete;
 	win_asynch_channel& operator=(const win_asynch_channel&) = delete;
 public:
-	win_asynch_channel(::HANDLE hnd,const s_asynch_completion_routine& routines, const asynch_io_context* context) noexcept:
-		asynch_channel(routines,context),
+	win_asynch_channel(::HANDLE hnd,const s_asynch_completion_routine& routine, const asynch_io_context* context) noexcept:
+		asynch_channel(routine,context),
 		hnd_(hnd)
 	{}
 	::HANDLE handle() const noexcept {

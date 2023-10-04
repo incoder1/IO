@@ -33,22 +33,22 @@ struct memory_traits {
 		return static_cast<std::size_t>( ::sysconf(_SC_PAGESIZE) );
 	}
 
-    /// General propose memory allocation
+	/// General propose memory allocation
 	static inline void* malloc IO_PREVENT_MACRO (std::size_t bytes) noexcept
 	{
-	    void *ret = nullptr;
+		void *ret = nullptr;
 #ifdef __GNUG__
-        while( __builtin_expect( nullptr == (ret = std::malloc(bytes) ) , false ) )
+		while( __builtin_expect( nullptr == (ret = std::malloc(bytes) ) , false ) )
 #else
 		while( nullptr == (ret = std::malloc(bytes) ) )
 #endif // __GNUG__
-        {
-            std::new_handler handler = std::get_new_handler();
-            if( nullptr == handler )
-                break;
-            handler();
+		{
+			std::new_handler handler = std::get_new_handler();
+			if( nullptr == handler )
+				break;
+			handler();
 		}
-        return ret;
+		return ret;
 	}
 
 	/// Continues memory block allocation of specific type
@@ -59,34 +59,49 @@ struct memory_traits {
 		assert(0 != array_size);
 		void *ret = nullptr;
 #ifdef __GNUG__
-        while( __builtin_expect( nullptr == (ret = std::calloc(array_size, sizeof(T) ) ) , false ) )
+		while( __builtin_expect( nullptr == (ret = std::calloc(array_size, sizeof(T) ) ) , false ) )
 #else
 		while( nullptr == (ret = std::calloc(array_size, sizeof(T) ) ) )
  #endif // __GNUG__
-        {
-            std::new_handler handler = std::get_new_handler();
-            if( nullptr == handler )
-                break;
-            handler();
+		{
+			std::new_handler handler = std::get_new_handler();
+			if( nullptr == handler )
+				break;
+			handler();
 		}
-        return static_cast<T*>( ret );
+		return static_cast<T*>( ret );
 	}
 
+	/// Aligned memory allocation
+	static inline void* IO_PREVENT_MACRO aligned_alloc(const std::size_t bytes,const std::size_t alignment) noexcept
+	{
+		void *ret = nullptr;
+#ifdef __GNUG__
+		while( __builtin_expect( nullptr == (ret = ::aligned_alloc(bytes,alignment) ) , false ) )
+#else
+		while( nullptr == (ret = ::aligned_alloc(bytes,alignment) ) )
+#endif // __GNUG__
+		{
+			std::new_handler handler = std::get_new_handler();
+			if( nullptr == handler )
+				break;
+			handler();
+		}
+		return ret;
+	}
 
 	/// General propose memory block release
-	/// WARN! do not use for memory allocated by calloc_temporary
 	static inline void free IO_PREVENT_MACRO (void * const ptr) noexcept
 	{
-		// replace this one to use jemalloc/tcmalloc etc
 		std::free(ptr);
 	}
 
 	/// Memory block re-allocation
 	static inline void* realloc IO_PREVENT_MACRO (void * const base, std::size_t new_size) noexcept
 	{
-	   assert(new_size > 0);
+		assert(new_size > 0);
 		// replace this one to use jemalloc/tcmalloc etc
-       return std::realloc(base, new_size);
+		return std::realloc(base, new_size);
 	}
 
 
@@ -131,7 +146,7 @@ public:
 	typedef T value_type;
 
 	typedef std::true_type propagate_on_container_move_assignment;
-    typedef std::true_type is_always_equal;
+	typedef std::true_type is_always_equal;
 
 	template<typename T1>
 	struct rebind {

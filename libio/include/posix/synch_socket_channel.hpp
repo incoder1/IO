@@ -30,7 +30,6 @@ namespace net {
 class synch_socket_channel final:public read_write_channel {
 private:
 	static constexpr int SOCKET_ERROR = -1;
-	friend class nobadalloc<synch_socket_channel>;
 public:
 	explicit synch_socket_channel(int socket) noexcept;
 	virtual ~synch_socket_channel() noexcept;

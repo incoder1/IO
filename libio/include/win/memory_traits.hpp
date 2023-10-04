@@ -22,42 +22,96 @@
 #include <memory>
 #include <cstdlib>
 
+#define IO_PREVENT_MACRO
+
 namespace io {
 
 namespace win {
 
 #ifdef IO_DELCSPEC
-	IO_PUBLIC_SYMBOL void* private_heap_alloc(std::size_t bytes) noexcept;
-	IO_PUBLIC_SYMBOL void* private_heap_realoc(void* const ptr, const std::size_t new_size) noexcept;
-	IO_PUBLIC_SYMBOL void private_heap_free(void * const ptr) noexcept;
+IO_PUBLIC_SYMBOL void*
 #else
-	void* IO_MALLOC_ATTR private_heap_alloc(std::size_t bytes) noexcept;
-	void* IO_MALLOC_ATTR private_heap_realoc(void* const ptr, const std::size_t new_size) noexcept;
-	void IO_PUBLIC_SYMBOL private_heap_free(void * const ptr) noexcept;
-#endif // function export/import
+void* IO_MALLOC_ATTR
+#endif // IO_DELCSPEC
+private_heap_alloc(std::size_t bytes) noexcept;
+
+#ifdef IO_DELCSPEC
+IO_PUBLIC_SYMBOL void*
+#else
+void* IO_MALLOC_ATTR
+#endif // IO_DELCSPEC
+private_heap_realoc(void* const ptr, const std::size_t new_size) noexcept;
+
+#ifdef IO_DELCSPEC
+IO_PUBLIC_SYMBOL void*
+#else
+void IO_PUBLIC_SYMBOL
+#endif // IO_DELCSPEC
+private_heap_free(void * const ptr) noexcept;
+
+#ifdef IO_DELCSPEC
+IO_PUBLIC_SYMBOL std::size_t
+#else
+std::size_t IO_PUBLIC_SYMBOL
+#endif // IO_DELCSPEC
+page_size() noexcept;
+
+constexpr std::size_t allign_up(const std::size_t size,const std::size_t alignment) noexcept
+{
+	return (size + (alignment-1)) & ~(alignment-1);
+}
+
+struct memory_traits {
+	static inline void* malloc IO_PREVENT_MACRO (std::size_t bytes) noexcept
+	{
+		return private_heap_alloc(bytes);
+	}
+
+	static void* realloc IO_PREVENT_MACRO (void * const base, std::size_t new_size) noexcept
+	{
+		return private_heap_realoc(base, new_size);
+	}
+
+	static inline void* IO_PREVENT_MACRO aligned_alloc(const std::size_t bytes,const std::size_t alignment) noexcept
+	{
+		return  private_heap_alloc( allign_up(bytes, alignment) );
+	}
+
+	static void free IO_PREVENT_MACRO (void * const px) noexcept
+	{
+		return private_heap_free(px);
+	}
+
+};
 
 } // namesapce win
-
-#define IO_PREVENT_MACRO
 
 /// memory functions traits concept
 struct IO_PUBLIC_SYMBOL memory_traits {
 
 	/// returns OS page size
-	static std::size_t page_size() noexcept;
+	static std::size_t page_size() noexcept
+	{
+		return win::page_size();
+	}
 
 	/// General propose memory allocation
 	static inline void* malloc IO_PREVENT_MACRO (std::size_t bytes) noexcept
 	{
 		void *ret = nullptr;
-		while( io_unlikely( nullptr == (ret = std::malloc(bytes) ) ) )
-		{
+		while( io_unlikely( nullptr == (ret = std::malloc(bytes) ) ) ) {
 			std::new_handler handler = std::get_new_handler();
 			if( nullptr == handler )
 				break;
 			handler();
 		}
 		return ret;
+	}
+
+	/// Aligned memory allocation
+	static inline void* IO_PREVENT_MACRO aligned_alloc(const std::size_t bytes,const std::size_t alignment) noexcept
+	{
+		return malloc( win::allign_up(bytes,alignment) );
 	}
 
 	/// Continues memory block allocation of specific type
@@ -67,8 +121,7 @@ struct IO_PUBLIC_SYMBOL memory_traits {
 	{
 		assert(0 != array_size);
 		void *ret = nullptr;
-		while( io_unlikely(nullptr == (ret = std::calloc(array_size,sizeof(T)) ) ) )
-		{
+		while( io_unlikely(nullptr == (ret = std::calloc(array_size,sizeof(T)) ) ) ) {
 			std::new_handler handler = std::get_new_handler();
 			if( nullptr == handler )
 				break;
@@ -78,7 +131,6 @@ struct IO_PUBLIC_SYMBOL memory_traits {
 	}
 
 	/// General propose memory block release
-	/// WARN! do not use for memory allocated by calloc_temporary
 	static inline void free IO_PREVENT_MACRO (void * const ptr) noexcept
 	{
 		assert(nullptr != ptr);
@@ -109,40 +161,11 @@ struct IO_PUBLIC_SYMBOL memory_traits {
 		return distance<T>(less_address,lager_address) * sizeof(T);
 	}
 
-	/// Temporary propose memory continues memory block allocation of specific type
-	/// with 0-ro initialization
-	/// this implementation uses additional local application heap
-	/// to avoid process default heap fragmentation because of temporary
-	/// memory blocks allocations/deallocations
-	/// memory allocated by this function must be freed by free_temporary only
-	/// behavior of delete [] or std::free is undefined (sigsev or 0x0....5)
-	template<typename T>
-	static inline T* calloc_temporary(std::size_t count) noexcept
-	{
-		void *ret = nullptr;
-		while( io_unlikely(nullptr == (ret = static_cast<T*>( win::private_heap_alloc( sizeof(T) * count) ) )) )
-		{
-			std::new_handler handler = std::get_new_handler();
-			if( nullptr == handler )
-				break;
-			handler();
-		}
-		return static_cast<T*>( ret );
-	}
-
-	/// Temporary propose memory block allocated with calloc_temporary only
-	template<typename T>
-	static inline void free_temporary(T* const ptr) noexcept
-	{
-		return win::private_heap_free( static_cast<void* const>(ptr) );
-	}
-
 };
 
 /// STL compatiable allocator which uses memory_traits concept
 template<typename T>
-class h_allocator: public heap_allocator_base <T, memory_traits>
-{
+class h_allocator: public heap_allocator_base <T, win::memory_traits> {
 public:
 
 	typedef std::size_t size_type;
@@ -163,11 +186,11 @@ public:
 	};
 
 	constexpr h_allocator() noexcept:
-		heap_allocator_base<T, memory_traits>()
+		heap_allocator_base<T, win::memory_traits>()
 	{}
 
 	constexpr h_allocator(const h_allocator& other) noexcept:
-		heap_allocator_base<T, memory_traits>( other )
+		heap_allocator_base<T, win::memory_traits>( other )
 	{}
 
 	template<typename _Tp1>
@@ -189,89 +212,6 @@ constexpr inline bool operator!=(const h_allocator<_Tp>&, const h_allocator<_Tp>
 	return false;
 }
 
-/// allocates memory in the temp private heap
-struct enclave_memory_traits {
-
-	static inline void* malloc IO_PREVENT_MACRO (std::size_t bytes) noexcept
-	{
-		void *ret = nullptr;
-		while( io_unlikely(nullptr == (ret = win::private_heap_alloc(bytes) ) ) )
-		{
-			std::new_handler handler = std::get_new_handler();
-			if( nullptr == handler )
-				break;
-			handler();
-		}
-		return ret;
-	}
-
-	/// Memory block re-allocation
-	static inline void* realloc IO_PREVENT_MACRO (void * const base, std::size_t new_size) noexcept
-	{
-		assert(new_size > 0);
-		void *ret = base;
-		if( io_unlikely(nullptr == (ret = win::private_heap_realoc(ret,new_size) ) ) ) {
-			std::new_handler handler = std::get_new_handler();
-			if (nullptr != handler) {
-				handler();
-			}
-		}
-		return ret;
-	}
-
-	static inline void free IO_PREVENT_MACRO (void * const ptr) noexcept
-	{
-		assert(nullptr != ptr);
-		return win::private_heap_free( ptr );
-	}
-};
-
-/// STL allocator in the isolated enclave heap
-template<typename T>
-class enclave_allocator: public heap_allocator_base <T, enclave_memory_traits>
-{
-public:
-	typedef std::size_t size_type;
-	typedef ptrdiff_t difference_type;
-	typedef T* pointer;
-	typedef const T* const_pointer;
-	typedef T&  reference;
-	typedef const T& const_reference;
-	typedef T value_type;
-
-	typedef std::true_type propagate_on_container_move_assignment;
-
-	typedef std::true_type is_always_equal;
-
-	template<typename T1>
-	struct rebind {
-		typedef enclave_allocator<T1> other;
-	};
-
-	constexpr enclave_allocator() noexcept:
-		heap_allocator_base<T, enclave_memory_traits>()
-	{}
-
-	constexpr enclave_allocator(const enclave_allocator& other) noexcept:
-		heap_allocator_base<T, enclave_memory_traits>( other )
-	{}
-
-	template<typename _Tp1>
-	constexpr enclave_allocator(const enclave_allocator<_Tp1>&) noexcept
-	{}
-};
-
-template<typename _Tp>
-constexpr inline bool operator==(const enclave_allocator<_Tp>&, const enclave_allocator<_Tp>&)
-{
-	return true;
-}
-
-template<typename _Tp>
-constexpr inline bool operator!=(const enclave_allocator<_Tp>&, const enclave_allocator<_Tp>&)
-{
-	return false;
-}
 
 } // namesapace io
 

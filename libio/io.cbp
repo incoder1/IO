@@ -31,6 +31,7 @@
 					<Add option="-D_UNICODE" />
 					<Add option="-DUNICODE" />
 					<Add directory="include/win" />
+					<Add directory="include/tls" />
 				</Compiler>
 				<Linker>
 					<Add library="Ws2_32" />
@@ -161,6 +162,7 @@
 					<Add option="-std=gnu++23" />
 					<Add option="-fchar8_t" />
 					<Add option="`pgk-config --cflags gnutls gtest`" />
+					<Add directory="include/tls" />
 				</Compiler>
 				<Linker>
 					<Add option="`pgk-config  --libs gnutls gtest`" />

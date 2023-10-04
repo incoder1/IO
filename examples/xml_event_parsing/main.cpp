@@ -23,10 +23,10 @@ void print_start_doc(std::ostream& stm,const xml::s_event_stream_parser& s)
 	xml::document_event e = s->parse_start_doc();
 	// check parsing was success
 	if( !s->is_error() ) {
-		stm << io::cclr::navy_green << "start document:\n";
-		stm << io::cclr::navy_aqua  << "\tversion: " << io::cclr::reset << e.version();
-		stm << io::cclr::navy_aqua  << " encoding: " << io::cclr::reset << e.encoding();
-		stm << io::cclr::navy_aqua << " standalone: " << io::cclr::reset << io::to_string(e.standalone(), io::str_bool_format::yes_no);
+		stm << cclr::navy_green << "start document:\n";
+		stm << cclr::navy_aqua  << "\tversion: " << cclr::reset << e.version();
+		stm << cclr::navy_aqua  << " encoding: " << cclr::reset << e.encoding();
+		stm << cclr::navy_aqua << " standalone: " << cclr::reset << io::to_string(e.standalone(), io::str_bool_format::yes_no);
 		stm << std::endl;
 	}
 }
@@ -38,9 +38,9 @@ static void print_instr(std::ostream& stm, const xml::s_event_stream_parser& s)
 	xml::instruction_event e = s->parse_processing_instruction();
 	// check parsing was success
 	if( !s->is_error() ) {
-		stm << io::cclr::navy_green << "processing instruction:\n";
-		stm << io::cclr::yellow << "\ttarget: " << io::cclr::reset << e.target();
-		stm << io::cclr::yellow << "\n\tdata: " << io::cclr::reset << e.data() << std::endl;
+		stm << cclr::navy_green << "processing instruction:\n";
+		stm << cclr::yellow << "\ttarget: " << cclr::reset << e.target();
+		stm << cclr::yellow << "\n\tdata: " << cclr::reset << e.data() << std::endl;
 	}
 }
 
@@ -51,26 +51,26 @@ static void print_start_element(std::ostream& stm, const xml::s_event_stream_par
 	xml::start_element_event e = s->parse_start_element();
 	// check parsing was success
 	if( !s->is_error() ) {
-		stm << io::cclr::navy_green << "Start element:\n";
+		stm << cclr::navy_green << "Start element:\n";
 
 		if( e.name().has_prefix() )
-			stm << io::cclr::yellow << "\tprefix:"<< io::cclr::reset << e.name().prefix();
+			stm << cclr::yellow << "\tprefix:"<< cclr::reset << e.name().prefix();
 
-		stm << io::cclr::light_purple << " name:" << io::cclr::reset << e.name().local_name();
+		stm << cclr::light_purple << " name:" << cclr::reset << e.name().local_name();
 		// show whether  <tag attr="att"/> or <tag></tag>
 		// parser not generating end element events for
 		// self closing tags
-		stm << io::cclr::yellow << " empty element:" << io::cclr::reset << ( e.empty_element() ? " yes" : " no") <<  '\n';
+		stm << cclr::yellow << " empty element:" << cclr::reset << ( e.empty_element() ? " yes" : " no") <<  std::endl;
 		// loop over the XML attributes if any
 		if( e.has_attributes() ) {
-			stm << io::cclr::navy_aqua << "\tattributes:\n" << io::cclr::reset;
+			stm << cclr::navy_aqua << "\tattributes:\n" << cclr::reset;
 			std::for_each(e.attr_begin(), e.attr_end(), [&stm] (const xml::attribute& attr) {
 				io::xml::qname attr_name = attr.name();
 				stm << "\t\t";
 				if( attr_name.has_prefix() )
-					stm << io::cclr::yellow << "prefix: " << io::cclr::reset << attr_name.prefix() << ' ';
-				stm << io::cclr::light_aqua << "name: " << io::cclr::reset << attr_name.local_name();
-				stm << io::cclr::light_purple << " value: " << io::cclr::reset << attr.value() << '\n';
+					stm << cclr::yellow << "prefix: " << cclr::reset << attr_name.prefix() << ' ';
+				stm << cclr::light_aqua << "name: " << cclr::reset << attr_name.local_name();
+				stm << cclr::light_purple << " value: " << cclr::reset << attr.value() << std::endl;
 			} );
 		}
 		// flush to console
@@ -85,11 +85,11 @@ static void print_end_element(std::ostream& stm, const xml::s_event_stream_parse
 	if(!s->is_error()) {
 		io::xml::qname el_name = e.name();
 
-		stm << io::cclr::navy_green << "End element:\n" << io::cclr::reset ;
+		stm << cclr::navy_green << "End element:\n" << cclr::reset ;
 		if( el_name.has_prefix() )
-			stm << io::cclr::yellow << " prefix:" << io::cclr::reset << el_name.prefix();
+			stm << cclr::yellow << " prefix:" << cclr::reset << el_name.prefix();
 
-		stm << io::cclr::yellow<< " name:" << io::cclr::reset << el_name.local_name() << std::endl;
+		stm << cclr::yellow<< " name:" << cclr::reset << el_name.local_name() << std::endl;
 	}
 }
 
@@ -119,7 +119,7 @@ static void print_event(std::ostream& stm,const xml::s_event_stream_parser& s)
 // output a string into a stream
 static void log_chars(std::ostream& strm,const char* msg, const const_string& chars)
 {
-	strm << io::cclr::navy_green << msg << io::cclr::reset << '\n' << chars << '\n';
+	strm << cclr::navy_green << msg << cclr::reset << '\n' << chars << '\n';
 	if(chars.size() > 80)
 		strm.flush();
 }
@@ -142,7 +142,7 @@ static void print_xml_characters(std::ostream& strm,const xml::s_event_stream_pa
 // execution result
 static void on_terminate() noexcept
 {
-	io::exit_with_current_error();
+	exit_with_current_error();
 }
 #endif // IO_NO_EXCEPTIONS
 
@@ -155,13 +155,13 @@ int main(int argc, const char** argv)
 	std::set_terminate( on_terminate );
 #endif // IO_NO_EXCEPTIONS
 
-	io::console cons;
-	io::console_output_stream cout(cons);
-	io::console_error_stream cerr(cons);
+	console cons;
+	console_output_stream cout(cons);
+	console_error_stream cerr(cons);
 
 	// take program arguments
 	if(argc < 2) {
-		cout << "XML parsing example\n Usage:\t xmlparse <xmlfile>[.xml]" << std::endl;
+		cerr << "XML parsing example\n Usage:\t xmlparse <xmlfile>[.xml]" << std::endl;
 		return 0;
 	}
 	// error code variable
@@ -177,10 +177,10 @@ int main(int argc, const char** argv)
 	// Construct XML source
 	// Source will auto-detect XML file encoding, i.e. UTF-8, UTF-16[LE|BE] etc.
 	xml::s_source src = xml::source::create(ec, sf.open_for_read(ec) );
-	io::check_error_code( ec );
+	check_error_code( ec );
 	// Construct StAX parser
 	xml::s_event_stream_parser xs = xml::event_stream_parser::open(ec, std::move(src) );
-	io::check_error_code( ec );
+	check_error_code( ec );
 	// loop for StAX parsing
 	xml::state_type state;
 	do {
@@ -234,8 +234,8 @@ int main(int argc, const char** argv)
 	}
 	// Parsing is done
 	if( xs->row() > 1 )
-		cout << io::cclr::yellow << "End of document\t" << io::cclr::reset <<  xs->row() << io::cclr::yellow << " rows processed" << io::cclr::reset << std::endl;
+		cout << cclr::yellow << "End of document\t" << cclr::reset <<  xs->row() << cclr::yellow << " rows processed" << cclr::reset << std::endl;
 	else
-		cout << io::cclr::yellow << "End of document\t" << io::cclr::reset <<  xs->col() << io::cclr::yellow << " symbols processed" << io::cclr::reset << std::endl;
+		cout << cclr::yellow << "End of document\t" << cclr::reset <<  xs->col() << cclr::yellow << " symbols processed" << cclr::reset << std::endl;
 	return 0;
 }

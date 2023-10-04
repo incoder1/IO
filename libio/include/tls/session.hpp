@@ -39,7 +39,6 @@ public:
 
 	static s_session client_blocking_session(std::error_code &ec, ::gnutls_certificate_credentials_t crd, s_read_write_channel&& raw) noexcept;
 
-//	static s_session client_asynch_session(sdd::error_code &ec, ::gnutls_certificate_credentials_t crd, s_read_write_channel&& raw) noexcept;
 
 	~session() noexcept;
 
@@ -64,8 +63,6 @@ private:
 
 	friend int session_timeout(::gnutls_transport_ptr_t, unsigned int ms) noexcept;
 
-	friend int get_session_error_no(::gnutls_transport_ptr_t) noexcept;
-
 	friend ssize_t session_push(::gnutls_transport_ptr_t tr, const ::giovec_t * iov, int iovcnt) noexcept;
 
 	friend ssize_t session_pull(::gnutls_transport_ptr_t tr, void* buff, std::size_t buff_size) noexcept;
@@ -74,6 +71,7 @@ private:
 	::gnutls_session_t peer_;
 	s_transport connection_;
 };
+
 
 } // namespace tls
 

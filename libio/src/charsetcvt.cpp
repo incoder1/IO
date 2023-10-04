@@ -475,7 +475,7 @@ std::size_t conv_read_channel::read(std::error_code& ec,uint8_t* const buff, std
 	if ( rdbuflen <= MAX_CONVB_STACK_SIZE) {
 		rdbuf = static_cast<uint8_t*>( io_alloca(rdbuflen) );
 	} else {
-		rdbuf = memory_traits::calloc_temporary<uint8_t>( rdbuflen );
+		rdbuf = memory_traits::malloc_array<uint8_t>( rdbuflen );
 		if(nullptr == rdbuf) {
 			ec = std::make_error_code(std::errc::not_enough_memory);
 			return 0;
@@ -492,7 +492,7 @@ std::size_t conv_read_channel::read(std::error_code& ec,uint8_t* const buff, std
 		} while(read > 0 && !ec);
 	} while(left > 0);
 	if(rdbuflen > MAX_CONVB_STACK_SIZE)
-		memory_traits::free_temporary( rdbuf );
+		memory_traits::free( rdbuf );
 	else
 		io_freea( rdbuf );
 	return bytes - left;
@@ -533,7 +533,7 @@ std::size_t conv_write_channel::write(std::error_code& ec, const uint8_t* buff,s
 	if( cnvbuflen <= MAX_CONVB_STACK_SIZE ) {
 		cnvbuff = static_cast<uint8_t*>( io_alloca( cnvbuflen ) );
 	} else {
-		cnvbuff = memory_traits::calloc_temporary<uint8_t>( cnvbuflen );
+		cnvbuff = memory_traits::malloc_array<uint8_t>( cnvbuflen );
 		if(nullptr == cnvbuff) {
 			ec = std::make_error_code(std::errc::not_enough_memory);
 			return 0;
@@ -558,7 +558,7 @@ std::size_t conv_write_channel::write(std::error_code& ec, const uint8_t* buff,s
 	}
 
 	if(cnvbuflen > MAX_CONVB_STACK_SIZE)
-		memory_traits::free_temporary( cnvbuff );
+		memory_traits::free( cnvbuff );
 
 	return ret;
 }

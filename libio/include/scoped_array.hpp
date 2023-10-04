@@ -40,13 +40,9 @@ class scoped_arr {
 private:
 	typedef scoped_arr<T> self_type;
 
-	static inline void temp_free(T* const px) noexcept {
-		memory_traits::free_temporary<T>(px);
-	}
-
 public:
 
-	typedef void (*release_function)(T* const );
+	typedef void (*release_function)(void* const );
 
 	scoped_arr(const scoped_arr&)  = delete;
 	scoped_arr& operator=(const scoped_arr&) = delete;
@@ -82,8 +78,8 @@ public:
 	/// \param len arr array length in elements should be grater then 0
 	scoped_arr(const T* arr, const std::size_t len) noexcept:
 		len_(len),
-		mem_( memory_traits::calloc_temporary<T>(len) ),
-		rf_( self_type::temp_free )
+		mem_( memory_traits::malloc_array<T>(len) ),
+		rf_( memory_traits::free )
 	{
 		assert(nullptr != mem_ && 0 != len_ && len_ < SIZE_MAX );
 		io_memmove(mem_, arr, ( len_ * sizeof(T) ) );
@@ -105,9 +101,9 @@ public:
 	/// \param len array size in elements
 	explicit scoped_arr(const std::size_t len) noexcept:
 		scoped_arr(
-			memory_traits::calloc_temporary<T>(len),
+			memory_traits::malloc_array<T>(len),
 			len,
-			scoped_arr::temp_free)
+			memory_traits::free)
 	{}
 
 	/// Releases allocated memory on object deconstruction

@@ -56,17 +56,6 @@ private:
 	std::error_code ec_;
 };
 
-class asynch_transport final: public transport {
-public:
-	asynch_transport(io::s_asynch_channel&& raw) noexcept;
-	virtual ssize_t pull(void* dst,std::size_t len) noexcept override;
-	virtual ssize_t push(const void* src,std::size_t len) noexcept override;
-	virtual std::error_code last_error() noexcept override;
-private:
-	io::s_asynch_channel raw_;
-	std::error_code ec_;
-};
-
 
 } // namespace tls
 

@@ -40,58 +40,17 @@ public:
 
 	virtual ~object() noexcept = default;
 
-
-#if defined(__GNUG__) && defined(__IO_WINDOWS_BACKEND__) && defined(IO_SHARED_LIB)
-
-#ifdef IO_NO_EXCEPTIONS
-
-	void* operator new(std::size_t size) noexcept
-	{
-	    return memory_traits::malloc(size);
-	}
-
-#else
-
-	void* operator new(std::size_t size)
-	{
-		void *ret = nullptr;
-		if( io_unlikely( nullptr == ( ret = memory_traits::malloc(size) ) ) )
-			throw std::bad_alloc();
-		return ret;
-	}
-
-#endif // IO_NO_EXCEPTIONS
-
-	void* operator new(std::size_t size, const std::nothrow_t&) noexcept
-	{
-		return memory_traits::malloc(size);
-	}
-
-	void operator delete( void* const ptr, const std::nothrow_t&) noexcept
-	{
-		assert(nullptr != ptr);
-		memory_traits::free(ptr);
-	}
-
-	void operator delete(void* const ptr) noexcept
-	{
-		assert(nullptr != ptr);
-		memory_traits::free(ptr);
-	}
-
-#endif // defined(__IO_WINDOWS_BACKEND__) && defined(IO_SHARED_LIB)
-
 private:
 	std::atomic_size_t ref_count_;
 	friend void intrusive_ptr_add_ref(object* const obj) noexcept {
-    	obj->ref_count_.fetch_add(1, std::memory_order_relaxed);
-    }
-    friend void intrusive_ptr_release(object* const obj) noexcept {
-    	if(1 == obj->ref_count_.fetch_sub(1, std::memory_order_release) ) {
+		obj->ref_count_.fetch_add(1, std::memory_order_relaxed);
+	}
+	friend void intrusive_ptr_release(object* const obj) noexcept {
+		if(1 == obj->ref_count_.fetch_sub(1, std::memory_order_release) ) {
 			std::atomic_thread_fence(  std::memory_order_acquire );
 			delete obj;
-    	}
-    }
+		}
+	}
 };
 
 DECLARE_IPTR(object);

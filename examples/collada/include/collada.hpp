@@ -36,14 +36,8 @@ private:
 
 	typedef std::equal_to<io::const_string> pred;
 
-#ifdef __IO_WINDOWS_BACKEND__
-	typedef io::enclave_allocator< std::pair<const io::const_string, V> > hashmap_allocator;
-	typedef io::enclave_allocator<V> container_allocator;
-#else
 	typedef io::h_allocator< std::pair<const io::const_string, V> > hashmap_allocator;
 	typedef io::h_allocator<V> container_allocator;
-#endif // __IO_WINDOWS_BACKEND__
-
 
 public:
 	typedef std::unordered_map<io::const_string,V,io::const_string_hash,pred,hashmap_allocator> param_library;

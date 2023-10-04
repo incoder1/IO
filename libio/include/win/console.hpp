@@ -62,20 +62,20 @@ s_read_channel IO_PUBLIC_SYMBOL conv_read_channel(const s_read_channel& ch);
 } // namesapce win
 
 enum class text_color: uint8_t {
-	navy_blue	= 0x01,
+	navy_blue	 = 0x01,
 	navy_green   = 0x02,
-	navy_aqua	= 0x03,
+	navy_aqua	 = 0x03,
 	navy_red	 = 0x04,
-	magenta	  = 0x05,
-	brown		= 0x06,
-	white		= 0x07,
+	magenta		 = 0x05,
+	brown		 = 0x06,
+	white		 = 0x07,
 	gray		 = 0x08,
 	light_blue   = 0x09,
 	light_green  = 0x0A,
 	light_aqua   = 0x0B,
-	light_red	= 0x0C,
+	light_red	 = 0x0C,
 	light_purple = 0x0D,
-	yellow	   = 0x0E,
+	yellow		 = 0x0E,
 	bright_white = 0x0F
 };
 

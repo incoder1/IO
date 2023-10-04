@@ -45,6 +45,13 @@ private:
 
 	/// Construct new string pool
 	explicit string_pool() noexcept;
+
+	const_string load(const std::size_t str_hash, const char* s,const std::size_t size) noexcept;
+
+	bool find(const_string& str,const std::size_t str_hash, const char* s,const std::size_t size) noexcept;
+
+	const_string find_or_load(const char* s,const std::size_t size) noexcept;
+
 public:
 
 	static s_string_pool create(std::error_code& ec) noexcept;
@@ -56,7 +63,7 @@ public:
 	/// \param size size of array in bytes
 	/// \return a constant string with the cached value or empty string when no free RAM left
 	/// \throw never throws
-	const  const_string get(const char* s, std::size_t count) noexcept;
+	const  const_string get(const char* s,const std::size_t size) noexcept;
 
 	/// Returns a cached constant string object for the C zero ending string
 	/// \param s source zero terminated C string
@@ -76,11 +83,11 @@ public:
 
 private:
 
-#ifdef __IO_WINDOWS_BACKEND__
-	typedef enclave_allocator< std::pair<const std::size_t, const_string> > allocator_type;
-#else
+// TODO: Remove custom allocators when C++11 support should be deriacated
+// and use C++ 17 typedef std::pmr::polymorphic_allocator< std::pair<const std::size_t, const_string> > allocator_type;
+// instead
+
 	typedef h_allocator< std::pair<const std::size_t, const_string> > allocator_type;
-#endif // __IO_WINDOWS_BACKEND__
 
 	typedef std::unordered_map<
 		std::size_t,

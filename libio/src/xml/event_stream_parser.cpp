@@ -38,8 +38,8 @@ static constexpr const char ES = '=';
 static constexpr const char QM =  '?';
 
 static constexpr unsigned int UEOF = detail::unsign(EOF);
-static constexpr unsigned int ULEFTB = detail::unsign(LEFTB);
-static constexpr unsigned int URIGHTB = detail::unsign(RIGHTB);
+static constexpr unsigned int ULEFTB = detail::unsign(U'<');
+static constexpr unsigned int URIGHTB = detail::unsign(U'>');
 
 static bool is_prologue(const char *s) noexcept
 {
@@ -170,9 +170,9 @@ static constexpr bool is_xml_name_start_char_lo(char32_t ch) noexcept
 }
 
 template<
- std::make_unsigned<char32_t>::type S,
- std::make_unsigned<char32_t>::type E,
- std::make_unsigned<char32_t>::type D = ((E - S) + 1)
+	std::make_unsigned<char32_t>::type S,
+	std::make_unsigned<char32_t>::type E,
+	std::make_unsigned<char32_t>::type D = ((E - S) + 1)
 >
 static constexpr bool between(char32_t ch) noexcept {
 	return (static_cast< std::make_unsigned<char32_t>::type >(ch)-S) < D;
@@ -767,9 +767,9 @@ attribute event_stream_parser::extract_attribute(const char* from, std::size_t& 
 	char *v = const_cast<char*>( value.data() );
 	constexpr const char* NOT_SPACE_WS = "\t\n\v\f\r";
 	do {
-	 	v += io_strcspn(v,NOT_SPACE_WS);
-	 	if( not_endl(*v) )
-        	*v = ' ';
+		v += io_strcspn(v,NOT_SPACE_WS);
+		if( not_endl(*v) )
+			*v = ' ';
 	} while( not_endl(*v) );
 	len = str_size(from, ++i);
 	return attribute( qname( std::move(np), std::move(ln) ), std::move(value) );

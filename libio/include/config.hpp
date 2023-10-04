@@ -52,7 +52,7 @@
 #endif // HAS_BOOST
 
 #ifndef DECLARE_IPTR
-#define DECLARE_IPTR(T) typedef boost::intrusive_ptr<T> s_##T
+#	define DECLARE_IPTR(T) typedef boost::intrusive_ptr<T> s_##T
 #endif // DECLARE_IPTR
 
 
