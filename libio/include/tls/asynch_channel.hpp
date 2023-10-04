@@ -17,7 +17,7 @@ namespace net {
 
 namespace tls {
 
-class secure_asynch_channel: public asynch_channel
+class asynch_channel: public io::asynch_channel
 {
 	public:
 		asynch_channel(const s_asynch_completion_routine& routines, const asynch_io_context* context) noexcept;

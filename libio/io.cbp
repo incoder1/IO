@@ -248,6 +248,7 @@
 		<Unit filename="include/stringpool.hpp" />
 		<Unit filename="include/text.hpp" />
 		<Unit filename="include/threading.hpp" />
+		<Unit filename="include/tls/asynch_channel.hpp" />
 		<Unit filename="include/tls/blocking_channel.hpp" />
 		<Unit filename="include/tls/credentials.hpp" />
 		<Unit filename="include/tls/security_context.hpp" />
@@ -400,6 +401,7 @@
 			<Option weight="0" />
 		</Unit>
 		<Unit filename="src/stringpool.cpp" />
+		<Unit filename="src/tls/asynch_channel.cpp" />
 		<Unit filename="src/tls/blocking_channel.cpp" />
 		<Unit filename="src/tls/credentials.cpp" />
 		<Unit filename="src/tls/security_context.cpp" />
