@@ -24,6 +24,7 @@
 #include <cctype>
 #include <functional>
 #include <iosfwd>
+#include <ostream>
 #include <string>
 
 #if defined(__HAS_CPP_17)
@@ -31,7 +32,6 @@
 #endif
 
 namespace io {
-
 
 namespace detail {
 
@@ -95,17 +95,6 @@ __forceinline std::size_t long_size(const sso_variant_t& v) noexcept
 	return v.long_buf.size;
 }
 
-#ifndef __HAS_CPP_14
-// C++11 version of std::exchange for internal use.
-template <typename _Tp, typename _Up = _Tp>
-inline _Tp exchange(_Tp& __obj, _Up&& __new_val)
-{
-	_Tp __old_val = std::move(__obj);
-	__obj = std::forward<_Up>(__new_val);
-	return __old_val;
-}
-#endif // __HAS_CPP_14
-
 } // namespace detail
 
 ///  \brief Immutable zero ending C style string wrapper
@@ -148,11 +137,7 @@ public:
 
 	/// Movement constructor, default movement semantic
 	const_string(const_string&& other) noexcept:
-#ifdef __HAS_CPP_14
 		data_( std::exchange(other.data_, {{false,0,nullptr}}) )
-#else
-		data_( detail::exchange(other.data_, {{false,0,nullptr}}) )
-#endif // __HAS_CPP_14
 	{}
 
 	/// Movement assignment operator, default movement semantic
@@ -300,17 +285,13 @@ public:
 	}
 };
 
-inline std::basic_ostream<char>& operator<<(std::basic_ostream<char>& os, const const_string& cstr)
+inline std::ostream& operator<<(std::ostream& os, const const_string& cstr)
 {
-#if	defined(__GNUG__) && !defined(__clang__)
-	os << cstr.data();
-#else
 	os << cstr.clone();
-#endif
 	return os;
 }
 
-inline std::basic_ostream<wchar_t>& operator<<(std::basic_ostream<wchar_t>& os, const const_string& cstr)
+inline std::wostream& operator<<(std::wostream& os, const const_string& cstr)
 {
 	os << cstr.convert_to_ucs();
 	return os;

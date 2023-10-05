@@ -55,5 +55,19 @@
 #	define DECLARE_IPTR(T) typedef boost::intrusive_ptr<T> s_##T
 #endif // DECLARE_IPTR
 
+#ifndef __HAS_CPP_14
+namespace std {
+
+	// C++11 version of std::exchange for internal use.
+	template <typename _Tp, typename _Up = _Tp>
+	inline _Tp exchange(_Tp& __obj, _Up&& __new_val)
+	{
+		_Tp __old_val = std::move(__obj);
+		__obj = std::forward<_Up>(__new_val);
+		return __old_val;
+	}
+
+} // namespace std
+#endif // __HAS_CPP_14
 
 #endif // IO_CONFIG_HPP_INCLUDED

@@ -43,7 +43,7 @@ void* IO_MALLOC_ATTR
 private_heap_realoc(void* const ptr, const std::size_t new_size) noexcept;
 
 #ifdef IO_DELCSPEC
-IO_PUBLIC_SYMBOL void*
+IO_PUBLIC_SYMBOL void
 #else
 void IO_PUBLIC_SYMBOL
 #endif // IO_DELCSPEC
@@ -62,6 +62,7 @@ constexpr std::size_t allign_up(const std::size_t size,const std::size_t alignme
 }
 
 struct memory_traits {
+
 	static inline void* malloc IO_PREVENT_MACRO (std::size_t bytes) noexcept
 	{
 		return private_heap_alloc(bytes);
@@ -79,7 +80,7 @@ struct memory_traits {
 
 	static void free IO_PREVENT_MACRO (void * const px) noexcept
 	{
-		return private_heap_free(px);
+		private_heap_free(px);
 	}
 
 };

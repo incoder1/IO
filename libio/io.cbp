@@ -126,6 +126,9 @@
 					<Add option="-O3" />
 					<Add option="-Wall" />
 					<Add option="-std=c++20" />
+					<Add option="-fchar8_t" />
+					<Add option="-fno-exceptions" />
+					<Add option="-fno-rtti" />
 					<Add option="-D_WIN32_WINNT=0x0A00" />
 					<Add option="-DNDEBUG" />
 					<Add option="-DIO_SHARED_LIB" />

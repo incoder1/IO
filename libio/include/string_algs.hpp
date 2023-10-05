@@ -24,15 +24,20 @@ namespace io {
 
 namespace detail {
 
-template<typename char_t>
-constexpr unsigned int unsign(const char_t ch) noexcept
-{
-	return static_cast<unsigned int>( std::char_traits<char_t>::to_int_type(ch) );
-}
-
 constexpr unsigned int unsign(const int ch) noexcept
 {
 	return static_cast<unsigned int>( ch );
+}
+
+constexpr unsigned int unsign(std::char_traits<char32_t>::int_type ch) noexcept
+{
+	return unsign( static_cast<int>(ch) );
+}
+
+template<typename char_t>
+constexpr unsigned int unsign(const char_t ch) noexcept
+{
+	return unsign( std::char_traits<char_t>::to_int_type(ch) );
 }
 
 } // namespace detail

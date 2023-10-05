@@ -74,7 +74,7 @@ public:
 				__memory_traits::free( const_cast<void*>(px) );
 			}
 #ifdef IO_NO_EXCEPTIONS
-			detail::panic(ENOMEM, "Out of memory");
+			return nullptr;
 #else
 			throw std::bad_array_new_length();
 #endif

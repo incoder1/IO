@@ -1087,13 +1087,14 @@ IO_PUBLIC_SYMBOL io::const_string to_string(std::error_code& ec, const bool valu
 io::const_string IO_PUBLIC_SYMBOL to_string(std::error_code& ec, const bool value, str_bool_format fmt) noexcept
 #endif
 {
+	io::const_string ret;
 	char tmp[6] = {'\0'};
-	auto ret = to_chars(tmp, tmp+sizeof(tmp), value, fmt);
-	if( 0 != static_cast<unsigned int>(ret.ec) ) {
- 		ec = std::make_error_code( ret.ec );
-		return io::const_string();
-	}
-	return io::const_string(tmp);
+	auto conv = to_chars(tmp, tmp+sizeof(tmp), value, fmt);
+	if( 0 != static_cast<unsigned int>(conv.ec) )
+ 		ec = std::make_error_code( conv.ec );
+	else
+		ret = io::const_string(tmp);
+	return ret;
 }
 
 

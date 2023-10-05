@@ -40,11 +40,11 @@
 
 #define HAS_PRAGMA_ONCE 1
 
-#if __has_feature(cxx_rtti) && !defined(IO_NO_RTTI)
+#if ! __has_feature(cxx_rtti)
 #	define IO_NO_RTTI 1
 #endif
 
-#if __has_feature(cxx_exceptions) && !defined(IO_NO_EXCEPTIONS)
+#if ! __has_feature(cxx_exceptions)
 #	define IO_NO_EXCEPTIONS 1
 #endif
 

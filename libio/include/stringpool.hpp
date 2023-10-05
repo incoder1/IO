@@ -43,8 +43,18 @@ class IO_PUBLIC_SYMBOL string_pool final:public object {
 	string_pool& operator=(const string_pool&) = delete;
 private:
 
+	typedef h_allocator< std::pair<const std::size_t, const_string> > allocator_type;
+
+	typedef std::unordered_map<
+		std::size_t,
+		const_string,
+		std::hash<std::size_t>,
+		std::equal_to<std::size_t>,
+		allocator_type
+		> pool_type;
+
 	/// Construct new string pool
-	explicit string_pool() noexcept;
+	explicit string_pool(pool_type&& pool) noexcept;
 
 	const_string load(const std::size_t str_hash, const char* s,const std::size_t size) noexcept;
 
@@ -82,20 +92,6 @@ public:
 	}
 
 private:
-
-// TODO: Remove custom allocators when C++11 support should be deriacated
-// and use C++ 17 typedef std::pmr::polymorphic_allocator< std::pair<const std::size_t, const_string> > allocator_type;
-// instead
-
-	typedef h_allocator< std::pair<const std::size_t, const_string> > allocator_type;
-
-	typedef std::unordered_map<
-		std::size_t,
-		const_string,
-		std::hash<std::size_t>,
-		std::equal_to<std::size_t>,
-		allocator_type
-		> pool_type;
 
 	pool_type pool_;
 

@@ -115,7 +115,7 @@ private_heap_realoc(void* const ptr, const std::size_t new_size) noexcept
 }
 
 #ifdef IO_DELCSPEC
-IO_PUBLIC_SYMBOL void*
+IO_PUBLIC_SYMBOL void
 #else
 void IO_PUBLIC_SYMBOL
 #endif // IO_DELCSPEC
