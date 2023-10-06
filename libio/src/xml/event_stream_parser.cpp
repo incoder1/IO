@@ -9,8 +9,10 @@
  *
  */
 #include "stdafx.hpp"
-#include "event_stream_parser.hpp"
-#include "string_algs.hpp"
+
+#include <io/core/string_algs.hpp>
+
+#include "io/xml/event_stream_parser.hpp"
 
 namespace io {
 namespace xml {

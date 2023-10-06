@@ -11,15 +11,10 @@
 #ifndef __STDAFX_HPP_INCLUDED__
 #define __STDAFX_HPP_INCLUDED__
 
-#include "config.hpp"
-#include "errorcheck.hpp"
-#include "buffer.hpp"
-#include "channels.hpp"
-#include "charsets.hpp"
-#include "charsetcvt.hpp"
-#include "conststring.hpp"
-#include "string_algs.hpp"
-#include "text.hpp"
-#include "threading.hpp"
+#include <io/config/libio_config.hpp>
+#include <io/core/buffer.hpp>
+#include <io/core/channels.hpp>
+#include <io/core/conststring.hpp>
+#include <io/core/string_algs.hpp>
 
 #endif // __STDAFX_HPP_INCLUDED__

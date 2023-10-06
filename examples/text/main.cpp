@@ -1,10 +1,10 @@
 /*
  * This example demonstrate IO library character set detector functionality
  */
-#include <errorcheck.hpp>
-#include <charsetdetector.hpp>
 #include <iostream>
 
+#include <core/error.hpp>
+#include <textapi/charset_detector.hpp>
 
 // A latin1 character, code page name is platform specific, for example for Windows it is CP1252
 const char* latin1str = "0Aa\n\t1Bb\n\t2Cc\n\t3Dd\n\t4Ee\n\t5Ff\n\t6Gg\n\t7Hh\n\t8Ii\n\t9Jj";

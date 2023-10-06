@@ -9,7 +9,8 @@
  *
  */
 #include "stdafx.hpp"
-#include "blocking_channel.hpp"
+
+#include "io/tls/blocking_channel.hpp"
 
 namespace io {
 

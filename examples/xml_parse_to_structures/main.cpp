@@ -12,47 +12,80 @@ where id and enabled fields stored as XML attributes and name stored as a tag
 
 <?xml version="1.0" encoding="UTF-8"?>
 <configurations>
-	<configuration id="0" enabled="true">
+	<configuration id="0" enabled="yes">
 		<name>Test configuration <![CDATA[<0>]]></name>
 	</configuration>
-	<configuration id="1" enabled="false">
+	<configuration id="1" enabled="no">
 		<name>Test configuration <![CDATA[<1>]]></name>
 	</configuration>
-	<configuration id="2" enabled="false">
+	<configuration id="2" enabled="no">
 		<name>Test configuration <![CDATA[<2>]]></name>
 	</configuration>
 </configurations>
 
 */
 
-#include <iostream>
 #include <vector>
 
-#include <files.hpp>
-#include <xml/reader.hpp>
-#include <char_cast.hpp>
+#include <io/core/files.hpp>
+#include <io/core/char_cast.hpp>
+#include <io/core/console.hpp>
+
+#include <io/xml/reader.hpp>
 
 /// A structure to parse into
 struct configuration {
 	std::size_t id;
 	bool enabled;
 	std::string name;
-	configuration();
 };
 
-configuration::configuration():
-	id(0),
-	enabled(false),
-	name()
-{}
 
-std::ostream& operator<<(std::ostream& s, const configuration& cnd)
+/// XML syntax color highlight for tag
+void format_tag(std::ostream& s, int nl, const char* name, bool close, bool hasattr)
 {
-	s << "configuration id: " << cnd.id << " enabled: " <<  io::to_string(cnd.enabled, io::str_bool_format::yes_no)  << " name: " << cnd.name;
-	return s;
+	for(int i=0; i < nl; i++)
+		s << "    ";
+	if(close)
+		s << "</";
+	else
+		s << '<';
+	s << io::cclr::navy_green;
+	s << name;
+	if(!hasattr)
+		s << io::cclr::reset << '>';
 }
 
-// Get required XML tag attribute string value or error when no such attribute
+/// XML syntax color highlight for tag attribute
+void format_attribute(std::ostream& s, const char* name, const io::const_string& val)
+{
+	s << ' ';
+	s << io::cclr::brown;
+	s << name;
+	s << io::cclr::reset << "=\"";
+	s << io::cclr::light_aqua << val;
+	s << io::cclr::reset << '"';
+}
+
+/// XML syntax format a configuration with color highlight
+void format_configuration(std::ostream& s, const configuration& cnd)
+{
+	format_tag(s, 1, "configuration",false,true);
+	format_attribute(s, "id", io::to_string(cnd.id) );
+	format_attribute(s, "enabled", io::to_string(cnd.enabled, io::str_bool_format::yes_no) );
+	s << '>';
+	s << std::endl;
+	format_tag(s, 2, "name",false,false);
+	s << io::cclr::yellow << "<![CDATA["<< io::cclr::reset;
+	s << cnd.name;
+	s << io::cclr::yellow << "]]>" << io::cclr::reset;;
+	format_tag(s, 0, "name",true,false);
+	s << std::endl;
+	format_tag(s, 1, "configuration", true, false);
+	s << std::endl;
+}
+
+/// Get required XML tag attribute string value or error when no such attribute
 static io::const_string get_string_attr(const io::xml::start_element_event& ev,const char* name)
 {
 	io::const_string ret;
@@ -112,20 +145,23 @@ static configuration read_config(io::unsafe<io::xml::reader>& rd)
 
 int main(int argc, const char** argv)
 {
-	std::ios::sync_with_stdio(false);
+	io::console cons;
+	io::console_output_stream cout(cons);
+	io::console_error_stream cerr(cons);
+
 	io::file sf("test-config.xml");
 	if( !sf.exist() ) {
-		std::cerr << sf.path() << " is not exist" << std::endl;
+		cerr << sf.path() << " is not exist" << std::endl;
 		return -1;
 	}
+
+	cout << "About to read and parse " << sf.path() << " file" << std::endl;
 
 	std::error_code ec;
 
 	// Open a XML parser from file channel
 	io::xml::s_event_stream_parser psr = io::xml::event_stream_parser::open(ec, sf.open_for_read(ec) );
 	io::check_error_code( ec );
-
-	std::cout<< "Configurations read from XML\n" << std::endl;
 
 	// Construct XML reader, unsafe throws exceptions on XML parsing error
 	// when compiler currently supports exceptions,
@@ -149,9 +185,17 @@ int main(int argc, const char** argv)
 	rd.next_expected_tag_end("configurations");
 
 	// Display results
-	for(configuration cnf: configurations) {
-		std::cout << '\t' << cnf << std::endl;
-	}
+	cout<< "Format structures back to XML into stream with color syntax highlighting\n" << std::endl;
+	cout << io::cclr::navy_red << "<?" << io::cclr::reset << "xml ";
+	format_attribute(cout, "version", "1.0");
+	format_attribute(cout, "encoding", "UTF-8");
+	cout << io::cclr::navy_red << "?>" << io::cclr::reset << std::endl;
 
+	format_tag(cout,0,"configurations",false,false);
+	cout << std::endl;
+	for(auto it: configurations) {
+		format_configuration(cout, it);
+	}
+	format_tag(cout,0,"configurations",true,false);
 	return 0;
 }

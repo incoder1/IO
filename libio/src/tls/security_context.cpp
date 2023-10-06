@@ -9,11 +9,7 @@
  *
  */
 #include "stdafx.hpp"
-#include "security_context.hpp"
-
-#ifndef NDEBUG
-
-#endif // NDEBUG
+#include "io/tls/security_context.hpp"
 
 namespace io {
 

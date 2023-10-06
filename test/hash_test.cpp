@@ -10,7 +10,7 @@
  */
 #include "stdafx.hpp"
 
-#include <hashing.hpp>
+#include <io/core/hashing.hpp>
 
 #include <string>
 #include <algorithm>

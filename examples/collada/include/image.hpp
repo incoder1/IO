@@ -11,10 +11,10 @@
 #ifndef __IMAGE_HPP_INCLUDED__
 #define __IMAGE_HPP_INCLUDED__
 
-#include <object.hpp>
-#include <channels.hpp>
-#include <files.hpp>
-#include <scoped_array.hpp>
+#include <core/object.hpp>
+#include <core/channels.hpp>
+#include <core/files.hpp>
+#include <core/scoped_array.hpp>
 
 namespace engine {
 

@@ -2,11 +2,9 @@
 * Example demonstrate IO network feature, non blocking asynronius TCP/IP connection
 * for blocking connection see network
 */
-#include <errorcheck.hpp>
-
+#include <core/console.hpp>
+#include <core/errorcheck.hpp>
 #include <net/context.hpp>
-
-#include <console.hpp>
 
 /// Asynchronous IO operations completion routine
 class my_routine final: public io::asynch_completion_routine {

@@ -1,15 +1,15 @@
 // This example demonstrate memory buffer read and write synchronous channels
 
 
-#include <console.hpp>
-#include <memory_channel.hpp>
+#include <core/console.hpp>
+#include <core/memory_channel.hpp>
 
 // A data to be source of memory read channel
 const char* umessage = "Hello!\nПривет!\nПривіт!\nΧαιρετίσματα!\nHelló!\nHallå!\n";
 
 static const std::size_t BUFFER_SIZE = 24;
 
-int main()
+int main(int arc, const char** argv)
 {
 	std::error_code ec;
 

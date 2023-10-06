@@ -11,7 +11,7 @@
 #ifndef __IO_TEST_STDAFX_HPP_INCLUDED__
 #define __IO_TEST_STDAFX_HPP_INCLUDED__
 
-#include <conststring.hpp>
+#include <io/core/conststring.hpp>
 
 #include "fixtures.hpp"
 

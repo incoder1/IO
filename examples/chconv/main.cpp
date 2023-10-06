@@ -3,9 +3,11 @@
 /*
  * This example shows how to use IO character set conversion API
  */
-#include <text.hpp>
-#include <files.hpp>
-#include <iostream>
+
+ #include <iostream>
+
+#include <core/files.hpp>
+#include <textapi/charset_converter.hpp>
 
 static const std::size_t BUFFER_SIZE = 512;
 

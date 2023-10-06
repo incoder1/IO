@@ -13,10 +13,10 @@
 				<Option compiler="gcc" />
 				<Option parameters="test.xml" />
 				<Compiler>
-					<Add option="-std=gnu++23" />
-					<Add option="-ggdb" />
 					<Add option="-Og" />
 					<Add option="-g" />
+					<Add option="-std=gnu++23" />
+					<Add option="-ggdb" />
 					<Add option="-D_WIN32_WINNT=0x0A00" />
 					<Add option="-D_UNICODE" />
 					<Add option="-DUNICODE" />
@@ -24,7 +24,7 @@
 				<Linker>
 					<Add library="io" />
 					<Add library="iconv.dll" />
-					<Add directory="../../bin/debug-win-gcc-static-x64" />
+					<Add directory="../../libio/bin/debug-win-gcc-static-x64" />
 				</Linker>
 			</Target>
 			<Target title="release-win-gcc-x64">

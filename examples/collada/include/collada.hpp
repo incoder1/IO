@@ -18,10 +18,10 @@
 #include <unordered_map>
 #include <unordered_set>
 
-#include <object.hpp>
-#include <scoped_array.hpp>
-#include <conststring.hpp>
-#include <stringpool.hpp>
+#include <core/object.hpp>
+#include <core/scoped_array.hpp>
+#include <core/conststring.hpp>
+#include <core/stringpool.hpp>
 
 #include "intrusive_array.hpp"
 

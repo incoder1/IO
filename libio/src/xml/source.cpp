@@ -9,8 +9,9 @@
  *
  */
 #include "stdafx.hpp"
-#include "source.hpp"
-#include "string_algs.hpp"
+#include <io/core/string_algs.hpp>
+
+#include "io/xml/source.hpp"
 
 namespace io {
 

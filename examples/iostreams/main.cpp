@@ -1,13 +1,12 @@
 /// This example shows IO channels to std lib input/output streams API compatibility layer
 
-#include <console.hpp>
-#include <files.hpp>
 #include <iostream>
 #include <ios>
 
-#include <text.hpp>
-#include <stream.hpp>
+#include <core/console.hpp>
+#include <core/files.hpp>
 
+#include <textapi/stream.hpp>
 
 /// Opens a file channel with auto-reconverting content
 /// to UTF-8 from current wchar_t UNICODE

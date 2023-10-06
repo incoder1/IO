@@ -13,10 +13,10 @@
 				<Option compiler="gcc" />
 				<Option parameters="test.xml" />
 				<Compiler>
-					<Add option="-std=gnu++23" />
-					<Add option="-ggdb" />
 					<Add option="-Og" />
 					<Add option="-g" />
+					<Add option="-std=gnu++23" />
+					<Add option="-ggdb" />
 					<Add option="-D_WIN32_WINNT=0x0A00" />
 					<Add option="-D_UNICODE" />
 					<Add option="-DUNICODE" />
@@ -89,7 +89,7 @@
 					<Add option="-D_WIN32_WINNT=0x0A00" />
 					<Add option="-D_UNICODE" />
 					<Add option="-DUNICODE" />
-					<Add directory="../../libio/bin/release-win-gcc-dll-x64" />
+					<Add directory="../../libio/bin/release-win-clang-dll-x64" />
 				</Compiler>
 				<Linker>
 					<Add option="-s" />
@@ -105,19 +105,19 @@
 				<Option compiler="gcc" />
 				<Option parameters="test.xml" />
 				<Compiler>
-					<Add option="-Weffc++" />
+					<Add option="-O3" />
 					<Add option="-Wall" />
-					<Add option="`pkg-config --cflags gnutls`" />
 					<Add option="-DNDEBUG" />
+					<Add option="-DIO_SHARED_LIB" />
+					<Add option="-D_WIN32_WINNT=0x0A00" />
+					<Add option="-D_UNICODE" />
+					<Add option="-DUNICODE" />
+					<Add directory="../../libio/bin/release-win-gcc-dll-x64" />
 				</Compiler>
 				<Linker>
-					<Add option="-std=gnu++23" />
-					<Add option="-ggdb" />
-					<Add option="-Og" />
-					<Add option="-g" />
-					<Add option="`pkg-config --libs gnutls`" />
-					<Add library="io" />
-					<Add directory="../../libio/bin/debug-unix-gcc-static" />
+					<Add option="-s" />
+					<Add library="io.dll" />
+					<Add directory="../../libio/bin/release-win-clang-dll-x64" />
 				</Linker>
 			</Target>
 		</Build>

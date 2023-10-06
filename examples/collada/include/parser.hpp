@@ -16,8 +16,8 @@
 
 #include "collada.hpp"
 
-#include <char_cast.hpp>
-#include <string_algs.hpp>
+#include <core/char_cast.hpp>
+#include <core/string_algs.hpp>
 #include <xml/event_stream_parser.hpp>
 
 namespace collada {

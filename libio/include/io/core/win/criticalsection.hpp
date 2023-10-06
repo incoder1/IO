@@ -1,0 +1,79 @@
+/*
+ *
+ * Copyright (c) 2016-2023
+ * Viktor Gubin
+ *
+ * Use, modification and distribution are subject to the
+ * Boost Software License, Version 1.0. (See accompanying file
+ * LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
+ *
+ */
+#ifndef __IO_WIN_CRITICAL_SECTION_HPP_INCLUDED__
+#define __IO_WIN_CRITICAL_SECTION_HPP_INCLUDED__
+
+#include <io/config/libio_config.hpp>
+
+#ifdef HAS_PRAGMA_ONCE
+#pragma once
+#endif // HAS_PRAGMA_ONCE
+
+namespace io {
+
+class critical_section
+{
+	critical_section(const critical_section&) = delete;
+	critical_section& operator=(const critical_section&) = delete;
+private:
+	static constexpr ::DWORD SPIN_COUNT = 4000;
+public:
+	critical_section() noexcept :
+		cs_()
+	{
+#ifdef _MSC_VER
+#	pragma warning(disable:6031)
+#endif // _MSC_VER
+		// accordin to documentation starting from windows Vista this function always returns true
+		::InitializeCriticalSectionAndSpinCount(&cs_, SPIN_COUNT);
+#ifdef _MSC_VER
+#	pragma warning(default:6031)
+#endif // _MSC_VER
+	}
+	__forceinline void lock() noexcept {
+		::EnterCriticalSection(&cs_);
+	}
+	__forceinline void unlock() noexcept {
+		::LeaveCriticalSection(&cs_);
+	}
+	__forceinline bool try_lock() noexcept {
+		return TRUE == ::TryEnterCriticalSection(&cs_);
+	}
+	~critical_section() noexcept
+	{
+		::DeleteCriticalSection(&cs_);
+	}
+private:
+	::CRITICAL_SECTION cs_;
+};
+
+class lock_guard
+{
+	lock_guard(const lock_guard& ) = delete;
+	lock_guard& operator=(const lock_guard& ) = delete;
+public:
+	explicit lock_guard(critical_section& cs) noexcept:
+		cs_(cs)
+	{
+		cs_.lock();
+	}
+	~lock_guard() noexcept {
+		cs_.unlock();
+	}
+private:
+	critical_section& cs_;
+};
+
+
+} // namespace io
+
+
+#endif // __IO_WIN_CRITICAL_SECTION_HPP_INCLUDED__

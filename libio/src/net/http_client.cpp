@@ -9,7 +9,7 @@
  *
  */
 #include "stdafx.hpp"
-#include "http_client.hpp"
+#include "io/net/http_client.hpp"
 
 #include <sstream>
 

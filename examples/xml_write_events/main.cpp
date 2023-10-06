@@ -2,10 +2,10 @@
  * This example shows ho to write any kind of XML using IO streaming event API
  */
 // IO library
-#include <console.hpp>
-#include <char_cast.hpp>
-#include <files.hpp>
-#include <xml/event_writer.hpp>
+#include <io/core/console.hpp>
+#include <io/core/char_cast.hpp>
+#include <io/core/files.hpp>
+#include <io/xml/event_writer.hpp>
 
 namespace xml = io::xml;
 

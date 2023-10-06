@@ -10,7 +10,7 @@
  */
 #include "stdafx.hpp"
 
-#include <charsets.hpp>
+#include <io/textapi/charset_converter.hpp>
 
 static const char* BYTE_1 = "a";
 static const char* BYTE_2 = "α";

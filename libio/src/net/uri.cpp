@@ -9,11 +9,10 @@
  *
  */
 #include "stdafx.hpp"
-#include "string_algs.hpp"
-#include "net/uri.hpp"
 
-#include <cstdlib>
-#include <limits>
+#include <io/core/string_algs.hpp>
+
+#include "io/net/uri.hpp"
 
 namespace io {
 

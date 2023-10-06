@@ -1,6 +1,6 @@
 /*
  *
- * Copyright (c) 2016-2019
+ * Copyright (c) 2016-2013
  * Viktor Gubin
  *
  * Use, modification and distribution are subject to the
@@ -11,7 +11,12 @@
 #ifndef __INTRUSIVE_ARRAY_HPP_INCLUDED__
 #define __INTRUSIVE_ARRAY_HPP_INCLUDED__
 
-#include <config.hpp>
+#include <config/libio_config.hpp>
+
+#ifdef HAS_PRAGMA_ONCE
+#pragma once
+#endif // HAS_PRAGMA_ONCE
+
 #include <type_traits>
 
 namespace util {

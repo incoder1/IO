@@ -5,14 +5,15 @@
 // UTF-8, UTF-16 (LE,BE) or UTF-32(LE,BE)
 // For non UTF-8 UNICODE encodings XML file must have byte order mark (BOM)
 
-// For parsing event from
-#include <files.hpp>
-#include <xml/event_stream_parser.hpp>
-
 // C++ standard library
 #include <algorithm>
-#include <console.hpp>
-#include <char_cast.hpp>
+
+// For parsing event from
+#include <io/core/files.hpp>
+#include <io/core/console.hpp>
+#include <io/core/char_cast.hpp>
+
+#include <io/xml/event_stream_parser.hpp>
 
 using namespace io;
 

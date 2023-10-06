@@ -11,7 +11,7 @@
 #ifndef __SURFACE_HPP_INCLUDED__
 #define __SURFACE_HPP_INCLUDED__
 
-#include <object.hpp>
+#include <core/object.hpp>
 
 #include "array_view.hpp"
 #include "renderer.hpp"

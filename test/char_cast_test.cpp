@@ -10,7 +10,7 @@
  */
 #include "stdafx.hpp"
 
-#include <char_cast.hpp>
+#include <io/core/char_cast.hpp>
 
 char_cast_fixture::char_cast_fixture():
 	testing::Test()

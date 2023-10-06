@@ -15,10 +15,10 @@
 #include <vector>
 #include <memory>
 
-#include <object.hpp>
-#include <buffer.hpp>
-#include <channels.hpp>
-#include <files.hpp>
+#include <core/object.hpp>
+#include <core/buffer.hpp>
+#include <core/channels.hpp>
+#include <core/files.hpp>
 
 #include "openglload.hpp"
 #include "vbo.hpp"

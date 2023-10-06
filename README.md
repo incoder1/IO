@@ -210,7 +210,7 @@ cmake -S . -B CBuild -DCMAKE_BUILD_TYPE=Debug -DBUILD_LIBRARY_TYPE=Static -DBUIL
 
 #### Configure release dynamic library
 ```bash
-cmake -S . -B CBuild -DCMAKE_BUILD_TYPE=Debug -DBUILD_LIBRARY_TYPE=Shared
+cmake -S . -B CBuild -DCMAKE_BUILD_TYPE=Release -DBUILD_LIBRARY_TYPE=Shared
 
 ```
 

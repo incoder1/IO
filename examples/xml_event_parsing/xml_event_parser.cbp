@@ -96,7 +96,6 @@
 					<Add option="-D_WIN32_WINNT=0x0A00" />
 					<Add option="-D_UNICODE" />
 					<Add option="-DUNICODE" />
-					<Add directory="../../libio/bin/release-win-clang-dll-x64" />
 				</Compiler>
 				<Linker>
 					<Add option="-s" />

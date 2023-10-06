@@ -3,12 +3,12 @@
 * including secured TLS protected HTTP connection.
 * For non blocking connection see async_network_client
 */
-#include <errorcheck.hpp>
+#include <core/console.hpp>
+#include <core/errorcheck.hpp>
 
 #include <net/uri.hpp>
 #include <net/http_client.hpp>
 #include <net/security.hpp>
-#include <console.hpp>
 
 int main(int argc, const char** argv)
 {

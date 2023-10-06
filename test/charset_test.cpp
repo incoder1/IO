@@ -10,7 +10,7 @@
  */
 #include "stdafx.hpp"
 
-#include <charsets.hpp>
+#include <io/textapi/charsets.hpp>
 
 charset_fixture::charset_fixture():
 	testing::Test()

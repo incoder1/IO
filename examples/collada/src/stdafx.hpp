@@ -23,9 +23,9 @@
 #include <unordered_map>
 
 /* IO */
-#include <object.hpp>
-#include <buffer.hpp>
-#include <conststring.hpp>
+#include <core/object.hpp>
+#include <core/buffer.hpp>
+#include <core/conststring.hpp>
 
 /* OpenGL specific*/
 #ifdef _OPENMP

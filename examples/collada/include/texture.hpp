@@ -13,7 +13,7 @@
 
 #include <atomic>
 
-#include <object.hpp>
+#include <core/object.hpp>
 
 #include "openglload.hpp"
 #include "image.hpp"
