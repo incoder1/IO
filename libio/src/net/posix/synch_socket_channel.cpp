@@ -1,5 +1,5 @@
 #include "stdafx.hpp"
-#include "posix/synch_socket_channel.hpp"
+#include "io/net/posix/synch_socket_channel.hpp"
 
 namespace io {
 

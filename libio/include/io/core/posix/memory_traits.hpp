@@ -78,11 +78,7 @@ struct memory_traits {
 	static inline void* IO_PREVENT_MACRO aligned_alloc(const std::size_t bytes,const std::size_t alignment) noexcept
 	{
 		void *ret = nullptr;
-#ifdef __GNUG__
-		while( __builtin_expect( nullptr == (ret = ::aligned_alloc(bytes,alignment) ) , false ) )
-#else
-		while( nullptr == (ret = ::aligned_alloc(bytes,alignment) ) )
-#endif // __GNUG__
+		while( io_unlikely( nullptr == (ret = ::aligned_alloc(alignment, bytes) ) ) )
 		{
 			std::new_handler handler = std::get_new_handler();
 			if( nullptr == handler )

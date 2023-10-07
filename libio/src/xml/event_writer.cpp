@@ -27,7 +27,7 @@ static const char* WIDEN_ENDL = "\n";
 
 s_event_writer event_writer::open(std::error_code& ec, writer&& dst, bool format, const document_event& prologue) noexcept
 {
-	char tmp[64] = {'\0'};
+	char tmp[128] = {'\0'};
 	const char* standalone = prologue.standalone() ? STANDALONE_ATTR : " ";
 	io_snprintf( tmp, sizeof(tmp), PROLOGUE_FMT, prologue.version().data(), prologue.encoding().data(), standalone);
 	if(format)

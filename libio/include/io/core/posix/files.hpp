@@ -20,7 +20,7 @@
 #include <cerrno>
 #include <string>
 
-#include <text.hpp>
+#include <io/textapi/charset_converter.hpp>
 
 #ifdef __LP64__
 
@@ -52,7 +52,7 @@ typedef int fd_t;
 class IO_PUBLIC_SYMBOL synch_file_channel final:public random_access_channel
 {
 public:
-	synch_file_channel(fd_t fd) noexcept;
+	synch_file_channel(os_descriptor_t fd) noexcept;
 
 	virtual ~synch_file_channel() noexcept override;
 
@@ -72,9 +72,8 @@ public:
 private:
 	inline std::size_t seek(std::error_code& ec,int64_t offset, int whence) noexcept;
 private:
-	fd_t fd_;
+	os_descriptor_t fd_;
 };
-
 
 } // namespace posix
 

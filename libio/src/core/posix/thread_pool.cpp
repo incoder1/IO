@@ -71,12 +71,13 @@ void blocking_queue::offer(async_task&& el) noexcept
 }
 
 // pool_thread
-pool_thread::pool_thread(thread_pool* owner, void* (*routine)(void*)) noexcept:
+pool_thread::pool_thread(const thread_pool* owner, void* (*routine)(void*)) noexcept:
 	tid_()
 {
 	::pthread_attr_t attr;
+
 	::pthread_attr_init( &attr );
-	::pthread_create(&tid_, &attr, routine, static_cast<void*>(owner) );
+	::pthread_create(&tid_, &attr, routine, const_cast<void*>( static_cast<const void*>(owner) ) );
 	::pthread_attr_destroy( &attr );
 }
 

@@ -34,13 +34,13 @@
 #	error "This operating system asyncronous io is not yet supported"
 #endif
 
-#include <channels.hpp>
-#include <buffer.hpp>
+#include <io/core/channels.hpp>
+#include <io/core/buffer.hpp>
+#include <io/core/threading.hpp>
 
 //#include "asynch_socket_channel.hpp"
 #include "sockets.hpp"
 #include "synch_socket_channel.hpp"
-#include "thread_pool.hpp"
 
 namespace io {
 

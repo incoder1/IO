@@ -1,5 +1,5 @@
 #include <iostream>
-#include <core/stringpool.hpp>
+#include <io/core/stringpool.hpp>
 
 struct strings {
 	io::const_string s1;

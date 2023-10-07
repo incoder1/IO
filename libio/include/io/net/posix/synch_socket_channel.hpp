@@ -21,7 +21,7 @@
 #include <sys/socket.h>
 #include <netdb.h>
 
-#include <core/channels.hpp>
+#include <io/core/channels.hpp>
 
 namespace io {
 

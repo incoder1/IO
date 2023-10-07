@@ -24,8 +24,8 @@
 #include <arpa/inet.h>
 #include <netdb.h>
 
-#include "criticalsection.hpp"
-#include "conststring.hpp"
+#include <io/core/threading.hpp>
+#include <io/core/conststring.hpp>
 
 namespace io {
 

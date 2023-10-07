@@ -9,7 +9,7 @@
  *
  */
 #include "stdafx.hpp"
-#include "posix/sockets.hpp"
+#include "io/net/posix/sockets.hpp"
 
 namespace io
 {

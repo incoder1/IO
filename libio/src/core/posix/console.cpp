@@ -62,7 +62,7 @@ void change_color(int fileno, text_color cl) noexcept
 }
 
 //  console_channel
-console_channel::console_channel(const fd_t stream) noexcept:
+console_channel::console_channel(const os_descriptor_t stream) noexcept:
 	read_write_channel(),
 	stream_(stream)
 {}

@@ -674,7 +674,7 @@ charset_detect_status charset_detector::detect(std::error_code &ec,const uint8_t
 	}
 	// no unicode byte order mark found, try to detect/guess by evristic
 	// algorythms
-	float *confidences = static_cast<float*>( io_alloca( probers_.size() ) );
+	float *confidences = static_cast<float*>( io_alloca( probers_.size() * sizeof(float) ) );
 	float confidence;
 	std::size_t i = 0;
 	for(auto it = probers_.cbegin(); it != probers_.cend(); ++it) {

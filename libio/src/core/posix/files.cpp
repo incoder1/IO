@@ -25,7 +25,7 @@ namespace io {
 namespace posix {
 
 
-synch_file_channel* new_sync_file_channel(std::error_code& ec, fd_t fd) noexcept
+synch_file_channel* new_sync_file_channel(std::error_code& ec, os_descriptor_t fd) noexcept
 {
 	return nobadalloc<synch_file_channel>::construct(ec, fd);
 }

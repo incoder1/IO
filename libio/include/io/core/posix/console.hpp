@@ -18,7 +18,8 @@
 #endif // HAS_PRAGMA_ONCE
 
 #include <io/core/channels.hpp>
-#include <io/core/stream.hpp>
+#include <io/textapi/nio.hpp>
+#include <io/textapi/stream.hpp>
 
 namespace io
 {
@@ -50,13 +51,13 @@ class IO_PUBLIC_SYMBOL console_channel final: public io::read_write_channel
 	console_channel(const console_channel&) = delete;
 	console_channel& operator=(const console_channel&) = delete;
 public:
-	console_channel(const fd_t stream) noexcept;
+	console_channel(const os_descriptor_t stream) noexcept;
 	virtual ~console_channel() = default;
 	virtual std::size_t read(std::error_code& ec,uint8_t* const buff, std::size_t bytes) const noexcept override;
 	virtual std::size_t write(std::error_code& ec, const uint8_t* buff,std::size_t size) const noexcept override;
 	void change_color(text_color attr) noexcept;
 private:
-	fd_t stream_;
+	os_descriptor_t stream_;
 };
 
 DECLARE_IPTR(console_channel);

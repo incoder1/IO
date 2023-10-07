@@ -105,11 +105,11 @@
 				<Option compiler="gcc" />
 				<Option parameters="test.xml" />
 				<Compiler>
-					<Add option="-std=gnu++23" />
+					<Add option="-Weffc++" />
 					<Add option="-ggdb" />
 					<Add option="-Og" />
 					<Add option="-g" />
-					<Add option="-Weffc++" />
+					<Add option="-std=gnu++23" />
 					<Add option="`pkg-config --cflags gnutls`" />
 					<Add option="-DNDEBUG" />
 				</Compiler>

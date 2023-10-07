@@ -50,14 +50,14 @@ private:
 private:
 	::pthread_mutex_t mtx_;
 	::pthread_cond_t cv_;
-	std::deque<async_task, io::h_allocator<async_task> > queue_;
+	std::deque<async_task> queue_;
 };
 
 class pool_thread {
 	pool_thread(const pool_thread&) = delete;
 	pool_thread& operator=(const pool_thread&) = delete;
 public:
-	pool_thread(thread_pool* owner, void* (*routine)(void*)) noexcept;
+	pool_thread(const thread_pool* owner, void* (*routine)(void*)) noexcept;
 	~pool_thread() noexcept;
 	void join() noexcept;
 private:
