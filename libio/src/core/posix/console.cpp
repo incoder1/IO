@@ -9,7 +9,7 @@
  *
  */
 #include "stdafx.hpp"
-#include "posix/console.hpp"
+#include "io/core/posix/console.hpp"
 
 namespace io {
 
@@ -71,9 +71,9 @@ std::size_t console_channel::read(std::error_code& ec,uint8_t* const buff, std::
 {
 	::ssize_t ret = ::read(stream_, static_cast<void*>(buff), bytes);
 	if(ret < 0) {
-        ret = 0;
+		ret = 0;
 		ec.assign(errno, std::system_category() );
-    }
+	}
 	return static_cast<std::size_t>(ret);
 }
 
@@ -81,7 +81,7 @@ std::size_t console_channel::write(std::error_code& ec, const uint8_t* buff,std:
 {
 	::ssize_t ret = ::write(stream_, buff, size);
 	if(ret < 0) {
-        ret = 0;
+		ret = 0;
 		ec.assign(errno, std::system_category() );
 	}
 	return static_cast<std::size_t>(ret);
@@ -98,39 +98,39 @@ console::console():
 
 void console::change_colors(const text_color in,const text_color out,const text_color err) noexcept
 {
-    posix::change_color(STDIN_FILENO,in);
-    posix::change_color(STDOUT_FILENO,out);
-    posix::change_color(STDERR_FILENO,err);
+	posix::change_color(STDIN_FILENO,in);
+	posix::change_color(STDOUT_FILENO,out);
+	posix::change_color(STDERR_FILENO,err);
 }
 
 void console::change_in_color(const text_color clr) noexcept
 {
-    posix::change_color(STDIN_FILENO,clr);
+	posix::change_color(STDIN_FILENO,clr);
 }
 
 void console::change_out_color(const text_color clr) noexcept
 {
-    posix::change_color(STDOUT_FILENO,clr);
+	posix::change_color(STDOUT_FILENO,clr);
 }
 
 void console::change_err_color(const text_color clr) noexcept
 {
-    posix::change_color(STDERR_FILENO,clr);
+	posix::change_color(STDERR_FILENO,clr);
 }
 
 void console::reset_in_color() noexcept
 {
-    ::write(STDIN_FILENO, posix::RESET, posix::RESET_LEN);
+	::write(STDIN_FILENO, posix::RESET, posix::RESET_LEN);
 }
 
 void console::reset_out_color() noexcept
 {
-    ::write(STDOUT_FILENO, posix::RESET, posix::RESET_LEN);
+	::write(STDOUT_FILENO, posix::RESET, posix::RESET_LEN);
 }
 
 void console::reset_err_color() noexcept
 {
-    ::write(STDERR_FILENO, posix::RESET, posix::RESET_LEN);
+	::write(STDERR_FILENO, posix::RESET, posix::RESET_LEN);
 }
 
 } // namespace io

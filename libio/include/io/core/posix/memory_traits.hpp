@@ -11,11 +11,13 @@
 #ifndef HMALLOC_HPP_INCLUDED
 #define HMALLOC_HPP_INCLUDED
 
+#include <io/config/libio_config.hpp>
+
 #ifdef HAS_PRAGMA_ONCE
 #pragma once
 #endif // HAS_PRAGMA_ONCE
 
-#include "config/libs/h_allocator.hpp"
+#include <io/config/libs/h_allocator.hpp>
 
 #include <sys/types.h>
 #include <unistd.h>

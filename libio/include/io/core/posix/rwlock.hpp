@@ -17,7 +17,6 @@
 #pragma once
 #endif // HAS_PRAGMA_ONCE
 
-#include "posixconf.hpp"
 #include <pthread.h>
 
 namespace io {

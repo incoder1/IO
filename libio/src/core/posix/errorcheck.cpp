@@ -9,7 +9,7 @@
  *
  */
 #include "stdafx.hpp"
-#include "posix/errorcheck.hpp"
+#include "io/core/posix/errorcheck.hpp"
 
 #ifndef IO_NO_EXCEPTIONS
 #   include <ios>

@@ -11,7 +11,7 @@
 #ifndef __IO_POSIX_ERRORCHECK_HPP_INCLUDED__
 #define __IO_POSIX_ERRORCHECK_HPP_INCLUDED__
 
-#include "posixconf.hpp"
+#include <io/config/libio_config.hpp>
 
 #ifdef HAS_PRAGMA_ONCE
 #pragma once

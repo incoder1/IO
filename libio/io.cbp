@@ -156,9 +156,6 @@
 					<Add library="iconv.dll" />
 					<Add library="Ws2_32" />
 					<Add library="gnutls.dll" />
-					<Add library="iconv.dll" />
-					<Add library="Ws2_32" />
-					<Add library="gnutls.dll" />
 				</Linker>
 			</Target>
 		</Build>
@@ -177,6 +174,7 @@
 			<Option target="release-win-gcc-dll-x64" />
 			<Option target="debug-unix-gcc-static" />
 		</Unit>
+		<Unit filename="include/io/config/libio_config.hpp" />
 		<Unit filename="include/io/config/libs/exceptions.hpp" />
 		<Unit filename="include/io/config/libs/h_allocator.hpp" />
 		<Unit filename="include/io/config/libs/intrusive_ptr.hpp" />
@@ -207,26 +205,11 @@
 		<Unit filename="include/io/core/posix/memory_traits.hpp">
 			<Option target="debug-unix-gcc-static" />
 		</Unit>
-		<Unit filename="include/io/core/posix/posixconf.hpp">
-			<Option target="debug-unix-gcc-static" />
-		</Unit>
 		<Unit filename="include/io/core/posix/rwlock.hpp">
-			<Option target="debug-unix-gcc-static" />
-		</Unit>
-		<Unit filename="include/io/core/posix/sockets.hpp">
-			<Option target="debug-unix-gcc-static" />
-		</Unit>
-		<Unit filename="include/io/core/posix/synch_socket_channel.hpp">
 			<Option target="debug-unix-gcc-static" />
 		</Unit>
 		<Unit filename="include/io/core/scoped_array.hpp" />
 		<Unit filename="include/io/core/string_algs.hpp" />
-		<Unit filename="include/io/core/win/asynch_socket_channel.hpp">
-			<Option target="debug-win-gcc-static-x64" />
-			<Option target="release-win-gcc-dll-x64" />
-			<Option target="debug-win-clang-static-x64" />
-			<Option target="release-win-clang-dll-x64" />
-		</Unit>
 		<Unit filename="include/io/core/win/console.hpp">
 			<Option target="debug-win-gcc-static-x64" />
 			<Option target="release-win-gcc-dll-x64" />
@@ -263,19 +246,7 @@
 			<Option target="debug-win-clang-static-x64" />
 			<Option target="release-win-clang-dll-x64" />
 		</Unit>
-		<Unit filename="include/io/core/win/secure_socket.hpp">
-			<Option target="debug-win-gcc-static-x64" />
-			<Option target="release-win-gcc-dll-x64" />
-			<Option target="debug-win-clang-static-x64" />
-			<Option target="release-win-clang-dll-x64" />
-		</Unit>
 		<Unit filename="include/io/core/win/srw_lock.hpp">
-			<Option target="debug-win-gcc-static-x64" />
-			<Option target="release-win-gcc-dll-x64" />
-			<Option target="debug-win-clang-static-x64" />
-			<Option target="release-win-clang-dll-x64" />
-		</Unit>
-		<Unit filename="include/io/core/win/synch_socket_channel.hpp">
 			<Option target="debug-win-gcc-static-x64" />
 			<Option target="release-win-gcc-dll-x64" />
 			<Option target="debug-win-clang-static-x64" />
@@ -287,7 +258,6 @@
 			<Option target="debug-win-clang-static-x64" />
 			<Option target="release-win-clang-dll-x64" />
 		</Unit>
-		<Unit filename="include/io/io/config/libio_config.hpp" />
 		<Unit filename="include/io/net/context.hpp" />
 		<Unit filename="include/io/net/http_client.hpp" />
 		<Unit filename="include/io/net/http_error.hpp" />

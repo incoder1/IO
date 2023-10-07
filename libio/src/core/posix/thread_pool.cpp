@@ -9,7 +9,7 @@
  *
  */
 #include "stdafx.hpp"
-#include "posix/thread_pool.hpp"
+#include "io/core/posix/thread_pool.hpp"
 
 namespace io {
 
