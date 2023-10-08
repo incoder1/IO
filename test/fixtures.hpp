@@ -1,6 +1,6 @@
 /*
  *
- * Copyright (c) 2016-2022
+ * Copyright (c) 2016-2023
  * Viktor Gubin
  *
  * Use, modification and distribution are subject to the
@@ -56,6 +56,14 @@ class charset_fixture: public testing::Test
 {
 public:
 	charset_fixture();
+};
+
+class charset_detector_fixture: public testing::Test
+{
+public:
+	charset_detector_fixture();
+protected:
+	std::error_code ec_;
 };
 
 #endif // __IO_TEST_FIXTURES_HPP_INCLUDED__

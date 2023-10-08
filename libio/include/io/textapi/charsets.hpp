@@ -133,8 +133,8 @@ public:
 	DECLARE_CHARSET(KOI8_RU) // Unix Kyrylic soveit DOS single byte for Russian
 // Windows national code pages for the an alphabet based languages
 	DECLARE_CHARSET(CP_1250) // latin 1
-	DECLARE_CHARSET(CP_1251) // latin1 extended
-	DECLARE_CHARSET(CP_1252) // Kyrylic (Belarusian,Bulgarian,Russian,Serbian,Ukrainian etc.)
+	DECLARE_CHARSET(CP_1251) // Kyrylic (Belarusian,Bulgarian,Russian,Serbian,Ukrainian etc.)
+	DECLARE_CHARSET(CP_1252) // latin1 extended
 	DECLARE_CHARSET(CP_1253) // Greek
 	DECLARE_CHARSET(CP_1254)
 	DECLARE_CHARSET(CP_1255)

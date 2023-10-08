@@ -302,6 +302,11 @@
 		<Unit filename="include/io/textapi/charset_converter.hpp" />
 		<Unit filename="include/io/textapi/charset_detector.hpp" />
 		<Unit filename="include/io/textapi/charsets.hpp" />
+		<Unit filename="include/io/textapi/detail/coding_state_machine.hpp" />
+		<Unit filename="include/io/textapi/detail/latin1_prober.hpp" />
+		<Unit filename="include/io/textapi/detail/pkg_int.hpp" />
+		<Unit filename="include/io/textapi/detail/prober.hpp" />
+		<Unit filename="include/io/textapi/detail/utf8_prober.hpp" />
 		<Unit filename="include/io/textapi/nio.hpp" />
 		<Unit filename="include/io/textapi/stream.hpp" />
 		<Unit filename="include/io/textapi/unicode.hpp" />
@@ -430,7 +435,11 @@
 		<Unit filename="src/textapi/charset_converter.cpp" />
 		<Unit filename="src/textapi/charset_detector.cpp" />
 		<Unit filename="src/textapi/charsets.cpp" />
+		<Unit filename="src/textapi/coding_state_machine.cpp" />
+		<Unit filename="src/textapi/latin1_prober.cpp" />
+		<Unit filename="src/textapi/prober.cpp" />
 		<Unit filename="src/textapi/unicode.cpp" />
+		<Unit filename="src/textapi/utf8_prober.cpp" />
 		<Unit filename="src/tls/asynch_channel.cpp" />
 		<Unit filename="src/tls/blocking_channel.cpp" />
 		<Unit filename="src/tls/credentials.cpp" />

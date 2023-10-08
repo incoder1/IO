@@ -18,7 +18,6 @@
 #endif // HAS_PRAGMA_ONCE
 
 #include <array>
-#include <vector>
 
 #include <io/core/object.hpp>
 #include <io/core/buffer.hpp>
@@ -26,26 +25,11 @@
 #include "charsets.hpp"
 #include "unicode.hpp"
 
+#include  "detail/prober.hpp"
+
 namespace io {
 
 namespace detail {
-
-class prober;
-DECLARE_IPTR(prober);
-
-class prober: public virtual io::object {
-	prober(const prober&) = delete;
-	prober& operator=(const prober&) = delete;
-protected:
-	prober() noexcept;
-	//This filter applies to all scripts which do not use English characters
-	byte_buffer filter_without_english_letters(std::error_code& ec, const uint8_t* buff, std::size_t size) const noexcept;
-	//This filter applies to all scripts which contain both English characters and upper ASCII characters
-	byte_buffer filter_with_english_letters(std::error_code& ec, const uint8_t* buff, std::size_t size) const noexcept;
-public:
-	virtual charset get_charset() const noexcept = 0;
-	virtual bool probe(std::error_code& ec,float& confidence, const uint8_t* buff, std::size_t size) const noexcept = 0;
-};
 
 
 } // namesapce detail
@@ -92,7 +76,6 @@ class IO_PUBLIC_SYMBOL charset_detector:public object {
 	charset_detector(const charset_detector&) = delete;
 	charset_detector& operator=(const charset_detector&) = delete;
 private:
-	friend class nobadalloc<charset_detector>;
 	typedef std::array<detail::s_prober, 2> v_pobers;
 	explicit charset_detector(v_pobers&& probers) noexcept;
 public:

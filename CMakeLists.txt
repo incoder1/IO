@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.13 FATAL_ERROR)
+cmake_minimum_required(VERSION 3.19 FATAL_ERROR)
 
 project(Solution_IO CXX)
 
@@ -6,10 +6,6 @@ project(Solution_IO CXX)
 if (NOT BUILD_LIBRARY_TYPE)
 	set (BUILD_LIBRARY_TYPE "Shared" CACHE STRING "${BUILD_LIBRARY_TYPE_DESCR}" FORCE)
 	SET_PROPERTY(CACHE BUILD_LIBRARY_TYPE PROPERTY STRINGS Shared Static)
-endif()
-
-if ("${BUILD_LIBRARY_TYPE}" STREQUAL "Shared")
-	set (BUILD_SHARED_LIBS ON)
 endif()
 
 add_subdirectory(libio)

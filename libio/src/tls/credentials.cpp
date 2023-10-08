@@ -24,7 +24,7 @@ credentials credentials::system_trust_creds(std::error_code& ec) noexcept
     if( GNUTLS_E_SUCCESS != ::gnutls_certificate_allocate_credentials( &ret.creds_ ) )
         ec = std::make_error_code( std::errc::protocol_error );
     else if( GNUTLS_E_UNIMPLEMENTED_FEATURE == ::gnutls_certificate_set_x509_system_trust( ret.creds_ ) )
-        ec = std::make_error_code( std::errc::protocol_error );
+        ec = std::make_error_code( std::errc::function_not_supported );
     return ret;
 }
 

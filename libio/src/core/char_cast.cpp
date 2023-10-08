@@ -1052,29 +1052,34 @@ from_chars_result IO_PUBLIC_SYMBOL from_chars(const char* first,const char* last
 #endif
 {
 	from_chars_result ret = {nullptr, {}};
-	const char* s = skip_spaces_ranged(first, last);
-	if( (s+1) >= last ) {
-		ret.ec = std::errc::invalid_argument;
+	if( io_unlikely(first >= last) ) {
+		ret.ec = std::errc::no_buffer_space;
 	}
 	else {
-		if( cmp_no(s) ) {
-			value = false;
-			ret.ptr = s + 2;
-		}
-		else if(cmp_yes(s)) {
-			value = true;
-			ret.ptr = s + 3;
-		}
-		else if(cmp_true(s)) {
-			value = true;
-			ret.ptr = s + 4;
-		}
-		else if(cmp_false(s)) {
-			value = false;
-			ret.ptr = s + 5;
+		const char* s = skip_spaces_ranged(first, last);
+		if( (s+1) >= last ) {
+			ret.ec = std::errc::invalid_argument;
 		}
 		else {
-			ret.ec = std::errc::result_out_of_range;
+			if( cmp_no(s) ) {
+				value = false;
+				ret.ptr = s + 2;
+			}
+			else if(cmp_yes(s)) {
+				value = true;
+				ret.ptr = s + 3;
+			}
+			else if(cmp_true(s)) {
+				value = true;
+				ret.ptr = s + 4;
+			}
+			else if(cmp_false(s)) {
+				value = false;
+				ret.ptr = s + 5;
+			}
+			else {
+				ret.ec = std::errc::result_out_of_range;
+			}
 		}
 	}
 	return ret;

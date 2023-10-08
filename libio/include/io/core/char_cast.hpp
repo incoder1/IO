@@ -33,19 +33,43 @@ struct to_chars_result {
 	char* ptr;
 	std::errc ec;
 	friend bool operator==(const to_chars_result& lhs, const to_chars_result& rhs) noexcept
+#ifdef __HAS_CPP_20
+	 = default;
+#else
+	;
+#endif // __HAS_CPP_20
+	constexpr explicit operator bool() const noexcept
 	{
-		return lhs.ptr == rhs.ptr && lhs.ec == rhs.ec;
-	};
+		return ec == std::errc{};
+	}
 };
 
 struct from_chars_result {
 	const char* ptr;
 	std::errc ec;
 	friend bool operator==(const from_chars_result& lhs, const from_chars_result& rhs) noexcept
+#ifdef __HAS_CPP_20
+	 = default;
+#else
+	;
+#endif // __HAS_CPP_20
+	constexpr explicit operator bool() const noexcept
 	{
-		return lhs.ptr == rhs.ptr && lhs.ec == rhs.ec;
+		return ec == std::errc{};
 	}
 };
+
+#ifndef __HAS_CPP_20
+inline bool operator==(const to_chars_result& lhs, const to_chars_result& rhs) noexcept
+{
+	return (lhs.ptr == rhs.ptr) &&  (lhs.ec == rhs.ec);
+}
+
+inline bool operator==(const from_chars_result& lhs, const from_chars_result& rhs) noexcept
+{
+	return (lhs.ptr == rhs.ptr) &&  (lhs.ec == rhs.ec);
+}
+#endif // __HAS_CPP_20
 
 namespace detail {
 
@@ -106,7 +130,7 @@ to_chars_result to_chars(char* const first, char* const last, T value) noexcept
 		ret.ptr = first + 1;
 	}
 	else {
-		static constexpr std::size_t buff_size = 32;
+		static constexpr std::size_t buff_size = 64;
 		char tmp[ buff_size ] = { '\0' };
 		char *s = detail::uintmax_to_chars_reverse( (tmp + buff_size-1), static_cast<uintmax_t>(value) );
 		const std::size_t len = memory_traits::distance( s, (tmp + buff_size) );
@@ -138,8 +162,7 @@ to_chars_result to_chars(char* const first, char* const last, T value) noexcept
 	if( first >= last ) {
 		ret.ec = std::errc::no_buffer_space;
 	} else {
-		static constexpr std::size_t buff_size = 32;
-
+		static constexpr std::size_t buff_size = 64;
 		char tmp[ buff_size ] = { '\0' };
 		intmax_t sv = static_cast<intmax_t>(value);
 		uintmax_t uv = (sv < 0) ? static_cast<uintmax_t>(~sv + 1) : static_cast<uintmax_t>(sv);

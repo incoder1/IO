@@ -121,9 +121,14 @@ typedef unsigned char u8char_t;
 #endif // IO_HAS_CHAR8_T
 
 /// Checks a byte is UTF-8 single byte character
-constexpr bool isonebyte(const unsigned int c) noexcept
+constexpr bool is_onebyte(const unsigned int c) noexcept
 {
 	return c < detail::OBMAX;
+}
+
+constexpr bool is_multibyte(const unsigned int c) noexcept
+{
+	return detail::OBMAX == ( c & detail::OBMAX);
 }
 
 
@@ -141,7 +146,7 @@ constexpr unsigned int mblen(const u8char_t* mb) noexcept
 inline unsigned int mblen(const u8char_t* mb) noexcept
 #endif // __GNUG__
 {
-	return isonebyte(detail::make_uint(*mb))
+	return is_onebyte(detail::make_uint(*mb))
 	? 1
 	:
 	// bit scan forward on inverted value gives number of leading multibyte bits
@@ -160,7 +165,7 @@ constexpr unsigned int mblen(const char* mb) noexcept
 inline unsigned int mblen(const char* mb)
 #endif // __GNUG__
 {
-	return isonebyte( *mb )
+	return is_onebyte( *mb )
 	? 1
 	:
 	// bit scan forward on inverted value gives number of leading multibyte bits

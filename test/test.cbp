@@ -132,6 +132,7 @@
 		</Linker>
 		<Unit filename="char_cast_test.cpp" />
 		<Unit filename="charset_conv_test.cpp" />
+		<Unit filename="charset_detector_test.cpp" />
 		<Unit filename="charset_test.cpp" />
 		<Unit filename="fixtures.hpp" />
 		<Unit filename="hash_test.cpp" />
