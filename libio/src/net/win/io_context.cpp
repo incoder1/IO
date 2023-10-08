@@ -168,6 +168,16 @@ void asynch_io_context::notify_received(std::error_code& ec,::DWORD transfered,a
 	ach->routine()->received( ec, ach, std::forward<io::byte_buffer>(data) );
 }
 
+struct overlapped_delete
+{
+	constexpr overlapped_delete() noexcept = default;
+	void operator()(win::overlapped* const px) const
+	{
+		px->~overlapped();
+		io::memory_traits::free(px);
+	}
+};
+
 /// this routine hands all asynchronous input/output operations completion
 /// used as main routine function by all worker thread pool threads
 void asynch_io_context::completion_loop_routine(::HANDLE ioc_port) noexcept
@@ -183,10 +193,7 @@ void asynch_io_context::completion_loop_routine(::HANDLE ioc_port) noexcept
 					 reinterpret_cast<::PULONG_PTR>(&channel),
 					 reinterpret_cast<::LPOVERLAPPED*>(&ovlp),
 					 INFINITE);
-		std::unique_ptr<win::overlapped, decltype([] (win::overlapped*px) {
-			px->~overlapped();
-			io::memory_traits::free(px);
-		})> context( ovlp );
+		std::unique_ptr<win::overlapped, overlapped_delete > context( ovlp );
 		if(TRUE == status && nullptr != channel) {
 			std::error_code ec;
 			// don't increase reference counting, must be done by channel in a thread requested asynch io operation

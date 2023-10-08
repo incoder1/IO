@@ -79,6 +79,7 @@ private:
 	typedef std::array<detail::s_prober, 2> v_pobers;
 	explicit charset_detector(v_pobers&& probers) noexcept;
 public:
+	virtual ~charset_detector() = default;
 	/// Creates new intrusive pointer on charset_detector object
 	/// \param ec in case of error code, more likely will be out of memory error
 	/// \return intrusive pointer on charset_detector object, or on null_ptr object in case of error

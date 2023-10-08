@@ -120,17 +120,20 @@ void console::change_err_color(const text_color clr) noexcept
 
 void console::reset_in_color() noexcept
 {
-	::write(STDIN_FILENO, posix::RESET, posix::RESET_LEN);
+	int ret = ::write(STDIN_FILENO, posix::RESET, posix::RESET_LEN);
+	assert( ret );
 }
 
 void console::reset_out_color() noexcept
 {
-	::write(STDOUT_FILENO, posix::RESET, posix::RESET_LEN);
+	int ret = ::write(STDOUT_FILENO, posix::RESET, posix::RESET_LEN);
+	assert( ret > 0 );
 }
 
 void console::reset_err_color() noexcept
 {
-	::write(STDERR_FILENO, posix::RESET, posix::RESET_LEN);
+	int ret = ::write(STDERR_FILENO, posix::RESET, posix::RESET_LEN);
+	assert( ret > 0 );
 }
 
 } // namespace io
