@@ -1,6 +1,6 @@
 /*
  *
- * Copyright (c) 2017-2022
+ * Copyright (c) 2016-2023
  * Viktor Gubin
  *
  * Use, modification and distribution are subject to the
@@ -86,7 +86,7 @@ void endpoint::set_port(uint16_t port) noexcept
 {
 	switch( family() ) {
 	case ip_family::ip_v4:
-		addrin_set_port( reinterpret_cast<::PSOCKADDR_IN>(addr_info_->ai_addr), port);
+		addrin_set_port(reinterpret_cast<::PSOCKADDR_IN>(addr_info_->ai_addr), port);
 		break;
 	case ip_family::ip_v6:
 		addrin_set_port(reinterpret_cast<::PSOCKADDR_IN6>(addr_info_->ai_addr), port);
@@ -109,12 +109,12 @@ const_string endpoint::ip_address() const noexcept
 	char tmp[INET6_ADDRSTRLEN];
 	io_zerro_mem(tmp, INET6_ADDRSTRLEN);
 	const char* ret = ::InetNtopA(
-						  addr_info_->ai_family,
-						  const_cast<void*>(
-							  static_cast<const void*>(addr_info_->ai_addr)
-						  ),
-						  tmp,
-						  INET6_ADDRSTRLEN);
+							addr_info_->ai_family,
+							const_cast<void*>(
+								static_cast<const void*>(addr_info_->ai_addr)
+							),
+							tmp,
+							INET6_ADDRSTRLEN);
 	return (nullptr != ret) ? const_string(tmp) : const_string();
 }
 

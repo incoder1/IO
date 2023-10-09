@@ -1,3 +1,13 @@
+/*
+ *
+ * Copyright (c) 2016-2023
+ * Viktor Gubin
+ *
+ * Use, modification and distribution are subject to the
+ * Boost Software License, Version 1.0. (See accompanying file
+ * LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
+ *
+ */
 #include "stdafx.hpp"
 #include "io/textapi/detail/utf8_prober.hpp"
 
@@ -47,8 +57,8 @@ static constexpr uint32_t SERROR = static_cast<uint32_t>(coding_state_machine::s
 static constexpr uint32_t SFOUND = static_cast<uint32_t>(coding_state_machine::state_t::found);
 
 static const uint32_t UTF8_STETES [15] = {
-	pck_4bits(SERROR,SSTART,SERROR,SERROR,SERROR,    3,     4,      5),  // 00 - 07
-	pck_4bits(     6,     7,    8,      9,SERROR,SERROR,SERROR,SERROR),  // 08 - 0f
+	pck_4bits(SERROR,SSTART,SERROR,SERROR,SERROR,     3,     4,     5),  // 00 - 07
+	pck_4bits(     6,     7,     8,     9,SERROR,SERROR,SERROR,SERROR),  // 08 - 0f
 	pck_4bits(SERROR,SERROR,SERROR,SERROR,SERROR,SERROR,SERROR,SERROR),  // 10 - 17
 	pck_4bits(SFOUND,SFOUND,SFOUND,SFOUND,SFOUND,SFOUND,SFOUND,SFOUND),  // 18 - 1f
 	pck_4bits(SFOUND,SFOUND,SFOUND,SFOUND,SERROR,SERROR,SSTART,SSTART),  // 20 - 27
@@ -73,23 +83,23 @@ static const uint32_t UTF8_CHAR_LEN_TABLE[] = {0, 1, 0, 0, 0, 2, 3, 3, 3, 4, 4, 
 #endif // NDEBUG
 
 static const coding_state_machine::model_t UTF8_MODEL = {
-  {
-  	index_shift::bits_4,
-  	shift_mask::bits_4,
-  	bit_shift::bits_4,
-  	unit_mask::bits_4,
-  	UTF8_CLS
-  },
-  12,
-  {
-  	index_shift::bits_4,
-  	shift_mask::bits_4,
-  	bit_shift::bits_4,
-  	unit_mask::bits_4,
-  	UTF8_STETES
-  },
-  CHAR_LEN_TABLE(UTF8_CHAR_LEN_TABLE),
-  65001,
+	{
+		index_shift::bits_4,
+		shift_mask::bits_4,
+		bit_shift::bits_4,
+		unit_mask::bits_4,
+		UTF8_CLS
+	},
+	12,
+	{
+		index_shift::bits_4,
+		shift_mask::bits_4,
+		bit_shift::bits_4,
+		unit_mask::bits_4,
+		UTF8_STETES
+	},
+	CHAR_LEN_TABLE(UTF8_CHAR_LEN_TABLE),
+	65001,
 };
 
 #undef CHAR_LEN_TABLE
@@ -161,21 +171,21 @@ prober::state_t utf8_prober::state() noexcept
 
 void utf8_prober::reset() noexcept
 {
-  coding_sm_->reset();
-  multibyte_chars_count_ = 0;
-  state_ = prober::state_t::detecting;
+	coding_sm_->reset();
+	multibyte_chars_count_ = 0;
+	state_ = prober::state_t::detecting;
 }
 
 float utf8_prober::confidence() noexcept
 {
 	float ret = 0.99F;
 	if (multibyte_chars_count_ < MIN_MULTIBYTE_CHARS) {
-    	for (uint32_t i = 0; i < multibyte_chars_count_; i++) {
-      		ret = ret * 0.5F;
-    	}
-    	ret = 1.0F - ret;
-  	}
-  	return ret;
+		for (uint32_t i = 0; i < multibyte_chars_count_; i++) {
+			ret = ret * 0.5F;
+		}
+		ret = 1.0F - ret;
+	}
+	return ret;
 }
 
 } // namespace detail

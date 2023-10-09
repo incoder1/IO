@@ -1,6 +1,6 @@
 /*
  *
- * Copyright (c) 2016-2022
+ * Copyright (c) 2016-2023
  * Viktor Gubin
  *
  * Use, modification and distribution are subject to the
@@ -123,13 +123,14 @@ void IO_PUBLIC_SYMBOL ios_check_error_code(const char* msg, std::error_code cons
 {
 	if( io_unlikely( ec ) ) {
 #ifdef IO_NO_EXCEPTIONS
-	std::string m = ec.message();
-	std::size_t size = io_strlen(msg) + m.length() + 1;
-	char *errmsg = static_cast<char*>( io_alloca( size) );
-	io_zerro_mem(errmsg, size);
-	io_strcpy(errmsg, msg);
-	io_strcpy( ( (errmsg) + io_strlen(msg) ), m.data() );
-	panic( ec.value(), errmsg );
+		std::string m = ec.message();
+		std::size_t size = io_strlen(msg) + m.length() + 2;
+		char *errmsg = static_cast<char*>( io_alloca( size) );
+		io_zerro_mem(errmsg, size);
+		io_strcpy(errmsg, msg);
+		strcat(errmsg," ");
+		strcat(errmsg, m.data());
+		panic(ec.value(), errmsg);
 #else
 	throw std::ios_base::failure( msg, ec );
 #endif

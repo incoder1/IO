@@ -1,6 +1,6 @@
 /*
  *
- * Copyright (c) 2016-2022
+ * Copyright (c) 2016-2023
  * Viktor Gubin
  *
  * Use, modification and distribution are subject to the
@@ -19,8 +19,8 @@ namespace net {
 namespace tls {
 
 blocking_channel::blocking_channel(s_session&& s) noexcept:
-    read_write_channel(),
-    session_( std::forward<s_session>(s) )
+	read_write_channel(),
+	session_( std::forward<s_session>(s) )
 {}
 
 blocking_channel::~blocking_channel() noexcept
@@ -28,12 +28,12 @@ blocking_channel::~blocking_channel() noexcept
 
 std::size_t blocking_channel::read(std::error_code& ec,uint8_t* const buff, std::size_t bytes) const noexcept
 {
-    return session_->read(ec, buff, bytes);
+	return session_->read(ec, buff, bytes);
 }
 
 std::size_t blocking_channel::write(std::error_code& ec, const uint8_t* buff,std::size_t size) const noexcept
 {
-    return session_->write(ec, buff, size);
+	return session_->write(ec, buff, size);
 }
 
 } // namespace tls

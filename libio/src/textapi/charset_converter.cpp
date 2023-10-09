@@ -443,17 +443,11 @@ static constexpr std::size_t MAX_CONVB_STACK_SIZE = 4096;
 // conv_read_channel
 s_read_channel conv_read_channel::open(std::error_code& ec, const s_read_channel& src, const s_code_cnvtr& conv) noexcept
 {
-	conv_read_channel *ch = io::nobadalloc<conv_read_channel>::construct(ec,
-													src, s_code_cnvtr(conv) );
+	conv_read_channel *ch = io::nobadalloc<conv_read_channel>::construct(ec, src, s_code_cnvtr(conv) );
 	return !ec ? s_read_channel(ch) : s_read_channel();
 }
 
-s_read_channel conv_read_channel::open(
-								std::error_code& ec,
-		const s_read_channel& src,
-		const charset& from,
-		const charset& to,
-		const cnvrt_control control) noexcept
+s_read_channel conv_read_channel::open(std::error_code& ec,const s_read_channel& src,const charset& from,const charset& to,const cnvrt_control control) noexcept
 {
 	s_code_cnvtr conv = code_cnvtr::open(ec, from, to, control);
 	if(ec)

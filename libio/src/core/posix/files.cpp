@@ -1,6 +1,6 @@
 /*
  *
- * Copyright (c) 2016-2022
+ * Copyright (c) 2016-2023
  * Viktor Gubin
  *
  * Use, modification and distribution are subject to the
@@ -132,13 +132,13 @@ bool file::create() noexcept
 {
 	if( name_.empty() || exist() )
 		return false;
-    int fd = ::open( name_.data(), O_WRONLY | O_CREAT | O_TRUNC | O_SYNC,
-            DEFAULT_FILE_PERMS);
-    if(-1 != fd) {
-        ::close(fd);
-        return true;
-    }
-    return false;
+	int fd = ::open( name_.data(), O_WRONLY | O_CREAT | O_TRUNC | O_SYNC,
+			DEFAULT_FILE_PERMS);
+	if(-1 != fd) {
+		::close(fd);
+		return true;
+	}
+	return false;
 
 }
 
@@ -169,13 +169,13 @@ s_write_channel file::open_for_write(std::error_code& ec,write_open_mode mode) c
 		break;
 	case  write_open_mode::create_if_not_exist:
 	case  write_open_mode::overwrite:
-        if(!exist()) {
+		if(!exist()) {
 			constexpr int flags = O_WRONLY | O_CREAT | O_TRUNC | O_SYNC;
-            fd = ::open( name_.data(), flags, DEFAULT_FILE_PERMS);
-        } else {
-        	constexpr int flags = O_WRONLY | O_TRUNC | O_SYNC;
-            fd = ::open( name_.data(), flags );
-        }
+			fd = ::open( name_.data(), flags, DEFAULT_FILE_PERMS);
+		} else {
+			constexpr int flags = O_WRONLY | O_TRUNC | O_SYNC;
+			fd = ::open( name_.data(), flags );
+		}
 		break;
 	}
 	if(-1 == fd) {
