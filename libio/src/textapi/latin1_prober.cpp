@@ -17,6 +17,23 @@ namespace io {
 
 namespace detail {
 
+// undefine
+static constexpr const uint8_t UDF = 0;
+//other
+static constexpr const uint8_t OTH = 1;
+// ascii capital letter
+static constexpr const uint8_t ASC = 2;
+// ascii small letter
+static constexpr const uint8_t ASS = 3;
+// accent capital vowel
+static constexpr const uint8_t ACV = 4;
+// accent capital other
+static constexpr const uint8_t ACO = 5;
+// accent small vowel
+static constexpr const uint8_t ASV = 6;
+// accent small other
+static constexpr const uint8_t ASO = 7;
+
 // Latin1Prober
 const std::array<uint8_t,256> latin1_prober::CHAR_TO_CLASS = {
 	OTH, OTH, OTH, OTH, OTH, OTH, OTH, OTH,	// 00 - 07

@@ -23,9 +23,9 @@ coding_state_machine::coding_state_machine(const model_t* model) noexcept:
 	current_byte_pos_(0)
 {}
 
-coding_state_machine::state_t coding_state_machine::next_state(const char c) noexcept
+coding_state_machine::state_t coding_state_machine::next_state(const uint8_t c) noexcept
 {
-	uint32_t byte_class = model_->byte_class( static_cast<uint8_t>(c) );
+	uint32_t byte_class = model_->byte_class( c );
 	if(state_t::start == current_state_ ) {
 		current_byte_pos_ = 0;
 		current_char_len_ = model_->char_len_table[byte_class];

@@ -136,15 +136,17 @@ uint16_t utf8_prober::get_charset_code() const noexcept
 prober::state_t utf8_prober::handle_data(std::error_code& ec, const uint8_t* buff, std::size_t size) noexcept
 {
 	coding_state_machine::state_t coding_state;
-	for(std::size_t i = 0; i < size; i++) {
-		coding_state = coding_sm_->next_state(buff[i]);
+	const uint8_t* endp = buff + size;
+	for(const uint8_t* i = buff; i < endp; i++) {
+		coding_state = coding_sm_->next_state(*i);
 		switch(coding_state) {
 		case coding_state_machine::state_t::found:
 			state_ = prober::state_t::found;
+			i = endp;
 			break;
 		case coding_state_machine::state_t::start:
 			if (coding_sm_->current_char_len() >= 2)
-        		++multibyte_chars_count_;
+				++multibyte_chars_count_;
 			continue;
 		default:
 			continue;
