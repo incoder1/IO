@@ -316,13 +316,13 @@ std::error_condition IO_PUBLIC_SYMBOL make_error_condition(io::converrc err) noe
 	return std::error_condition(static_cast<int>(err), *(chconv_error_category::instance()) );
 }
 
-s_code_cnvtr code_cnvtr::open(std::error_code& ec,const charset& from,const charset& to,cnvrt_control control) noexcept
+s_code_cnvtr code_cnvtr::open(std::error_code& ec,const charset* from,const charset* to,cnvrt_control control) noexcept
 {
 	if( !from || !to || from == to ) {
 		ec = make_error_code(converrc::not_supported);
 		return s_code_cnvtr();
 	}
-	detail::engine iconve( from.name(), to.name(), control);
+	detail::engine iconve( from->name(), to->name(), control);
 	if(!iconve) {
 		ec = make_error_code(converrc::not_supported);
 		return s_code_cnvtr();
@@ -365,7 +365,7 @@ std::size_t IO_PUBLIC_SYMBOL transcode(std::error_code& ec, const uint8_t* u8_sr
 	assert(nullptr != u8_src && src_bytes > 0);
 	assert(nullptr != dst && dst_size > 0);
 	static detail::engine eng(
-								code_pages::UTF_8.name(),
+								"UTF-8",
 								SYSTEM_UTF16,
 								cnvrt_control::failure_on_failing_chars
 							);
@@ -384,7 +384,7 @@ std::size_t IO_PUBLIC_SYMBOL transcode(std::error_code& ec,const uint8_t* u8_src
 {
 	assert(nullptr != u8_src && src_bytes > 0);
 	assert(nullptr != dst && dst_size > 1);
-	static detail::engine eng(code_pages::UTF_8.name(),
+	static detail::engine eng("UTF-8",
 							SYSTEM_UTF32,
 							cnvrt_control::failure_on_failing_chars);
 	uint8_t* d = reinterpret_cast<uint8_t*>(dst);
@@ -404,7 +404,7 @@ std::size_t IO_PUBLIC_SYMBOL transcode(std::error_code& ec,const char16_t* u16_s
 	assert(nullptr != u8_dst && dst_size > 1);
 	static detail::engine eng(
 							SYSTEM_UTF16,
-							code_pages::UTF_8.name(),
+							"UTF-8",
 							cnvrt_control::failure_on_failing_chars);
 	const uint8_t* s = reinterpret_cast<const uint8_t*>(u16_src);
 	uint8_t* d = const_cast<uint8_t*>(u8_dst);
@@ -422,7 +422,7 @@ std::size_t IO_PUBLIC_SYMBOL transcode(std::error_code& ec,const char32_t* u32_s
 {
 	assert(nullptr != u8_dst && dst_size > 0);
 	static detail::engine eng(SYSTEM_UTF32,
-							code_pages::UTF_8.name(),
+							"UTF-8",
 							cnvrt_control::failure_on_failing_chars);
 	const uint8_t* s =  reinterpret_cast<const uint8_t*>(u32_src);
 	uint8_t* d = const_cast<uint8_t*>(u8_dst);
@@ -447,7 +447,7 @@ s_read_channel conv_read_channel::open(std::error_code& ec, const s_read_channel
 	return !ec ? s_read_channel(ch) : s_read_channel();
 }
 
-s_read_channel conv_read_channel::open(std::error_code& ec,const s_read_channel& src,const charset& from,const charset& to,const cnvrt_control control) noexcept
+s_read_channel conv_read_channel::open(std::error_code& ec,const s_read_channel& src,const charset* from,const charset* to,const cnvrt_control control) noexcept
 {
 	s_code_cnvtr conv = code_cnvtr::open(ec, from, to, control);
 	if(ec)

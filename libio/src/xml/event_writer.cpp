@@ -45,16 +45,16 @@ s_event_writer event_writer::open(std::error_code& ec, writer&& dst, bool format
 	return s_event_writer(ret);
 }
 
-s_event_writer event_writer::open(std::error_code& ec,writer&& dst, bool format, const version& v,const charset& encoding, bool standalone) noexcept
+s_event_writer event_writer::open(std::error_code& ec,writer&& dst, bool format, const version& v,const charset* encoding, bool standalone) noexcept
 {
 	char vstr[8] = {'\0'};
 	io_snprintf(vstr, sizeof(vstr), "%d.%d", v.major, v.minor);
-	return open(ec, std::forward<writer&&>(dst), format, io::xml::document_event( const_string(vstr), const_string(encoding.name()), standalone) );
+	return open(ec, std::forward<writer&&>(dst), format, io::xml::document_event( const_string(vstr), const_string(encoding->name()), standalone) );
 }
 
 s_event_writer event_writer::open(std::error_code& ec, writer&& dst) noexcept
 {
-	return open(ec, std::forward<writer&&>(dst), true, {1,0}, code_pages::UTF_8, false );
+	return open(ec, std::forward<writer&&>(dst), true, {1,0}, code_pages::utf8(), false );
 }
 
 event_writer::event_writer(bool format, writer&& to) noexcept:

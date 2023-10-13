@@ -61,18 +61,18 @@ charset_detect_status charset_detector::detect(std::error_code &ec,const uint8_t
 	case unicode_cp::not_detected:
 		break;
 	case unicode_cp::utf8:
-		return charset_detect_status(code_pages::UTF_8, 1.0f);
+		return charset_detect_status(code_pages::utf8(), 1.0f);
 	case unicode_cp::utf_16be:
-		return charset_detect_status(code_pages::UTF_16BE, 1.0f);
+		return charset_detect_status(code_pages::utf16be(), 1.0f);
 	case unicode_cp::utf_16le:
-		return charset_detect_status(code_pages::UTF_16LE, 1.0f);
+		return charset_detect_status(code_pages::utf16le(), 1.0f);
 	case unicode_cp::utf_32be:
-		return charset_detect_status(code_pages::UTF_32BE, 1.0f);
+		return charset_detect_status(code_pages::utf32be(), 1.0f);
 	case unicode_cp::utf_32le:
-		return charset_detect_status(code_pages::UTF_32BE, 1.0f);
+		return charset_detect_status(code_pages::utf32le(), 1.0f);
 	}
 	// FIXME insert implementation
-	return charset_detect_status(code_pages::UTF_8, 1.0f);
+	return charset_detect_status(code_pages::utf8(), 1.0f);
 }
 
 } // namespace io

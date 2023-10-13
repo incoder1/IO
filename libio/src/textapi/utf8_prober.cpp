@@ -128,7 +128,7 @@ utf8_prober::utf8_prober(std::unique_ptr<coding_state_machine>&& sm) noexcept:
 	multibyte_chars_count_(0)
 {}
 
-uint16_t utf8_prober::get_charset_code() const noexcept
+uint16_t utf8_prober::get_charset_code() noexcept
 {
 	return 65001;
 }

@@ -211,7 +211,7 @@ private:
 	friend class nobadalloc<code_cnvtr>;
 	code_cnvtr(detail::engine&& eng) noexcept;
 public:
-	static s_code_cnvtr open(std::error_code& ec,const charset& from,const charset& to, cnvrt_control conrol) noexcept;
+	static s_code_cnvtr open(std::error_code& ec,const charset* from,const charset* to, cnvrt_control conrol) noexcept;
 	static std::error_condition _ok;
 private:
 	detail::engine eng_; // converting engine
@@ -240,8 +240,8 @@ public:
 	/// \param control character conversation behavior control
 	/// \throw never throws
 	static s_read_channel open(std::error_code& ec,const s_read_channel& src,
-								const charset& from,
-								const charset& to,
+								const charset* from,
+								const charset* to,
 								const cnvrt_control control) noexcept;
 
 	static s_read_channel open(std::error_code& ec, const s_read_channel& src,const s_code_cnvtr& conv) noexcept;

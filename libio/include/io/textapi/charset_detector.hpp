@@ -44,7 +44,7 @@ public:
 		charset_(),
 		confidence_(0.0F)
 	{}
-	charset_detect_status(const charset& ch, float confidence) noexcept:
+	charset_detect_status(const charset* ch, float confidence) noexcept:
 		charset_( ch ),
 		confidence_(confidence)
 	{}
@@ -56,7 +56,7 @@ public:
 	}
 	/// Returns detected character set (code page)
 	/// \return detected character set (code page)
-	inline charset character_set() const noexcept {
+	inline const charset* character_set() const noexcept {
 		return charset_;
 	}
 	/// Returns detection accuracy confidence, to get percentage value mull on 100.0F
@@ -65,7 +65,7 @@ public:
 		return confidence_;
 	}
 private:
-	charset charset_;
+	const charset* const charset_;
 	float confidence_;
 };
 

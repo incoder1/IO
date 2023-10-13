@@ -52,8 +52,8 @@ s_write_channel IO_PUBLIC_SYMBOL conv_write_channel(const s_write_channel& ch)
 {
 	std::error_code ec;
 	s_code_cnvtr conv = code_cnvtr::open(ec,
-										code_pages::UTF_8,
-										code_pages::UTF_16LE,
+										code_pages::utf8(),
+										code_pages::utf16le(),
 										cnvrt_control::discard_on_failing_chars);
 	io::check_error_code( ec );
 	s_write_channel result = conv_write_channel::open(ec, ch, conv);
@@ -65,8 +65,8 @@ s_read_channel IO_PUBLIC_SYMBOL conv_read_channel(const s_read_channel& ch)
 {
 	std::error_code ec;
 	s_code_cnvtr conv = code_cnvtr::open(ec,
-										code_pages::UTF_8,
-										code_pages::UTF_16LE,
+										code_pages::utf8(),
+										code_pages::utf16le(),
 										cnvrt_control::discard_on_failing_chars);
 	io::check_error_code( ec );
 	s_read_channel result = conv_read_channel::open(ec, ch, conv);

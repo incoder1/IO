@@ -1,28 +1,12 @@
-/*
- *
- * Copyright (c) 2016-2023
- * Viktor Gubin
- *
- * Use, modification and distribution are subject to the
- * Boost Software License, Version 1.0. (See accompanying file
- * LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
- *
- */
-#include "stdafx.hpp"
-#include "io/textapi/detail/single_bytete_prober.hpp"
-
-#include <cmath>
+#include "cyrylic_model.hpp"
 
 namespace io {
 
 namespace detail {
 
-namespace kyrilic {
-
 // WIN-CP-1251/ language model
 //Character Mapping Table:
-static const uint8_t WIN1251_CHAR_TO_ORDER_MAP[] =
-{
+static const uint8_t WIN1251_CHAR_TO_ORDER_MAP[] = {
 	0xFF,0xFF,0xFF,0xFF,0xFF,0xFF,0xFF,0xFF,0xFF,0xFF,0xFE,0xFF,0xFF,0xFE,0xFF,0xFF,
 	0xFF,0xFF,0xFF,0xFF,0xFF,0xFF,0xFF,0xFF,0xFF,0xFF,0xFF,0xFF,0xFF,0xFF,0xFF,0xFF,
 	0xFD,0xFD,0xFD,0xFD,0xFD,0xFD,0xFD,0xFD,0xFD,0xFD,0xFD,0xFD,0xFD,0xFD,0xFD,0xFD,
@@ -64,8 +48,7 @@ static const uint8_t ISO_8859_5_CHAR_TO_ORDER_MAP[] = {
 
 //KOI8-R language model
 //Character Mapping Table:
-static const uint8_t KOI8R_CHAR_TO_ORDER_MAP[] =
-{
+static const uint8_t KOI8_CHAR_TO_ORDER_MAP[] = {
 	0xFF,0xFF,0xFF,0xFF,0xFF,0xFF,0xFF,0xFF,0xFF,0xFF,0xFE,0xFF,0xFF,0xFE,0xFF,0xFF, // 00
 	0xFF,0xFF,0xFF,0xFF,0xFF,0xFF,0xFF,0xFF,0xFF,0xFF,0xFF,0xFF,0xFF,0xFF,0xFF,0xFF, // 10
 	0xFD,0xFD,0xFD,0xFD,0xFD,0xFD,0xFD,0xFD,0xFD,0xFD,0xFD,0xFD,0xFD,0xFD,0xFD,0xFD, // 20
@@ -90,8 +73,7 @@ static const uint8_t KOI8R_CHAR_TO_ORDER_MAP[] =
 //first 1024 sequences: 2.3389%
 //rest  sequences:      0.1237%
 //negative sequences:   0.0009%
-static const uint8_t RUSSIAN_LANG_MODEL [] =
-{
+static const uint8_t RUSSIAN_LANG_MODEL [] = {
 	0,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,1,1,3,3,3,3,1,3,3,3,2,3,2,3,3,
 	3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,0,3,2,2,2,2,2,0,0,2,
 	3,3,3,2,3,3,3,3,3,3,3,3,3,3,2,3,3,0,0,3,3,3,3,3,3,3,3,3,2,3,2,0,
@@ -222,118 +204,53 @@ static const uint8_t RUSSIAN_LANG_MODEL [] =
 	0,0,0,0,0,1,0,0,0,0,1,0,0,0,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,1,0,0
 };
 
-const sequence_model KOI8R_MODEL =
-{
-	KOI8R_CHAR_TO_ORDER_MAP,
-	RUSSIAN_LANG_MODEL,
-	0.976601F,
-	20866
-};
 
-const sequence_model WIN1251_MODEL_RU =
+#ifdef IO_DECLSPEC
+IO_PUBLIC_SYMBOL const sequence_model*
+#else
+const sequence_model* IO_PUBLIC_SYMBOL
+#endif // IO_DECLSPEC
+koi8r_sequence_model() noexcept
 {
-	WIN1251_CHAR_TO_ORDER_MAP,
-	RUSSIAN_LANG_MODEL,
-	0.976601F,
-	1251
-};
-
-const sequence_model ISO_8859_5_MODEL_RU =
-{
-	ISO_8859_5_CHAR_TO_ORDER_MAP,
-	RUSSIAN_LANG_MODEL,
-	0.976601F,
-	28595
-};
-
-} // namespace kyrilic
-
-// single_byte_prober
-s_prober single_byte_prober::create(std::error_code& ec) noexcept
-{
-	s_prober ret;
-	ec = std::make_error_code(std::errc::operation_not_supported);
-	return ret;
+	static const sequence_model ret = {
+		KOI8_CHAR_TO_ORDER_MAP,
+		RUSSIAN_LANG_MODEL,
+		0.976601F,
+		20866
+	};
+	return &ret;
 }
 
-single_byte_prober::single_byte_prober(const sequence_model* model, bool reversed,const s_prober& name_prober) noexcept:
-	prober(),
-	model_(model),
-	reversed_(reversed),
-	state_( prober::state_t::detecting ),
-	total_seqs_(0),
-	total_char_(0),
-	freq_char_(0),
-	last_order_( std::numeric_limits<uint8_t>::max() ),
-	seq_counters_(),
-	name_prober_(name_prober)
+#ifdef IO_DECLSPEC
+IO_PUBLIC_SYMBOL const sequence_model*
+#else
+const sequence_model* IO_PUBLIC_SYMBOL
+#endif // IO_DECLSPEC
+win1251_sequence_model() noexcept
 {
-	std::fill(seq_counters_.begin(),seq_counters_.end(),0);
+	static const sequence_model ret = {
+		WIN1251_CHAR_TO_ORDER_MAP,
+		RUSSIAN_LANG_MODEL,
+		0.976601F,
+		1251
+	};
+	return &ret;
 }
 
-uint16_t single_byte_prober::get_charset_code() const noexcept
+#ifdef IO_DECLSPEC
+IO_PUBLIC_SYMBOL const sequence_model*
+#else
+const sequence_model* IO_PUBLIC_SYMBOL
+#endif // IO_DECLSPEC
+iso_8859_5_sequence_model() noexcept
 {
-	return model_->charset_code;
-}
-
-prober::state_t single_byte_prober::handle_data(std::error_code& ec, const uint8_t* buff, std::size_t size) noexcept
-{
-	uint8_t order;
-	for(std::size_t i = 0; i < size; i++) {
-		order = model_->char_to_order_map[ static_cast<std::size_t>( buff[i] ) ];
-		if (order < SYMBOL_CAT_ORDER)
-			++total_char_;
-		if (order < SAMPLE_SIZE) {
-			++freq_char_;
-			if (last_order_ < SAMPLE_SIZE) {
-				++total_seqs_;
-				if (!reversed_) {
-					std::size_t pidx= (last_order_ * SAMPLE_SIZE) + order;
-					std::size_t cidx = static_cast<std::size_t>( model_->precedence_matrix[pidx] );
-					seq_counters_[cidx] += 1;
-				}
-			}
-		}
-		last_order_ = order;
-	}
-	if( prober::state_t::detecting == state_ ) {
-		if( total_seqs_ > SB_ENOUGH_REL_THRESHOLD) {
-			uint32_t confidence_percent = std::truncf( confidence() * 100.0F );
-			if( confidence_percent > POSITIVE_SHORTCUT_THRESHOLD ) {
-				state_ = prober::state_t::found;
-			} else if( confidence_percent < NEGATIVE_SHORTCUT_THRESHOLD ) {
-				state_ = prober::state_t::notme;
-			}
-		}
-	}
-	return state_;
-}
-
-prober::state_t single_byte_prober::state() noexcept
-{
-	return state_;
-}
-
-void single_byte_prober::reset() noexcept
-{
-	state_ = prober::state_t::detecting;
-	total_seqs_ = 0;
-	total_char_ = 0;
-	freq_char_ = 0;
-	last_order_ = std::numeric_limits<uint8_t>::max();
-	std::fill(seq_counters_.begin(),seq_counters_.end(), 0);
-}
-
-float single_byte_prober::confidence() noexcept
-{
-	double ret = 0.01;
-	if( total_seqs_ > 0) {
-		ret = 1.0 * static_cast<double>( seq_counters_[POSITIVE_CAT] ) / static_cast<double>(total_seqs_) / static_cast<double>( model_->typical_positive_ratio);
-		ret = ret * ( static_cast<double>(freq_char_) / static_cast<double>(total_char_) );
-		if (ret >= 1.0)
-			ret = 0.99;
-	}
-	return static_cast<float>( ret );
+	static const sequence_model ret = {
+		ISO_8859_5_CHAR_TO_ORDER_MAP,
+		RUSSIAN_LANG_MODEL,
+		0.976601F,
+		28595
+	};
+	return &ret;
 }
 
 }  // namespace detail

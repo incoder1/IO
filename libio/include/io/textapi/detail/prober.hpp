@@ -20,6 +20,7 @@
 #include <system_error>
 
 #include <io/core/buffer.hpp>
+#include <io/core/object.hpp>
 
 namespace io {
 
@@ -43,7 +44,7 @@ public:
 		notme = 2	  //  Negative answer
 	};
 
-	virtual uint16_t get_charset_code() const noexcept = 0;
+	virtual uint16_t get_charset_code() noexcept = 0;
 	virtual state_t handle_data(std::error_code& ec, const uint8_t* buff, std::size_t size) noexcept = 0;
 
 	virtual state_t state() noexcept = 0;

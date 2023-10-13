@@ -101,7 +101,7 @@ latin1_prober::latin1_prober() noexcept:
 {
 }
 
-uint16_t latin1_prober::get_charset_code() const noexcept
+uint16_t latin1_prober::get_charset_code() noexcept
 {
 #ifndef __IO_WINDOWS_BACKEND__
 	// Windows-1252 Latin 1

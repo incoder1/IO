@@ -39,7 +39,7 @@ static bool is_utf32(const uint8_t* bom)
 	return utf_32be_bom::is(bom) || utf_32le_bom::is(bom);
 }
 
-static s_read_channel open_convert_channel(std::error_code& ec,io::byte_buffer& rb, const uint8_t* pos, const charset& ch, const s_read_channel &src) noexcept
+static s_read_channel open_convert_channel(std::error_code& ec,io::byte_buffer& rb, const uint8_t* pos, const charset* ch, const s_read_channel &src) noexcept
 {
 	byte_buffer new_rb;
 
@@ -52,7 +52,7 @@ static s_read_channel open_convert_channel(std::error_code& ec,io::byte_buffer& 
 	s_code_cnvtr cnv = code_cnvtr::open(
 						   ec,
 						   ch,
-						   code_pages::UTF_8,
+						   code_pages::utf8(),
 						   cnvrt_control::failure_on_failing_chars
 					   );
 	if(ec)
@@ -77,9 +77,9 @@ s_source source::open(std::error_code& ec, const s_read_channel& src, byte_buffe
 		ec = make_error_code(converrc::not_supported);
 		return s_source();
 	}
-	charset ch = chdetstat.character_set();
+	const charset* ch = chdetstat.character_set();
 	s_read_channel text_channel;
-	switch( static_cast<unsigned int>(ch.code() ) ) {
+	switch( static_cast<unsigned int>(ch->code() ) ) {
 	// UTF-8 or latin1
 	case ASCII_CP_CODE:
 	case ISO_LATIN1_CP_CODE:

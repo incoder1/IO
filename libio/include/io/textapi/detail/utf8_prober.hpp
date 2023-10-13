@@ -35,7 +35,7 @@ private:
 	explicit utf8_prober(std::unique_ptr<coding_state_machine>&& sm) noexcept;
 public:
 	static s_prober create(std::error_code& ec) noexcept;
-	virtual uint16_t get_charset_code() const noexcept override;
+	virtual uint16_t get_charset_code() noexcept override;
 	virtual prober::state_t handle_data(std::error_code& ec, const uint8_t* buff, std::size_t size) noexcept override;
 	virtual prober::state_t state() noexcept override;
 	virtual void reset() noexcept override;

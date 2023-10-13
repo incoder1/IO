@@ -17,7 +17,6 @@
 
 namespace io {
 
-
 // code_pages
 
 #define DECLARE_CHARSET(ID,__code,__name,__is_unicode,__maxchar) \
@@ -66,127 +65,260 @@ DECLARE_CHARSET(CP_1258,1258,"CP1258",1,false) // ANSI/OEM Vietnamese; Vietnames
 
 #undef DECLARE_CHARSET
 
-#ifdef __IO_POSIX_BACKEND__
-#	ifdef IO_IS_LITTLE_ENDIAN
-		const charset code_pages::SYSTEM_WIDE = UTF_32LE;
-#	else
-		const charset code_pages::SYSTEM_WIDE = UTF_32BE;
-#	endif // IO_IS_LITTLE_ENDIAN
-#endif // __IO_POSIX_BACKEND__
+std::array<const charset*,35> code_pages::ALL = {
 
+	&ASCII,
 
-#ifdef __IO_WINDOWS_BACKEND__
-const charset code_pages::SYSTEM_WIDE = UTF_16LE;
-#endif // __IO_WINDOWS_BACKEND__
+	&KOI8_R,&KOI8_U,&KOI8_RU,
 
-static constexpr std::size_t MAX_SUPPORTED = 35;
+	&UTF_7,&UTF_8,&UTF_16LE,&UTF_16BE,&UTF_32LE,&UTF_32BE,
 
-const charset* ALL_SUPPORTED[MAX_SUPPORTED] =
-{
-	// UNICODE
-	&code_pages::UTF_8,
-	&code_pages::UTF_16LE,
-	&code_pages::UTF_16BE,
-	&code_pages::UTF_32LE,
-	&code_pages::UTF_32BE,
-	&code_pages::UTF_7,
-	// one byte code pages
-	&code_pages::ASCII,
-	&code_pages::KOI8_R,
-	&code_pages::KOI8_U,
-	&code_pages::KOI8_RU,
-	// iso
-	&code_pages::ISO_8859_1,
-	&code_pages::ISO_8859_2,
-	&code_pages::ISO_8859_3,
-	&code_pages::ISO_8859_4,
-	&code_pages::ISO_8859_5,
-	&code_pages::ISO_8859_6,
-	&code_pages::ISO_8859_7,
-	&code_pages::ISO_8859_8,
-	&code_pages::ISO_8859_9,
-	&code_pages::ISO_8859_10,
-	&code_pages::ISO_8859_11,
-	&code_pages::ISO_8859_12,
-	&code_pages::ISO_8859_13,
-	&code_pages::ISO_8859_14,
-	&code_pages::ISO_8859_15,
-	&code_pages::ISO_8859_16,
-	// windows
-	&code_pages::CP_1250,
-	&code_pages::CP_1251,
-	&code_pages::CP_1252,
-	&code_pages::CP_1253,
-	&code_pages::CP_1254,
-	&code_pages::CP_1255,
-	&code_pages::CP_1256,
-	&code_pages::CP_1257,
-	&code_pages::CP_1258
+	&ISO_8859_1,&ISO_8859_2,&ISO_8859_3,&ISO_8859_4,
+	&ISO_8859_5,&ISO_8859_6,&ISO_8859_7,&ISO_8859_8,
+	&ISO_8859_9,&ISO_8859_10,&ISO_8859_11,&ISO_8859_12,
+	&ISO_8859_13,&ISO_8859_14,&ISO_8859_15,&ISO_8859_16,
+
+	&CP_1250,&CP_1251,&CP_1252,&CP_1253,
+	&CP_1254,&CP_1255,&CP_1256,&CP_1257,
+	&CP_1258
 };
 
+const charset* code_pages::ascii() noexcept
+{
+	return &ASCII;
+}
+
+const charset* code_pages::utf7() noexcept
+{
+	return &UTF_7;
+}
+
+const charset* code_pages::utf8() noexcept
+{
+	return &UTF_8;
+}
+
+const charset* code_pages::utf16le() noexcept
+{
+	return &UTF_16LE;
+}
+
+const charset* code_pages::utf16be() noexcept
+{
+	return &UTF_16BE;
+}
+
+const charset* code_pages::utf32le() noexcept
+{
+	return &UTF_32LE;
+}
+
+const charset* code_pages::utf32be() noexcept
+{
+	return &UTF_32BE;
+}
+
+const charset* code_pages::iso_8859_1() noexcept
+{
+	return &ISO_8859_1;
+}
+
+const charset* code_pages::iso_8859_2() noexcept
+{
+	return &ISO_8859_2;
+}
+
+const charset* code_pages::iso_8859_3() noexcept
+{
+	return &ISO_8859_3;
+}
+
+const charset* code_pages::iso_8859_4() noexcept
+{
+	return &ISO_8859_4;
+}
+
+const charset* code_pages::iso_8859_5() noexcept
+{
+	return &ISO_8859_5;
+}
+
+const charset* code_pages::iso_8859_6() noexcept
+{
+	return &ISO_8859_6;
+}
+
+const charset* code_pages::iso_8859_7() noexcept
+{
+	return &ISO_8859_7;
+}
+
+const charset* code_pages::iso_8859_8() noexcept
+{
+	return &ISO_8859_8;
+}
+
+const charset* code_pages::iso_8859_9() noexcept
+{
+	return &ISO_8859_9;
+}
+
+const charset* code_pages::iso_8859_10() noexcept
+{
+	return &ISO_8859_10;
+}
+
+const charset* code_pages::iso_8859_11() noexcept
+{
+	return &ISO_8859_11;
+}
+
+const charset* code_pages::iso_8859_12() noexcept
+{
+	return &ISO_8859_12;
+}
+
+const charset* code_pages::iso_8859_13() noexcept
+{
+	return &ISO_8859_13;
+}
+
+const charset* code_pages::iso_8859_14() noexcept
+{
+	return &ISO_8859_14;
+}
+
+const charset* code_pages::iso_8859_15() noexcept
+{
+	return &ISO_8859_15;
+}
+
+const charset* code_pages::iso_8859_16() noexcept
+{
+	return &ISO_8859_16;
+}
+
+const charset* code_pages::koi8r () noexcept
+{
+	return &KOI8_R;
+}
+
+const charset* code_pages::koi8u () noexcept
+{
+	return &KOI8_U;
+}
+
+const charset* code_pages::koi8ru() noexcept
+{
+	return &KOI8_RU;
+}
+
+const charset* code_pages::cp1250() noexcept
+{
+	return &CP_1250;
+}
+
+const charset* code_pages::cp1251() noexcept
+{
+	return &CP_1251;
+}
+
+const charset* code_pages::cp1252() noexcept
+{
+	return &CP_1252;
+}
+
+const charset* code_pages::cp1253() noexcept
+{
+	return &CP_1253;
+}
+
+const charset* code_pages::cp1254() noexcept
+{
+	return &CP_1254;
+}
+
+const charset* code_pages::cp1255() noexcept
+{
+	return &CP_1255;
+}
+
+const charset* code_pages::cp1256() noexcept
+{
+	return &CP_1256;
+}
+
+const charset* code_pages::cp1257() noexcept
+{
+	return &CP_1257;
+}
+
+const charset* code_pages::cp1258() noexcept
+{
+	return &CP_1258;
+}
+
 /// Returns a character set for a name
-std::pair<bool, charset> code_pages::for_name(const char* name) noexcept
+std::pair<bool, const charset*> code_pages::for_name(const char* name) noexcept
 {
 	static constexpr std::size_t MAX_LEN = 11;
-	std::pair<bool, charset> ret = std::make_pair( false, charset() );
+	std::pair<bool, const charset*> ret = std::make_pair( false, nullptr );
 	std::size_t len = (nullptr != name && '\0' != *name) ? io_strlen(name) : 0;
 	if(len <= MAX_LEN ) {
-		for(std::size_t i=0; i < MAX_SUPPORTED; i++) {
-			if( 0 == io_strncasecmp(ALL_SUPPORTED[i]->name(), name, len) ) {
-				ret = std::make_pair(true, *ALL_SUPPORTED[i] );
-				break;
-			}
-		}
+		auto it = std::find_if(ALL.cbegin(), ALL.cend(), [name,len] (const charset* ch) {
+			return 0 == io_strncasecmp(ch->name(), name, len);
+		} );
+		if(ALL.cend() != it)
+			ret = std::make_pair(true, *it);
 	}
 	return ret;
 }
 
-const charset& code_pages::platform_default() noexcept
+std::pair<bool, const charset*> code_pages::for_code(uint16_t code) noexcept
+{
+	std::pair<bool, const charset*> ret = std::make_pair( false, nullptr );
+	auto it = std::find_if(ALL.cbegin(), ALL.cend(), [code] (const charset* ch) {
+		return code == ch->code();
+	} );
+	if(ALL.cend() != it)
+		ret = std::make_pair(true,*it);
+	return ret;
+}
+
+const charset* code_pages::system_wide() noexcept
 {
 #if defined(__IO_WINDOWS_BACKEND__)
-	return UTF_16LE;
+	return utf16le();
+#elif defined(__IO_POSIX_BACKEND__)
+#	ifdef IO_IS_LITTLE_ENDIAN
+	return utf32le();
+#	else
+	return utf32be();
+#	endif // IO_IS_LITTLE_ENDIAN
+#endif // __IO_POSIX_BACKEND__
+}
+
+const charset* code_pages::platform_default() noexcept
+{
+#if defined(__IO_WINDOWS_BACKEND__)
+	return utf16le();
 #elif defined(__IO_POSIX_BACKED__)
-	return UTF_8;
+	return utf8();
 #else
-	return ASCII;
+	return ascii();
 #endif
 }
 
-charset code_pages::platform_current() noexcept
+const charset* code_pages::platform_current() noexcept
 {
 #if defined(__IO_WINDOWS_BACKEND__)
-	switch(::GetACP()) {
-		case 1250:
-			return CP_1250;
-		case 1251:
-			return CP_1251;
-		case 1252:
-			return CP_1252;
-		case 1253:
-			return CP_1253;
-		case 1254:
-			return CP_1254;
-		case 1255:
-			return CP_1255;
-		case 1256:
-			return CP_1256;
-		case 1257:
-			return CP_1257;
-		case 1258:
-			return CP_1258;
-		case 12000:
-			return UTF_32LE;
-		case 65001:
-			return UTF_8;
-		case 1200:
-		default:
-			return UTF_16LE;
-	}
+	auto it = for_code( ::GetACP() );
+	return it.first ? it.second : utf16le();
 #elif defined(__IO_POSIX_BACKEND__)
-	std::pair<bool, charset> sres = for_name(::nl_langinfo(CODESET));
-	return sres.first ? sres.second : UTF_8;
+	std::pair<bool, charset> it = for_name(::nl_langinfo(CODESET));
+	return it.first ? it.second : utf8();
 #else
-	return UTF_8;
+	return utf8();
 #endif
 }
 

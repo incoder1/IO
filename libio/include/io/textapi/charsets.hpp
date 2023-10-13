@@ -17,6 +17,12 @@
 #pragma once
 #endif // HAS_PRAGMA_ONCE
 
+#include <array>
+
+#ifdef __HAS_CPP_17
+#	include <optional>
+#endif // __HAS_CPP_17
+
 namespace io {
 
 /// \brief A named mapping for the character set code page
@@ -99,8 +105,7 @@ private:
 class IO_PUBLIC_SYMBOL code_pages {
 	code_pages(const code_pages&) = delete;
 	code_pages& operator=(code_pages&) = delete;
-// to avoid externs, enums etc
-public:
+private:
 	/** UNICODE representations **/
 	DECLARE_CHARSET(UTF_8)
 	DECLARE_CHARSET(UTF_16LE)
@@ -147,18 +152,86 @@ public:
 	/// and UTF-32LE or UTF-32BE for POSIX systems depending on CPU arch
 	DECLARE_CHARSET(SYSTEM_WIDE)
 
+	static std::array<const charset*,35> ALL;
+
+public:
+	static const charset* ascii() noexcept;
+	static const charset* utf7() noexcept;
+	static const charset* utf8() noexcept;
+	static const charset* utf16le() noexcept;
+	static const charset* utf16be() noexcept;
+	static const charset* utf32le() noexcept;
+	static const charset* utf32be() noexcept;
+	static const charset* iso_8859_1() noexcept;
+	static const charset* iso_8859_2() noexcept;
+	static const charset* iso_8859_3() noexcept;
+	static const charset* iso_8859_4() noexcept;
+	static const charset* iso_8859_5() noexcept;
+	static const charset* iso_8859_6() noexcept;
+	static const charset* iso_8859_7() noexcept;
+	static const charset* iso_8859_8() noexcept;
+	static const charset* iso_8859_9() noexcept;
+	static const charset* iso_8859_10() noexcept;
+	static const charset* iso_8859_11() noexcept;
+	static const charset* iso_8859_12() noexcept;
+	static const charset* iso_8859_13() noexcept;
+	static const charset* iso_8859_14() noexcept;
+	static const charset* iso_8859_15() noexcept;
+	static const charset* iso_8859_16() noexcept;
+	static const charset* koi8r() noexcept;
+	static const charset* koi8u() noexcept;
+	static const charset* koi8ru() noexcept;
+	static const charset* cp1250() noexcept;
+	static const charset* cp1251() noexcept;
+	static const charset* cp1252() noexcept;
+	static const charset* cp1253() noexcept;
+	static const charset* cp1254() noexcept;
+	static const charset* cp1255() noexcept;
+	static const charset* cp1256() noexcept;
+	static const charset* cp1257() noexcept;
+	static const charset* cp1258() noexcept;
+	static const charset* system_wide() noexcept;
+
 	/// Returns a character set for a iconv name
-	static std::pair<bool, charset> for_name(const char* name) noexcept;
+	/// \param name character set code page code
+	/// \return a search result pair where first identifies whether character found and second contains search result
+	static std::pair<bool, const charset*> for_name(const char* name) noexcept;
+
+	/// Returns a character set for a code page identifier
+	/// \param code character set code page code
+	/// \return a search result pair where first identifies whether character found and second contains search result
+	static std::pair<bool, const charset*> for_code(uint16_t code) noexcept;
+
+#ifdef __HAS_CPP_17 // __HAS_CPP_17
+
+	/// Returns a character set for a iconv name
+	/// \param name character set code page code
+	/// \return search result optional
+	static std::optional<const charset*> find_by_name(const char* name) noexcept
+	{
+		auto ret = for_name(name);
+		return ret.first ? std::make_optional( std::move(ret.second) ) :  std::nullopt;
+	}
+
+	/// Returns a character set for a code page identifier
+	/// \param code character set code page code
+	static inline std::optional<const charset*> find_by_code(uint16_t code) noexcept
+	{
+		auto ret = for_code(code);
+		return ret.first ? std::make_optional( std::move(ret.second) ) :  std::nullopt;
+	}
+
+#endif // __HAS_CPP_17
 
 	/// Returns character set which is default for current operating system API
 	/// I.e. UTF-16LE for Winfows or UTF-8 for Linux
 	/// \return operating system API default character set
-	static const charset& platform_default() noexcept;
+	static const charset* platform_default() noexcept;
 
 	/// Returns character set assigned for this process/application,
 	/// i.e. current locale character set
 	/// \return current locale charter set
-	static charset platform_current() noexcept;
+	static const charset* platform_current() noexcept;
 
 private:
 	constexpr code_pages() noexcept

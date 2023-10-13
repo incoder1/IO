@@ -39,7 +39,7 @@ public:
 
 	static s_event_writer open(std::error_code& ec,writer&& to,bool format,const document_event& prologue) noexcept;
 
-	static s_event_writer open(std::error_code& ec,writer&& to, bool format, const version& v,const charset& encoding, bool standalone) noexcept;
+	static s_event_writer open(std::error_code& ec,writer&& to, bool format, const version& v,const charset* encoding, bool standalone) noexcept;
 
 	static s_event_writer open(std::error_code& ec,writer&& to) noexcept;
 
@@ -48,7 +48,7 @@ public:
 		return open(ec, writer(to), format, prologue);
 	}
 
-	static s_event_writer open(std::error_code& ec,const s_write_channel& to, bool format, const version& v,const charset& encoding, bool standalone) noexcept
+	static s_event_writer open(std::error_code& ec,const s_write_channel& to, bool format, const version& v,const charset* encoding, bool standalone) noexcept
 	{
 		return open(ec, writer(to), format, v, encoding, standalone);
 	}
