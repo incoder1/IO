@@ -315,7 +315,7 @@ const charset* code_pages::platform_current() noexcept
 	auto it = for_code( ::GetACP() );
 	return it.first ? it.second : utf16le();
 #elif defined(__IO_POSIX_BACKEND__)
-	std::pair<bool, charset> it = for_name(::nl_langinfo(CODESET));
+	auto it = for_name(::nl_langinfo(CODESET));
 	return it.first ? it.second : utf8();
 #else
 	return utf8();
