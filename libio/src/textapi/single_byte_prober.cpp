@@ -51,20 +51,21 @@ uint16_t single_byte_prober::get_charset_code() noexcept
 
 prober::state_t single_byte_prober::handle_data(std::error_code& ec, const uint8_t* buff, std::size_t size) noexcept
 {
-	uint8_t order;
 	for(std::size_t i = 0; i < size; i++) {
-		order = model_->char_to_order_map[ static_cast<std::size_t>( buff[i] ) ];
+		uint8_t order = model_->char_to_order_map[ static_cast<std::size_t>( buff[i] ) ];
 		if (order < SYMBOL_CAT_ORDER)
 			++total_char_;
 		if (order < SAMPLE_SIZE) {
 			++freq_char_;
 			if (last_order_ < SAMPLE_SIZE) {
 				++total_seqs_;
-				if (!reversed_) {
-					std::size_t pidx= (last_order_ * SAMPLE_SIZE) + order;
-					std::size_t cidx = static_cast<std::size_t>( model_->precedence_matrix[pidx] );
-					seq_counters_[cidx] += 1;
-				}
+				std::size_t pxid;
+				if (reversed_)
+					pxid = static_cast<std::size_t>(order) * SAMPLE_SIZE + last_order_;
+				else
+					pxid = last_order_ * SAMPLE_SIZE + static_cast<std::size_t>(order);
+				std::size_t cixid = model_->precedence_matrix[pxid];
+				seq_counters_[cixid] += 1;
 			}
 		}
 		last_order_ = order;
@@ -101,9 +102,11 @@ float single_byte_prober::confidence() noexcept
 {
 	double ret = 0.01;
 	if( total_seqs_ > 0) {
-		ret = 1.0 * static_cast<double>( seq_counters_[POSITIVE_CAT] ) / static_cast<double>(total_seqs_) / static_cast<double>( model_->typical_positive_ratio);
-		ret = ret * ( static_cast<double>(freq_char_) / static_cast<double>(total_char_) );
-		if (ret >= 1.0)
+		double positive = 1.0 * ( (static_cast<double>(seq_counters_[POSITIVE_CAT])  /  static_cast<double>(total_seqs_)  / static_cast<double>( model_->typical_positive_ratio) ) );
+		positive = positive * ( static_cast<double>(freq_char_) / static_cast<double>(total_char_) );
+		double negative = std::abs( (static_cast<double>(total_seqs_) - (static_cast<double>(seq_counters_[NEGATIVE_CAT])*10)) / ( static_cast<double>(total_seqs_) * ( static_cast<double>(freq_char_) / static_cast<double>(total_char_) ) ) );
+		ret = (positive + negative) / 2.0F;
+		if(ret >= 1.0)
 			ret = 0.99;
 	}
 	return static_cast<float>( ret );

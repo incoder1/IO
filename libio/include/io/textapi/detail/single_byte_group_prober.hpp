@@ -26,7 +26,7 @@ namespace io {
 
 namespace detail {
 
-class single_byte_group_prober final: public prober
+class IO_PUBLIC_SYMBOL single_byte_group_prober final: public prober
 {
 private:
 	static constexpr const std::size_t NUM_OF_SBCS_PROBERS = 3;

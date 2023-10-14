@@ -25,14 +25,9 @@
 #include "charsets.hpp"
 #include "unicode.hpp"
 
-#include  "detail/prober.hpp"
+#include  <io/textapi/detail/prober.hpp>
 
 namespace io {
-
-namespace detail {
-
-
-} // namesapce detail
 
 class charset_detector;
 DECLARE_IPTR(charset_detector);

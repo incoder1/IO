@@ -24,10 +24,6 @@
 */
 namespace io {
 
-namespace detail {
-
-
-} // detail
 
 //charset_detector
 s_charset_detector charset_detector::create(std::error_code& ec) noexcept
