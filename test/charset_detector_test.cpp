@@ -132,3 +132,39 @@ TEST_F(charset_detector_fixture, prober_should_detect_iso_8859_5)
 	}
 	ASSERT_EQ(io::detail::prober::state_t::found, actual);
 }
+
+TEST_F(charset_detector_fixture, prober_should_detect_windows_1253)
+{
+	constexpr const std::size_t EFECTIVE_CODESET_LEN = 61;
+	uint8_t cp1253[EFECTIVE_CODESET_LEN];
+	uint8_t ch = 193;
+	for(std::size_t i=0; i < EFECTIVE_CODESET_LEN; i++) {
+		cp1253[i] = ch++;
+	}
+	io::detail::s_prober cp1253_prober = io::detail::single_byte_prober::create(ec_, io::detail::win1253_sequence_model(), false );
+	ASSERT_FALSE(ec_);
+	io::detail::prober::state_t actual;
+	for(std::size_t i=0; i < 32; i++) {
+	 	actual = cp1253_prober->handle_data(ec_, cp1253, EFECTIVE_CODESET_LEN);
+	 	ASSERT_FALSE(ec_);
+	}
+	ASSERT_EQ(io::detail::prober::state_t::found, actual);
+}
+
+TEST_F(charset_detector_fixture, prober_should_detect_iso_8859_7)
+{
+	constexpr const std::size_t EFECTIVE_CODESET_LEN = 61;
+	uint8_t iso_8859_7[EFECTIVE_CODESET_LEN];
+	uint8_t ch = 193;
+	for(std::size_t i=0; i < EFECTIVE_CODESET_LEN; i++) {
+		iso_8859_7[i] = ch++;
+	}
+	io::detail::s_prober iso_8859_7_prober = io::detail::single_byte_prober::create(ec_, io::detail::iso_8859_7_sequence_model(), false );
+	ASSERT_FALSE(ec_);
+	io::detail::prober::state_t actual;
+	for(std::size_t i=0; i < 32; i++) {
+	 	actual = iso_8859_7_prober->handle_data(ec_,iso_8859_7, EFECTIVE_CODESET_LEN);
+	 	ASSERT_FALSE(ec_);
+	}
+	ASSERT_EQ(io::detail::prober::state_t::found, actual);
+}

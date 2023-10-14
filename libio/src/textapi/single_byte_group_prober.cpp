@@ -22,8 +22,10 @@ s_prober single_byte_group_prober::create(std::error_code& ec) noexcept
 	s_prober kio8r_prober = single_byte_prober::create(ec, koi8r_sequence_model(), false );
 	s_prober win1251_prober = single_byte_prober::create(ec, win1251_sequence_model(), false );
 	s_prober iso_8859_5_prober = single_byte_prober::create(ec, iso_8859_5_sequence_model(), false );
+	s_prober win1253_prober = single_byte_prober::create(ec, win1251_sequence_model(), false );
+	s_prober iso_8859_7_prober = single_byte_prober::create(ec, iso_8859_7_sequence_model(), false );
 	if(!ec) {
-		std::array<s_prober,NUM_OF_SBCS_PROBERS> prbrs = { kio8r_prober, win1251_prober, iso_8859_5_prober };
+		std::array<s_prober,NUM_OF_SBCS_PROBERS> prbrs = { kio8r_prober, win1251_prober, iso_8859_5_prober, win1253_prober, iso_8859_7_prober };
 		single_byte_group_prober* px = new (std::nothrow) single_byte_group_prober( std::move(prbrs) );
 		if(nullptr == px)
 			ec = std::make_error_code(std::errc::not_enough_memory);

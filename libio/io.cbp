@@ -304,6 +304,7 @@
 		<Unit filename="include/io/textapi/charsets.hpp" />
 		<Unit filename="include/io/textapi/detail/coding_state_machine.hpp" />
 		<Unit filename="include/io/textapi/detail/cyrylic_model.hpp" />
+		<Unit filename="include/io/textapi/detail/greek_model.hpp" />
 		<Unit filename="include/io/textapi/detail/latin1_prober.hpp" />
 		<Unit filename="include/io/textapi/detail/pkg_int.hpp" />
 		<Unit filename="include/io/textapi/detail/prober.hpp" />
@@ -440,6 +441,7 @@
 		<Unit filename="src/textapi/charsets.cpp" />
 		<Unit filename="src/textapi/coding_state_machine.cpp" />
 		<Unit filename="src/textapi/cyrylic_model.cpp" />
+		<Unit filename="src/textapi/greek_model.cpp" />
 		<Unit filename="src/textapi/latin1_prober.cpp" />
 		<Unit filename="src/textapi/prober.cpp" />
 		<Unit filename="src/textapi/single_byte_group_prober.cpp" />

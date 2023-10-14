@@ -8,8 +8,8 @@
  * LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
  *
  */
-#ifndef __IO_TEXT_API__DETAILCYRYLIC_MODEL_HPP_INCLUDED__
-#define __IO_TEXT_API__DETAILCYRYLIC_MODEL_HPP_INCLUDED__
+#ifndef __IO_TEXT_API_DETAIL_GREEK_MODEL_HPP_INCLUDED__
+#define __IO_TEXT_API_DETAIL_GREEK_MODEL_HPP_INCLUDED__
 
 #include <io/config/libio_config.hpp>
 
@@ -28,24 +28,17 @@ IO_PUBLIC_SYMBOL const sequence_model*
 #else
 const sequence_model* IO_PUBLIC_SYMBOL
 #endif // IO_DECLSPEC
-koi8r_sequence_model() noexcept;
+win1253_sequence_model() noexcept;
 
 #ifdef IO_DECLSPEC
 IO_PUBLIC_SYMBOL const sequence_model*
 #else
 const sequence_model* IO_PUBLIC_SYMBOL
 #endif // IO_DECLSPEC
-win1251_sequence_model() noexcept;
-
-#ifdef IO_DECLSPEC
-IO_PUBLIC_SYMBOL const sequence_model*
-#else
-const sequence_model* IO_PUBLIC_SYMBOL
-#endif // IO_DECLSPEC
-iso_8859_5_sequence_model() noexcept;
-
-} // namespace io
+iso_8859_7_sequence_model() noexcept;
 
 } // namespace detail
 
-#endif // __IO_TEXT_API__DETAILCYRYLIC_MODEL_HPP_INCLUDED__
+} // namespace io
+
+#endif // __IO_TEXT_API_DETAIL_GREEK_MODEL_HPP_INCLUDED__
