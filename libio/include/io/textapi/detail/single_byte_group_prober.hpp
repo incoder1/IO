@@ -22,6 +22,7 @@
 #include "single_byte_prober.hpp"
 #include "cyrylic_model.hpp"
 #include "greek_model.hpp"
+#include "hungarian_model.hpp"
 
 namespace io {
 
@@ -30,7 +31,7 @@ namespace detail {
 class IO_PUBLIC_SYMBOL single_byte_group_prober final: public prober
 {
 private:
-	static constexpr const std::size_t NUM_OF_SBCS_PROBERS = 5;
+	static constexpr const std::size_t NUM_OF_SBCS_PROBERS = 7;
 	single_byte_group_prober(std::array<s_prober,NUM_OF_SBCS_PROBERS>&& probers) noexcept;
 public:
 	static s_prober create(std::error_code& ec) noexcept;
