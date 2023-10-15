@@ -68,7 +68,7 @@ charset_detect_status charset_detector::detect(std::error_code &ec,const uint8_t
 		return charset_detect_status(code_pages::utf32le(), 1.0f);
 	}
 	// FIXME insert implementation
-	return charset_detect_status(code_pages::utf8(), 1.0f);
+	return charset_detect_status(nullptr, false);
 }
 
 } // namespace io

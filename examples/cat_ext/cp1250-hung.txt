@@ -1,0 +1,5 @@
+A C++ (ejtsd: cé plusz plusz) egy általános célú, magas szintû programozási nyelv.Támogatja a procedurális, az objektumorientált és
+a generikus programozást, valamint az adatabsztrakciót. Napjainkban szinte minden operációs rendszer alá létezik C++ fordító. 
+A nyelv a C programozási nyelv hatékonyságának megõrzése mellett törekszik a könnyebben megírható, karbantartható és újrahasznosítható 
+kód írására, ez azonban sok kompromisszummal jár, erre utal, hogy általánosan elterjedt a mid-level minõsítése is, bár szigorú értelemben
+véve egyértelmûen magas szintû. 
