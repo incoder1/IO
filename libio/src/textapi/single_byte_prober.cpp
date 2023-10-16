@@ -17,7 +17,6 @@ namespace io {
 
 namespace detail {
 
-
 // single_byte_prober
 s_prober single_byte_prober::create(std::error_code& ec, const sequence_model* model, bool reversed) noexcept
 {

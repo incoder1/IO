@@ -1,0 +1,113 @@
+/*
+ *
+ * Copyright (c) 2016-2023
+ * Viktor Gubin
+ *
+ * Use, modification and distribution are subject to the
+ * Boost Software License, Version 1.0. (See accompanying file
+ * LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
+ *
+ */
+#include "stdafx.hpp"
+#include "io/textapi/detail/esperanto_model.hpp"
+
+namespace io {
+
+namespace detail {
+
+/* Character Mapping Table:
+ * ILL: illegal character.
+ * CTR: control character specific to the charset.
+ * RET: carriage/return.
+ * SYM: symbol (punctuation) that does not belong to word.
+ * NUM: 0 - 9.
+ *
+ * Other characters are ordered by probabilities
+ * (0 is the most common character in the language).
+ *
+ * Orders are generic to a language. So the codepoint with order X in
+ * CHARSET1 maps to the same character as the codepoint with the same
+ * order X in CHARSET2 for the same language.
+ * As such, it is possible to get missing order. For instance the
+ * ligature of 'o' and 'e' exists in ISO-8859-15 but not in ISO-8859-1
+ * even though they are both used for French. Same for the euro sign.
+ */
+static uint8_t ISO_8859_3_CHAR_TO_ORDER_MAP[] = {
+	0xFE,0xFE,0xFE,0xFE,0xFE,0xFE,0xFE,0xFE,0xFE,0xFE,0xFC,0xFE,0xFE,0xFC,0xFE,0xFE,
+	0xFE,0xFE,0xFE,0xFE,0xFE,0xFE,0xFE,0xFE,0xFE,0xFE,0xFE,0xFE,0xFE,0xFE,0xFE,0xFE,
+	0xFD,0xFD,0xFD,0xFD,0xFD,0xFD,0xFD,0xFD,0xFD,0xFD,0xFD,0xFD,0xFD,0xFD,0xFD,0xFD,
+	0xFB,0xFB,0xFB,0xFB,0xFB,0xFB,0xFB,0xFB,0xFB,0xFB,0xFD,0xFD,0xFD,0xFD,0xFD,0xFD,
+	0xFD,0x00,0x13,0x11,0x0A,0x02,0x12,0x0F,0x14,0x03,0x0B,0x09,0x06,0x0D,0x04,0x01,
+	0x0E,0x22,0x05,0x08,0x07,0x0C,0x10,0x1A,0x20,0x19,0x15,0xFD,0xFD,0xFD,0xFD,0xFD,
+	0xFD,0x00,0x13,0x11,0x0A,0x02,0x12,0x0F,0x14,0x03,0x0B,0x09,0x06,0x0D,0x04,0x01,
+	0x0E,0x22,0x05,0x08,0x07,0x0C,0x10,0x1A,0x20,0x19,0x15,0xFD,0xFD,0xFD,0xFD,0xFE,
+	0xFE,0xFE,0xFE,0xFE,0xFE,0xFE,0xFE,0xFE,0xFE,0xFE,0xFE,0xFE,0xFE,0xFE,0xFE,0xFE,
+	0xFE,0xFE,0xFE,0xFE,0xFE,0xFE,0xFE,0xFE,0xFE,0xFE,0xFE,0xFE,0xFE,0xFE,0xFE,0xFE,
+	0xFD,0x37,0xFD,0xFD,0xFD,0xFF,0x1E,0xFD,0xFD,0x38,0x35,0x39,0x1C,0xFD,0xFF,0x2B,
+	0xFD,0x3A,0xFD,0xFD,0xFD,0xFD,0x1E,0xFD,0xFD,0x3B,0x35,0x3C,0x1C,0xFD,0xFF,0x2B,
+	0x30,0x1D,0x2D,0xFF,0x27,0x3D,0x18,0x2A,0x2E,0x1F,0x2F,0x32,0x36,0x25,0x2C,0x33,
+	0xFF,0x28,0x3E,0x21,0x31,0x34,0x23,0xFD,0x16,0x3F,0x26,0x40,0x24,0x17,0x1B,0x29,
+	0x30,0x1D,0x2D,0xFF,0x27,0x41,0x18,0x2A,0x2E,0x1F,0x2F,0x32,0x36,0x25,0x2C,0x33,
+	0xFF,0x28,0x42,0x21,0x31,0x34,0x23,0xFD,0x16,0x43,0x26,0x44,0x24,0x17,0x1B,0xFD
+};
+
+/* Model Table:
+ * Total sequences: 966
+ * First 512 sequences: 0.9949447894488864
+ * Next 512 sequences (512-1024): 0.005055210551113598
+ * Rest: -2.2551405187698492e-17
+ * Negative sequences: TODO
+ */
+static uint8_t ESPERANTO_LANG_MODEL[] = {
+	3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,0,3,
+	3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,2,3,3,3,3,2,0,2,
+	3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,2,2,3,
+	3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,0,3,2,2,3,0,2,3,
+	3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,0,3,3,2,2,2,2,2,
+	3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,0,3,3,3,3,2,3,2,
+	3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,2,0,2,3,2,2,0,3,2,
+	3,3,3,3,3,3,3,3,3,3,2,3,3,3,3,3,3,2,3,3,3,3,0,0,2,3,2,2,0,2,0,
+	3,3,3,3,3,3,3,3,3,3,3,2,3,3,3,2,3,3,3,3,3,3,0,0,2,3,2,0,0,3,0,
+	3,3,3,3,3,3,3,3,3,3,3,3,3,3,2,2,3,3,3,2,3,3,0,2,2,2,2,2,0,3,0,
+	3,3,3,3,2,3,3,3,3,2,3,2,3,3,3,3,3,2,2,2,3,3,2,0,2,3,3,0,2,2,0,
+	3,3,3,3,3,3,3,3,2,2,2,0,3,3,3,0,2,2,2,3,2,2,2,0,2,2,0,2,0,3,0,
+	3,3,3,3,3,3,3,3,3,3,3,3,2,3,3,3,3,3,3,3,3,3,3,0,3,2,2,3,0,0,2,
+	3,3,3,3,3,3,3,3,3,3,3,2,3,3,3,2,2,2,3,3,0,2,0,0,2,3,0,2,0,3,0,
+	3,3,3,3,2,3,3,3,3,2,2,2,3,2,3,0,0,2,2,2,3,2,0,0,2,2,0,2,0,3,0,
+	3,3,3,3,3,3,3,2,3,2,3,2,3,3,2,2,3,2,2,2,3,0,0,0,0,3,2,2,0,3,0,
+	3,3,3,3,2,3,2,2,2,2,3,3,3,0,2,2,0,2,2,2,2,2,0,0,0,2,0,0,0,3,0,
+	3,3,3,3,2,3,3,3,3,3,2,0,3,2,2,2,2,3,2,3,3,3,0,0,0,2,0,0,0,2,2,
+	3,3,3,3,2,3,3,3,2,2,2,2,3,3,2,3,2,2,3,2,2,0,0,0,0,2,2,0,0,2,0,
+	3,3,3,3,3,3,3,3,3,2,3,3,3,2,2,2,2,2,0,2,2,2,0,0,0,3,0,3,0,2,0,
+	3,3,3,3,3,3,3,3,2,0,0,2,3,3,2,2,0,2,2,2,2,0,0,0,0,2,2,0,0,3,0,
+	3,3,3,3,3,2,3,3,3,2,2,2,3,2,2,2,2,2,2,3,0,3,2,0,0,3,2,0,0,2,0,
+	3,3,3,3,0,0,3,2,0,2,2,2,3,2,2,3,0,0,2,0,0,0,0,0,0,0,0,2,0,0,0,
+	3,2,3,3,2,3,3,3,3,3,3,2,2,2,2,3,2,0,2,2,0,3,0,0,2,0,0,2,0,0,0,
+	3,3,3,3,0,2,2,0,0,2,2,2,3,3,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+	3,3,3,3,3,2,3,2,3,2,3,2,2,2,2,2,2,2,0,2,2,0,0,0,0,2,2,0,0,2,0,
+	3,3,3,3,3,2,2,2,3,0,0,0,0,2,0,2,0,2,0,0,2,2,0,0,0,2,3,0,0,0,0,
+	3,3,3,3,2,2,3,3,0,2,2,0,3,2,2,0,3,0,0,0,0,0,0,0,2,0,0,0,0,0,0,
+	3,3,2,2,0,2,0,0,0,2,2,0,3,0,0,2,0,0,0,2,0,0,0,0,0,0,0,0,0,0,0,
+	0,0,0,0,3,3,3,3,3,2,3,0,0,2,2,2,2,3,0,2,2,3,0,0,0,0,0,0,0,0,0,
+	3,3,3,3,2,2,0,2,2,2,2,0,2,3,0,0,0,0,0,0,0,0,0,0,0,0,0,2,0,0,0
+};
+
+#ifdef IO_DECLSPEC
+IO_PUBLIC_SYMBOL const sequence_model*
+#else
+const sequence_model* IO_PUBLIC_SYMBOL
+#endif // IO_DECLSPEC
+iso_8859_3_esperanto_sequence_model() noexcept
+{
+	static const sequence_model ret = {
+		ISO_8859_3_CHAR_TO_ORDER_MAP,
+		ESPERANTO_LANG_MODEL,
+		0.994944F,
+		28593
+	};
+	return &ret;
+}
+
+}	// namespace detail
+
+} // namespace io

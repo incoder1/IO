@@ -302,8 +302,13 @@
 		<Unit filename="include/io/textapi/charset_converter.hpp" />
 		<Unit filename="include/io/textapi/charset_detector.hpp" />
 		<Unit filename="include/io/textapi/charsets.hpp" />
+		<Unit filename="include/io/textapi/detail/arabic_model.hpp" />
 		<Unit filename="include/io/textapi/detail/coding_state_machine.hpp" />
 		<Unit filename="include/io/textapi/detail/cyrylic_model.hpp" />
+		<Unit filename="include/io/textapi/detail/danish_model.hpp" />
+		<Unit filename="include/io/textapi/detail/esperanto_model.hpp" />
+		<Unit filename="include/io/textapi/detail/french_model.hpp" />
+		<Unit filename="include/io/textapi/detail/german_model.hpp" />
 		<Unit filename="include/io/textapi/detail/greek_model.hpp" />
 		<Unit filename="include/io/textapi/detail/hungarian_model.hpp" />
 		<Unit filename="include/io/textapi/detail/latin1_prober.hpp" />
@@ -311,6 +316,8 @@
 		<Unit filename="include/io/textapi/detail/prober.hpp" />
 		<Unit filename="include/io/textapi/detail/single_byte_group_prober.hpp" />
 		<Unit filename="include/io/textapi/detail/single_byte_prober.hpp" />
+		<Unit filename="include/io/textapi/detail/spanish_model.hpp" />
+		<Unit filename="include/io/textapi/detail/turkish_model.hpp" />
 		<Unit filename="include/io/textapi/detail/utf8_prober.hpp" />
 		<Unit filename="include/io/textapi/nio.hpp" />
 		<Unit filename="include/io/textapi/stream.hpp" />
@@ -437,17 +444,24 @@
 			<Option compile="1" />
 			<Option weight="0" />
 		</Unit>
+		<Unit filename="src/textapi/arabic_model.cpp" />
 		<Unit filename="src/textapi/charset_converter.cpp" />
 		<Unit filename="src/textapi/charset_detector.cpp" />
 		<Unit filename="src/textapi/charsets.cpp" />
 		<Unit filename="src/textapi/coding_state_machine.cpp" />
 		<Unit filename="src/textapi/cyrylic_model.cpp" />
+		<Unit filename="src/textapi/danish_model.cpp" />
+		<Unit filename="src/textapi/esperanto_model.cpp" />
+		<Unit filename="src/textapi/french_model.cpp" />
+		<Unit filename="src/textapi/german_model.cpp" />
 		<Unit filename="src/textapi/greek_model.cpp" />
 		<Unit filename="src/textapi/hungarian_model.cpp" />
 		<Unit filename="src/textapi/latin1_prober.cpp" />
 		<Unit filename="src/textapi/prober.cpp" />
 		<Unit filename="src/textapi/single_byte_group_prober.cpp" />
 		<Unit filename="src/textapi/single_byte_prober.cpp" />
+		<Unit filename="src/textapi/spanish_model.cpp" />
+		<Unit filename="src/textapi/turkish_model.cpp" />
 		<Unit filename="src/textapi/unicode.cpp" />
 		<Unit filename="src/textapi/utf8_prober.cpp" />
 		<Unit filename="src/tls/asynch_channel.cpp" />

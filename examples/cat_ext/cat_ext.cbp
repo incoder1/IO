@@ -11,7 +11,7 @@
 				<Option object_output="obj/debug-win-gcc-x64/" />
 				<Option type="1" />
 				<Option compiler="gcc" />
-				<Option parameters="utf8-ru.txt" />
+				<Option parameters="utf8-bom.txt" />
 				<Compiler>
 					<Add option="-std=gnu++23" />
 					<Add option="-ggdb" />
@@ -36,6 +36,7 @@
 				<Option object_output="obj/release-win-gcc-x64/" />
 				<Option type="1" />
 				<Option compiler="gcc" />
+				<Option parameters="utf8-bom.txt" />
 				<Compiler>
 					<Add option="-std=gnu++23" />
 					<Add option="-flto" />

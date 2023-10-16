@@ -79,6 +79,7 @@ TEST_F(charset_detector_fixture, prober_should_detect_utf8_by_short_data_multiby
 	ASSERT_TRUE( std::trunc( prb->confidence() * 100.0F) >= 95 );
 }
 
+// Cyrylic -  Belorussian, Bulgarian, Russian, Serbian, Ukrainian etc
 TEST_F(charset_detector_fixture, prober_should_detect_koi8r)
 {
 	constexpr const std::size_t EFECTIVE_CODESET_LEN = 63;
@@ -133,6 +134,7 @@ TEST_F(charset_detector_fixture, prober_should_detect_iso_8859_5)
 	ASSERT_EQ(io::detail::prober::state_t::found, actual);
 }
 
+/* Greek */
 TEST_F(charset_detector_fixture, prober_should_detect_windows_1253)
 {
 	constexpr const std::size_t EFECTIVE_CODESET_LEN = 61;

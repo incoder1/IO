@@ -25,6 +25,12 @@ namespace io {
 
 namespace detail {
 
+constexpr const uint8_t ILL = 0xFF;
+constexpr const uint8_t CTR = 0xFE;
+constexpr const uint8_t SYM = 0xFD;
+constexpr const uint8_t RET = 0xFC;
+constexpr const uint8_t NUM = 0xFB;
+
 struct sequence_model
 {
 	const uint8_t* const char_to_order_map;// [256] table use to find a char's order

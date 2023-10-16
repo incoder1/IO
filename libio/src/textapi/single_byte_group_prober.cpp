@@ -18,24 +18,36 @@ namespace detail {
 s_prober single_byte_group_prober::create(std::error_code& ec) noexcept
 {
 	s_prober ret;
-	// Cyrylic
-	s_prober kio8r_prober = single_byte_prober::create(ec, koi8r_sequence_model(), false );
-	s_prober win1251_prober = single_byte_prober::create(ec, win1251_sequence_model(), false );
-	s_prober iso_8859_5_prober = single_byte_prober::create(ec, iso_8859_5_sequence_model(), false );
-	s_prober win1253_prober = single_byte_prober::create(ec, win1251_sequence_model(), false );
-	s_prober iso_8859_7_prober = single_byte_prober::create(ec, iso_8859_7_sequence_model(), false );
-	s_prober win1250_hung_prober = single_byte_prober::create(ec, win1250_hungarian_sequence_model(), false );
-	s_prober iso_8859_2_hung_prober = single_byte_prober::create(ec, iso_8859_2_hungarian_sequence_model(), false );
+	const sequence_model* models[NUM_OF_SBCS_PROBERS] = {
+		win1256_sequence_model(),
+		iso_8859_6_sequence_model(),
+		koi8r_sequence_model(),
+		win1251_sequence_model(),
+		iso_8859_5_sequence_model(),
+		win1251_sequence_model(),
+		iso_8859_7_sequence_model(),
+		win1252_danish_sequence_model(),
+		iso_8859_1_danish_sequence_model(),
+		iso_8859_15_danish_sequence_model(),
+		iso_8859_3_esperanto_sequence_model(),
+		win1252_french_sequence_model(),
+		iso_8859_1_french_sequence_model(),
+		iso_8859_15_french_sequence_model(),
+		win1252_german_sequence_model(),
+		iso_8859_1_german_sequence_model(),
+		win1250_hungarian_sequence_model(),
+		iso_8859_2_hungarian_sequence_model(),
+		win1252_spanish_sequence_model(),
+		iso_8859_1_spanish_sequence_model(),
+		iso_8859_15_spanish_sequence_model(),
+		iso_8859_3_turkish_sequence_model(),
+		iso_8859_9_turkish_sequence_model()
+	};
+	std::array<s_prober,NUM_OF_SBCS_PROBERS> prbrs;
+	for(std::size_t i=0; (i < NUM_OF_SBCS_PROBERS) && !ec; i++) {
+		prbrs[i] = single_byte_prober::create(ec, models[i], false );
+	}
 	if(!ec) {
-		std::array<s_prober,NUM_OF_SBCS_PROBERS> prbrs = {
-			kio8r_prober,
-			win1251_prober,
-			iso_8859_5_prober,
-			win1253_prober,
-			iso_8859_7_prober,
-			win1250_hung_prober,
-			iso_8859_2_hung_prober
-		};
 		single_byte_group_prober* px = new (std::nothrow) single_byte_group_prober( std::move(prbrs) );
 		if(nullptr == px)
 			ec = std::make_error_code(std::errc::not_enough_memory);
@@ -69,7 +81,6 @@ uint16_t single_byte_group_prober::get_charset_code() noexcept
 
 prober::state_t single_byte_group_prober::handle_data(std::error_code& ec, const uint8_t* buff, std::size_t size) noexcept
 {
-
 	byte_buffer new_buf = filter_without_english_letters(ec, buff, size);
 	if(!ec) {
 		prober::state_t	st;
