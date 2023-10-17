@@ -28,45 +28,43 @@ namespace tls {
 
 class credentials
 {
-    credentials(const credentials& other) = delete;
-    credentials& operator=(const credentials& rhs) = delete;
+	credentials(const credentials& other) = delete;
+	credentials& operator=(const credentials& rhs) = delete;
 public:
 
-    credentials(credentials&& other) noexcept:
-        creds_( other.creds_ )
-    {
-        other.creds_ = nullptr;
-    }
+	credentials(credentials&& other) noexcept:
+		creds_( std::exchange(other.creds_, nullptr) )
+	{}
 
-    credentials& operator=(credentials&& rhs) noexcept
-    {
-        credentials( static_cast<credentials&&>(rhs) ).swap( *this );
-        return *this;
-    }
+	credentials& operator=(credentials&& rhs) noexcept
+	{
+		credentials( std::forward<credentials>(rhs) ).swap( *this );
+		return *this;
+	}
 
-    ::gnutls_certificate_credentials_t get() const noexcept
-    {
-        return creds_;
-    }
+	::gnutls_certificate_credentials_t get() const noexcept
+	{
+		return creds_;
+	}
 
-    inline void swap(credentials& other) noexcept {
-        std::swap(creds_, other.creds_ );
-    }
+	inline void swap(credentials& other) noexcept {
+		std::swap(creds_, other.creds_ );
+	}
 
-    ~credentials() noexcept
-    {
-        if(nullptr != creds_)
-            ::gnutls_certificate_free_credentials(creds_);
-    }
+	~credentials() noexcept
+	{
+		if(nullptr != creds_)
+			::gnutls_certificate_free_credentials(creds_);
+	}
 
-    static credentials system_trust_creds(std::error_code& ec) noexcept;
+	static credentials system_trust_creds(std::error_code& ec) noexcept;
 
 private:
-    constexpr credentials() noexcept:
-        creds_(nullptr)
-    {}
+	constexpr credentials() noexcept:
+		creds_(nullptr)
+	{}
 private:
-    ::gnutls_certificate_credentials_t creds_;
+	::gnutls_certificate_credentials_t creds_;
 };
 
 

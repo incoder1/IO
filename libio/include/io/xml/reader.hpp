@@ -245,27 +245,33 @@ public:
 		return rd_.is_tag_end_next();
 	}
 
-	bool is_element(const xml::start_element_event& sev, const const_string& nmp, const const_string& local_name) noexcept {
+	bool is_element(const xml::start_element_event& sev, const const_string& nmp, const const_string& local_name) noexcept
+	{
 		return rd_.is_element(sev,nmp,local_name);
 	}
 
-	bool is_element(const xml::end_element_event& eev, const const_string& nmp, const const_string& local_name) noexcept {
+	bool is_element(const xml::end_element_event& eev, const const_string& nmp, const const_string& local_name) noexcept
+	{
 		return rd_.is_element(eev,nmp,local_name);
 	}
 
-	bool is_element(const xml::start_element_event& sev, const char* nmp, const char* local_name) noexcept {
+	bool is_element(const xml::start_element_event& sev, const char* nmp, const char* local_name) noexcept
+	{
 		return rd_.is_element(sev, nmp, local_name);
 	}
 
-	bool is_element(const xml::end_element_event& eev, const char* nmp, const char* local_name) noexcept {
+	bool is_element(const xml::end_element_event& eev, const char* nmp, const char* local_name) noexcept
+	{
 		return rd_.is_element(eev, nmp, local_name );
 	}
 
-	bool is_element(const xml::start_element_event& sev, const char* local_name) noexcept {
+	bool is_element(const xml::start_element_event& sev, const char* local_name) noexcept
+	{
 		return rd_.is_element(sev, local_name);
 	}
 
-	bool is_element(const xml::end_element_event& eev, const char* local_name) noexcept {
+	bool is_element(const xml::end_element_event& eev, const char* local_name) noexcept
+	 {
 		return rd_.is_element(eev, local_name );
 	}
 
@@ -273,27 +279,30 @@ public:
 		return rd_.position();
 	}
 
-	xml::start_element_event next_expected_tag_begin(const char* nsp, const char* local_name) {
+	xml::start_element_event next_expected_tag_begin(const char* nsp, const char* local_name)
+	{
 		xml::start_element_event ret = rd_.next_expected_tag_begin(ec_, nsp, local_name);
 		check_error("tag start", nsp, local_name);
 		return ret;
 	}
 
-	xml::start_element_event next_expected_tag_begin(const char* local_name) noexcept
+	xml::start_element_event next_expected_tag_begin(const char* local_name)
 	{
 		return next_expected_tag_begin("",local_name);
 	}
 
-	xml::end_element_event next_expected_tag_end(const char* nsp, const char* local_name) {
+	xml::end_element_event next_expected_tag_end(const char* nsp, const char* local_name)
+	{
 		xml::end_element_event ret = rd_.next_expected_tag_end(ec_, nsp, local_name);
 		check_error("tag end", nsp, local_name);
 		return ret;
 	}
 
-	xml::end_element_event next_expected_tag_end(const char* local_name) noexcept
+	xml::end_element_event next_expected_tag_end(const char* local_name)
 	{
 		return next_expected_tag_end("", local_name);
 	}
+
 private:
 
 	void check_error(const char* type, const char* nmp, const char* local_name)
@@ -321,7 +330,7 @@ private:
 						local_name,
 						type);
 #ifdef IO_NO_EXCEPTIONS
-		io::detail::panic( ec_.value() , emsg );
+		io::exit_with_error_message( ec_.value() , emsg );
 #else
 		throw std::runtime_error( emsg );
 #endif // IO_NO_EXCEPTIONS

@@ -84,35 +84,10 @@ static void print_error_message(int errcode,const char* message) noexcept
 
 extern "C" {
 
-void IO_PANIC_ATTR exit_with_current_error()
-{
-	::DWORD lastErr =::GetLastError();
-	if( NO_ERROR != lastErr ) {
-		output_swap oswap;
-		wchar_t msg[512];
-		::DWORD len = ::FormatMessageW(
-						  FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_IGNORE_INSERTS,
-						  NULL, lastErr,
-						  MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT),
-						  (::LPWSTR) &msg,
-						  256, NULL );
-		::DWORD written;
-		if( !::WriteFile( ::GetStdHandle(STD_ERROR_HANDLE), msg, len, &written, nullptr ) ) {
-			MessageBoxExW(NULL, msg, NULL, MB_OK | MB_ICONERROR, MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT) );
-		}
-	}
-	std::exit( lastErr );
-}
-
 void IO_PANIC_ATTR exit_with_error_message(int exitcode, const char* message)
 {
 	print_error_message(exitcode, message);
 	std::exit( exitcode );
-}
-
-void IO_PANIC_ATTR panic(int errcode, const char* message)
-{
-	exit_with_error_message(errcode, message);
 }
 
 } // extern "C"
@@ -130,7 +105,7 @@ void IO_PUBLIC_SYMBOL ios_check_error_code(const char* msg, std::error_code cons
 		io_strcpy(errmsg, msg);
 		strcat(errmsg," ");
 		strcat(errmsg, m.data());
-		panic(ec.value(), errmsg);
+		exit_with_error_message(ec.value(), errmsg);
 #else
 	throw std::ios_base::failure( msg, ec );
 #endif

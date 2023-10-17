@@ -66,7 +66,7 @@ single_byte_group_prober::single_byte_group_prober(std::array<s_prober,NUM_OF_SB
 	probers_(std::forward< std::array<s_prober,NUM_OF_SBCS_PROBERS> >(probers) )
 {
 	for(std::size_t i=0; i < NUM_OF_SBCS_PROBERS; i++) {
-		active_	[i] = 0;
+		active_	[i] = true;
 	}
 }
 
@@ -121,7 +121,7 @@ void single_byte_group_prober::reset() noexcept
 	active_probers_count_ = NUM_OF_SBCS_PROBERS;
 	best_guess_prober_ = -1;
 	for(std::size_t i=0; i < NUM_OF_SBCS_PROBERS; i++) {
-		active_	[i] = 0;
+		active_	[i] = true;
 		probers_[i]->reset();
 	}
 }

@@ -26,7 +26,7 @@ namespace io {
 /// !\brief base class for any pointer on reference which should be used from
 /// boost intrusive counter smart pointer. Reference counter implementing atomic
 /// increment and decrement.
- class IO_PUBLIC_SYMBOL object {
+class IO_PUBLIC_SYMBOL object {
 	object(const object&) = delete;
 	object& operator=(const object&) = delete;
 	object(object&&) = delete;

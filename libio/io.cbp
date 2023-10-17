@@ -14,19 +14,15 @@
 				<Option compiler="gcc" />
 				<Compiler>
 					<Add option="-Winit-self" />
+					<Add option="-Wunreachable-code" />
 					<Add option="-Weffc++" />
 					<Add option="-pedantic" />
-					<Add option="-Og" />
-					<Add option="-g" />
 					<Add option="-std=gnu++23" />
 					<Add option="-ggdb" />
+					<Add option="-Og" />
+					<Add option="-g" />
 					<Add option="-fchar8_t" />
 					<Add option="-fexceptions" />
-					<Add option="-minline-stringops-dynamically" />
-					<Add option="-mavx" />
-					<Add option="-mavx2" />
-					<Add option="-mlzcnt" />
-					<Add option="-mmovbe" />
 					<Add option="-D_WIN32_WINNT=0x0A00" />
 					<Add option="-D_UNICODE" />
 					<Add option="-DUNICODE" />
@@ -89,8 +85,8 @@
 				<Option compiler="clang" />
 				<Compiler>
 					<Add option="-Wall" />
-					<Add option="-g" />
-					<Add option="-std=c++20" />
+					<Add option="-gdwarf-2" />
+					<Add option="-std=c++23" />
 					<Add option="-D_WIN32_WINNT=0x0A00" />
 					<Add option="-D_UNICODE" />
 					<Add option="-DUNICODE" />
@@ -113,7 +109,7 @@
 				<Compiler>
 					<Add option="-O3" />
 					<Add option="-Wall" />
-					<Add option="-std=c++20" />
+					<Add option="-std=c++23" />
 					<Add option="-fchar8_t" />
 					<Add option="-fno-exceptions" />
 					<Add option="-fno-rtti" />

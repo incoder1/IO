@@ -116,9 +116,8 @@ public:
 		std::size_t to_write = memory_traits::distance( this->pbase(), this->pptr() ) * sizeof(char_type);
 		assert( (to_write % sizeof(char_type) ) == 0 );
 
-		std::size_t written;
 		while( to_write > 0 ) {
-			written = ch_->write(ec, wpos, to_write);
+			std::size_t written = ch_->write(ec, wpos, to_write);
 			if(ec)
 				return traits_type::eof();
 			wpos += written;

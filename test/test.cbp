@@ -11,7 +11,7 @@
 				<Option object_output="obj/debug-win-gcc-x64/" />
 				<Option type="1" />
 				<Option compiler="gcc" />
-				<Option parameters="--gtest_color=yes" />
+				<Option parameters="--gtest_color=yes --gtest_output=xml:test.xml" />
 				<Compiler>
 					<Add option="-Winit-self" />
 					<Add option="-std=gnu++23" />
@@ -36,7 +36,7 @@
 				<Option object_output="obj/release-win-gcc-x64/" />
 				<Option type="1" />
 				<Option compiler="gcc" />
-				<Option parameters="--gtest_color=yes" />
+				<Option parameters="--gtest_color=yes --gtest_output=xml:test.xml" />
 				<Compiler>
 					<Add option="-flto" />
 					<Add option="-Weffc++" />
@@ -62,7 +62,7 @@
 				<Option object_output="obj/debug-win-clang-x64/" />
 				<Option type="1" />
 				<Option compiler="clang" />
-				<Option parameters="test.xml" />
+				<Option parameters="--gtest_color=yes --gtest_output=xml:test.xml" />
 				<Compiler>
 					<Add option="-g" />
 					<Add option="-std=c++20" />
@@ -84,7 +84,7 @@
 				<Option object_output="obj/release-win-clang-x64/" />
 				<Option type="1" />
 				<Option compiler="clang" />
-				<Option parameters="--gtest_color=yes" />
+				<Option parameters="--gtest_color=yes --gtest_output=xml:test.xml" />
 				<Compiler>
 					<Add option="-O3" />
 					<Add option="-Wall" />
@@ -107,7 +107,7 @@
 				<Option object_output="obj/debug-unix-gcc-x86_64/" />
 				<Option type="1" />
 				<Option compiler="gcc" />
-				<Option parameters="--gtest_color=yes" />
+				<Option parameters="--gtest_color=yes --gtest_output=xml:test.xml" />
 				<Compiler>
 					<Add option="-ggdb" />
 					<Add option="-Og" />

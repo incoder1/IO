@@ -371,7 +371,7 @@ template<
 		>::type* = nullptr
 	>
 #endif // IO_HAS_CONNCEPTS
-inline io::const_string to_string(const T value) noexcept
+inline io::const_string to_string(const T value)
 {
 	std::error_code ec;
 	auto ret = to_string(ec, value);

@@ -41,6 +41,84 @@ typedef char32_t unicode_char;
 
 namespace io {
 
+namespace detail {
+
+#ifdef IO_HAS_CONNCEPTS
+
+template<typename C>
+requires is_charater_v<C>
+struct endl
+{};
+
+#else
+
+template<typename C>
+struct endl
+{};
+
+#endif // IO_HAS_CONNCEPTS
+
+#ifdef __IO_WINDOWS_BACKEND__
+
+template<>
+struct endl<char> {
+	static constexpr const char* symbol = "\n\r";
+};
+
+#if defined(__HAS_CPP_17) && defined(__cpp_char8_t)
+template<>
+struct endl<char8_t> {
+	static constexpr const char8_t* symbol = u8"\n\r";
+};
+#endif // defined
+
+template<>
+struct endl<wchar_t> {
+	static constexpr const wchar_t* symbol = L"\n\r";
+};
+
+template<>
+struct endl<char16_t> {
+	static constexpr const char16_t* symbol = u"\n\r";
+};
+
+template<>
+struct endl<char32_t> {
+	static constexpr const char32_t* symbol = U"\n\r";
+};
+
+#else
+
+template<>
+struct endl<char> {
+	static constexpr const char* symbol = "\n";
+};
+
+#if defined(__HAS_CPP_17) && defined(__cpp_char8_t)
+template<>
+struct endl<char8_t> {
+	static constexpr const char8_t* symbol = u8"\n";
+};
+#endif // defined
+
+template<>
+struct endl<wchar_t> {
+	static constexpr const wchar_t* symbol = L"\n";
+};
+
+template<>
+struct endl<char16_t> {
+	static constexpr const char16_t* symbol = u"\n";
+};
+
+template<>
+struct endl<char32_t> {
+	static constexpr const char32_t* symbol = U"\n";
+};
+
+#endif // __IO_WINDOWS_BACKEND__
+
+} // namespace detail
 
 #ifndef IO_HAS_CONNCEPTS
 template<typename C, class ___type_restriction = void>
@@ -88,19 +166,19 @@ private:
 		return length * char_width;
 	}
 
-	std::size_t underflow(std::error_code& ec) noexcept
+	std::size_t underflow() noexcept
 	{
 		std::size_t result = 0;
 		if( io_likely(rb_) ) {
-			result = src_->read(ec, const_cast<uint8_t*>(rb_.position().get()), rb_.capacity() );
-			if( !ec ) {
+			result = src_->read(ec_, const_cast<uint8_t*>(rb_.position().get()), rb_.capacity() );
+			if( !ec_ ) {
 				rb_.move(result);
 				rb_.flip();
 			}
 		}
 		else {
 			// handle out of memory when constructing a reader
-			ec = std::make_error_code(std::errc::not_enough_memory);
+			ec_ = std::make_error_code(std::errc::not_enough_memory);
 		}
 		return length_to_bytes(result);
 	}
@@ -116,19 +194,21 @@ public:
 	basic_reader& operator=(basic_reader&&) noexcept = default;
 
 	explicit basic_reader(const s_read_channel& src, std::size_t buff_size = 1024 ) noexcept:
+		ec_(),
 		src_( src ),
-		rb_()
+		rb_(byte_buffer::allocate(ec_, buff_size))
+	{}
+
+	std::error_code last_error() const noexcept
 	{
-		std::error_code ec;
-		rb_ = byte_buffer::allocate(ec, buff_size);
+		return ec_;
 	}
 
-
-	std::size_t read(std::error_code& ec, char_type* const to, std::size_t chars) noexcept
+	std::size_t read(char_type* const to, std::size_t chars) noexcept
 	{
 		std::size_t result = 0;
-		std::size_t available = rb_.empty() ? underflow(ec) : buffered();
-		if(available > 0 && !ec) {
+		std::size_t available = rb_.empty() ? underflow() : buffered();
+		if(available > 0 && !ec_) {
 			const char_type* px = reinterpret_cast<const char_type*>( rb_.position().get() );
 			if( available > chars ) {
 				char_traits::copy(to, px, result);
@@ -145,6 +225,7 @@ public:
 	}
 
 private:
+	std::error_code ec_;
 	s_read_channel src_;
 	byte_buffer rb_;
 };
@@ -158,7 +239,6 @@ class basic_writer {
 template<typename C>
 class basic_writer<C, typename std::enable_if< is_charater< C >::value >::type > {
 #endif // IO_HAS_CONNCEPTS
-//requires is_charater_v<C> class basic_writer {
 	basic_writer(const basic_writer&) = delete;
 	basic_writer operator=(const basic_writer&) = delete;
 public:
@@ -230,14 +310,32 @@ public:
 		return write(str, char_traits::length(str) );
 	}
 
+	void writeln(const C* str) noexcept 
+	{
+		write(str, char_traits::length(str) );
+		write(detail::endl<C>::symbol);
+	}
+
 	void write(const std::basic_string<C>& str ) noexcept
 	{
-		return write( str.data(), str.size() );
+		write( str.data(), str.size() );
+	}
+
+	void writeln(const std::basic_string<C>& str ) noexcept
+	{
+		write( str.data(), str.size() );
+		write(detail::endl<C>::symbol);
 	}
 
 	void write(const const_string& str) noexcept
 	{
-		return write( str.data(), str.size() );
+		write( str.data(), str.size() );
+	}
+
+	void writeln(const const_string& str) noexcept
+	{
+		write( str.data(), str.size() );
+		write(detail::endl<C>::symbol);
 	}
 
 #ifdef __HAS_CPP_17

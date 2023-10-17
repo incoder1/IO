@@ -22,7 +22,7 @@
 namespace io {
 
 /// Improved hash function for strings
-/// Provides Google CityHash for 64 bit or MurMur3A for 32 bit CPU
+/// Calculates Google CityHash for City64 bit or City32 for 64 and 32 bit CPU architectures
 /// \param array of bytes
 /// \param count array size in bytes
 /// \return hash value
