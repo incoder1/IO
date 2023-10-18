@@ -21,8 +21,8 @@ extern "C" {
 
 void IO_PANIC_ATTR exit_with_error_message(int exitcode, const char* message)
 {
-	std::fprintf(stderr, "\033[01;31m %i %s \033[0m\n", errcode, message);
-	std::exit(errcode);
+	std::fprintf(stderr, "\033[01;31m %i %s \033[0m\n", exitcode, message);
+	std::exit(exitcode);
 }
 
 } // extern "C"
