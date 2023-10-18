@@ -35,7 +35,7 @@
 			</Target>
 			<Target title="release-win-gcc-dll-x64">
 				<Option platforms="Windows;" />
-				<Option output="bin/release-win-gcc-dll-x64/io" imp_lib="$(TARGET_OUTPUT_DIR)$(TARGET_OUTPUT_BASENAME).dll" def_file="$(TARGET_OUTPUT_DIR)$(TARGET_OUTPUT_FILE).dll" prefix_auto="1" extension_auto="1" />
+				<Option output="bin/release-win-gcc-dll-x64/io" prefix_auto="1" extension_auto="1" />
 				<Option working_dir="bin/release-win-gcc-dll-x64" />
 				<Option object_output="obj/release-win-gcc-dll-x64/" />
 				<Option type="3" />
@@ -173,6 +173,7 @@
 		<Unit filename="include/io/core/char_cast.hpp" />
 		<Unit filename="include/io/core/console.hpp" />
 		<Unit filename="include/io/core/conststring.hpp" />
+		<Unit filename="include/io/core/error_check.hpp" />
 		<Unit filename="include/io/core/files.hpp" />
 		<Unit filename="include/io/core/hashing.hpp" />
 		<Unit filename="include/io/core/memory_channel.hpp" />

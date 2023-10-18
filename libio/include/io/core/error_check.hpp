@@ -52,7 +52,7 @@ inline void check_error_code(const std::error_code &ec)
 		check_error_code(
 			ec,
 			[] (const std::error_code& ec) {
-				detail::panic(ec.value(), ec.message().data() );
+				exit_with_error_message(ec.value(), ec.message().data() );
 			}
 		);
 #else

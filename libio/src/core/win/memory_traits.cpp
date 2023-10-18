@@ -48,7 +48,7 @@ private:
 					hnd();
 				}
 				// nothing to do, terminate program normally
-				detail::panic(ENOMEM, "Out of memory");
+				exit_with_error_message(ENOMEM, "Out of memory");
 			}
 		}
 		return nullptr;

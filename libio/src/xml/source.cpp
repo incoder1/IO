@@ -20,98 +20,98 @@ namespace xml {
 const std::size_t source::READ_BUFF_INITIAL_SIZE = memory_traits::page_size(); // 4k in most cases
 const std::size_t source::READ_BUFF_MAXIMAL_SIZE = source::READ_BUFF_INITIAL_SIZE * source::READ_BUFF_INITIAL_SIZE; // about 16 mb
 
-static constexpr unsigned int ASCII_CP_CODE = 20127;
-static constexpr unsigned int ISO_LATIN1_CP_CODE = 28591;
-static constexpr unsigned int WINDOWS_LATIN1_CP_CODE = 1252;
-static constexpr unsigned int UTF8_CP_CODE = 65001;
-
 static constexpr char NL = '\n';
 static constexpr char CR = '\r';
 
-
-static bool is_utf16(const uint8_t* bom)
+static s_read_channel open_convert_channel(std::error_code& ec,io::byte_buffer& rb, const charset* ch, const s_read_channel &src) noexcept
 {
-	return utf_16le_bom::is(bom) || utf_16be_bom::is(bom);
+	s_read_channel ret;
+	byte_buffer new_rb = byte_buffer::allocate( ec, rb.capacity() );
+	if(!ec) {
+		auto cvt  = code_cnvtr::open(ec, ch, code_pages::utf8(), cnvrt_control::failure_on_failing_chars);
+		if(!ec) {
+			uint8_t* pos  = const_cast<uint8_t*>( rb.position().get() );
+			cvt->convert(ec, pos, rb.size(), new_rb);
+			if(!ec) {
+				rb.swap(new_rb);
+				ret = conv_read_channel::open(ec, src, cvt );
+			}
+		}
+	}
+	return ret;
 }
 
-static bool is_utf32(const uint8_t* bom)
+static bool charset_utf8_compatiable(const charset* ch) noexcept
 {
-	return utf_32be_bom::is(bom) || utf_32le_bom::is(bom);
-}
-
-static s_read_channel open_convert_channel(std::error_code& ec,io::byte_buffer& rb, const uint8_t* pos, const charset* ch, const s_read_channel &src) noexcept
-{
-	byte_buffer new_rb;
-
-	if( is_utf16(pos) )
-		pos += 2;
-	else if( is_utf32(pos) )
-		pos += 4;
-
-	new_rb = byte_buffer::allocate( ec, rb.capacity() );
-	s_code_cnvtr cnv = code_cnvtr::open(
-						   ec,
-						   ch,
-						   code_pages::utf8(),
-						   cnvrt_control::failure_on_failing_chars
-					   );
-	if(ec)
-		return s_read_channel();
-	cnv->convert(ec, pos, rb.size(), new_rb);
-	rb.swap(new_rb);
-	return conv_read_channel::open(ec, src, cnv );
+	return code_pages::utf8() == ch || code_pages::ascii() == ch || code_pages::cp1252() == ch || code_pages::iso_8859_1() == ch;
 }
 
 // source
 s_source source::open(std::error_code& ec, const s_read_channel& src, byte_buffer&& rb) noexcept
 {
-	uint8_t *pos  = const_cast<uint8_t*>( rb.position().get() );
-	s_charset_detector chdet = charset_detector::create(ec);
-	if(ec)
-		return s_source();
-	charset_detect_status chdetstat = chdet->detect(ec, pos, rb.size() );
-	if( ec )
-		return s_source();
-	static const double CONFIDENT = 0.5F;
-	if( !chdetstat && (chdetstat.confidence() < CONFIDENT) ) {
-		ec = make_error_code(converrc::not_supported);
-		return s_source();
+	s_source ret;
+	const charset* ch = nullptr;
+	// Try to detect stream code page using Byte Order Mark first
+	if( utf8_bom::is(rb.position().get()) ) {
+		rb.shift(utf8_bom::len());
+		ch = code_pages::utf8();
 	}
-	const charset* ch = chdetstat.character_set();
-	s_read_channel text_channel;
-	switch( static_cast<unsigned int>(ch->code() ) ) {
-	// UTF-8 or latin1
-	case ASCII_CP_CODE:
-	case ISO_LATIN1_CP_CODE:
-	case WINDOWS_LATIN1_CP_CODE:
-	case UTF8_CP_CODE:
-		text_channel = src;
-		if( utf8_bom::is(pos) )
-			rb.shift( utf8_bom::len() );
-		break;
-	// Create converter
-	default:
-		text_channel = open_convert_channel(ec, rb, pos, ch, src );
-		if(ec)
-			return s_source();
+	else if(utf_16le_bom::is(rb.position().get()) ) {
+		rb.shift(utf_16le_bom::len());
+		ch = code_pages::utf16le();
 	}
-	source *sc = nobadalloc<source>::construct(ec, std::move(text_channel), std::move(rb) );
-	return (nullptr == sc) ? s_source(): s_source(sc);
+	else if(utf_16be_bom::is(rb.position().get())) {
+		rb.shift(utf_16be_bom::len());
+		ch = code_pages::utf16le();
+	}
+	else if(utf_32le_bom::is(rb.position().get()) ) {
+		rb.shift(utf_32le_bom::len());
+		ch = code_pages::utf32le();
+	}
+	else if(utf_32be_bom::is(rb.position().get())) {
+		rb.shift(utf_32be_bom::len());
+		ch = code_pages::utf32be();
+	}
+	else {
+		// No BOM. Now detect stream character set by expensive charset detector
+		s_charset_detector chdet = charset_detector::create(ec);
+		if(!ec) {
+			auto ch_detect_status = chdet->detect(ec, rb.position().get(), rb.length());
+			if(!ec && !ch_detect_status )
+				ec = make_error_code(converrc::not_supported);
+			else
+				ch = ch_detect_status.character_set();
+		}
+	}
+	if(!ec) {
+		// Open a to UTF-8 converter, if needed. Latin 1 code pages compatiables with UTF-8 and we can continue as is
+		s_read_channel text_channel = charset_utf8_compatiable(ch) ? src : open_convert_channel(ec, rb, ch, src);
+		if(!ec) {
+			source *px = new (std::nothrow) source( std::move(text_channel), std::move(rb) );
+			if(nullptr == px)
+				ec = std::make_error_code(std::errc::not_enough_memory);
+			else
+				ret.reset(px, true);
+		}
+	}
+	return ret;
 }
 
 s_source source::create(std::error_code& ec,s_read_channel&& src) noexcept
 {
+	s_source ret;
 	byte_buffer buff = byte_buffer::allocate(ec,READ_BUFF_INITIAL_SIZE);
-	if(ec)
-		return s_source();
-	// charge buffer to detect character set
-	uint8_t *pos = const_cast<uint8_t*>(buff.position().get());
-	size_t read = src->read(ec, pos, buff.capacity() );
-	if(ec)
-		return s_source();
-	buff.move(read);
-	buff.flip();
-	return open(ec, src, std::move(buff));
+	if(!ec) {
+		// charge buffer to detect character set
+		uint8_t *pos = const_cast<uint8_t*>(buff.position().get());
+		size_t read = src->read(ec, pos, buff.capacity() );
+		if(!ec) {
+			buff.move(read);
+			buff.flip();
+			ret = open(ec, src, std::move(buff));
+		}
+	}
+	return ret;
 }
 
 
@@ -123,7 +123,6 @@ source::source(s_read_channel&& src, byte_buffer&& rb) noexcept:
 	row_(1),
 	col_(1),
 	src_(src),
-	// 1page is minimum
 	rb_( std::move(rb) ),
 	mb_state_( 0 )
 {
@@ -142,11 +141,14 @@ error source::read_more() noexcept
 			return error::out_of_memory;
 	}
 	std::error_code ec;
-	size_t read = src_->read(ec, const_cast<uint8_t*>(rb_.position().get()), rb_.capacity() );
-	if( ec )
+	uint8_t* pos = const_cast<uint8_t*>(rb_.position().get());
+	size_t read = src_->read(ec, pos, rb_.capacity());
+	if(! ec ) {
+		rb_.move(read);
+		rb_.flip();
+	}
+	else
 		return error::io_error;
-	rb_.move(read);
-	rb_.flip();
 	return error::ok;
 }
 
@@ -227,14 +229,8 @@ char source::next() noexcept
 	return ret;
 }
 
-void source::read_until_char(byte_buffer& to,const char lookup,const char* illegals) noexcept
+void source::read_until_span(byte_buffer& to,const char* span,const std::size_t span_size) noexcept
 {
-	const std::size_t illegals_len = io_strlen(illegals);
-	const std::size_t stops_size = illegals_len + 2;
-	char stops[ 16 ] = {'\0'};
-	stops[0] = lookup;
-	// we need '\0' from illegals
-	io_memmove(stops+1, illegals, illegals_len);
 	char c;
 	do {
 		c = next();
@@ -248,7 +244,21 @@ void source::read_until_char(byte_buffer& to,const char lookup,const char* illeg
 			}
 		}
 	}
-	while( nullptr == io_memchr(stops, c, stops_size) );
+	// we also need ability to handle '\0' char, so use memchr instead of strchr
+	while( nullptr == io_memchr(span, c, span_size) );
+	to.flip();
+}
+
+void source::read_until_char(byte_buffer& to,const char lookup,const char* illegals) noexcept
+{
+	const std::size_t illegals_len = io_strlen(illegals);
+	const std::size_t stops_size = illegals_len + 2;
+	char stops[ 16 ] = {'\0'};
+	stops[0] = lookup;
+	// we need '\0' from illegals
+	io_memmove(stops+1, illegals, illegals_len);
+	read_until_span(to, stops, stops_size);
+	char c = * ( to.last().cdata() - 2 );
 	if( lookup != c ) {
 		if( is_eof(c) )
 			last_ = error::illegal_markup;

@@ -17,36 +17,30 @@
 
 namespace io {
 
-namespace detail {
+extern "C" {
 
-void IO_PANIC_ATTR panic(int errcode, const char* message)
+void IO_PANIC_ATTR exit_with_error_message(int exitcode, const char* message)
 {
 	std::fprintf(stderr, "\033[01;31m %i %s \033[0m\n", errcode, message);
 	std::exit(errcode);
 }
 
-void ios_check_error_code(const char* msg, std::error_code const &ec )
+} // extern "C"
+
+namespace detail {
+
+void IO_PUBLIC_SYMBOL ios_check_error_code(const char* msg, std::error_code const &ec )
 {
-	if(!ec)
-		return;
+	if(ec) {
 #ifdef IO_NO_EXCEPTIONS
-	std::fprintf(stderr, "\033[01;31m %i %s %s \033[0m\n", ec.value(), msg, ec.message().data() );
-	std::exit( ec.value() );
+		std::fprintf(stderr, "\033[01;31m %i %s %s \033[0m\n", ec.value(), msg, ec.message().data() );
+		std::exit( ec.value() );
 #else
-	throw std::ios_base::failure( msg + ec.message() );
+		throw std::ios_base::failure( std::string(msg) + ec.message() );
 #endif
+	}
 }
 
 } // namespace detail
-
-void IO_PANIC_ATTR exit_with_current_error()
-{
-	detail::panic(errno, std::strerror(errno) );
-}
-
-void IO_PANIC_ATTR exit_with_error_message(int exitcode, const char* message)
-{
-	detail::panic(exitcode, message);
-}
 
 } // namespace io

@@ -57,9 +57,10 @@ private:
 	::WORD prevAttr_;
 };
 
-static void print_error_message(int errcode,const char* message) noexcept
+static void print_error_message(int errcode,const char* message, std::size_t len) noexcept
 {
-	std::size_t len = io_strlen(message) + 33;
+	if(0 == len)
+		len = io_strlen(message) + 33;
 #ifdef _MSC_VER
 	wchar_t *msg = static_cast<wchar_t*> ( io_alloca( len * sizeof(wchar_t) ) );
 	len = ::StringCchPrintfW( msg, len, L"error code: %d %Z \n", errcode, message);
@@ -67,7 +68,7 @@ static void print_error_message(int errcode,const char* message) noexcept
 	char* tmp = static_cast<char*> ( io_alloca( len ) );
 	io_zerro_mem( tmp, len);
 	io_snprintf(tmp, len, "error code: %d %s \n", errcode, message);
-	std::size_t wlen = ::MultiByteToWideChar( CP_UTF8, 0, tmp, -1, NULL, 0 );
+	std::size_t wlen = ::MultiByteToWideChar( CP_UTF8, 0, tmp, -1, nullptr, 0 );
 	wchar_t *msg = static_cast<wchar_t*>( io_alloca( wlen ) );
 	io_zerro_mem( msg, len);
 	::MultiByteToWideChar( CP_UTF8, 0, tmp, -1, msg, wlen);
@@ -77,24 +78,34 @@ static void print_error_message(int errcode,const char* message) noexcept
 	output_swap oswap;
 	::DWORD written;
 	if( ! ::WriteConsoleW( ::GetStdHandle(STD_ERROR_HANDLE), msg, static_cast<::DWORD>(len), &written, nullptr ) ) {
-		MessageBoxExW(NULL, msg, NULL, MB_OK | MB_ICONERROR, MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT) );
+		::MessageBoxExW(nullptr, msg, nullptr, MB_OK | MB_ICONERROR, MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT) );
 	}
 	io_freea(msg);
 }
 
 extern "C" {
 
-void IO_PANIC_ATTR exit_with_error_message(int exitcode, const char* message)
+#ifdef IO_DECLSPEC
+IO_PANIC_ATTR void
+#else
+void IO_PUBLIC_SYMBOL
+#endif // IO_DECLSPEC
+exit_with_error_message(int exitcode, const char* message)
 {
-	print_error_message(exitcode, message);
+	print_error_message(exitcode, message, 0);
 	std::exit( exitcode );
 }
 
-} // extern "C"
+} // extern "C" {
 
 namespace detail {
 
-void IO_PUBLIC_SYMBOL ios_check_error_code(const char* msg, std::error_code const &ec )
+#ifdef IO_DECLSPEC
+IO_PUBLIC_SYMBOL void
+#else
+void IO_PUBLIC_SYMBOL
+#endif // IO_DECLSPEC
+ios_check_error_code(const char* msg, std::error_code const &ec )
 {
 	if( io_unlikely( ec ) ) {
 #ifdef IO_NO_EXCEPTIONS

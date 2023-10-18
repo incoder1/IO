@@ -45,7 +45,7 @@ static constexpr unsigned int URIGHTB = detail::unsign(U'>');
 
 static bool is_prologue(const char *s) noexcept
 {
-	return 0 == io_strncasecmp(s, PROLOGUE, 3) && is_space(s[3]);
+	return 0 == starts_with(s, PROLOGUE, 3) && is_space(s[3]);
 }
 
 static bool is_comment(const char *s) noexcept
@@ -302,7 +302,7 @@ event_stream_parser::event_stream_parser(s_source&& src, s_string_pool&& pool) n
 	}
 	else {
 		sb_clear();
-		scan_buf_[0] = '<';
+		scan_buf_[0] = LEFTB;
 	}
 }
 

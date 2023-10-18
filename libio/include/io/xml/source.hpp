@@ -100,10 +100,14 @@ private:
 	static const std::size_t READ_BUFF_INITIAL_SIZE;
 	static const std::size_t READ_BUFF_MAXIMAL_SIZE;
 	static s_source open(std::error_code& ec, const s_read_channel& src, byte_buffer&& rb) noexcept;
-	friend io::nobadalloc<source>;
+
 	source(s_read_channel&& src, byte_buffer&& rb) noexcept;
+
 	error read_more() noexcept;
 	error charge() noexcept;
+
+	void read_until_span(byte_buffer& to,const char* span,const std::size_t span_size) noexcept;
+
 	inline bool fetch() noexcept;
 	inline char normalize_line_endings(const char ch);
 private:

@@ -11,17 +11,17 @@
 #ifndef __IO_WIN_ERROR_CHECK_HPP_INCLUDED__
 #define __IO_WIN_ERROR_CHECK_HPP_INCLUDED__
 
-#if defined(__GNUC__) && defined(IO_SHARED_LIB)
+#if ( defined(__GNUG__) && !defined(__clang__) ) && defined(IO_SHARED_LIB)
 #	ifdef IO_BUILD
 #		define IO_PANIC_ATTR __attribute__ ((__noreturn__,dllexport))
 #	else
 #		define IO_PANIC_ATTR __attribute__ ((__noreturn__,dllimport))
 #	endif // IO_BUILD
-#elif defined(__GNUC__)
+#elif ( defined(__GNUG__) && !defined(__clang__) )
 #	define IO_PANIC_ATTR __attribute__ ((__noreturn__))
 #endif // __GNUC__
 
-#if defined(_MSC_VER) && defined(IO_SHARED_LIB)
+#if ( defined(_MSC_VER) || defined(__clang__) ) && defined(IO_SHARED_LIB)
 #	ifdef IO_BUILD
 #		define IO_PANIC_ATTR __declspec(noreturn,dllexport)
 #	else
@@ -39,16 +39,23 @@ namespace io {
 
 namespace detail {
 
-extern "C" void IO_PANIC_ATTR panic(int errcode, const char* message);
-
-void IO_PUBLIC_SYMBOL ios_check_error_code(const char* msg, std::error_code const &ec );
+#ifdef IO_DECLSPEC
+IO_PUBLIC_SYMBOL void
+#else
+void IO_PUBLIC_SYMBOL
+#endif // IO_DECLSPEC
+ios_check_error_code(const char* msg, std::error_code const &ec );
 
 } // namespace detail
 
-extern "C" {
+extern "C"  {
 
-void IO_PANIC_ATTR exit_with_current_error();
-void IO_PANIC_ATTR exit_with_error_message(int exitcode, const char* message);
+#ifdef IO_DECLSPEC
+IO_PANIC_ATTR void
+#else
+void IO_PUBLIC_SYMBOL
+#endif // IO_DECLSPEC
+exit_with_error_message(int exitcode, const char* message);
 
 } // extern "C"
 

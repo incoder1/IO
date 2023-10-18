@@ -47,7 +47,7 @@ public:
 	/// \return whether detector 100% sure about accuracy
 	operator bool() const noexcept
 	{
-		return 1.0F == confidence_;
+		return nullptr != charset_;
 	}
 	/// Returns detected character set (code page)
 	/// \return detected character set (code page)
