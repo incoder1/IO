@@ -13,6 +13,10 @@
 				<Option compiler="gcc" />
 				<Option parameters="test.xml" />
 				<Compiler>
+					<Add option="-std=c++23" />
+					<Add option="-ggdb" />
+					<Add option="-Og" />
+					<Add option="-g" />
 					<Add option="-D_WIN32_WINNT=0x0A00" />
 					<Add option="-D_UNICODE" />
 					<Add option="-DUNICODE" />

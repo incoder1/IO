@@ -66,8 +66,28 @@ charset_detect_status charset_detector::detect(std::error_code &ec,const uint8_t
 	case unicode_cp::utf_32le:
 		return charset_detect_status(code_pages::utf32le(), 1.0f);
 	}
-	// FIXME insert implementation
-	return charset_detect_status(nullptr, false);
+	detail::prober::state_t state = detail::prober::state_t::detecting;
+	std::array< charset_detect_status, 2 > confidence_array;
+	charset_detect_status ret;
+	for(std::size_t i=0; i < probers_.size(); i++) {
+		uint16_t ch_code = probers_[i]->get_charset_code();
+		state = probers_[i]->handle_data(ec, buff, size);
+		const charset* ch = code_pages::for_code(ch_code).second;
+		if(state == detail::prober::state_t::found ) {
+			ret = charset_detect_status( ch, 0.99F );
+			break;
+		}
+		else {
+			confidence_array[i] = charset_detect_status(ch, probers_[i]->confidence());
+		}
+	}
+	if(state != detail::prober::state_t::found ) {
+		std::sort(confidence_array.begin(), confidence_array.end(), [] (const charset_detect_status& lhs,const charset_detect_status& rhs) {
+				return lhs.confidence() > rhs.confidence();
+		} );
+		ret = confidence_array[0];
+	}
+	return ret;
 }
 
 } // namespace io

@@ -590,15 +590,15 @@ void event_stream_parser::skip_comment() noexcept
 {
 	if(state_type::comment != state_.current) {
 		assign_error(error::invalid_state);
-		return;
-	} else if( scan_failed() ) {
-		assign_error(error::illegal_commentary);
-		return;
 	}
-	sb_clear();
-	src_->skip_until_dobule_char(HYPHEN);
-	if( chnoteq(RIGHTB, next() ) )
+	else if( scan_failed() ) {
 		assign_error(error::illegal_commentary);
+	}
+	else {
+		sb_clear();
+		if( !src_->skip_until_dobule_char(HYPHEN) || chnoteq(RIGHTB, next() ) )
+			assign_error(error::illegal_commentary);
+	}
 }
 
 byte_buffer event_stream_parser::read_until_double_separator(const char separator,const error ec) noexcept

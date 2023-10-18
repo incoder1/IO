@@ -69,7 +69,7 @@ public:
 	void read_until_double_char(byte_buffer& to, const char ch) noexcept;
 
 	/// Skip input until a double characters in the stream, or EOF
-	void skip_until_dobule_char(const char ch) noexcept;
+	bool skip_until_dobule_char(const char ch) noexcept;
 
 	/// Checks current state is end of stream
 	/// \return whether end of stream

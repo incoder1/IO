@@ -235,17 +235,14 @@ void source::read_until_span(byte_buffer& to,const char* span,const std::size_t 
 	do {
 		c = next();
 		if( !to.put(c) ) {
-			if( io_likely( to.exp_grow() ) ) {
+			if( io_likely( to.exp_grow() ) )
 				to.put(c);
-			}
-			else {
+			else
 				last_ = error::out_of_memory;
-				break;
-			}
 		}
 	}
 	// we also need ability to handle '\0' char, so use memchr instead of strchr
-	while( nullptr == io_memchr(span, c, span_size) );
+	while( nullptr == io_memchr(span, c, span_size) && error::ok == last_ );
 	to.flip();
 }
 
@@ -267,52 +264,47 @@ void source::read_until_char(byte_buffer& to,const char lookup,const char* illeg
 	to.flip();
 }
 
-constexpr uint16_t pack_word(uint16_t w, uint16_t c) noexcept
+static inline uint16_t pack_word(uint16_t w,char c) noexcept
 {
 #ifdef IO_IS_LITTLE_ENDIAN
-	return (w << CHAR_BIT) | c;
+	return (w << CHAR_BIT) | static_cast<uint16_t>(c);
 #else
-	return (c >> CHAR_BIT) | w;
+	return (static_cast<uint16_t>(c) >> CHAR_BIT) | w;
 #endif // IO_IS_LITTLE_ENDIAN
 }
 
 void source::read_until_double_char(byte_buffer& to, const char ch) noexcept
 {
 	const uint16_t pattern = pack_word(static_cast<uint16_t>(ch), ch);
-	char c;
 	uint16_t i = 0;
+	char c;
 	do {
 		c = next();
-		if( io_unlikely( cheq(std::char_traits<char>::eof(), c)) )
-			break;
 		if( !to.put(c) ) {
 			if( io_likely( to.exp_grow() ) ) {
 				to.put(c);
 			}
 			else {
 				last_ = error::out_of_memory;
-				break;
 			}
 		}
-		i = pack_word(i, static_cast<uint16_t>(c) );
-	}
-	while( i != pattern);
+		i = pack_word(i, c );
+	} while( (i != pattern) && not_eof(c) && (error::ok == last_) );
 	if( error::ok != last_ || is_eof(c) )
 		to.clear();
 }
 
-void source::skip_until_dobule_char(const char ch) noexcept
+bool source::skip_until_dobule_char(const char ch) noexcept
 {
 	const uint16_t pattern = pack_word(static_cast<uint16_t>(ch), ch);
 	char c;
 	uint16_t i = 0;
 	do {
 		c = next();
-		if( io_unlikely( is_eof(c) ) )
-			break;
 		i = pack_word(i,c);
 	}
-	while( i != pattern);
+	while( (i != pattern) && not_eof(c) && (error::ok == last_) );
+	return i == pattern;
 }
 
 } // namespace xml

@@ -35,14 +35,18 @@ DECLARE_IPTR(charset_detector);
 /// Contains status of character set detection
 class charset_detect_status {
 public:
-	constexpr charset_detect_status() noexcept:
-		charset_(),
-		confidence_(0.0F)
-	{}
-	charset_detect_status(const charset* ch, float confidence) noexcept:
+	constexpr charset_detect_status(const charset* ch, float confidence) noexcept:
 		charset_( ch ),
 		confidence_(confidence)
 	{}
+	constexpr charset_detect_status() noexcept:
+		charset_detect_status(nullptr, 0.0F)
+	{}
+	charset_detect_status(const charset_detect_status&) = default;
+	charset_detect_status& operator=(const charset_detect_status&) = default;
+	charset_detect_status(charset_detect_status&&) = default;
+	charset_detect_status& operator=(charset_detect_status&&) = default;
+	~charset_detect_status() noexcept = default;
 	/// Returns true if and only if detector 100% sure about detection accuracy
 	/// \return whether detector 100% sure about accuracy
 	operator bool() const noexcept
@@ -60,7 +64,7 @@ public:
 		return confidence_;
 	}
 private:
-	const charset* const charset_;
+	const charset* charset_;
 	float confidence_;
 };
 
