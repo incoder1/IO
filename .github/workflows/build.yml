@@ -23,6 +23,8 @@ jobs:
         run: cmake -S . -B CBuild -DCMAKE_BUILD_TYPE=Debug -DBUILD_LIBRARY_TYPE=Static -DBUILD_TESTING=ON
       - name: build
         run: cmake --build CBuild
+      - name: test
+        run: ctest --output-on-failure --test-dir CBuild/test
 # windows:
 #   strategy:
 #      matrix:

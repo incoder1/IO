@@ -112,23 +112,9 @@ if(MSVC)
 	endif()
 endif(MSVC)
 
-#Run tests
+
+#Add testing
 enable_testing()
+include(GoogleTest)
+gtest_discover_tests(io-gtest-suite)
 
-add_test(NAME io-check
-		COMMAND io-gtest-suite
-		WORKING_DIRECTORY ${LIBRARY_OUTPUT_PATH})
-
-add_custom_command(
-		TARGET io-gtest-suite
-		COMMENT "Run tests"
-		POST_BUILD
-		COMMAND ${CMAKE_CTEST_COMMAND} --output-on-failure --gtest_color=auto)
-		
-if(BUILD_SHARED_LIBS)
-	if(WIN32)
-		set_tests_properties(io-check PROPERTIES ENVIRONMENT_MODIFICATION PATH=path_list_append:${CMAKE_BINARY_DIR}/lib)
-	elseif(UNIX)
-		set_tests_properties(io-check PROPERTIES ENVIRONMENT_MODIFICATION LD_LIBRARY_PATH=path_list_append:${CMAKE_BINARY_DIR}/lib)
-	endif()
-endif()
