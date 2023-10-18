@@ -137,13 +137,9 @@ static void print_xml_characters(std::ostream& strm,const xml::s_event_stream_pa
 
 #ifdef IO_NO_EXCEPTIONS
 // handle unexpected error if any
-// current implementation
-// print last error (errno for UNIX or GetLastError for Windows) message into
-// standard error stream and calls for std::exit with error number as a process
-// execution result
 static void on_terminate() noexcept
 {
-	exit_with_current_error();
+	std::exit(-1);
 }
 #endif // IO_NO_EXCEPTIONS
 
@@ -152,7 +148,7 @@ int main(int argc, const char** argv)
 {
 
 #ifdef IO_NO_EXCEPTIONS
-    // set terminate handler for unexpected errors if any
+	// set terminate handler for unexpected errors if any
 	std::set_terminate( on_terminate );
 #endif // IO_NO_EXCEPTIONS
 
