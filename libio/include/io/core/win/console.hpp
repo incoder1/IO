@@ -149,20 +149,20 @@ private:
 	bool need_release_;
 };
 
-//class console_out_writer: public writer {
-//public:
-//	explicit console_out_writer(console& cons):
-//		writer( cons.out_ )
-//	{}
-//};
+class console_out_writer: public writer {
+public:
+	explicit console_out_writer(console& cons):
+		writer( win::console_channel(cons.out_) )
+	{}
+};
 
 
-//class console_input_stream: public cnl_istream {
-//public:
-//	explicit console_input_stream(console& cons):
-//		cnl_istream( win::conv_read_channel( cons.in_ ) )
-//	{}
-//};
+class console_input_stream: public cnl_istream {
+public:
+	explicit console_input_stream(console& cons):
+		cnl_istream( win::console_channel( cons.in_ ) )
+	{}
+};
 
 
 class base_console_out_stream: public cnl_ostream {

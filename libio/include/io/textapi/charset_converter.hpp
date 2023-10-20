@@ -18,6 +18,7 @@
 #endif // HAS_PRAGMA_ONCE
 
 #include <io/core/buffer.hpp>
+#include <io/core/stateful.hpp>
 
 #include "unicode.hpp"
 #include "charsets.hpp"
@@ -350,6 +351,30 @@ inline std::string transcode(const wchar_t* ucs_str)
 {
 	return transcode(ucs_str, std::char_traits<wchar_t>::length(ucs_str) );
 }
+
+class IO_PUBLIC_SYMBOL charset_converting_channel_pump final: public buffered_channel_pump {
+private:
+	charset_converting_channel_pump(s_read_channel&& src, byte_buffer&& rb, byte_buffer&& cvb,s_charset_converter&& cvt) noexcept;
+public:
+	static s_pump create(std::error_code& ec, s_read_channel&& src, const charset* from, const charset* to, std::size_t buffer_size) noexcept;
+	virtual std::size_t pull(std::error_code& ec, uint8_t* const to, std::size_t bytes) noexcept override;
+	bool sync(std::error_code& ec) noexcept;
+private:
+	byte_buffer cvt_buff_;
+	s_charset_converter cvt_;
+};
+
+class IO_PUBLIC_SYMBOL charset_converting_channel_funnel final: public buffered_channel_funnel {
+private:
+	charset_converting_channel_funnel(s_write_channel&& dst, byte_buffer&& wb, byte_buffer&& cvb, s_charset_converter&& cvt) noexcept;
+public:
+	static s_funnel create(std::error_code& ec, s_write_channel&& dst, const charset* from, const charset* to, std::size_t buffer_size) noexcept;
+	virtual std::size_t push(std::error_code& ec, const uint8_t* src, std::size_t bytes) noexcept override;
+	virtual void flush(std::error_code& ec) noexcept override;
+private:
+	byte_buffer cvt_buff_;
+	s_charset_converter cvt_;
+};
 
 } // namespace io
 

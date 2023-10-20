@@ -18,7 +18,6 @@
 #endif // HAS_PRAGMA_ONCE
 
 #include <system_error>
-#include <type_traits>
 
 #include "object.hpp"
 #include "buffer.hpp"
@@ -26,7 +25,6 @@
 #include "scoped_array.hpp"
 
 namespace io {
-
 
 template <class C>
 class unsafe {

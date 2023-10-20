@@ -24,7 +24,7 @@
 #	include <string_view>
 #endif // __HAS_CPP_17
 
-#include <io/core/channels.hpp>
+#include <io/core/stateful.hpp>
 #include <io/core/conststring.hpp>
 #include <io/core/error_check.hpp>
 #include <io/core/type_traits_ext.hpp>
@@ -120,94 +120,6 @@ struct endl<char32_t> {
 
 } // namespace detail
 
-class pump;
-DECLARE_IPTR(pump);
-
-class pump : public object {
-	pump(pump&) = delete;
-	pump& operator=(pump&) = delete;
-protected:
-	pump() noexcept;
-public:
-	virtual std::size_t pull(std::error_code& ec, uint8_t* const to, std::size_t bytes) noexcept = 0;
-	virtual bool sync(std::error_code& ec) noexcept;
-};
-
-class channel_pump: public pump {
-protected:
-	explicit channel_pump(s_read_channel&& src) noexcept;
-public:
-	static s_pump create(std::error_code& ec, s_read_channel&& src) noexcept;
-	virtual std::size_t pull(std::error_code& ec, uint8_t* const to, std::size_t bytes) noexcept override;
-private:
-	s_read_channel src_;
-};
-
-class buffered_channel_pump: public channel_pump {
-protected:
-	buffered_channel_pump(s_read_channel&& src,byte_buffer&& buff) noexcept;
-public:
-	static s_pump create(std::error_code& ec, s_read_channel&& src, std::size_t buffer_size) noexcept;
-	virtual std::size_t pull(std::error_code& ec, uint8_t* const to, std::size_t bytes) noexcept override;
-	virtual bool sync(std::error_code& ec) noexcept override;
-protected:
-	byte_buffer read_buff_;
-};
-
-class charset_converting_channel_pump final: public buffered_channel_pump {
-private:
-	charset_converting_channel_pump(s_read_channel&& src, byte_buffer&& rb, byte_buffer&& cvb,s_charset_converter&& cvt) noexcept;
-public:
-	static s_pump create(std::error_code& ec, s_read_channel&& src, const charset* from, const charset* to, std::size_t buffer_size) noexcept;
-	virtual std::size_t pull(std::error_code& ec, uint8_t* const to, std::size_t bytes) noexcept override;
-	bool sync(std::error_code& ec) noexcept;
-private:
-	byte_buffer cvt_buff_;
-	s_charset_converter cvt_;
-};
-
-class funnel;
-DECLARE_IPTR(funnel);
-
-class funnel: public object {
-protected:
-	funnel() noexcept;
-public:
-	virtual std::size_t push(std::error_code& ec, const uint8_t* src, std::size_t bytes) noexcept = 0;
-	virtual void flush(std::error_code& ec) noexcept;
-};
-
-class channel_funnel: public funnel
-{
-protected:
-	channel_funnel(s_write_channel&& dst) noexcept;
-public:
-	static s_funnel create(std::error_code& ec, s_write_channel&& dst) noexcept;
-	virtual std::size_t push(std::error_code& ec, const uint8_t* src, std::size_t bytes) noexcept override;
-private:
-	s_write_channel dst_;
-};
-
-class buffered_channel_funnel: public channel_funnel {
-protected:
-	buffered_channel_funnel(s_write_channel&& dst, byte_buffer&& buff) noexcept;
-public:
-	static s_funnel create(std::error_code& ec, s_write_channel&& dst, std::size_t buffer_size) noexcept;
-	virtual std::size_t push(std::error_code& ec, const uint8_t* src, std::size_t bytes) noexcept override;
-	virtual void flush(std::error_code& ec) noexcept override;
-protected:
-	byte_buffer write_buff_;
-};
-
-class charset_converting_channel_funnel final: public buffered_channel_funnel {
-private:
-	charset_converting_channel_funnel(s_write_channel&& dst, byte_buffer&& buff,s_charset_converter&& cvt) noexcept;
-public:
-	static s_funnel create(std::error_code& ec, s_write_channel&& dst, const charset* from, const charset* to, std::size_t buffer_size) noexcept;
-	virtual void flush(std::error_code& ec) noexcept override;
-private:
-	s_charset_converter cvt_;
-};
 
 #ifndef IO_HAS_CONNCEPTS
 template<typename C, class ___type_restriction = void>

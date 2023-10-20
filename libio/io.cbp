@@ -26,6 +26,7 @@
 					<Add option="-D_WIN32_WINNT=0x0A00" />
 					<Add option="-D_UNICODE" />
 					<Add option="-DUNICODE" />
+					<Add directory="include/io/core" />
 				</Compiler>
 				<Linker>
 					<Add library="Ws2_32" />
@@ -56,6 +57,7 @@
 					<Add option="-DIO_SHARED_LIB" />
 					<Add option="-D_UNICODE" />
 					<Add option="-DUNICODE" />
+					<Add directory="include/io/core" />
 				</Compiler>
 				<Linker>
 					<Add option="-O3" />
@@ -90,6 +92,7 @@
 					<Add option="-D_WIN32_WINNT=0x0A00" />
 					<Add option="-D_UNICODE" />
 					<Add option="-DUNICODE" />
+					<Add directory="include/io/core" />
 				</Compiler>
 				<Linker>
 					<Add library="iconv.dll" />
@@ -118,6 +121,7 @@
 					<Add option="-DIO_SHARED_LIB" />
 					<Add option="-D_UNICODE" />
 					<Add option="-DUNICODE" />
+					<Add directory="include/io/core" />
 				</Compiler>
 				<Linker>
 					<Add option="-s" />
@@ -137,9 +141,16 @@
 				<Compiler>
 					<Add option="-O3" />
 					<Add option="-Wall" />
-					<Add option="-std=gnu++23" />
+					<Add option="-std=c++23" />
 					<Add option="-fchar8_t" />
-					<Add option="-fexceptions" />
+					<Add option="-fno-exceptions" />
+					<Add option="-fno-rtti" />
+					<Add option="-D_WIN32_WINNT=0x0A00" />
+					<Add option="-DNDEBUG" />
+					<Add option="-DIO_SHARED_LIB" />
+					<Add option="-D_UNICODE" />
+					<Add option="-DUNICODE" />
+					<Add directory="include/io/core" />
 				</Compiler>
 				<Linker>
 					<Add option="-s" />
@@ -203,6 +214,7 @@
 			<Option target="debug-unix-gcc-static" />
 		</Unit>
 		<Unit filename="include/io/core/scoped_array.hpp" />
+		<Unit filename="include/io/core/stateful.hpp" />
 		<Unit filename="include/io/core/string_algs.hpp" />
 		<Unit filename="include/io/core/win/console.hpp">
 			<Option target="debug-win-gcc-static-x64" />
@@ -352,6 +364,7 @@
 		<Unit filename="src/core/posix/thread_pool.cpp">
 			<Option target="debug-unix-gcc-static" />
 		</Unit>
+		<Unit filename="src/core/stateful.cpp" />
 		<Unit filename="src/core/stringpool.cpp" />
 		<Unit filename="src/core/win/console.cpp">
 			<Option target="debug-win-gcc-static-x64" />
@@ -454,7 +467,6 @@
 		<Unit filename="src/textapi/greek_model.cpp" />
 		<Unit filename="src/textapi/hungarian_model.cpp" />
 		<Unit filename="src/textapi/latin1_prober.cpp" />
-		<Unit filename="src/textapi/nio.cpp" />
 		<Unit filename="src/textapi/prober.cpp" />
 		<Unit filename="src/textapi/single_byte_group_prober.cpp" />
 		<Unit filename="src/textapi/single_byte_prober.cpp" />

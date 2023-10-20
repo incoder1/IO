@@ -42,6 +42,8 @@ std::size_t console_channel::read(std::error_code& err,uint8_t* const buff, std:
 std::size_t console_channel::write(std::error_code& err, const uint8_t* buff,std::size_t size) const noexcept
 {
 	::DWORD result;
+	// TODO insert charset converint loop
+	// ::MultiByteToWideChar( 65001,  )
 	if(! ::WriteConsoleW(hcons_, static_cast<const void*>(buff), ::DWORD(size / sizeof(::WCHAR)), &result, nullptr ) )
 		err.assign( ::GetLastError(), std::system_category() );
 	return result * sizeof(::WCHAR);

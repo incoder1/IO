@@ -7,6 +7,8 @@
 #include <io/core/files.hpp>
 #include <io/xml/event_writer.hpp>
 
+#include <io/textapi/unicode.hpp>
+
 namespace xml = io::xml;
 
 int main(int argc, const char** argv)
@@ -22,12 +24,10 @@ int main(int argc, const char** argv)
 	io::s_write_channel out = dst_file.open_for_write(ec, io::write_open_mode::overwrite);
 	io::check_error_code(ec);
 
-	//out->write(ec, utf_16le_bom::data(), utf_16le_bom::len() );
-	//io::check_error_code(ec);
+	out->write(ec, io::utf_16le_bom::data(), io::utf_16le_bom::len() );
+	io::check_error_code(ec);
 
-	//io::s_charset_converter cvt = io::charset_co
-
-	io::s_funnel fnl = io::buffered_channel_funnel::create(ec, std::move(out), 32 );
+	io::s_funnel fnl = io::charset_converting_channel_funnel::create(ec, std::move(out), io::code_pages::utf8(), io::code_pages::utf16le(), 128 );
 	io::check_error_code(ec);
 	io::writer fout(fnl);
 
