@@ -26,8 +26,8 @@
 #include <cstring>
 #include <iterator>
 #include <limits>
-#include <type_traits>
 
+#include "type_traits_ext.hpp"
 
 namespace io {
 
@@ -246,6 +246,13 @@ private:
 class IO_PUBLIC_SYMBOL byte_buffer {
 	byte_buffer(const byte_buffer&) = delete;
 	byte_buffer& operator=(byte_buffer&) = delete;
+private:
+	byte_buffer(detail::mem_block&& arr, std::size_t capacity) noexcept;
+
+	bool realloc(std::size_t size) noexcept;
+	uint8_t* new_empty_block(std::size_t size) noexcept;
+	uint8_t* reallocated_block(std::size_t size) noexcept;
+
 public:
 	typedef byte_buffer_iterator iterator;
 
@@ -285,54 +292,63 @@ public:
 
 	/// Returns iterator on an byte address of current buffer insert position
 	/// \return position buffer iterator
-	inline iterator position() const noexcept {
+	inline iterator position() const noexcept
+	{
 		return iterator(position_);
 	}
 
 	/// Returns iterator on an byte address after last byte put in this buffer
 	/// \return last buffer iterator
-	inline iterator last() const noexcept {
+	inline iterator last() const noexcept
+	{
 		return iterator(last_);
 	}
 
 	/// Returns whether this buffer position and last shows on buffer first byte
 	/// \return whether this buffer empty
-	inline bool empty() const noexcept {
+	inline bool empty() const noexcept
+	{
 		return (position_ == nullptr) || ( position_ == arr_.get() && last_ == (position_ + 1) );
 	}
 
 	/// Returns count of bytes this buffer can store
 	/// \return this buffer capacity
-	inline std::size_t capacity() const noexcept {
+	inline std::size_t capacity() const noexcept
+	{
 		return capacity_;
 	}
 
 	/// Moves this buffer poistion to the buffer first byte and stays last on it's current address
-	inline void flip() noexcept {
+	inline void flip() noexcept
+	{
 		position_ = arr_.get();
 	}
 
 	/// Returns count of bytes between buffer first byte and last iterator
 	/// \return count of bytes between buffer first byte and last iterator
-	inline std::size_t size() const noexcept {
+	inline std::size_t size() const noexcept
+	{
 		return empty() ? 0 : memory_traits::distance(arr_.get(), (last_-1) );
 	}
 
 	/// Returns bytes count between position and last iterators
 	/// \return bytes count between position and last iterators
-	inline std::size_t length() const noexcept {
+	inline std::size_t length() const noexcept
+	{
 		return memory_traits::distance(position_, (last_-1) );
 	}
 
 	/// Returns bytes count between buffer position and buffer capacity
 	/// \return count available to put
-	inline std::size_t available() const noexcept {
+	inline std::size_t available() const noexcept
+	{
 		return capacity_ - memory_traits::distance(arr_.get(), position_);
 	}
 
 	/// Checks whether buffer length equals to buffer capacity
 	/// \return whether buffer is full
-	inline bool full() const noexcept {
+	inline bool full() const noexcept
+	{
 		return last_ == (arr_.get() + capacity_);
 	}
 
@@ -348,11 +364,11 @@ public:
 		return false;
 	}
 
-
 	/// Puts single character into this buffer current position, and increment buffer position and last
 	/// \param ch a byte to put
 	/// \return true whether byte was put and false if buffer was full before put attempt
-	inline bool put(char ch) noexcept {
+	inline bool put(char ch) noexcept
+	{
 		return put( static_cast<uint8_t>(ch) );
 	}
 
@@ -368,7 +384,8 @@ public:
 	/// \param offset count of bytes to shift, if position+offset is larger then buffer capacity, buffer will be cleared
 	/// \see #flip
 	/// \see #clear
-	inline void shift(std::size_t offset) noexcept {
+	inline void shift(std::size_t offset) noexcept
+	{
 		position_ += offset;
 		if( position_ >= last_ || (position_+1) == last_ )
 			clear();
@@ -383,40 +400,52 @@ public:
 		return (io_unlikely(end <= begin) ) ? 0 : put( begin, memory_traits::distance(begin,end) );
 	}
 
-
 	/// Puts continues memory block (an array) into this buffer.
 	/// If memory block size larger then available bytes returns 0 and not puts anything into this buffer
 	/// \param arr address of memory block first byte
 	/// \param count count of bytes to copy from array
 	/// \return count of bytes put in this buffer, or 0 if memory block is to large
-	inline std::size_t put(const uint8_t* arr, std::size_t count) noexcept {
-		if( io_likely( 0 != count || nullptr != arr || count <= available() ) ) {
-			io_memmove( position_, arr, count);
-			position_ += count;
-			last_ = position_ + 1;
-			return count;
-		}
-		return 0;
-	}
+	std::size_t put(const uint8_t* arr,const std::size_t count) noexcept;
 
 	/// Puts continues memory block (an array) into this buffer.
 	/// If memory block size larger then available bytes returns 0 and not puts anything into this buffer
 	/// \param arr address of memory block first element
 	/// \param count count of element to copy from array
 	/// \return count of elements put in this buffer, or 0 if memory block is to large
-	template<typename T>
-	inline std::size_t put(const T* arr, std::size_t count) noexcept {
-		static_assert( std::is_fundamental<T>::value || std::is_trivial<T>::value, "Must be an array of trivial or fundamental type" );
+
+#ifdef IO_HAS_CONNCEPTS
+template<typename T>
+	requires( std::is_fundamental_v<T> || std::is_trivial_v<T> )
+#else
+template <
+	typename T,
+	typename std::enable_if<
+				std::is_fundamental<T>::value ||
+				std::is_trivial<T>::value
+			>::type* = 0
+>
+#endif // __IO_BUFFER_HPP_INCLUDED__
+	inline std::size_t put(const T* arr, std::size_t count) noexcept
+	{
 		return put( reinterpret_cast<const uint8_t*>(arr), ( count * sizeof(T) ) ) / sizeof(T);
 	}
 
-	template<typename __char_t>
-	inline std::size_t put(const __char_t* cstr) noexcept {
-		static_assert( std::is_integral<__char_t>::value, " Must be integral type");
-		typedef std::char_traits<__char_t> traits_type;
+#ifdef IO_HAS_CONNCEPTS
+template<typename __CHAR_TYPE>
+	requires( is_charater_v<__CHAR_TYPE> )
+#else
+template <
+	typename __CHAR_TYPE,
+	typename std::enable_if<
+				is_charater<__CHAR_TYPE>::value
+			>::type* = 0
+>
+#endif
+	inline std::size_t put(const __CHAR_TYPE* cstr) noexcept
+	{
 		return
-			(nullptr != cstr && static_cast<__char_t>('\0') != cstr[0] )
-			? put( cstr, traits_type::length(cstr) )
+			(nullptr != cstr && static_cast<__CHAR_TYPE>('\0') != cstr[0] )
+			? put( cstr, std::char_traits<__CHAR_TYPE>::length(cstr) )
 			: 0;
 	}
 
@@ -424,120 +453,6 @@ public:
 	/// \return count of bytes put from another buffer, or 0 if not enough available space in this buffer
 	inline std::size_t put(const byte_buffer& other) noexcept {
 		return ( available() < other.length() ) ? 0 : put( other.position_, other.last_ );
-	}
-
-	/// Puts STL string ( std::basic_sting<?,?>) content between begin() and end() iterators
-	/// to this buffer
-	/// \return count of bytes put from std::basic_string, or 0 if not enough available space in this buffer
-	template<class _char_t>
-	inline std::size_t put(const std::basic_string<_char_t>& s) noexcept {
-		return s.empty() ? 0 : put( s.data(), (s.length() * sizeof(_char_t)) );
-	}
-
-	// binary primitives functions
-
-// MS VC++ defining int8_t as typedef char int8_t
-// and no strong type definition according to the C++ standard
-#ifndef _MSC_VER
-	/// Puts a small value in its binary representation into current buffer
-	/// \param small a small value
-	inline bool put(int8_t small) noexcept {
-		return put( static_cast<uint8_t>(small) );
-	}
-#endif
-
-	inline int8_t get_int8() {
-		return binary_get<int8_t>();
-	}
-
-	/// Puts an unsigned short value in its binary representation into current buffer
-	/// \param us an unsigned short value
-	inline bool put(uint16_t us) noexcept {
-		return binary_put(us);
-	}
-
-	inline uint16_t get_uint16() noexcept {
-		return binary_get<uint16_t>();
-	}
-
-	/// Puts a signed short value in its binary representation into current buffer
-	/// \param ss a short value
-	inline bool put(int16_t ss) noexcept {
-		return binary_put(ss);
-	}
-
-	inline int16_t get_int16() noexcept {
-		return binary_get<int16_t>();
-	}
-
-	/// Puts an unsigned integer value in its binary representation into current buffer
-	/// \param ui an unsigned integer value
-	inline bool put(uint32_t ui) noexcept {
-		return binary_put(ui);
-	}
-
-	inline uint32_t get_uint32() noexcept {
-		return binary_get<uint32_t>();
-	}
-
-	/// Puts a signed integer value in its binary representation into current buffer
-	/// \param si a signed integer value
-	inline bool put(int32_t si) noexcept {
-		return binary_put(si);
-	}
-
-	inline int32_t get_int32() noexcept {
-		return binary_get<int32_t>();
-	}
-
-	/// Puts an unsigned long integer value in its binary representation into current buffer
-	/// \param ull an unsigned long integer value
-	inline bool put(uint64_t ull) noexcept {
-		return binary_put(ull);
-	}
-
-	inline uint64_t get_uint64() noexcept {
-		return binary_get<uint64_t>();
-	}
-
-	/// Puts a signed long integer value in its binary representation into current buffer
-	/// \param sll a signed long integer value
-	inline bool put(int64_t sll) noexcept {
-		return binary_put(sll);
-	}
-
-	inline int64_t get_int64() noexcept {
-		return binary_get<int64_t>();
-	}
-
-	/// Puts a float value in its binary representation into current buffer
-	/// \param f a float value
-	inline bool put(float f) noexcept {
-		return binary_put(f);
-	}
-
-	inline float get_float() noexcept {
-		return binary_get<float>();
-	}
-
-	/// Puts a double value in its binary representation into current buffer
-	/// \param d a double value
-	inline bool put(double d) noexcept {
-		return binary_put(d);
-	}
-
-	inline double get_double() noexcept {
-		return binary_get<double>();
-	}
-
-	/// Puts a long double value in its binary representation into current buffer
-	/// \param ld a long double value
-	inline bool put(long double ld) noexcept {
-		return binary_put(ld);
-	}
-
-	inline long double get_long_double() noexcept {
-		return binary_get<long double>();
 	}
 
 	/// Sets position and last iterator to the buffer's first byte
@@ -571,56 +486,6 @@ public:
 	/// \return true buffer was extended, false if not enough available memory
 	bool ln_grow() noexcept;
 
-private:
-
-	byte_buffer(detail::mem_block&& arr, std::size_t capacity) noexcept;
-
-	template < typename T,
-		class = typename std::enable_if<
-				std::is_arithmetic<T>::value &&
-				!std::is_pointer<T>::value
-			>::type >
-	bool binary_put(const T& v) noexcept {
-		return 0 != put( reinterpret_cast<const uint8_t*> ( std::addressof( v ) ), sizeof(T) );
-	}
-
-	template < typename T>
-	inline T binary_get(typename std::enable_if<
-				std::is_integral<T>::value &&
-				!std::is_pointer<T>::value
-			>::type* = nullptr) noexcept {
-		T ret;
-		if( empty() ) {
-			ret = static_cast<T>(0);
-		} else {
-			io_memmove( &ret, position_, sizeof(T) );
-			shift( sizeof(T) );
-		}
-		return ret;
-	}
-
-	template < typename T>
-	inline T binary_get(
-			typename std::enable_if<
-				std::is_floating_point<T>::value &&
-				!std::is_pointer<T>::value
-			>::type* = nullptr) noexcept {
-		T ret;
-		if( empty() ) {
-			ret = std::numeric_limits<T>::quiet_NaN();
-		} else {
-			io_memmove( &ret, position_, sizeof(T) );
-			shift( sizeof(T) );
-		}
-		return ret;
-	}
-
-	bool realloc(std::size_t size) noexcept;
-	uint8_t* new_empty_block(std::size_t size) noexcept;
-	uint8_t* reallocated_block(std::size_t size) noexcept;
-
-
-public:
 	/// Allocate a memory block for buffer from heap
 	/// \param ec operation error code, will have out of memory in case of error
 	/// \param capacity buffer capacity in bytes

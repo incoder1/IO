@@ -28,13 +28,13 @@ static s_read_channel open_convert_channel(std::error_code& ec,io::byte_buffer& 
 	s_read_channel ret;
 	byte_buffer new_rb = byte_buffer::allocate( ec, rb.capacity() );
 	if(!ec) {
-		auto cvt  = code_cnvtr::open(ec, ch, code_pages::utf8(), cnvrt_control::failure_on_failing_chars);
+		auto cvt  = charset_converter::open(ec, ch, code_pages::utf8() );
 		if(!ec) {
 			uint8_t* pos  = const_cast<uint8_t*>( rb.position().get() );
 			cvt->convert(ec, pos, rb.size(), new_rb);
 			if(!ec) {
 				rb.swap(new_rb);
-				ret = conv_read_channel::open(ec, src, cvt );
+				ret =  src; //conv_read_channel::open(ec, src, cvt );
 			}
 		}
 	}
@@ -136,10 +136,10 @@ source::~source() noexcept
 error source::read_more() noexcept
 {
 	rb_.clear();
-	if( rb_.capacity() < READ_BUFF_MAXIMAL_SIZE ) {
-		if( io_unlikely( !rb_.exp_grow() ) )
-			return error::out_of_memory;
-	}
+//	if( rb_.capacity() < READ_BUFF_MAXIMAL_SIZE ) {
+//		if( io_unlikely( !rb_.exp_grow() ) )
+//			return error::out_of_memory;
+//	}
 	std::error_code ec;
 	uint8_t* pos = const_cast<uint8_t*>(rb_.position().get());
 	size_t read = src_->read(ec, pos, rb_.capacity());

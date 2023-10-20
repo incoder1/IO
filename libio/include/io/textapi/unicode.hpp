@@ -178,27 +178,25 @@ inline unsigned int mblen(const char* mb)
 #endif // IO_IS_LITTLE_ENDIAN
 }
 
-#ifndef _MSC_VER
 /// Converts a UTF-8 single/multibyte character to full UNICODE UTF-32 value,
 /// endianes depends on current CPU
 /// \param dst destination UTF-32 character, or U'\0' when end of line reached or invalid source character value
 /// \param src pointer to the UTF-8 character value
 /// \return string position after src UTF-8 or nullptr when end of line reached or decoding failed
-const char* IO_PUBLIC_SYMBOL mbtochar32(char32_t& dst, const char* src) noexcept;
-
-const u8char_t* IO_PUBLIC_SYMBOL mbtochar32(char32_t& dst, const u8char_t* src) noexcept;
+#ifdef IO_DECLSPEC
+IO_PUBLIC_SYMBOL const char*
 #else
+const char* IO_PUBLIC_SYMBOL
+#endif // IO_DECLSPEC
+mbtochar32(char32_t& dst, const char* src) noexcept;
 
-/// Converts a UTF-8 single/multibyte character to full UNICODE UTF-32 value,
-/// endianes depends on current CPU
-/// \param dst destination UTF-32 character, or U'\0' when end of line reached or invalid source character value
-/// \param src pointer to the UTF-8 character value
-/// \return string position after src UTF-8 or nullptr when end of line reached or decoding failed
-IO_PUBLIC_SYMBOL const char* mbtochar32(char32_t& dst, const char* src) noexcept;
+#ifdef IO_DECLSPEC
+IO_PUBLIC_SYMBOL const u8char_t*
+#else
+const u8char_t* IO_PUBLIC_SYMBOL
+#endif // IO_DECLSPEC
+mbtochar32(char32_t& dst, const u8char_t* src) noexcept;
 
-IO_PUBLIC_SYMBOL const u8char_t* mbtochar32(char32_t& dst, const u8char_t* src) noexcept;
-
-#endif
 
 /// Returns UTF-8 string length in logical UNICODE characters
 /// \param u8str source UTF-8 string

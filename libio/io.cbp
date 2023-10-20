@@ -454,6 +454,7 @@
 		<Unit filename="src/textapi/greek_model.cpp" />
 		<Unit filename="src/textapi/hungarian_model.cpp" />
 		<Unit filename="src/textapi/latin1_prober.cpp" />
+		<Unit filename="src/textapi/nio.cpp" />
 		<Unit filename="src/textapi/prober.cpp" />
 		<Unit filename="src/textapi/single_byte_group_prober.cpp" />
 		<Unit filename="src/textapi/single_byte_prober.cpp" />

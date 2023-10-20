@@ -45,17 +45,29 @@ public:
 
 	static s_event_writer open(std::error_code& ec,const s_write_channel& to,bool format,const document_event& prologue) noexcept
 	{
-		return open(ec, writer(to), format, prologue);
+		s_event_writer ret;
+		s_funnel dst = channel_funnel::create(ec, s_write_channel(to) );
+		if(!ec)
+			ret = open(ec, writer(dst), format, prologue);
+		return ret;
 	}
 
 	static s_event_writer open(std::error_code& ec,const s_write_channel& to, bool format, const version& v,const charset* encoding, bool standalone) noexcept
 	{
-		return open(ec, writer(to), format, v, encoding, standalone);
+		s_event_writer ret;
+		s_funnel dst = channel_funnel::create(ec, s_write_channel(to) );
+		if(!ec)
+			ret = open(ec, writer(dst), format, v, encoding, standalone);
+		return ret;
 	}
 
 	static s_event_writer open(std::error_code& ec,const s_write_channel& to) noexcept
 	{
-		return open(ec, writer(to));
+		s_event_writer ret;
+		s_funnel dst = channel_funnel::create(ec, s_write_channel(to) );
+		if(!ec)
+			ret = open(ec, writer(dst));
+		return ret;
 	}
 
 	~event_writer() noexcept override;

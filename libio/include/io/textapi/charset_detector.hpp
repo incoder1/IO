@@ -75,7 +75,7 @@ class IO_PUBLIC_SYMBOL charset_detector:public object {
 	charset_detector(const charset_detector&) = delete;
 	charset_detector& operator=(const charset_detector&) = delete;
 private:
-	typedef std::array<detail::s_prober, 2> v_pobers;
+	typedef std::array<detail::s_prober, 3> v_pobers;
 	explicit charset_detector(v_pobers&& probers) noexcept;
 public:
 	virtual ~charset_detector() = default;

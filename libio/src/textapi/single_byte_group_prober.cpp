@@ -73,7 +73,7 @@ single_byte_group_prober::single_byte_group_prober(std::array<s_prober,NUM_OF_SB
 uint16_t single_byte_group_prober::get_charset_code() noexcept
 {
 	//if we have no answer yet
-	if (best_guess_prober_ >= 0) {
+	if (best_guess_prober_ < 0) {
 		float conf = confidence();
 		//no charset seems positive
 		if (best_guess_prober_ < 0 || conf < 0.0F)

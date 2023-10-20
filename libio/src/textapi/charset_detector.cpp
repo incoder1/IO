@@ -16,6 +16,7 @@
 
 #include "io/textapi/detail/latin1_prober.hpp"
 #include "io/textapi/detail/utf8_prober.hpp"
+#include "io/textapi/detail/single_byte_group_prober.hpp"
 
 /*
  This is C++ 11 minimal port of Mozilla universal character set detector
@@ -31,8 +32,9 @@ s_charset_detector charset_detector::create(std::error_code& ec) noexcept
 	if(!ec) {
 		detail::s_prober latin1_prb = detail::latin1_prober::create(ec);
 		detail::s_prober utf8_prb = detail::utf8_prober::create(ec);
+		detail::s_prober sb_group = detail::single_byte_group_prober::create(ec) ;
 		if(!ec) {
-			std::array<detail::s_prober, 2> probers = {latin1_prb,utf8_prb};
+			std::array<detail::s_prober, 3> probers = {latin1_prb,utf8_prb,sb_group};
 			charset_detector *px = new (std::nothrow) charset_detector(std::move(probers));
 			if(nullptr == px)
 				ec = std::make_error_code(std::errc::not_enough_memory);
@@ -67,7 +69,7 @@ charset_detect_status charset_detector::detect(std::error_code &ec,const uint8_t
 		return charset_detect_status(code_pages::utf32le(), 1.0f);
 	}
 	detail::prober::state_t state = detail::prober::state_t::detecting;
-	std::array< charset_detect_status, 2 > confidence_array;
+	std::array< charset_detect_status, 3 > confidence_array;
 	charset_detect_status ret;
 	for(std::size_t i=0; i < probers_.size(); i++) {
 		uint16_t ch_code = probers_[i]->get_charset_code();

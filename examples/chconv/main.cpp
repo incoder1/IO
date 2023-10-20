@@ -6,8 +6,8 @@
 
  #include <iostream>
 
-#include <core/files.hpp>
-#include <textapi/charset_converter.hpp>
+#include <io/core/files.hpp>
+#include <io/textapi/charset_converter.hpp>
 
 static const std::size_t BUFFER_SIZE = 512;
 
@@ -30,9 +30,9 @@ int main(int argc, const char** argv)
 	std::cout << "Converting "<< sf.path() <<" to "<< to.path() << std::endl;
 
 	// Open a character set converter between UTF-16LE and UTF-8 code pages
-	s_code_cnvtr cvn = code_cnvtr::open(ec,
-							code_pages::UTF_16LE,
-							code_pages::for_name("utf-8").second,
+	auto cvn = charset_converter::open(ec,
+							code_pages::utf16le(),
+							code_pages::utf8(),
 							cnvrt_control::failure_on_failing_chars
 						);
 

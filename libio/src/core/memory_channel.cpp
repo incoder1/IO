@@ -73,7 +73,8 @@ std::size_t memory_write_channel::write(std::error_code& ec, const uint8_t* buff
 {
 	lock_guard lock(mtx_);
 	if( size > data_.available() ) {
-		if( !data_.exp_grow() && !data_.extend(size) ) {
+		std::size_t extend_size = (size > data_.capacity()) ? size : (data_.capacity() * 2);
+		if( data_.extend( extend_size ) ) {
 			ec = std::make_error_code(std::errc::not_enough_memory);
 			return 0;
 		}

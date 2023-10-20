@@ -47,29 +47,14 @@ std::size_t console_channel::write(std::error_code& err, const uint8_t* buff,std
 	return result * sizeof(::WCHAR);
 }
 
-// free functions
-s_write_channel IO_PUBLIC_SYMBOL conv_write_channel(const s_write_channel& ch)
-{
-	std::error_code ec;
-	s_code_cnvtr conv = code_cnvtr::open(ec,
-										code_pages::utf8(),
-										code_pages::utf16le(),
-										cnvrt_control::discard_on_failing_chars);
-	io::check_error_code( ec );
-	s_write_channel result = conv_write_channel::open(ec, ch, conv);
-	io::check_error_code( ec );
-	return result;
-}
+
 
 s_read_channel IO_PUBLIC_SYMBOL conv_read_channel(const s_read_channel& ch)
 {
 	std::error_code ec;
-	s_code_cnvtr conv = code_cnvtr::open(ec,
-										code_pages::utf8(),
-										code_pages::utf16le(),
-										cnvrt_control::discard_on_failing_chars);
+	s_charset_converter conv = charset_converter::open(ec,code_pages::utf8(),code_pages::utf16le());
 	io::check_error_code( ec );
-	s_read_channel result = conv_read_channel::open(ec, ch, conv);
+	s_read_channel result =  ch ; // conv_read_channel::open(ec, ch, conv);
 	io::check_error_code( ec );
 	return result;
 }

@@ -120,6 +120,95 @@ struct endl<char32_t> {
 
 } // namespace detail
 
+class pump;
+DECLARE_IPTR(pump);
+
+class pump : public object {
+	pump(pump&) = delete;
+	pump& operator=(pump&) = delete;
+protected:
+	pump() noexcept;
+public:
+	virtual std::size_t pull(std::error_code& ec, uint8_t* const to, std::size_t bytes) noexcept = 0;
+	virtual bool sync(std::error_code& ec) noexcept;
+};
+
+class channel_pump: public pump {
+protected:
+	explicit channel_pump(s_read_channel&& src) noexcept;
+public:
+	static s_pump create(std::error_code& ec, s_read_channel&& src) noexcept;
+	virtual std::size_t pull(std::error_code& ec, uint8_t* const to, std::size_t bytes) noexcept override;
+private:
+	s_read_channel src_;
+};
+
+class buffered_channel_pump: public channel_pump {
+protected:
+	buffered_channel_pump(s_read_channel&& src,byte_buffer&& buff) noexcept;
+public:
+	static s_pump create(std::error_code& ec, s_read_channel&& src, std::size_t buffer_size) noexcept;
+	virtual std::size_t pull(std::error_code& ec, uint8_t* const to, std::size_t bytes) noexcept override;
+	virtual bool sync(std::error_code& ec) noexcept override;
+protected:
+	byte_buffer read_buff_;
+};
+
+class charset_converting_channel_pump final: public buffered_channel_pump {
+private:
+	charset_converting_channel_pump(s_read_channel&& src, byte_buffer&& rb, byte_buffer&& cvb,s_charset_converter&& cvt) noexcept;
+public:
+	static s_pump create(std::error_code& ec, s_read_channel&& src, const charset* from, const charset* to, std::size_t buffer_size) noexcept;
+	virtual std::size_t pull(std::error_code& ec, uint8_t* const to, std::size_t bytes) noexcept override;
+	bool sync(std::error_code& ec) noexcept;
+private:
+	byte_buffer cvt_buff_;
+	s_charset_converter cvt_;
+};
+
+class funnel;
+DECLARE_IPTR(funnel);
+
+class funnel: public object {
+protected:
+	funnel() noexcept;
+public:
+	virtual std::size_t push(std::error_code& ec, const uint8_t* src, std::size_t bytes) noexcept = 0;
+	virtual void flush(std::error_code& ec) noexcept;
+};
+
+class channel_funnel: public funnel
+{
+protected:
+	channel_funnel(s_write_channel&& dst) noexcept;
+public:
+	static s_funnel create(std::error_code& ec, s_write_channel&& dst) noexcept;
+	virtual std::size_t push(std::error_code& ec, const uint8_t* src, std::size_t bytes) noexcept override;
+private:
+	s_write_channel dst_;
+};
+
+class buffered_channel_funnel: public channel_funnel {
+protected:
+	buffered_channel_funnel(s_write_channel&& dst, byte_buffer&& buff) noexcept;
+public:
+	static s_funnel create(std::error_code& ec, s_write_channel&& dst, std::size_t buffer_size) noexcept;
+	virtual std::size_t push(std::error_code& ec, const uint8_t* src, std::size_t bytes) noexcept override;
+	virtual void flush(std::error_code& ec) noexcept override;
+protected:
+	byte_buffer write_buff_;
+};
+
+class charset_converting_channel_funnel final: public buffered_channel_funnel {
+private:
+	charset_converting_channel_funnel(s_write_channel&& dst, byte_buffer&& buff,s_charset_converter&& cvt) noexcept;
+public:
+	static s_funnel create(std::error_code& ec, s_write_channel&& dst, const charset* from, const charset* to, std::size_t buffer_size) noexcept;
+	virtual void flush(std::error_code& ec) noexcept override;
+private:
+	s_charset_converter cvt_;
+};
+
 #ifndef IO_HAS_CONNCEPTS
 template<typename C, class ___type_restriction = void>
 class basic_reader;
@@ -127,107 +216,48 @@ template<typename C, class ___type_restriction = void>
 class basic_writer;
 #endif // IO_HAS_CONNCEPTS
 
-
 #ifdef IO_HAS_CONNCEPTS
 template<typename C>
-requires is_charater_v<C>
-class basic_reader {
+	requires( is_charater_v<C> )
+class basic_reader
 #else
 template<typename C>
-class basic_reader<C, typename std::enable_if< is_charater< C >::value >::type > {
+class basic_reader<C,
+				typename std::enable_if<
+					is_charater< C >::value >::type
+				>
 #endif // IO_HAS_CONNCEPTS
+{
 	basic_reader(const basic_reader&) = delete;
 	basic_reader& operator=(const basic_reader&) = delete;
 public:
+
 	typedef C char_type;
 	typedef std::char_traits<char_type> char_traits;
 	static constexpr std::size_t char_width = sizeof(char_type);
 	typedef typename std::basic_string<char_type> string;
 
-private:
-
-	inline char_type* to_char_ptr(const uint8_t* px) noexcept
-	{
-		return reinterpret_cast<char_type*>( const_cast<uint8_t*>(px) );
-	}
-
-	inline char_type* pos() noexcept
-	{
-		return to_char_ptr( rb_.position() );
-	}
-
-	inline char_type* last() noexcept
-	{
-		return to_char_ptr( rb_.last() );
-	}
-
-	inline std::size_t length_to_bytes(const std::size_t length) noexcept
-	{
-		return length * char_width;
-	}
-
-	std::size_t underflow() noexcept
-	{
-		std::size_t result = 0;
-		if( io_likely(rb_) ) {
-			result = src_->read(ec_, const_cast<uint8_t*>(rb_.position().get()), rb_.capacity() );
-			if( !ec_ ) {
-				rb_.move(result);
-				rb_.flip();
-			}
-		}
-		else {
-			// handle out of memory when constructing a reader
-			ec_ = std::make_error_code(std::errc::not_enough_memory);
-		}
-		return length_to_bytes(result);
-	}
-
-	std::size_t buffered() noexcept
-	{
-		return length_to_bytes( rb_.length() );
-	}
-
-public:
-
-	basic_reader(basic_reader&&) noexcept = default;
-	basic_reader& operator=(basic_reader&&) noexcept = default;
-
-	explicit basic_reader(const s_read_channel& src, std::size_t buff_size = 1024 ) noexcept:
+	explicit basic_reader(s_pump&& src) noexcept:
 		ec_(),
-		src_( src ),
-		rb_(byte_buffer::allocate(ec_, buff_size))
+		src_( src )
 	{}
 
-	std::error_code last_error() const noexcept
+	std::size_t read(std::error_code& ec, char_type* const to, std::size_t chars) noexcept
 	{
-		return ec_;
+		std::size_t bytes_read = src_->pull( ec, reinterpret_cast<char_type*>(to), chars * sizeof(char_type) );
+		return bytes_read / sizeof(char_type);
 	}
 
-	std::size_t read(char_type* const to, std::size_t chars) noexcept
+	std::size_t read(char_type* const to, std::size_t chars)
 	{
-		std::size_t result = 0;
-		std::size_t available = rb_.empty() ? underflow() : buffered();
-		if(available > 0 && !ec_) {
-			const char_type* px = reinterpret_cast<const char_type*>( rb_.position().get() );
-			if( available > chars ) {
-				char_traits::copy(to, px, result);
-				result = chars;
-				rb_.move( result * char_width );
-			}
-			else {
-				result = available;
-				char_traits::copy(to, px, result);
-				rb_.clear();
-			}
-		}
-		return result;
+		std::size_t ret = read(ec_, to, chars);
+		io::check_error_code(ec_);
+		return ret;
 	}
 
 private:
 	std::error_code ec_;
-	s_read_channel src_;
-	byte_buffer rb_;
+	s_pump src_;
 };
 
 /// !\brief Character output interface
@@ -257,9 +287,9 @@ private:
 
 public:
 	/// Construct new writer on top of the write channel
-	/// \brief a destination output channgel
+	/// \brief a destination data funnel
 	/// \brief internal character buffer size
-	basic_writer(const s_write_channel& dst,std::size_t buffer_size) noexcept:
+	basic_writer(const s_funnel& dst,std::size_t buffer_size) noexcept:
 		ec_(),
 		buffer_(io::byte_buffer::allocate(ec_, buffer_size)),
 		dst_(dst)
@@ -267,14 +297,14 @@ public:
 
 	/// Construct new writer on top of the write channel with default internal character buffer
 	/// \brief a destination output channgel
-	explicit basic_writer(const s_write_channel& dst) noexcept:
+	explicit basic_writer(const s_funnel& dst) noexcept:
 		basic_writer(dst, memory_traits::page_size())
 	{}
 
 	basic_writer(basic_writer&& other) noexcept:
 		ec_( std::exchange(other.ec_, std::error_code() ) ),
 		buffer_( std::exchange(other.buffer_, byte_buffer()) ),
-		dst_( std::exchange(other.dst_, s_write_channel()) )
+		dst_( std::exchange(other.dst_, s_funnel()) )
 	{}
 
 	basic_writer& operator=(basic_writer&& other) noexcept
@@ -287,7 +317,8 @@ public:
 	{
 		if(dst_ && !buffer_.empty() && !ec_ ) {
 			buffer_.flip();
-			transmit_buffer(ec_, dst_, buffer_.position().get(), buffer_.length() );
+			dst_->push(ec_, buffer_.position().get(), buffer_.length());
+			dst_->flush(ec_);
 		}
 	}
 
@@ -310,7 +341,7 @@ public:
 		return write(str, char_traits::length(str) );
 	}
 
-	void writeln(const C* str) noexcept 
+	void writeln(const C* str) noexcept
 	{
 		write(str, char_traits::length(str) );
 		write(detail::endl<C>::symbol);
@@ -366,7 +397,8 @@ public:
 	{
 		if(!buffer_.empty() && !ec_) {
 			buffer_.flip();
-			transmit_buffer(ec_, dst_, buffer_.position().get(), buffer_.length() );
+			dst_->push(ec_,  buffer_.position().get(), buffer_.length() );
+			//transmit_buffer(ec_, dst_, buffer_.position().get(), buffer_.length() );
 			if(!ec_)
 				buffer_.clear();
 		}
@@ -374,7 +406,7 @@ public:
 private:
 	std::error_code ec_;
 	byte_buffer buffer_;
-	s_write_channel dst_;
+	s_funnel dst_;
 };
 
 typedef basic_reader<char> reader;
@@ -389,6 +421,7 @@ typedef basic_writer<char32_t> u32_writer;
 typedef basic_writer<char8_t> u8_writer;
 typedef basic_reader<char8_t> u8_reader;
 #endif // IO_HAS_CHAR8_T
+
 
 } // namespace io
 

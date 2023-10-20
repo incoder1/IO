@@ -14,11 +14,26 @@ int main(int argc, const char** argv)
 
 	// We will serialize our XML into console
 	io::console cons;
-	io::console_out_writer out(cons);
+	//io::console_out_writer out(cons);
+
+	std::error_code ec;
+	io::file dst_file("out.xml");
+
+	io::s_write_channel out = dst_file.open_for_write(ec, io::write_open_mode::overwrite);
+	io::check_error_code(ec);
+
+	//out->write(ec, utf_16le_bom::data(), utf_16le_bom::len() );
+	//io::check_error_code(ec);
+
+	//io::s_charset_converter cvt = io::charset_co
+
+	io::s_funnel fnl = io::buffered_channel_funnel::create(ec, std::move(out), 32 );
+	io::check_error_code(ec);
+	io::writer fout(fnl);
 
 	// Open the event streaming event writer
-	std::error_code ec;
-	xml::s_event_writer safe_ew = xml::event_writer::open( ec, std::move(out), true, {1,0}, io::code_pages::UTF_8, false);
+
+	xml::s_event_writer safe_ew = xml::event_writer::open( ec, std::move(fout), true, {1,0}, io::code_pages::utf8(), false);
 	io::check_error_code(ec);
 	// make unsafe concept, to avoid manual error checking, i.e. use exceptions if they are on
 	io::unsafe<xml::event_writer> xew( std::move(safe_ew) );

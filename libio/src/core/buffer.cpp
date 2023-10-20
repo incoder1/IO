@@ -61,6 +61,17 @@ byte_buffer::byte_buffer(byte_buffer&& other) noexcept:
 	other.last_ = nullptr;
 }
 
+std::size_t byte_buffer::put(const uint8_t* arr,const std::size_t count) noexcept
+{
+	std::size_t ret = 0;
+	if( 0 != count || nullptr != arr || count <= available() ) {
+		io_memmove( position_, arr, count);
+		position_ += count;
+		last_ = position_ + 1;
+		ret = count;
+	}
+	return ret;
+}
 
 void byte_buffer::move(std::size_t offset) noexcept
 {
@@ -124,10 +135,9 @@ bool byte_buffer::extend(std::size_t extend_size) noexcept
 	return realloc( capacity_ + extend_size );
 }
 
-
 bool byte_buffer::exp_grow() noexcept
 {
-	return realloc( capacity_ << 1 );
+	return extend( capacity_ );
 }
 
 bool byte_buffer::ln_grow() noexcept
