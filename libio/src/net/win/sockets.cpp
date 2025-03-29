@@ -1,6 +1,6 @@
 /*
  *
- * Copyright (c) 2016-2023
+ * Copyright (c) 2016-2025
  * Viktor Gubin
  *
  * Use, modification and distribution are subject to the
@@ -107,7 +107,7 @@ const void* endpoint::native() const noexcept
 const_string endpoint::ip_address() const noexcept
 {
 	char tmp[INET6_ADDRSTRLEN];
-	io_zerro_mem(tmp, INET6_ADDRSTRLEN);
+	io_bzero(tmp, INET6_ADDRSTRLEN);
 	const char* ret = ::InetNtopA(
 							addr_info_->ai_family,
 							const_cast<void*>(

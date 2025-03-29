@@ -1,6 +1,6 @@
 /*
  *
- * Copyright (c) 2016-2023
+ * Copyright (c) 2016-2025
  * Viktor Gubin
  *
  * Use, modification and distribution are subject to the
@@ -56,7 +56,7 @@ static constexpr uint32_t SSTART = static_cast<uint32_t>(coding_state_machine::s
 static constexpr uint32_t SERROR = static_cast<uint32_t>(coding_state_machine::state_t::error);
 static constexpr uint32_t SFOUND = static_cast<uint32_t>(coding_state_machine::state_t::found);
 
-static const uint32_t UTF8_STETES [15] = {
+static const uint32_t UTF8_STATES [15] = {
 	pck_4bits(SERROR,SSTART,SERROR,SERROR,SERROR,     3,     4,     5),  // 00 - 07
 	pck_4bits(     6,     7,     8,     9,SERROR,SERROR,SERROR,SERROR),  // 08 - 0f
 	pck_4bits(SERROR,SERROR,SERROR,SERROR,SERROR,SERROR,SERROR,SERROR),  // 10 - 17
@@ -96,7 +96,7 @@ static const coding_state_machine::model_t UTF8_MODEL = {
 		shift_mask::bits_4,
 		bit_shift::bits_4,
 		unit_mask::bits_4,
-		UTF8_STETES
+		UTF8_STATES
 	},
 	CHAR_LEN_TABLE(UTF8_CHAR_LEN_TABLE),
 	65001,

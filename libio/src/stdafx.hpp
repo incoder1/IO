@@ -14,7 +14,7 @@
 #include <io/config/libio_config.hpp>
 #include <io/core/buffer.hpp>
 #include <io/core/channels.hpp>
-#include <io/core/conststring.hpp>
+#include <io/core/const_string.hpp>
 #include <io/core/string_algs.hpp>
 
 #endif // __STDAFX_HPP_INCLUDED__

@@ -1,6 +1,6 @@
 /*
  *
- * Copyright (c) 2016-2023
+ * Copyright (c) 2016-2025
  * Viktor Gubin
  *
  * Use, modification and distribution are subject to the
@@ -103,7 +103,7 @@ file::file(const std::wstring& name):
 		std::size_t path_size = ::GetFinalPathNameByHandleW( hnd, full_path, MAX_PATH, FILE_NAME_NORMALIZED | VOLUME_NAME_DOS );
 		if(0 != path_size) {
 			name_.clear();
-			if( 0 == io_memcmp(full_path,L"\\\\?\\",8) )
+			if( 0 == std::char_traits<wchar_t>::compare(full_path,L"\\\\?\\",4) )
 				name_.append(full_path, 4, path_size-4);
 			else
 				name_.append(full_path, 0, path_size);

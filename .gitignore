@@ -30,4 +30,4 @@ Makefile
 **.tcl
 **.cmake
 **/**/result.txt
-
+/test/test.xml

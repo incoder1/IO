@@ -1,6 +1,6 @@
 /*
  *
- * Copyright (c) 2016-2023
+ * Copyright (c) 2016-2025
  * Viktor Gubin
  *
  * Use, modification and distribution are subject to the
@@ -36,7 +36,7 @@ public:
 
 class IO_PUBLIC_SYMBOL channel_pump: public pump {
 protected:
-	explicit channel_pump(s_read_channel&& src) noexcept;
+	explicit channel_pump(const s_read_channel& src) noexcept;
 public:
 	static s_pump create(std::error_code& ec, s_read_channel&& src) noexcept;
 	virtual std::size_t pull(std::error_code& ec, uint8_t* const to, std::size_t bytes) noexcept override;
@@ -46,9 +46,10 @@ private:
 
 class IO_PUBLIC_SYMBOL buffered_channel_pump: public channel_pump {
 protected:
-	buffered_channel_pump(s_read_channel&& src,byte_buffer&& buff) noexcept;
+	buffered_channel_pump(const s_read_channel& src,byte_buffer&& buff) noexcept;
 public:
-	static s_pump create(std::error_code& ec, s_read_channel&& src, std::size_t buffer_size) noexcept;
+	static s_pump create(std::error_code& ec,const s_read_channel& src, byte_buffer&& buff) noexcept;
+	static s_pump create(std::error_code& ec,const s_read_channel& src, std::size_t buffer_size) noexcept;
 	virtual std::size_t pull(std::error_code& ec, uint8_t* const to, std::size_t bytes) noexcept override;
 	virtual bool sync(std::error_code& ec) noexcept override;
 protected:
@@ -69,9 +70,9 @@ public:
 class IO_PUBLIC_SYMBOL channel_funnel: public funnel
 {
 protected:
-	channel_funnel(s_write_channel&& dst) noexcept;
+	channel_funnel(const s_write_channel& dst) noexcept;
 public:
-	static s_funnel create(std::error_code& ec, s_write_channel&& dst) noexcept;
+	static s_funnel create(std::error_code& ec,const s_write_channel& dst) noexcept;
 	virtual std::size_t push(std::error_code& ec, const uint8_t* src, std::size_t bytes) noexcept override;
 private:
 	s_write_channel dst_;
@@ -79,9 +80,9 @@ private:
 
 class IO_PUBLIC_SYMBOL buffered_channel_funnel: public channel_funnel {
 protected:
-	buffered_channel_funnel(s_write_channel&& dst, byte_buffer&& buff) noexcept;
+	buffered_channel_funnel(const s_write_channel& dst, byte_buffer&& buff) noexcept;
 public:
-	static s_funnel create(std::error_code& ec, s_write_channel&& dst, std::size_t buffer_size) noexcept;
+	static s_funnel create(std::error_code& ec,const s_write_channel& dst, std::size_t buffer_size) noexcept;
 	virtual std::size_t push(std::error_code& ec, const uint8_t* src, std::size_t bytes) noexcept override;
 	virtual void flush(std::error_code& ec) noexcept override;
 protected:

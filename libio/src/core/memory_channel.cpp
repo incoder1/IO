@@ -1,6 +1,6 @@
 /*
  *
- * Copyright (c) 2016-2023
+ * Copyright (c) 2016-2025
  * Viktor Gubin
  *
  * Use, modification and distribution are subject to the
@@ -15,7 +15,9 @@ namespace io {
 
 s_read_channel memory_read_channel::open(std::error_code& ec, byte_buffer&& buff) noexcept
 {
-	memory_read_channel *ret = nobadalloc<memory_read_channel>::construct(ec, std::forward<byte_buffer>(buff) );
+	memory_read_channel *ret = new (std::nothrow) memory_read_channel(std::forward<byte_buffer>(buff));
+	if(nullptr == ret)
+		ec = std::make_error_code(std::errc::not_enough_memory);
 	return io_likely(nullptr != ret) ? s_read_channel(ret) : s_read_channel();
 }
 
@@ -31,7 +33,7 @@ memory_read_channel::~memory_read_channel()  noexcept
 std::size_t memory_read_channel::read(std::error_code& ec,uint8_t* const buff, std::size_t bytes) const noexcept
 {
 	std::size_t ret = 0;
-	if (io_unlikely(bytes == ULLONG_MAX)) {
+	if (io_unlikely(bytes == std::numeric_limits<std::size_t>::max() )) {
 		ec = std::make_error_code(std::errc::invalid_argument);
 	}
 	else if (io_likely(!data_.empty())) {

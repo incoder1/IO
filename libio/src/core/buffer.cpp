@@ -1,6 +1,6 @@
 /*
  *
- * Copyright (c) 2016-2023
+ * Copyright (c) 2016-2025
  * Viktor Gubin
  *
  * Use, modification and distribution are subject to the
@@ -93,7 +93,7 @@ uint8_t* byte_buffer::new_empty_block(std::size_t size) noexcept
 	else {
 		// realloc works slowly then malloc in case of new memory block
 		ret = static_cast<uint8_t*>( memory_traits::realloc(arr_.get(), size) );
-		io_zerro_mem(ret, size);
+		io_bzero(ret, size);
 	}
 	if(nullptr != ret) {
 		capacity_ = size;
@@ -114,7 +114,7 @@ uint8_t* byte_buffer::reallocated_block(std::size_t size) noexcept
 		last_ =  ret + last_offset;
 		const std::size_t tail = size - last_offset;
 		if(tail > 0)
-			io_zerro_mem(last_, tail );
+			io_bzero(last_, tail );
 	}
 	return ret;
 }

@@ -1,6 +1,6 @@
 /*
  *
- * Copyright (c) 2016-2023
+ * Copyright (c) 2016-2025
  * Viktor Gubin
  *
  * Use, modification and distribution are subject to the
@@ -24,7 +24,7 @@
 #include <time.h>
 #include <chrono>
 
-#include "conststring.hpp"
+#include "const_string.hpp"
 #include "type_traits_ext.hpp"
 
 namespace io {

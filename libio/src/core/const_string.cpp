@@ -1,6 +1,6 @@
 /*
  *
- * Copyright (c) 2016-2023
+ * Copyright (c) 2016-2025
  * Viktor Gubin
  *
  * Use, modification and distribution are subject to the
@@ -9,7 +9,7 @@
  *
  */
 #include "stdafx.hpp"
-#include "io/core/conststring.hpp"
+#include "io/core/const_string.hpp"
 
 namespace io {
 
@@ -17,7 +17,7 @@ void const_string::init_short(detail::sso_variant_t& dst, const char* str, std::
 {
 	dst.short_buf.sso = true;
 	dst.short_buf.size = length;
-	io_zerro_mem(dst.short_buf.char_buf, detail::SSO_MAX);
+	io_bzero(dst.short_buf.char_buf, detail::SSO_MAX);
 	io_memmove(dst.short_buf.char_buf, str, length);
 }
 

@@ -1,6 +1,6 @@
 /*
  *
- * Copyright (c) 2016-2023
+ * Copyright (c) 2016-2025
  * Viktor Gubin
  *
  * Use, modification and distribution are subject to the
@@ -24,15 +24,15 @@ bool pump::sync(std::error_code& ec) noexcept
 }
 
 // channel_pump
-channel_pump::channel_pump(s_read_channel&& src) noexcept:
+channel_pump::channel_pump(const s_read_channel& src) noexcept:
       pump(),
-      src_( std::forward<s_read_channel>(src) )
+      src_( src )
 {}
 
 s_pump channel_pump::create(std::error_code& ec, s_read_channel&& src) noexcept
 {
     s_pump ret;
-    channel_pump* px = new (std::nothrow) channel_pump( std::forward<s_read_channel>(src) );
+    channel_pump* px = new (std::nothrow) channel_pump( s_read_channel(src) );
     if(nullptr == px)
         ec = std::make_error_code(std::errc::not_enough_memory);
     else
@@ -46,30 +46,31 @@ std::size_t channel_pump::pull(std::error_code& ec, uint8_t* const to, std::size
 }
 
 // buffered_channel_pump
-buffered_channel_pump::buffered_channel_pump(s_read_channel&& src,byte_buffer&& buff) noexcept:
-    channel_pump( std::forward<s_read_channel>(src) ),
-    read_buff_( std::forward<byte_buffer>(buff) )
-{}
 
-s_pump buffered_channel_pump::create(std::error_code& ec, s_read_channel&& src, std::size_t buffer_size) noexcept
+s_pump buffered_channel_pump::create(std::error_code& ec,const s_read_channel& src, byte_buffer&& buff) noexcept
 {
     s_pump ret;
-    byte_buffer buff = byte_buffer::allocate(ec,buffer_size);
-    if(!ec) {
-        uint8_t* px = const_cast<uint8_t*>(buff.position().get());
-        std::size_t read = src->read(ec, px, buff.capacity());
-        if(!ec && read > 0) {
-            buff.move(read);
-            buff.flip();
-            auto px = new (std::nothrow) buffered_channel_pump( std::forward<s_read_channel>(src), std::move(buff) );
-            if(nullptr == px)
-                ec = std::make_error_code(std::errc::not_enough_memory);
-            else
-                ret.reset(px, true);
-        }
-    }
+    auto px = new (std::nothrow) buffered_channel_pump( src, std::forward<byte_buffer>(buff) );
+    if(nullptr == px)
+        ec = std::make_error_code(std::errc::not_enough_memory);
+    else
+        ret.reset(px, true);
     return ret;
 }
+
+s_pump buffered_channel_pump::create(std::error_code& ec,const s_read_channel& src, std::size_t buffer_size) noexcept
+{
+    s_pump ret;
+    byte_buffer buff = byte_buffer::allocate(ec, buffer_size);
+    if(!ec)
+        ret = create(ec, src, std::move(buff)  );
+    return ret;
+}
+
+buffered_channel_pump::buffered_channel_pump(const s_read_channel& src,byte_buffer&& buff) noexcept:
+    channel_pump( src ),
+    read_buff_( std::forward<byte_buffer>(buff) )
+{}
 
 bool buffered_channel_pump::sync(std::error_code& ec) noexcept
 {
@@ -99,6 +100,8 @@ std::size_t buffered_channel_pump::pull(std::error_code& ec, uint8_t* const to,s
             read_buff_.clear();
             if( !sync(ec) )
                 break;
+            else
+                buffered = read_buff_.length();
         }
         io_memmove(to, read_buff_.position().get(), buffered );
         read_buff_.shift(buffered);
@@ -118,15 +121,15 @@ void funnel::flush(std::error_code& ec) noexcept
 }
 
 // channel_funnel
-channel_funnel::channel_funnel(s_write_channel&& dst) noexcept:
+channel_funnel::channel_funnel(const s_write_channel& dst) noexcept:
     funnel(),
-    dst_( std::forward<s_write_channel>(dst) )
+    dst_( dst )
 {}
 
-s_funnel channel_funnel::create(std::error_code& ec, s_write_channel&& dst) noexcept
+s_funnel channel_funnel::create(std::error_code& ec,const s_write_channel& dst) noexcept
 {
     s_funnel ret;
-    channel_funnel* px = new (std::nothrow) channel_funnel( std::forward<s_write_channel>(dst) );
+    channel_funnel* px = new (std::nothrow) channel_funnel( dst );
     if(nullptr == px)
         ec = std::make_error_code(std::errc::not_enough_memory);
     else
@@ -140,12 +143,12 @@ std::size_t channel_funnel::push(std::error_code& ec, const uint8_t* src, std::s
 }
 
 // buffered_channel_funnel
-s_funnel buffered_channel_funnel::create(std::error_code& ec, s_write_channel&& dst, std::size_t buffer_size) noexcept
+s_funnel buffered_channel_funnel::create(std::error_code& ec,const s_write_channel& dst, std::size_t buffer_size) noexcept
 {
     s_funnel ret;
     byte_buffer buff = byte_buffer::allocate(ec, buffer_size);
     if(!ec) {
-        buffered_channel_funnel* px = new (std::nothrow) buffered_channel_funnel(std::forward<s_write_channel>(dst), std::move(buff) );
+        buffered_channel_funnel* px = new (std::nothrow) buffered_channel_funnel(s_write_channel(dst), std::move(buff) );
         if(nullptr == px)
             ec = std::make_error_code(std::errc::not_enough_memory);
         else
@@ -154,8 +157,8 @@ s_funnel buffered_channel_funnel::create(std::error_code& ec, s_write_channel&& 
     return ret;
 }
 
-buffered_channel_funnel::buffered_channel_funnel(s_write_channel&& dst, byte_buffer&& buff) noexcept:
-    channel_funnel(std::forward<s_write_channel>(dst)),
+buffered_channel_funnel::buffered_channel_funnel(const s_write_channel& dst, byte_buffer&& buff) noexcept:
+    channel_funnel(dst),
     write_buff_(std::forward<byte_buffer>(buff))
 {}
 

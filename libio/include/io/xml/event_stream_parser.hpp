@@ -239,7 +239,7 @@ private:
 	}
 
 	inline void sb_clear() noexcept {
-		io_zerro_mem( const_cast<char*>(scan_buf_), MAX_SCAN_BUFF_SIZE);
+		io_bzero( const_cast<char*>(scan_buf_), MAX_SCAN_BUFF_SIZE);
 	}
 
 	inline std::size_t sb_len() noexcept {

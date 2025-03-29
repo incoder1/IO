@@ -11,7 +11,7 @@
 #include "stdafx.hpp"
 
 #include <io/textapi/charset_detector.hpp>
-#include <io/core/console.hpp>
+#include <io/console/console.hpp>
 
 #include  "io/textapi/detail/latin1_prober.hpp"
 #include  "io/textapi/detail/utf8_prober.hpp"

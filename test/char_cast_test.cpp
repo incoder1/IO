@@ -23,7 +23,7 @@ TEST_F(char_cast_fixture, unsingned_8bit_to_char)
 	char* last = first + sizeof(buff);
 
 	uint8_t u8bit = 0xFF;
-	io_zerro_mem(buff,sizeof(buff));
+	io_bzero(buff,sizeof(buff));
 	auto ret = io::to_chars(first, last, u8bit);
 	ASSERT_FALSE( std::make_error_code(ret.ec) );
 	ASSERT_EQ( ret.ptr, (buff+3) );
@@ -49,7 +49,7 @@ TEST_F(char_cast_fixture, unsingned_16bit_to_char)
 	char* last = first + sizeof(buff);
 
 	uint16_t u16bit = 0xFFFF;
-	io_zerro_mem(buff,sizeof(buff));
+	io_bzero(buff,sizeof(buff));
 	auto ret = io::to_chars(first, last, u16bit);
 	ASSERT_FALSE( std::make_error_code(ret.ec) );
 	ASSERT_EQ( ret.ptr, (buff+5) );
@@ -131,7 +131,7 @@ TEST_F(char_cast_fixture,singned_8bit_to_char)
 	ASSERT_STREQ(first,"-128");
 
 	s8bit = +127;
-	io_zerro_mem(buff,sizeof(buff));
+	io_bzero(buff,sizeof(buff));
 	ret = io::to_chars(first, last, s8bit);
 	ASSERT_FALSE( std::make_error_code(ret.ec) );
 	ASSERT_EQ( ret.ptr, (buff+3) );
@@ -174,7 +174,7 @@ TEST_F(char_cast_fixture,singned_16bit_to_char)
 	ASSERT_STREQ(first,"-32768");
 
 	s16bit = (std::numeric_limits<int16_t>::max)();
-	io_zerro_mem(buff,sizeof(buff));
+	io_bzero(buff,sizeof(buff));
 	ret = io::to_chars(first, last, s16bit);
 	ASSERT_FALSE( std::make_error_code(ret.ec) );
 	ASSERT_EQ( ret.ptr, (buff+5) );
@@ -218,7 +218,7 @@ TEST_F(char_cast_fixture,singned_32bit_to_char)
 	ASSERT_STREQ(first,"-2147483648");
 
 	s32bit = (std::numeric_limits<int32_t>::max)();
-	io_zerro_mem(buff,sizeof(buff));
+	io_bzero(buff,sizeof(buff));
 	ret = io::to_chars(first, last, s32bit);
 	ASSERT_FALSE( std::make_error_code(ret.ec) );
 	ASSERT_EQ( ret.ptr, (buff+10) );
@@ -261,7 +261,7 @@ TEST_F(char_cast_fixture,singned_64bit_to_char)
 	ASSERT_STREQ(first,"-9223372036854775808");
 
 	s64bit = (std::numeric_limits<int64_t>::max)();
-	io_zerro_mem(buff,sizeof(buff));
+	io_bzero(buff,sizeof(buff));
 	ret = io::to_chars(first, last, s64bit);
 	ASSERT_FALSE( std::make_error_code(ret.ec) );
 	ASSERT_EQ( ret.ptr, (buff+19) );
@@ -392,7 +392,7 @@ TEST_F(char_cast_fixture,boolean_to_chars_fromat_yes_no)
 	ASSERT_EQ( ret.ptr, first+io_strlen(expected_positive) );
 	ASSERT_STREQ(first,expected_positive);
 
-	io_zerro_mem(buff,sizeof(buff));
+	io_bzero(buff,sizeof(buff));
 
 	static const char* expected_negative = "no";
 	ret = io::to_chars(first, last, false, io::str_bool_format::yes_no);
@@ -414,7 +414,7 @@ TEST_F(char_cast_fixture,boolean_to_chars_fromat_true_false)
 	ASSERT_EQ( ret.ptr, first+io_strlen(expected_positive) );
 	ASSERT_STREQ(first,expected_positive);
 
-	io_zerro_mem(buff,sizeof(buff));
+	io_bzero(buff,sizeof(buff));
 
 	static const char* expected_negative = "false";
 	ret = io::to_chars(first, last, false);

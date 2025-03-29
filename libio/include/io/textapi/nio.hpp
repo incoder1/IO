@@ -1,6 +1,6 @@
 /*
  *
- * Copyright (c) 2016-2023
+ * Copyright (c) 2016-2025
  * Viktor Gubin
  *
  * Use, modification and distribution are subject to the
@@ -25,7 +25,7 @@
 #endif // __HAS_CPP_17
 
 #include <io/core/stateful.hpp>
-#include <io/core/conststring.hpp>
+#include <io/core/const_string.hpp>
 #include <io/core/error_check.hpp>
 #include <io/core/type_traits_ext.hpp>
 
@@ -156,7 +156,7 @@ public:
 
 	std::size_t read(std::error_code& ec, char_type* const to, std::size_t chars) noexcept
 	{
-		std::size_t bytes_read = src_->pull( ec, reinterpret_cast<char_type*>(to), chars * sizeof(char_type) );
+		std::size_t bytes_read = src_->pull( ec, reinterpret_cast<uint8_t*>(to), chars * sizeof(char_type) );
 		return bytes_read / sizeof(char_type);
 	}
 
@@ -227,9 +227,9 @@ public:
 
 	~basic_writer() noexcept
 	{
-		if(dst_ && !buffer_.empty() && !ec_ ) {
-			buffer_.flip();
-			dst_->push(ec_, buffer_.position().get(), buffer_.length());
+		buffer_.flip();
+		if(dst_ && !buffer_.empty()) {
+			dst_->push(ec_,  buffer_.position().get(), buffer_.length() );
 			dst_->flush(ec_);
 		}
 	}
@@ -243,8 +243,10 @@ public:
 
 	void write(const C* str, std::size_t len) noexcept
 	{
-		if( buffer_.available() < length_to_bytes(len) )
+		std::size_t bytes = length_to_bytes(len);
+		if( buffer_.available() <= bytes ) {
 			flush();
+		}
 		buffer_.put(str, len);
 	}
 
@@ -307,12 +309,10 @@ public:
 
 	void flush() noexcept
 	{
-		if(!buffer_.empty() && !ec_) {
+		if(!ec_) {
 			buffer_.flip();
 			dst_->push(ec_,  buffer_.position().get(), buffer_.length() );
-			//transmit_buffer(ec_, dst_, buffer_.position().get(), buffer_.length() );
-			if(!ec_)
-				buffer_.clear();
+			buffer_.clear();
 		}
 	}
 private:

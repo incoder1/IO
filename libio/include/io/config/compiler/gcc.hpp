@@ -1,6 +1,6 @@
 /*
  *
- * Copyright (c) 2016-2023
+ * Copyright (c) 2016-2025
  * Viktor Gubin
  *
  * Use, modification and distribution are subject to the
@@ -33,6 +33,10 @@
 #if __cplusplus >= 202302L
 #	define __HAS_CPP_23 1
 #endif // C++ 23
+
+#if __cplusplus >= 202302L
+#	define __HAS_CPP_26 1
+#endif // C++ 26
 
 #define HAS_PRAGMA_ONCE
 
@@ -93,7 +97,7 @@
 
 #define io_memcmp(__p1,__p2,__bytes) __builtin_memcmp((__p1),(__p2),(__bytes))
 
-#define io_zerro_mem(__p,__bytes) __builtin_bzero( (__p), (__bytes) )
+#define io_bzero(__p,__bytes) __builtin_bzero( (__p), (__bytes) )
 
 #define io_memchr(__s,__c,__n) __builtin_memchr((__s),(__c),(__n))
 

@@ -1,6 +1,6 @@
 /*
  *
- * Copyright (c) 2016-2023
+ * Copyright (c) 2016-2025
  * Viktor Gubin
  *
  * Use, modification and distribution are subject to the
@@ -9,7 +9,7 @@
  *
  */
 #include "stdafx.hpp"
-#include "io/core/win/console.hpp"
+#include "io/console/win/console.hpp"
 
 #ifndef CP_WINUNICODE
 #define CP_WINUNICODE 1200
@@ -47,18 +47,6 @@ std::size_t console_channel::write(std::error_code& err, const uint8_t* buff,std
 	if(! ::WriteConsoleW(hcons_, static_cast<const void*>(buff), ::DWORD(size / sizeof(::WCHAR)), &result, nullptr ) )
 		err.assign( ::GetLastError(), std::system_category() );
 	return result * sizeof(::WCHAR);
-}
-
-
-
-s_read_channel IO_PUBLIC_SYMBOL conv_read_channel(const s_read_channel& ch)
-{
-	std::error_code ec;
-	s_charset_converter conv = charset_converter::open(ec,code_pages::utf8(),code_pages::utf16le());
-	io::check_error_code( ec );
-	s_read_channel result =  ch ; // conv_read_channel::open(ec, ch, conv);
-	io::check_error_code( ec );
-	return result;
 }
 
 
@@ -113,6 +101,18 @@ console::~console() noexcept
 	// Release console in case of GUI app
 	if(need_release_)
 		::FreeConsole();
+}
+
+s_funnel console::conv_out_funnel() const
+{
+	std::error_code ec;
+	io::s_funnel ret = io::charset_converting_channel_funnel::create(ec,
+				s_write_channel(out_),
+				io::code_pages::utf8(),
+				io::code_pages::utf16le(),
+				512 );
+	io::check_error_code(ec);
+	return ret;
 }
 
 void console::change_colors(const text_color in,const text_color out,const text_color err) noexcept

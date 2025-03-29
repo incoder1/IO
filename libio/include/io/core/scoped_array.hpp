@@ -1,6 +1,6 @@
 /*
  *
- * Copyright (c) 2016-2023
+ * Copyright (c) 2016-2025
  * Viktor Gubin
  *
  * Use, modification and distribution are subject to the
@@ -123,7 +123,7 @@ public:
 	/// Fill allocated memory by 0 values
 	inline void clear() noexcept
 	{
-		io_zerro_mem(mem_, (len_  * sizeof(T)) );
+		io_bzero(mem_, (len_  * sizeof(T)) );
 	}
 
 	/// Swaps this array with another

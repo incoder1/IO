@@ -1,6 +1,6 @@
 /*
  *
- * Copyright (c) 2016-2023
+ * Copyright (c) 2016-2025
  * Viktor Gubin
  *
  * Use, modification and distribution are subject to the
@@ -12,6 +12,7 @@
 #define __IO_MEMORY_CHANNEL_HPP_INCLUDED__
 
 #include <io/config/libio_config.hpp>
+#include <limits>
 
 #ifdef HAS_PRAGMA_ONCE
 #pragma once
@@ -25,7 +26,6 @@ namespace io {
 /// \brief Memory buffer read channel
 class IO_PUBLIC_SYMBOL memory_read_channel final: public read_channel {
 private:
-	friend class nobadalloc<memory_read_channel>;
 	memory_read_channel(byte_buffer&& data) noexcept;
 public:
 	/// Open a memory buffer channel

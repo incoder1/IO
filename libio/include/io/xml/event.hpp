@@ -17,7 +17,7 @@
 #pragma once
 #endif // HAS_PRAGMA_ONCE
 
-#include <io/core/conststring.hpp>
+#include <io/core/const_string.hpp>
 #include <io/core/stringpool.hpp>
 
 #include <algorithm>

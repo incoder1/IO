@@ -143,6 +143,7 @@
 			<Option weight="0" />
 		</Unit>
 		<Unit filename="string_cast.cpp" />
+		<Unit filename="test_xml_event_parsing_test.cpp" />
 		<Unit filename="time_cast_test.cpp" />
 		<Extensions>
 			<DoxyBlocks>

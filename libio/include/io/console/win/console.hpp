@@ -1,6 +1,6 @@
 /*
  *
- * Copyright (c) 2016-2023
+ * Copyright (c) 2016-2025
  * Viktor Gubin
  *
  * Use, modification and distribution are subject to the
@@ -23,15 +23,12 @@
 #include <wincon.h>
 #include <tchar.h>
 
-#include "criticalsection.hpp"
-#include "errorcheck.hpp"
+//#include "io/core/detail/criticalsection.hpp"
+//#include <io/core/error_check.hpp>
 
 #include "io/textapi/nio.hpp"
 #include "io/textapi/stream.hpp"
 
-#ifndef _CU
-#	define _CU(quote) L##quote
-#endif // __LOCALE_TEXT
 
 namespace io {
 
@@ -54,9 +51,6 @@ private:
 	::HANDLE hcons_;
 };
 
-
-//s_write_channel IO_PUBLIC_SYMBOL conv_write_channel(const s_write_channel& ch);
-s_read_channel IO_PUBLIC_SYMBOL conv_read_channel(const s_read_channel& ch);
 
 } // namesapce win
 
@@ -103,6 +97,8 @@ private:
 	static ::HANDLE err_handle() noexcept;
 
 	::WORD	current_stream_attributes(::HANDLE hcons) noexcept;
+
+	io::s_funnel conv_out_funnel() const;
 
 public:
 	/// Opens or connect to existing Windows console
@@ -152,7 +148,7 @@ private:
 class console_out_writer: public writer {
 public:
 	explicit console_out_writer(console& cons):
-		writer( win::console_channel(cons.out_) )
+		writer( cons.conv_out_funnel() )
 	{}
 };
 
@@ -160,7 +156,7 @@ public:
 class console_input_stream: public cnl_istream {
 public:
 	explicit console_input_stream(console& cons):
-		cnl_istream( win::console_channel( cons.in_ ) )
+		cnl_istream( cons.in_  )
 	{}
 };
 

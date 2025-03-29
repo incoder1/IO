@@ -1,6 +1,6 @@
 /*
  *
- * Copyright (c) 2016-2023
+ * Copyright (c) 2016-2025
  * Viktor Gubin
  *
  * Use, modification and distribution are subject to the
@@ -24,7 +24,7 @@
 
 #include <atomic>
 
-#include <io/core/conststring.hpp>
+#include <io/core/const_string.hpp>
 #include <io/core/threading.hpp>
 
 #include "wsaerror.hpp"

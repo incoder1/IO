@@ -1,6 +1,6 @@
 /*
  *
- * Copyright (c) 2016-2023
+ * Copyright (c) 2016-2025
  * Viktor Gubin
  *
  * Use, modification and distribution are subject to the
@@ -66,11 +66,11 @@ static void print_error_message(int errcode,const char* message, std::size_t len
 	len = ::StringCchPrintfW( msg, len, L"error code: %d %Z \n", errcode, message);
 #else
 	char* tmp = static_cast<char*> ( io_alloca( len ) );
-	io_zerro_mem( tmp, len);
+	io_bzero( tmp, len);
 	io_snprintf(tmp, len, "error code: %d %s \n", errcode, message);
 	std::size_t wlen = ::MultiByteToWideChar( CP_UTF8, 0, tmp, -1, nullptr, 0 );
 	wchar_t *msg = static_cast<wchar_t*>( io_alloca( wlen ) );
-	io_zerro_mem( msg, len);
+	io_bzero( msg, len);
 	::MultiByteToWideChar( CP_UTF8, 0, tmp, -1, msg, wlen);
 	len = wlen;
 	io_freea(tmp);
@@ -112,7 +112,7 @@ ios_check_error_code(const char* msg, std::error_code const &ec )
 		std::string m = ec.message();
 		std::size_t size = io_strlen(msg) + m.length() + 2;
 		char *errmsg = static_cast<char*>( io_alloca( size) );
-		io_zerro_mem(errmsg, size);
+		io_bzero(errmsg, size);
 		io_strcpy(errmsg, msg);
 		strcat(errmsg," ");
 		strcat(errmsg, m.data());

@@ -10,7 +10,7 @@
 
 // For parsing event from
 #include <io/core/files.hpp>
-#include <io/core/console.hpp>
+#include <io/console/console.hpp>
 #include <io/core/char_cast.hpp>
 
 #include <io/xml/event_stream_parser.hpp>

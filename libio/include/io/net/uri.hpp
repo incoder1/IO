@@ -1,6 +1,6 @@
 /*
  *
- * Copyright (c) 2016-2023
+ * Copyright (c) 2016-2025
  * Viktor Gubin
  *
  * Use, modification and distribution are subject to the
@@ -21,7 +21,7 @@
 #include <ostream>
 #include <type_traits>
 
-#include <io/core/conststring.hpp>
+#include <io/core/const_string.hpp>
 
 namespace io {
 

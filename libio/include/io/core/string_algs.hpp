@@ -1,6 +1,6 @@
 /*
  *
- * Copyright (c) 2016-2023
+ * Copyright (c) 2016-2025
  * Viktor Gubin
  *
  * Use, modification and distribution are subject to the
@@ -91,7 +91,7 @@ constexpr bool is_eof(char_type ch) noexcept {
 	return std::char_traits<char_type>::eof() == std::char_traits<char_type>::to_int_type(ch);
 }
 
-/// Check current symbol is enof of file symbol
+/// Check current symbol is end of file symbol
 /// \param c compare left hand statement code point
 #ifdef IO_HAS_CONNCEPTS
 template<typename char_type>

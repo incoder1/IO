@@ -30,7 +30,7 @@
 #	define __HAS_CPP_20 1
 #endif // C++ 20
 
-#if __cplusplus >= 202302L
+#if __cplusplus >= 202502L
 #	define __HAS_CPP_23 1
 #endif // C++ 23
 
@@ -108,9 +108,11 @@
 #endif
 
 #if __has_builtin(__builtin_bzero)
-#	define io_zerro_mem(__p,__bytes) __builtin_bzero( (__p), (__bytes) )
+#	define io_bzero(__p,__bytes) __builtin_bzero( (__p), (__bytes) )
+#elif __has_builtin(__builtin_memset)
+#	define io_bzero(__p,__bytes) __builtin_memset( (__p), 0, (__bytes) )
 #else
-#	define io_zerro_mem(__p,__bytes) io_memset( (__p), 0, (__bytes) )
+#	define io_bzero(__p,__bytes) std::memset( (__p), 0, (__bytes) )
 #endif
 
 #if __has_builtin(__builtin_memchr)

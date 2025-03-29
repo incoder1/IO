@@ -1,6 +1,6 @@
 /*
  *
- * Copyright (c) 2016-2023
+ * Copyright (c) 2016-2025
  * Viktor Gubin
  *
  * Use, modification and distribution are subject to the
@@ -1055,7 +1055,7 @@ static bool cmp_false(const char* s) noexcept
 }
 
 #ifdef IO_DELCSPEC
-IO_PUBLIC_SYMBOL from_chars_result 
+IO_PUBLIC_SYMBOL from_chars_result
 #else
 from_chars_result IO_PUBLIC_SYMBOL
 #endif
@@ -1114,7 +1114,7 @@ to_string(std::error_code& ec, const bool value, str_bool_format fmt) noexcept
 
 
 #ifdef IO_DELCSPEC
-IO_PUBLIC_SYMBOL to_chars_result 
+IO_PUBLIC_SYMBOL to_chars_result
 #else
 to_chars_result IO_PUBLIC_SYMBOL
 #endif

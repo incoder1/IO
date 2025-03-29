@@ -1,6 +1,6 @@
 /*
  *
- * Copyright (c) 2016-2023
+ * Copyright (c) 2016-2025
  * Viktor Gubin
  *
  * Use, modification and distribution are subject to the
@@ -9,7 +9,7 @@
  *
  */
 #include "stdafx.hpp"
-#include "io/core/posix/console.hpp"
+#include "io/console/posix/console.hpp"
 
 namespace io {
 

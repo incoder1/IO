@@ -124,7 +124,7 @@ typedef SSIZE_T ssize_t;
 
 #define io_memcmp(__p1,__p2,__bytes) memcmp( (__p1), (__p2),(__bytes) )
 
-#define io_zerro_mem(__p,__bytes) RtlZeroMemory( (__p), (__bytes) )
+#define io_bzero(__p,__bytes) RtlZeroMemory( (__p), (__bytes) )
 
 #define io_strcat(__dst,__src) strcat( (__dst) , (__src) )
 
