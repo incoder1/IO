@@ -38,7 +38,7 @@ std::size_t memory_read_channel::read(std::error_code& ec,uint8_t* const buff, s
 	}
 	else if (io_likely(!data_.empty())) {
 		lock_guard lock(mtx_);
-		std::size_t available = data_.size();
+		std::size_t available = data_.length();
 		ret = (available >= bytes) ? bytes : available;
 		io_memmove(buff, data_.position().get(), ret);
 		data_.shift(ret);

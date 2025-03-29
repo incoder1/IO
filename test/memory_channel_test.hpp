@@ -1,6 +1,7 @@
-#ifndef __MEMORY_REEAD_CHANNEL_FIXTURE_HPP_INCLUDED__
-#define __MEMORY_REEAD_CHANNEL_FIXTURE_HPP_INCLUDED__
+#ifndef __MEMORY_REEAD_CHANNEL_TEST_HPP_INCLUDED__
+#define __MEMORY_REEAD_CHANNEL_TEST_HPP_INCLUDED__
 
+#include <io/config/libio_config.hpp>
 
 #ifdef HAS_PRAGMA_ONCE
 #pragma once

@@ -18,6 +18,7 @@
 #endif // HAS_PRAGMA_ONCE
 
 #include "channels.hpp"
+#include "threading.hpp"
 
 namespace io {
 
@@ -31,7 +32,6 @@ protected:
 	pump() noexcept;
 public:
 	virtual std::size_t pull(std::error_code& ec, uint8_t* const to, std::size_t bytes) noexcept = 0;
-	virtual bool sync(std::error_code& ec) noexcept;
 };
 
 class IO_PUBLIC_SYMBOL channel_pump: public pump {
@@ -51,9 +51,14 @@ public:
 	static s_pump create(std::error_code& ec,const s_read_channel& src, byte_buffer&& buff) noexcept;
 	static s_pump create(std::error_code& ec,const s_read_channel& src, std::size_t buffer_size) noexcept;
 	virtual std::size_t pull(std::error_code& ec, uint8_t* const to, std::size_t bytes) noexcept override;
-	virtual bool sync(std::error_code& ec) noexcept override;
+protected:
+	bool sync(std::error_code& ec) noexcept;
+private:
+	std::size_t get_chunk_size(std::size_t bytes) noexcept;
+	std::size_t take(uint8_t* const to, std::size_t bytes) noexcept;
 protected:
 	byte_buffer read_buff_;
+	critical_section mtx_;
 };
 
 class funnel;
@@ -84,9 +89,12 @@ protected:
 public:
 	static s_funnel create(std::error_code& ec,const s_write_channel& dst, std::size_t buffer_size) noexcept;
 	virtual std::size_t push(std::error_code& ec, const uint8_t* src, std::size_t bytes) noexcept override;
-	virtual void flush(std::error_code& ec) noexcept override;
+protected:
+	void flush(std::error_code& ec) noexcept override;
 protected:
 	byte_buffer write_buff_;
+private:
+	critical_section mtx_;
 };
 
 } // namespace io

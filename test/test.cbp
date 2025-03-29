@@ -22,6 +22,7 @@
 					<Add option="-D_UNICODE" />
 					<Add option="-DUNICODE" />
 					<Add directory="include/win" />
+					<Add directory="./" />
 				</Compiler>
 				<Linker>
 					<Add library="io" />
@@ -46,6 +47,7 @@
 					<Add option="-D_WIN32_WINNT=0x0A00" />
 					<Add option="-D_UNICODE" />
 					<Add option="-DUNICODE" />
+					<Add directory="./" />
 				</Compiler>
 				<Linker>
 					<Add option="-O3" />
@@ -70,6 +72,7 @@
 					<Add option="-D_WIN32_WINNT=0x0A00" />
 					<Add option="-D_UNICODE" />
 					<Add option="-DUNICODE" />
+					<Add directory="./" />
 				</Compiler>
 				<Linker>
 					<Add library="io" />
@@ -93,6 +96,7 @@
 					<Add option="-D_WIN32_WINNT=0x0A00" />
 					<Add option="-D_UNICODE" />
 					<Add option="-DUNICODE" />
+					<Add directory="./" />
 				</Compiler>
 				<Linker>
 					<Add option="-s" />
@@ -115,6 +119,7 @@
 					<Add option="-std=gnu++23" />
 					<Add option="-fexceptions" />
 					<Add option="`pkg-config --cflags gtest gnutls`" />
+					<Add directory="./" />
 				</Compiler>
 				<Linker>
 					<Add option="`pkg-config --libs gtest gnutls`" />
@@ -137,6 +142,10 @@
 		<Unit filename="fixtures.hpp" />
 		<Unit filename="hash_test.cpp" />
 		<Unit filename="main.cpp" />
+		<Unit filename="memory_channel_test.cpp" />
+		<Unit filename="memory_channel_test.hpp" />
+		<Unit filename="statefull_test.cpp" />
+		<Unit filename="statefull_test.hpp" />
 		<Unit filename="stdafx.cpp" />
 		<Unit filename="stdafx.hpp">
 			<Option compile="1" />

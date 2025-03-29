@@ -18,11 +18,6 @@ pump::pump() noexcept:
     object()
 {}
 
-bool pump::sync(std::error_code& ec) noexcept
-{
-    return true;
-}
-
 // channel_pump
 channel_pump::channel_pump(const s_read_channel& src) noexcept:
       pump(),
@@ -69,7 +64,8 @@ s_pump buffered_channel_pump::create(std::error_code& ec,const s_read_channel& s
 
 buffered_channel_pump::buffered_channel_pump(const s_read_channel& src,byte_buffer&& buff) noexcept:
     channel_pump( src ),
-    read_buff_( std::forward<byte_buffer>(buff) )
+    read_buff_( std::forward<byte_buffer>(buff) ),
+    mtx_()
 {}
 
 bool buffered_channel_pump::sync(std::error_code& ec) noexcept
@@ -88,25 +84,36 @@ bool buffered_channel_pump::sync(std::error_code& ec) noexcept
     return ret;
 }
 
+std::size_t buffered_channel_pump::get_chunk_size(std::size_t bytes) noexcept
+{
+    std::size_t buffered = read_buff_.length();
+    return bytes > buffered ? buffered : bytes;
+}
+
+std::size_t buffered_channel_pump::take(uint8_t* const to, std::size_t bytes) noexcept
+{
+    std::size_t length = read_buff_.length();
+    std::size_t ret = bytes > length ? length : bytes;
+    io_memmove(to, read_buff_.position().get(), ret );
+    read_buff_.shift(ret);
+    return ret;
+}
+
 std::size_t buffered_channel_pump::pull(std::error_code& ec, uint8_t* const to,std::size_t bytes) noexcept
 {
+    lock_guard lock(mtx_);
     std::size_t	ret = 0;
+    uint8_t* i = to;
     while( (bytes > 0) && !ec) {
-        std::size_t buffered = read_buff_.length();
-        if( buffered >= bytes) {
-            buffered = bytes;
-        }
-        else if( 0 == buffered) {
+        if (0 == read_buff_.length()) {
             read_buff_.clear();
             if( !sync(ec) )
                 break;
-            else
-                buffered = read_buff_.length();
         }
-        io_memmove(to, read_buff_.position().get(), buffered );
-        read_buff_.shift(buffered);
-        ret += bytes;
-        bytes -= buffered;
+        std::size_t taken = take(i, get_chunk_size(bytes));
+        i += taken;
+        ret += taken;
+        bytes -= taken;
     }
     return ret;
 }
@@ -159,7 +166,8 @@ s_funnel buffered_channel_funnel::create(std::error_code& ec,const s_write_chann
 
 buffered_channel_funnel::buffered_channel_funnel(const s_write_channel& dst, byte_buffer&& buff) noexcept:
     channel_funnel(dst),
-    write_buff_(std::forward<byte_buffer>(buff))
+    write_buff_(std::forward<byte_buffer>(buff)),
+    mtx_()
 {}
 
 
@@ -176,6 +184,7 @@ void buffered_channel_funnel::flush(std::error_code& ec) noexcept
 
 std::size_t buffered_channel_funnel::push(std::error_code& ec, const uint8_t* src, std::size_t bytes) noexcept
 {
+    lock_guard lock(mtx_);
     std::size_t ret = 0;
     const uint8_t* px = src;
     while( !ec &&  (bytes > 0) ) {
