@@ -170,9 +170,9 @@ buffered_channel_funnel::buffered_channel_funnel(const s_write_channel& dst, byt
     mtx_()
 {}
 
-
 void buffered_channel_funnel::flush(std::error_code& ec) noexcept
 {
+    lock_guard lock(mtx_);
     write_buff_.flip();
     while(!ec && (write_buff_.length() > 0) ) {
         std::size_t flushed = channel_funnel::push(ec,  write_buff_.position().get(),  write_buff_.length());
@@ -182,27 +182,27 @@ void buffered_channel_funnel::flush(std::error_code& ec) noexcept
         write_buff_.clear();
 }
 
+std::size_t buffered_channel_funnel::put(const uint8_t* src, std::size_t bytes) noexcept
+{
+    std::size_t available = write_buff_.available();
+    std::size_t ret = bytes > available ? available : bytes;
+    write_buff_.put(src, ret);
+    return ret;
+}
+
 std::size_t buffered_channel_funnel::push(std::error_code& ec, const uint8_t* src, std::size_t bytes) noexcept
 {
     lock_guard lock(mtx_);
     std::size_t ret = 0;
     const uint8_t* px = src;
     while( !ec &&  (bytes > 0) ) {
-        std::size_t available = write_buff_.available();
-        if( available == 0 ) {
+        if( write_buff_.full() ) {
             flush(ec);
         }
-        else if( bytes > write_buff_.capacity() ) {
-            write_buff_.put(px, available);
-            px += available;
-            bytes -= available;
-            ret += available;
-        }
-        else if( bytes <= available) {
-            write_buff_.put( px, bytes );
-            ret += bytes;
-            bytes = 0;
-        }
+        std::size_t written = put(px, bytes);
+        px += written;
+        ret += written;
+        bytes -= written;
     }
     return ret;
 }

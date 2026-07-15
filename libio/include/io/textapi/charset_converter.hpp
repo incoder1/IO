@@ -370,11 +370,19 @@ private:
 	charset_converting_channel_funnel(const s_write_channel& dst, byte_buffer&& wb, byte_buffer&& cvb, s_charset_converter&& cvt) noexcept;
 public:
 	static s_funnel create(std::error_code& ec, s_write_channel&& dst, const charset* from, const charset* to, std::size_t buffer_size) noexcept;
-	virtual std::size_t push(std::error_code& ec, const uint8_t* src, std::size_t bytes) noexcept override;
-	virtual void flush(std::error_code& ec) noexcept override;
+    virtual std::size_t push(std::error_code& ec, const uint8_t* src, std::size_t bytes) noexcept override;
 private:
-	byte_buffer cvt_buff_;
-	s_charset_converter cvt_;
+    // Consolidates old leftovers with new incoming data
+    bool consolidate_leftovers(std::error_code& ec, const uint8_t* src, std::size_t bytes,
+                               byte_buffer& staging, const uint8_t*& px, std::size_t& bytes_left) noexcept;
+    // Handles the lazy-allocation and preservation of incomplete multibyte sequences
+    void preserve_incomplete_sequence(std::error_code& ec, const uint8_t* px, std::size_t chunk) noexcept;
+    // Flushes converted data from cvt_buff_ downstream to the channel
+    void flush_converted_buffer(std::error_code& ec) noexcept;
+private:
+    byte_buffer cvt_buff_;
+    s_charset_converter cvt_;
+    byte_buffer leftover_;
 };
 
 } // namespace io

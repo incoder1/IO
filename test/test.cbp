@@ -14,7 +14,7 @@
 				<Option parameters="--gtest_color=yes --gtest_output=xml:test.xml" />
 				<Compiler>
 					<Add option="-Winit-self" />
-					<Add option="-std=gnu++23" />
+					<Add option="-std=gnu++26" />
 					<Add option="-ggdb" />
 					<Add option="-Og" />
 					<Add option="-g" />

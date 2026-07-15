@@ -64,7 +64,8 @@ byte_buffer::byte_buffer(byte_buffer&& other) noexcept:
 std::size_t byte_buffer::put(const uint8_t* arr,const std::size_t count) noexcept
 {
 	std::size_t ret = 0;
-	if( 0 != count || nullptr != arr || count <= available() ) {
+	std::size_t free = available();
+	if(nullptr != arr && count > 0 && count <= free ) {
 		io_memmove( position_, arr, count);
 		position_ += count;
 		last_ = position_ + 1;

@@ -221,33 +221,47 @@ public:
 
 	basic_writer& operator=(basic_writer&& other) noexcept
 	{
-		basic_writer( other ).swap( *this );
-		return *this;
+    	basic_writer( std::forward(other) ).swap( *this );
+    	return *this;
 	}
 
 	~basic_writer() noexcept
 	{
 		buffer_.flip();
-		if(dst_ && !buffer_.empty()) {
-			dst_->push(ec_,  buffer_.position().get(), buffer_.length() );
-			dst_->flush(ec_);
-		}
+    	if(dst_ && !buffer_.empty()) {
+        	dst_->push(ec_,  buffer_.position().get(), buffer_.length() );
+        	dst_->flush(ec_); // Called here on destruction
+    	}
 	}
 
 	void write(C ch) noexcept
 	{
-		if( buffer_.full() )
+		if( buffer_.available() < char_width )
 			flush();
-		buffer_.put(ch);
+    	if(!ec_)
+        	buffer_.put(reinterpret_cast<const uint8_t*>(&ch), char_width);
 	}
 
 	void write(const C* str, std::size_t len) noexcept
 	{
-		std::size_t bytes = length_to_bytes(len);
-		if( buffer_.available() <= bytes ) {
-			flush();
+		if (!ec_ && nullptr != str && len > 0) {
+			std::size_t left = len;
+			const C* px = str;
+			while (left > 0 && !ec_) {
+				std::size_t free_chars = buffer_.available() / char_width;
+				if (buffer_.full() || (free_chars < left) ) {
+					flush();
+					free_chars =  buffer_.capacity() / char_width;
+				}
+				std::size_t chunk = free_chars > left ? left : free_chars;
+				if(!ec_ && chunk > 0) {
+					std::size_t bytes_to_write = chunk * char_width;
+					buffer_.put(reinterpret_cast<const uint8_t*>(px), bytes_to_write);
+					px += chunk;
+					left -= chunk;
+				}
+			}
 		}
-		buffer_.put(str, len);
 	}
 
 	void write(const C* str) noexcept
@@ -312,6 +326,7 @@ public:
 		if(!ec_) {
 			buffer_.flip();
 			dst_->push(ec_,  buffer_.position().get(), buffer_.length() );
+			dst_->flush(ec_);
 			buffer_.clear();
 		}
 	}

@@ -84,16 +84,17 @@ private:
 };
 
 class IO_PUBLIC_SYMBOL buffered_channel_funnel: public channel_funnel {
-protected:
+public:
 	buffered_channel_funnel(const s_write_channel& dst, byte_buffer&& buff) noexcept;
 public:
 	static s_funnel create(std::error_code& ec,const s_write_channel& dst, std::size_t buffer_size) noexcept;
 	virtual std::size_t push(std::error_code& ec, const uint8_t* src, std::size_t bytes) noexcept override;
+	virtual void flush(std::error_code& ec) noexcept override;
 protected:
-	void flush(std::error_code& ec) noexcept override;
-protected:
-	byte_buffer write_buff_;
+	std::size_t put(const uint8_t* src, std::size_t bytes) noexcept;
 private:
+	byte_buffer write_buff_;
+protected:
 	critical_section mtx_;
 };
 

@@ -310,7 +310,6 @@ void charset_converter::convert(std::error_code& ec, const uint8_t** in,std::siz
 
 void charset_converter::convert(std::error_code& ec, const uint8_t* src,const std::size_t size, byte_buffer& dst) const noexcept
 {
-    dst.clear();
     std::size_t left = size;
     std::size_t available = dst.available();
     const uint8_t** s = std::addressof(src);
@@ -318,13 +317,8 @@ void charset_converter::convert(std::error_code& ec, const uint8_t* src,const st
     while(left > 0 && !ec) {
         convert(ec, s, left, std::addressof(d), available);
     }
-    if(!ec) {
+    if(!ec)
         dst.move(dst.capacity() - available);
-        dst.flip();
-    }
-    else {
-        dst.clear();
-    }
 }
 
 void charset_converter::convert(std::error_code& ec, byte_buffer& src, byte_buffer& dst) const noexcept
@@ -484,7 +478,7 @@ s_funnel charset_converting_channel_funnel::create(std::error_code& ec, s_write_
 {
     s_funnel ret;
     byte_buffer wb = byte_buffer::allocate(ec, buffer_size );
-    byte_buffer cvb = byte_buffer::allocate(ec, (buffer_size / 2) );
+    byte_buffer cvb = byte_buffer::allocate(ec, buffer_size * 4 );
     if(!ec) {
         auto cvt = charset_converter::open(ec, from, to);
         if(!ec) {
@@ -498,45 +492,101 @@ s_funnel charset_converting_channel_funnel::create(std::error_code& ec, s_write_
     return ret;
 }
 
-charset_converting_channel_funnel::charset_converting_channel_funnel(const s_write_channel& dst, byte_buffer&& wb, byte_buffer&& cvb, s_charset_converter&& cvt) noexcept:
+charset_converting_channel_funnel::charset_converting_channel_funnel(const s_write_channel& dst,byte_buffer&& wb, byte_buffer&& cvb, s_charset_converter&& cvt) noexcept:
     buffered_channel_funnel( dst, std::forward<byte_buffer>(wb) ),
     cvt_buff_( std::forward<byte_buffer>(cvb) ),
-    cvt_( std::forward<s_charset_converter>(cvt) )
+    cvt_( std::forward<s_charset_converter>(cvt) ),
+    leftover_()
 {}
-
-void charset_converting_channel_funnel::flush(std::error_code& ec) noexcept
-{
-    cvt_buff_.flip();
-    while( (cvt_buff_.length() > 0 ) && !ec ) {
-        write_buff_.clear();
-        cvt_->convert(ec, cvt_buff_, write_buff_);
-        if(!ec)
-            buffered_channel_funnel::flush(ec);
-    }
-    if(!ec)
-        cvt_buff_.clear();
-}
 
 std::size_t charset_converting_channel_funnel::push(std::error_code& ec, const uint8_t* src, std::size_t bytes) noexcept
 {
+    lock_guard lock(mtx_);
     std::size_t ret = 0;
+    if (ec || nullptr == src || 0 == bytes) {
+        return ret;
+    }
     const uint8_t* px = src;
-    while( !ec &&  (bytes > 0) ) {
-        std::size_t available = cvt_buff_.available();
-        if( bytes > cvt_buff_.capacity() ) {
-            cvt_buff_.put(px, available);
-            px += available;
-            bytes -= available;
-            ret += available;
+    std::size_t bytes_left = bytes;
+    byte_buffer staging;
+    // Stage leftovers if we have any from a previous boundary split
+    if (!leftover_.empty()) {
+        if (!consolidate_leftovers(ec, src, bytes, staging, px, bytes_left)) {
+            return 0;
         }
-        else if( bytes <= available) {
-            cvt_buff_.put( px, bytes );
-            ret += bytes;
-            bytes = 0;
+    }
+    // Process character conversion
+    while (!ec && bytes_left > 0) {
+        cvt_buff_.clear();
+        const std::size_t dest_size = cvt_buff_.capacity() / 4;
+        const std::size_t chunk = (bytes_left > dest_size) ? dest_size : bytes_left;
+        std::error_code cvt_ec;
+        cvt_->convert(cvt_ec, px, chunk, cvt_buff_);
+        if (cvt_ec) {
+            if (converrc::incomplete_multibyte_sequence == static_cast<converrc>(cvt_ec.value())) {
+                preserve_incomplete_sequence(ec, px, chunk);
+                if (!ec) {
+                    px += chunk;
+                    bytes_left -= chunk;
+                }
+            } else {
+                ec = cvt_ec;
+            }
+            break;
         }
-        flush(ec);
+        px += chunk;
+        bytes_left -= chunk;
+        // Determine how much of the caller's incoming "src" we successfully read
+        ret = (bytes_left < bytes) ? (bytes - bytes_left) : bytes;
+        flush_converted_buffer(ec);
     }
     return ret;
+}
+
+bool charset_converting_channel_funnel::consolidate_leftovers(
+    std::error_code& ec, const uint8_t* src, std::size_t bytes,
+    byte_buffer& staging, const uint8_t*& px, std::size_t& bytes_left) noexcept
+{
+    const std::size_t leftover_len = leftover_.length();
+    const std::size_t needed_capacity = leftover_len + bytes;
+
+    staging = byte_buffer::allocate(ec, needed_capacity);
+    if (!ec) {
+        staging.put(leftover_.position().get(), leftover_len);
+        staging.put(src, bytes);
+        staging.flip();
+
+        px = staging.position().get();
+        bytes_left = staging.length();
+        leftover_.clear();
+        return true;
+    }
+    return false;
+}
+
+void charset_converting_channel_funnel::preserve_incomplete_sequence(
+    std::error_code& ec, const uint8_t* px, std::size_t chunk) noexcept
+{
+    if (leftover_.capacity() < chunk) {
+        if (!leftover_.extend(chunk - leftover_.capacity())) {
+            ec = std::make_error_code(std::errc::not_enough_memory);
+            return;
+        }
+    }
+    leftover_.clear();
+    leftover_.put(px, chunk);
+    leftover_.flip();
+}
+
+void charset_converting_channel_funnel::flush_converted_buffer(std::error_code& ec) noexcept
+{
+    cvt_buff_.flip();
+    std::size_t pushed = cvt_buff_.length();
+    while (!ec && 0 != pushed) {
+        std::size_t written = channel_funnel::push(ec, cvt_buff_.position().get(), cvt_buff_.length());
+        cvt_buff_.shift(written);
+        pushed -= written;
+    }
 }
 
 } // namespace io

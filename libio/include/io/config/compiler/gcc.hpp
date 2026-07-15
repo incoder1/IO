@@ -149,7 +149,7 @@
 #	define io_snprintf __builtin_snprintf
 #endif
 
-// in case of intel compiler
+// in case of Intel compiler
 #ifdef __ICC
 #	define io_clz(__x) _lzcnt_u32((__x))
 #	ifdef  __LP64__

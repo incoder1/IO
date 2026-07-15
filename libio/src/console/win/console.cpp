@@ -106,11 +106,14 @@ console::~console() noexcept
 s_funnel console::conv_out_funnel() const
 {
 	std::error_code ec;
+	::CONSOLE_SCREEN_BUFFER_INFO csbi;
+	::GetConsoleScreenBufferInfo(out_handle(), &csbi);
+	std::size_t buffer_size = csbi.dwMaximumWindowSize.X * csbi.dwMaximumWindowSize.Y;
 	io::s_funnel ret = io::charset_converting_channel_funnel::create(ec,
 				s_write_channel(out_),
 				io::code_pages::utf8(),
 				io::code_pages::utf16le(),
-				512 );
+				buffer_size);
 	io::check_error_code(ec);
 	return ret;
 }

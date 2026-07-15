@@ -24,7 +24,6 @@ public:
     void SetUp() override;
 protected:
     io::s_read_channel rch_;
-    io::s_memory_write_channel wch_;
     std::error_code ec_;
 };
 

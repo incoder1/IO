@@ -37,6 +37,9 @@ public:
 	static const char* FORMAT;
 	static const char* EXPECTED_TIME_STR;
 protected:
+	void SetUp() override {
+        ec_.clear();
+    }
 	std::error_code ec_;
 };
 
@@ -44,6 +47,11 @@ class charset_conv_fixture: public testing::Test
 {
 public:
 	charset_conv_fixture();
+protected:
+    void SetUp() override {
+        ec_.clear();
+    }
+    std::error_code ec_;
 };
 
 class hash_fixture: public testing::Test
@@ -63,6 +71,9 @@ class charset_detector_fixture: public testing::Test
 public:
 	charset_detector_fixture();
 protected:
+	void SetUp() override {
+        ec_.clear();
+    }
 	std::error_code ec_;
 };
 

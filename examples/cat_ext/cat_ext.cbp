@@ -13,9 +13,7 @@
 				<Option compiler="gcc" />
 				<Option parameters="utf8-bom.txt" />
 				<Compiler>
-					<Add option="-std=gnu++23" />
-					<Add option="-ggdb" />
-					<Add option="-Og" />
+					<Add option="-std=gnu++26" />
 					<Add option="-g" />
 					<Add option="-fexceptions" />
 					<Add option="-D_WIN32_WINNT=0x0A00" />

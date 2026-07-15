@@ -38,12 +38,12 @@ namespace detail {
 class IO_PUBLIC_SYMBOL mem_block {
 	mem_block(const mem_block&) = delete;
 	mem_block& operator=(const mem_block&) = delete;
-
 public:
 
 	constexpr explicit mem_block(uint8_t* const px) noexcept:
 		px_(px)
 	{}
+
 	constexpr mem_block() noexcept:
 		mem_block(nullptr)
 	{}
@@ -60,12 +60,14 @@ public:
 			memory_traits::free( px_ );
 	}
 
-	mem_block& operator=(mem_block&& rhs) noexcept {
+	mem_block& operator=(mem_block&& rhs) noexcept
+	{
 		mem_block( static_cast<mem_block&&>(rhs) ).swap( *this );
 		return *this;
 	}
 
-	uint8_t* get() const noexcept {
+	uint8_t* get() const noexcept
+	{
 		return px_;
 	}
 
@@ -73,7 +75,8 @@ public:
 
 	static mem_block wrap(const uint8_t* arr,const std::size_t size) noexcept;
 
-	inline void swap(mem_block& with) noexcept {
+	inline void swap(mem_block& with) noexcept
+	{
 		std::swap( px_, with.px_);
 	}
 
@@ -83,10 +86,7 @@ private:
 	uint8_t *px_;
 };
 
-
 } // namespace detail
-
-
 
 /// \brief The buffer iterator
 /// \details Bidirectional dynamic array iterator, STL compatible
@@ -143,16 +143,18 @@ public:
 
 #endif // C++ 17
 
-
-	inline value_type operator*() const noexcept {
+	inline value_type operator*() const noexcept
+	{
 		return *position_;
 	}
 
-	inline pointer get() const noexcept {
+	inline pointer get() const noexcept
+	{
 		return position_;
 	}
 
-	inline const char* cdata() const noexcept {
+	inline const char* cdata() const noexcept
+	{
 		return reinterpret_cast<const char*>(position_);
 	}
 
@@ -162,82 +164,98 @@ public:
 	}
 #endif // IO_HAS_CHAR8_T
 
-	inline byte_buffer_iterator& operator++() noexcept {
+	inline byte_buffer_iterator& operator++() noexcept
+	{
 		++position_;
 		return *this;
 	}
 
-	inline byte_buffer_iterator operator++(int) noexcept {
+	inline byte_buffer_iterator operator++(int) noexcept
+	{
 		byte_buffer_iterator ret( *this );
 		++position_;
 		return ret;
 	}
 
-	inline byte_buffer_iterator& operator--() noexcept {
+	inline byte_buffer_iterator& operator--() noexcept
+	{
 		--position_;
 		return *this;
 	}
 
-	inline byte_buffer_iterator operator--(int) noexcept {
+	inline byte_buffer_iterator operator--(int) noexcept
+	{
 		byte_buffer_iterator ret( *this );
 		--position_;
 		return ret;
 	}
 
-	inline byte_buffer_iterator& operator+=(const difference_type rhs) noexcept {
+	inline byte_buffer_iterator& operator+=(const difference_type rhs) noexcept
+	{
 		position_ += rhs;
 		return *this;
 	}
 
-	inline byte_buffer_iterator& operator-=(const difference_type rhs) noexcept {
+	inline byte_buffer_iterator& operator-=(const difference_type rhs) noexcept
+	{
 		position_ -= rhs;
 		return *this;
 	}
 
-	inline bool operator==(const byte_buffer_iterator& rhs) const noexcept {
+	inline bool operator==(const byte_buffer_iterator& rhs) const noexcept
+	{
 		return position_ == rhs.position_;
 	}
 
-	inline bool operator!=(const byte_buffer_iterator& rhs) const noexcept {
+	inline bool operator!=(const byte_buffer_iterator& rhs) const noexcept
+	{
 		return position_ != rhs.position_;
 	}
 
-	inline bool operator==(byte_buffer_iterator&& rhs) const noexcept {
+	inline bool operator==(byte_buffer_iterator&& rhs) const noexcept
+	{
 		return position_ == rhs.position_;
 	}
 
-	inline bool operator!=(byte_buffer_iterator&& rhs) const noexcept {
+	inline bool operator!=(byte_buffer_iterator&& rhs) const noexcept
+	{
 		return position_ != rhs.position_;
 	}
 
-	inline difference_type operator+(const byte_buffer_iterator& lhs) const noexcept {
+	inline difference_type operator+(const byte_buffer_iterator& lhs) const noexcept
+	{
 		return  reinterpret_cast<difference_type>(position_) +
 				reinterpret_cast<difference_type>(lhs.position_);
 	}
 
-	inline difference_type operator-(const byte_buffer_iterator& lhs) const noexcept {
+	inline difference_type operator-(const byte_buffer_iterator& lhs) const noexcept
+	{
 		return reinterpret_cast<difference_type>(position_)
 			   - reinterpret_cast<difference_type>(lhs.position_);
 	}
 
-
-	inline difference_type operator+(byte_buffer_iterator&& lhs) const noexcept {
+	inline difference_type operator+(byte_buffer_iterator&& lhs) const noexcept
+	{
 		return  reinterpret_cast<difference_type>(position_) +
 				reinterpret_cast<difference_type>(lhs.position_);
 	}
 
-	inline difference_type operator-(byte_buffer_iterator&& lhs) const noexcept {
+	inline difference_type operator-(byte_buffer_iterator&& lhs) const noexcept
+	{
 		return reinterpret_cast<difference_type>(position_)
 			   - reinterpret_cast<difference_type>(lhs.position_);
 	}
 
-	inline bool operator<(const byte_buffer_iterator& rhs) const noexcept {
+	inline bool operator<(const byte_buffer_iterator& rhs) const noexcept
+	{
 		return  position_ < rhs.position_;
 	}
 
-	inline bool operator>(const byte_buffer_iterator& rhs) const noexcept {
+	inline bool operator>(const byte_buffer_iterator& rhs) const noexcept
+	{
 		return  position_ > rhs.position_;
 	}
+
 private:
 	pointer position_;
 };
@@ -254,7 +272,85 @@ private:
 	uint8_t* reallocated_block(std::size_t size) noexcept;
 
 public:
+
 	typedef byte_buffer_iterator iterator;
+
+	/// Allocate a memory block for buffer from heap
+	/// \param ec operation error code, will have out of memory in case of error
+	/// \param capacity buffer capacity in bytes
+	/// \return new buffer, or empty buffer if no more memory left
+	static byte_buffer allocate(std::error_code& ec, std::size_t capacity) noexcept;
+
+	/// Wrap C style zero ending string to buffer
+#ifdef IO_HAS_CONNCEPTS
+	template <typename __char_type>
+		requires( is_charater_v<__char_type> )
+#else
+	template <
+		typename __char_type,
+  		typename std::enable_if<
+			is_charater<__char_type>::value
+		>::type* = nullptr>
+#endif // IO_HAS_CONNCEPTS
+	static inline byte_buffer wrap(std::error_code& ec, const __char_type* str) noexcept
+	{
+    	typedef std::char_traits<__char_type> traits;
+		return wrap(ec, str, traits::length(str) + 1);
+	}
+
+	/// Allocate a memory block from heap, and deep copy array of fundamental or trivial type
+	/// \param T fundamental or trivial type
+	/// \param arr pointer to the array first element
+	/// \param size array length
+	/// \return new buffer, or empty buffer if no more memory left
+#ifdef IO_HAS_CONNCEPTS
+	template<typename T>
+		requires(std::is_fundamental_v<T> || std::is_trivially_copyable_v<T>)
+#else
+	template<
+		typename T,
+		typename std::enable_if<
+			std::is_fundamental<T>::value ||
+			std::is_trivially_copyable<T>::value
+		>::type* = nullptr
+	>
+#endif // IO_HAS_CONNCEPTS
+	static inline byte_buffer wrap(std::error_code& ec, const T* arr, std::size_t size) noexcept
+	{
+		if(0 != size) {
+			const std::size_t new_capacity = size * sizeof(T);
+			detail::mem_block mb = detail::mem_block::wrap( reinterpret_cast<const uint8_t*>(arr), new_capacity );
+			if( nullptr != mb.get() ) {
+				byte_buffer ret( std::move(mb), new_capacity );
+				ret.move(new_capacity);
+				ret.flip();
+				return ret;
+			}
+			ec = std::make_error_code(std::errc::not_enough_memory);
+		}
+		return byte_buffer();
+	}
+
+#ifdef IO_HAS_CONNCEPTS
+	template<typename T>
+		requires(std::is_fundamental_v<T> || std::is_trivially_copyable_v<T>)
+#else
+	template<
+		typename T,
+		typename std::enable_if<
+			std::is_fundamental<T>::value ||
+			std::is_trivially_copyable<T>::value
+		>::type* = nullptr
+	>
+#endif // IO_HAS_CONNCEPTS
+	static byte_buffer wrap(std::error_code& ec, const T* begin, const T* end) noexcept
+	{
+		if(end <= begin) {
+			ec = std::make_error_code(std::errc::argument_out_of_domain);
+			return byte_buffer();
+		}
+		return wrap( ec, begin, memory_traits::distance(begin,end) );
+	}
 
 	/// Constructs an empty byte buffer without allocating any memory
 	/// \see #allocate
@@ -272,7 +368,8 @@ public:
 
 	/// Movement assignment operator (shallow copy)
 	/// \param rhs buffer to move
-	byte_buffer& operator=(byte_buffer&& rhs) noexcept {
+	byte_buffer& operator=(byte_buffer&& rhs) noexcept
+	{
 		byte_buffer( std::forward<byte_buffer>(rhs) ).swap( *this );
 		return *this;
 	}
@@ -355,13 +452,14 @@ public:
 	/// Puts single byte into this buffer current position, and increses buffer position and last
 	/// \param byte a byte to put
 	/// \return true whether byte was put and false if buffer was full before put attempt
-	inline bool put(uint8_t byte) noexcept {
-		if( io_likely( !full() ) ) {
+	inline bool put(uint8_t byte) noexcept
+	{
+		bool ret  = !full();
+		if( ret ) {
 			*position_ = byte;
 			last_ = (++position_) + 1;
-			return true;
 		}
-		return false;
+		return ret;
 	}
 
 	/// Puts single character into this buffer current position, and increment buffer position and last
@@ -370,6 +468,71 @@ public:
 	inline bool put(char ch) noexcept
 	{
 		return put( static_cast<uint8_t>(ch) );
+	}
+
+		/// Puts continues memory block (an array) into this buffer.
+	/// If memory block size larger then available bytes returns 0 and don't puts anything into this buffer
+	/// \param begin of memory block first byte
+	/// \param end address of memory block last byte, must be larger then begin
+	/// \return count of bytes put in this buffer, or 0 if memory block is to large end <= begin
+	inline std::size_t put(const uint8_t* begin,const uint8_t* const end) noexcept
+	{
+		return (io_unlikely(end <= begin) ) ? 0 : put( begin, memory_traits::distance(begin,end) );
+	}
+
+	/// Puts continues memory block (an array) into this buffer.
+	/// If memory block size larger then available bytes returns 0 and not puts anything into this buffer
+	/// \param arr address of memory block first byte
+	/// \param count count of bytes to copy from array
+	/// \return count of bytes put in this buffer, or 0 if memory block is to large
+	std::size_t put(const uint8_t* arr,const std::size_t count) noexcept;
+
+	/// Puts content between position and last bytes from another buffer
+	/// \return count of bytes put from another buffer, or 0 if not enough available space in this buffer
+	inline std::size_t put(const byte_buffer& other) noexcept
+	{
+		return ( available() < other.length() ) ? 0 : put( other.position_, other.last_ );
+	}
+
+	/// Puts continues memory block (an array) into this buffer.
+	/// If memory block size larger then available bytes returns 0 and not puts anything into this buffer
+	/// \param arr address of memory block first element
+	/// \param count count of element to copy from array
+	/// \return count of elements put in this buffer, or 0 if memory block is to large
+#ifdef IO_HAS_CONNCEPTS
+	template<typename T>
+		requires( std::is_fundamental_v<T> || std::is_trivial_v<T> )
+#else
+	template <
+		typename T,
+		typename std::enable_if<
+				std::is_fundamental<T>::value ||
+				std::is_trivial<T>::value
+			>::type* = 0
+	>
+#endif // IO_HAS_CONNCEPTS
+	inline std::size_t put(const T* arr, std::size_t count) noexcept
+	{
+		return put( reinterpret_cast<const uint8_t*>(arr), ( count * sizeof(T) ) ) / sizeof(T);
+	}
+
+#ifdef IO_HAS_CONNCEPTS
+	template<typename __char_type>
+		requires( is_charater_v<__char_type> )
+#else
+	template <
+		typename __char_type,
+		typename std::enable_if<
+				is_charater<__char_type>::value
+		>::type* = 0
+	>
+#endif // IO_HAS_CONNCEPTS
+	inline std::size_t put(const __char_type* cstr) noexcept
+	{
+		return
+			(nullptr != cstr && static_cast<__char_type>('\0') != cstr[0] )
+			? put( cstr, std::char_traits<__char_type>::length(cstr) )
+			: 0;
 	}
 
 	/// Moves buffer current position on offset bytes and set last on position+1
@@ -391,79 +554,17 @@ public:
 			clear();
 	}
 
-	/// Puts continues memory block (an array) into this buffer.
-	/// If memory block size larger then available bytes returns 0 and don't puts anything into this buffer
-	/// \param begin of memory block first byte
-	/// \param end address of memory block last byte, must be larger then begin
-	/// \return count of bytes put in this buffer, or 0 if memory block is to large end <= begin
-	inline std::size_t put(const uint8_t* begin,const uint8_t* const end) noexcept {
-		return (io_unlikely(end <= begin) ) ? 0 : put( begin, memory_traits::distance(begin,end) );
-	}
-
-	/// Puts continues memory block (an array) into this buffer.
-	/// If memory block size larger then available bytes returns 0 and not puts anything into this buffer
-	/// \param arr address of memory block first byte
-	/// \param count count of bytes to copy from array
-	/// \return count of bytes put in this buffer, or 0 if memory block is to large
-	std::size_t put(const uint8_t* arr,const std::size_t count) noexcept;
-
-	/// Puts continues memory block (an array) into this buffer.
-	/// If memory block size larger then available bytes returns 0 and not puts anything into this buffer
-	/// \param arr address of memory block first element
-	/// \param count count of element to copy from array
-	/// \return count of elements put in this buffer, or 0 if memory block is to large
-
-#ifdef IO_HAS_CONNCEPTS
-template<typename T>
-	requires( std::is_fundamental_v<T> || std::is_trivial_v<T> )
-#else
-template <
-	typename T,
-	typename std::enable_if<
-				std::is_fundamental<T>::value ||
-				std::is_trivial<T>::value
-			>::type* = 0
->
-#endif // __IO_BUFFER_HPP_INCLUDED__
-	inline std::size_t put(const T* arr, std::size_t count) noexcept
-	{
-		return put( reinterpret_cast<const uint8_t*>(arr), ( count * sizeof(T) ) ) / sizeof(T);
-	}
-
-#ifdef IO_HAS_CONNCEPTS
-template<typename __CHAR_TYPE>
-	requires( is_charater_v<__CHAR_TYPE> )
-#else
-template <
-	typename __CHAR_TYPE,
-	typename std::enable_if<
-				is_charater<__CHAR_TYPE>::value
-			>::type* = 0
->
-#endif
-	inline std::size_t put(const __CHAR_TYPE* cstr) noexcept
-	{
-		return
-			(nullptr != cstr && static_cast<__CHAR_TYPE>('\0') != cstr[0] )
-			? put( cstr, std::char_traits<__CHAR_TYPE>::length(cstr) )
-			: 0;
-	}
-
-	/// Puts content between position and last bytes from another buffer
-	/// \return count of bytes put from another buffer, or 0 if not enough available space in this buffer
-	inline std::size_t put(const byte_buffer& other) noexcept {
-		return ( available() < other.length() ) ? 0 : put( other.position_, other.last_ );
-	}
-
 	/// Sets position and last iterator to the buffer's first byte
-	inline void clear() noexcept {
+	inline void clear() noexcept
+	{
 		position_ = arr_.get();
 		last_ = position_ + 1;
 	}
 
 	/// Swaps this buffer with another buffer
 	/// \param other another buffer reference to swap with
-	void swap(byte_buffer& other) noexcept {
+	void swap(byte_buffer& other) noexcept
+	{
 		arr_.swap(other.arr_);
 		std::swap(capacity_, other.capacity_);
 		std::swap(position_, other.position_);
@@ -486,62 +587,12 @@ template <
 	/// \return true buffer was extended, false if not enough available memory
 	bool ln_grow() noexcept;
 
-	/// Allocate a memory block for buffer from heap
-	/// \param ec operation error code, will have out of memory in case of error
-	/// \param capacity buffer capacity in bytes
-	/// \return new buffer, or empty buffer if no more memory left
-	static byte_buffer allocate(std::error_code& ec, std::size_t capacity) noexcept;
-
-	/// Allocate a memory block from heap, and deep copy array of fundamental or trivial type
-	/// \param T fundamental or trivial type
-	/// \param arr pointer to the array first element
-	/// \param size array length
-	/// \return new buffer, or empty buffer if no more memory left
-	template<typename T>
-	static inline byte_buffer wrap(std::error_code& ec, const T* arr, std::size_t size) noexcept {
-		static_assert( std::is_fundamental<T>::value || std::is_trivial<T>::value, "Must be an array of trivial or fundamental type" );
-		if(0 != size) {
-			const std::size_t new_capacity = size * sizeof(T);
-			detail::mem_block mb = detail::mem_block::wrap( reinterpret_cast<const uint8_t*>(arr), new_capacity );
-			if( nullptr != mb.get() ) {
-				byte_buffer ret( std::move(mb), new_capacity );
-				ret.move(new_capacity);
-				ret.flip();
-				return ret;
-			}
-			ec = std::make_error_code(std::errc::not_enough_memory);
-		}
-		return byte_buffer();
-	}
-
-	template<typename T>
-	static byte_buffer wrap(std::error_code& ec, const T* begin,const T* end) noexcept {
-		static_assert( std::is_fundamental<T>::value || std::is_trivial<T>::value, "Must be an array of trivail or fundamental type" );
-		if(end <= begin) {
-			ec = std::make_error_code(std::errc::argument_out_of_domain);
-			return byte_buffer();
-		}
-		return wrap( ec, begin, memory_traits::distance(begin,end) );
-	}
-
-	/// Wrap C style zero ending string to buffer
-
-	template<typename __char_type>
-	static inline byte_buffer wrap(std::error_code& ec, const __char_type* str) noexcept {
-		static_assert( !std::is_same<__char_type, bool>::value && std::numeric_limits<__char_type>::is_integer, "__char_type must be integer type, and not bool");
-		typedef std::char_traits<__char_type> traits;
-		// for C style ending + 1
-		return wrap( ec,  str, traits::length(str)+1 );
-	}
-
 private:
 	detail::mem_block arr_;
 	std::size_t capacity_;
 	uint8_t* position_;
 	uint8_t* last_;
 };
-
-
 
 } // namespace io
 

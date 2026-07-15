@@ -17,8 +17,7 @@
 					<Add option="-Wunreachable-code" />
 					<Add option="-Weffc++" />
 					<Add option="-pedantic" />
-					<Add option="-std=gnu++23" />
-					<Add option="-ggdb" />
+					<Add option="-std=gnu++26" />
 					<Add option="-Og" />
 					<Add option="-g" />
 					<Add option="-fchar8_t" />
@@ -48,7 +47,7 @@
 					<Add option="-Weffc++" />
 					<Add option="-pedantic" />
 					<Add option="-Wall" />
-					<Add option="-std=gnu++23" />
+					<Add option="-std=gnu++26" />
 					<Add option="-fchar8_t" />
 					<Add option="-fno-exceptions" />
 					<Add option="-fno-rtti" />
